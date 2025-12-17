@@ -32,6 +32,54 @@ Preview the production build:
 npm run docs:preview
 ```
 
+## Production Deployment with PM2
+
+### 1. Install dependencies
+
+```bash
+npm install
+```
+
+### 2. Build the documentation
+
+```bash
+npm run docs:build
+```
+
+### 3. Start with PM2
+
+```bash
+# Start docs server
+pm2 start ecosystem.config.js
+
+# Save PM2 configuration
+pm2 save
+
+# Setup PM2 to start on system boot (optional)
+pm2 startup
+```
+
+### 4. PM2 Commands
+
+```bash
+# View status
+pm2 status
+
+# View logs
+pm2 logs docs
+
+# Restart
+pm2 restart docs
+
+# Stop
+pm2 stop docs
+
+# Delete
+pm2 delete docs
+```
+
+The docs will be available at `http://localhost:4173`
+
 ## Structure
 
 ```
