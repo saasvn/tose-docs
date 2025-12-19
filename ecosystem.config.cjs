@@ -2,7 +2,7 @@
  * PM2 Ecosystem Configuration for Docs
  * 
  * Usage:
- *   pm2 start ecosystem.config.js
+ *   pm2 start ecosystem.config.cjs
  *   pm2 save
  *   pm2 startup
  */
@@ -13,7 +13,7 @@ module.exports = {
       name: 'docs',
       script: 'npx',
       args: 'serve .vitepress/dist -l 4173 -s',
-      cwd: '/Users/thinhnguyen/Desktop/tose/docs',
+      cwd: '/home/deploy/tose-docs',
       instances: 1,
       exec_mode: 'fork',
       env: {

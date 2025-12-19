@@ -40,7 +40,8 @@ export default defineConfig({
             items: [
               { text: 'Configuration File', link: '/guide/configuration' },
               { text: 'Environment Variables', link: '/guide/environment' },
-              { text: 'Git Integration', link: '/guide/git' }
+              { text: 'Git Integration', link: '/guide/git' },
+              { text: 'Dockerfile Examples', link: '/guide/dockerfile' }
             ]
           },
           {
@@ -97,7 +98,8 @@ export default defineConfig({
             items: [
               { text: 'File cấu hình', link: '/vi/guide/configuration' },
               { text: 'Biến môi trường', link: '/vi/guide/environment' },
-              { text: 'Tích hợp Git', link: '/vi/guide/git' }
+              { text: 'Tích hợp Git', link: '/vi/guide/git' },
+              { text: 'Ví dụ Dockerfile', link: '/vi/guide/dockerfile' }
             ]
           },
           {
