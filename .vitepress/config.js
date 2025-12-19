@@ -20,7 +20,7 @@ export default defineConfig({
           {
             text: 'Introduction',
             items: [
-              { text: 'What is TOSE CLI?', link: '/guide/introduction' },
+              { text: 'What is TOSE CLI?', link: '/' },
               { text: 'Getting Started', link: '/guide/getting-started' },
               { text: 'Installation', link: '/guide/installation' }
             ]
