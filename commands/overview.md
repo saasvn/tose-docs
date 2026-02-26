@@ -1,376 +1,270 @@
 # Commands Overview
 
-TOSE CLI provides four main commands for managing your deployments. This page gives you an overview of all available commands and their usage.
+TOSE CLI provides a comprehensive set of commands for deploying and managing your applications. This page gives you a complete reference of all available commands.
 
-## Available Commands
+## Global Options
 
-| Command | Description | Common Use Case |
-|---------|-------------|-----------------|
-| [`tose up`](/commands/up) | Deploy or manage project | Initial deployment, redeployment, config updates |
-| [`tose status`](/commands/status) | Check deployment status | Monitor deployment health and progress |
-| [`tose logs`](/commands/logs) | View deployment logs | Debug issues, monitor application output |
-| [`tose down`](/commands/down) | Stop deployment | Stop running deployments |
-
-## Command Structure
-
-All TOSE CLI commands follow this pattern:
+These options are available on **all** commands:
 
 ```bash
-tose <command> [options]
+--json                 # Output JSON (for scripting and AI agents)
+-y, --yes              # Skip confirmation prompts
+--api-key <key>        # Override API key
+--workspace <slug>     # Override workspace
+--project <slug>       # Override project
+-V, --version          # Output version number
+-h, --help             # Display help for command
 ```
 
-### Global Options
+## Command Reference
 
-These options work with all commands:
+### Authentication
+
+| Command | Description |
+|---------|-------------|
+| [`tose login`](/commands/login) | Save and verify your API key |
+| [`tose logout`](/commands/login#tose-logout) | Remove stored credentials |
+| [`tose whoami`](/commands/login#tose-whoami) | Show current user and workspace info |
+
+### Project Context
+
+| Command | Description |
+|---------|-------------|
+| [`tose init`](/commands/init) | Link current directory to a TOSE project |
+| [`tose use`](/commands/init#tose-use) | Set the active project globally |
+
+### Deployment
+
+| Command | Description |
+|---------|-------------|
+| [`tose up`](/commands/up) | Smart deploy: auto-init, git connect, and deploy |
+| [`tose deploy`](/commands/deploy) | Trigger a new deployment |
+| [`tose redeploy`](/commands/deploy#tose-redeploy) | Redeploy with current config (no rebuild) |
+| [`tose down`](/commands/down) | Stop current deployment |
+| [`tose restart`](/commands/down#tose-restart) | Restart pods without redeploying |
+
+### Monitoring
+
+| Command | Description |
+|---------|-------------|
+| [`tose status`](/commands/status) | Show project status and pod health |
+| [`tose logs`](/commands/logs) | View build or live logs |
+| [`tose open`](/commands/open) | Open project URL in browser |
+
+### Environment Variables
+
+| Command | Description |
+|---------|-------------|
+| [`tose env list`](/commands/env) | List environment variables |
+| [`tose env set`](/commands/env#tose-env-set) | Set one or more variables |
+| [`tose env rm`](/commands/env#tose-env-rm) | Remove variables |
+| [`tose env push`](/commands/env#tose-env-push) | Push .env file to project |
+| [`tose env pull`](/commands/env#tose-env-pull) | Pull variables to local .env file |
+
+### Domains
+
+| Command | Description |
+|---------|-------------|
+| [`tose domain list`](/commands/domain) | List custom domains |
+| [`tose domain add`](/commands/domain#tose-domain-add) | Add a custom domain |
+| [`tose domain rm`](/commands/domain#tose-domain-rm) | Remove a custom domain |
+
+### Databases
+
+| Command | Description |
+|---------|-------------|
+| [`tose db list`](/commands/db) | List databases in workspace |
+| [`tose db create`](/commands/db#tose-db-create) | Create a new database |
+| [`tose db info`](/commands/db#tose-db-info) | Show database connection info |
+
+### Utilities
+
+| Command | Description |
+|---------|-------------|
+| [`tose generate`](/commands/generate) | Generate Dockerfile using AI |
+
+## Quick Start
 
 ```bash
--V, --version    # Output the version number
--h, --help       # Display help for command
-```
+# 1. Login
+tose login
 
-## Quick Reference
-
-### Deploy Application
-
-```bash
-# Interactive deployment
+# 2. Navigate to your project and deploy
+cd my-app
 tose up
 
-# Get help
-tose up --help
-```
-
-### Check Status
-
-```bash
-# Interactive project selection
+# 3. Monitor
 tose status
+tose logs --build -f
 
-# Check specific project
-tose status --project my-app
-
-# Check all projects
-tose status --all
+# 4. Manage env vars
+tose env set NODE_ENV=production PORT=3000
+tose env list
 ```
 
-### View Logs
+## Common Workflows
+
+### First Deployment
 
 ```bash
-# Interactive deployment selection
-tose logs
-
-# View specific project logs
-tose logs --project my-app
-
-# View last 50 lines
-tose logs -n 50
-
-# Stream logs in real-time
-tose logs --follow
-
-# View specific deployment
-tose logs --deployment dep_abc123
-```
-
-### Stop Deployment
-
-```bash
-# Interactive stop with confirmation
-tose down
-
-# Force stop without confirmation
-tose down --force
-
-# Stop specific project
-tose down --project my-app
-```
-
-## Command Workflows
-
-### Initial Deployment Workflow
-
-```bash
-# 1. Navigate to your project
-cd /path/to/your/project
-
-# 2. Deploy
+cd /path/to/your-app
 tose up
+```
 
-# 3. Monitor status
+`tose up` handles everything automatically:
+
+```
+No project linked. Setting up...
+
+Using workspace: my-workspace
+Fetching projects...
+? Select project: Create new project
+? Project name: my-app
+✓ Project "my-app" created
+
+Linked to my-workspace/my-app
+
+Detected git repo: username/my-app (main)
+✓ Git connected: username/my-app (main)
+Using server: TOSE Cloud
+✓ Server assigned
+
+Found 1 .env file(s). Push environment variables? Yes
+✓ Pushing 5 variables...
+✓ 5 variables pushed
+
+✓ Deploying...
+✓ Deployment triggered
+  Deployment ID: dep_abc123
+  Status: pending
+  URL: https://my-app.tose.sh
+
+Stream build logs with: tose logs --build -f
+```
+
+### Update and Redeploy
+
+```bash
+git push origin main
+tose deploy
+```
+
+```
+✓ Deploying my-workspace/my-app...
+✓ Deployment triggered
+  Deployment ID: dep_xyz789
+  Status: pending
+  Commit: a1b2c3d
+
+Stream build logs with: tose logs --build -f
+```
+
+### Manage Environment
+
+```bash
+# Set variables
+tose env set DATABASE_URL=postgres://... API_SECRET=mysecret
+
+# Push from .env file
+tose env push .env.production
+
+# Pull to local file
+tose env pull .env.local
+```
+
+### Monitor and Debug
+
+```bash
+# Check status with pod health
 tose status
 
-# 4. View logs
-tose logs
+# Stream build logs
+tose logs --build -f
+
+# Stream live application logs
+tose logs -f
+
+# Open in browser
+tose open
 ```
 
-### Update Configuration Workflow
+## Context Resolution
+
+TOSE CLI resolves workspace and project context from multiple sources, in order of priority:
+
+### Workspace
+
+1. Positional argument (e.g., `tose deploy ws/proj`)
+2. `--workspace` flag
+3. `TOSE_WORKSPACE` environment variable
+4. `.tose.json` in current directory
+5. Active workspace (set via `tose use`)
+6. Config default workspace
+7. Interactive prompt
+
+### Project
+
+1. Positional argument (e.g., `tose deploy ws/proj`)
+2. `--project` flag
+3. `TOSE_PROJECT` environment variable
+4. `.tose.json` in current directory
+5. Active project (set via `tose use`)
+6. Interactive prompt
+
+### API Key
+
+1. `--api-key` flag
+2. `TOSE_API_KEY` environment variable
+3. `~/.tose/config.json`
+4. Interactive prompt
+
+## JSON Output
+
+All commands support `--json` for machine-readable output:
 
 ```bash
-# 1. Run up command
-tose up
-
-# 2. Select "Update configuration"
-
-# 3. Update env vars or settings
-
-# 4. Check status
-tose status
+tose status --json
 ```
 
-### Redeploy Workflow
+**Success response:**
 
-```bash
-# 1. Trigger redeployment
-tose up
-
-# 2. Select "Redeploy with new configuration"
-
-# 3. Monitor progress
-tose logs --follow
+```json
+{
+  "success": true,
+  "data": { ... }
+}
 ```
 
-### Debug Workflow
+**Error response:**
 
-```bash
-# 1. Check status
-tose status --project my-app
-
-# 2. View recent logs
-tose logs --project my-app -n 100
-
-# 3. Stream logs if needed
-tose logs --project my-app --follow
+```json
+{
+  "success": false,
+  "error": {
+    "message": "Error description",
+    "code": "ERROR_CODE"
+  }
+}
 ```
 
-## Interactive vs Flag-Based Usage
+## Environment Variables
 
-TOSE CLI supports both interactive prompts and command-line flags.
-
-### Interactive Mode (Recommended)
-
-Run commands without flags for guided setup:
-
-```bash
-tose status
-```
-
-The CLI will prompt you to:
-1. Select workspace (if multiple)
-2. Select project
-3. View results
-
-### Flag-Based Mode
-
-Use flags for scripting or quick access:
-
-```bash
-tose status --project my-app
-tose logs --project my-app -n 50
-tose down --project my-app --force
-```
-
-## Command Help
-
-Get help for any command:
-
-```bash
-# General help
-tose --help
-
-# Command-specific help
-tose up --help
-tose status --help
-tose logs --help
-tose down --help
-```
-
-## Command Aliases
-
-Currently, TOSE CLI doesn't support command aliases, but you can create shell aliases:
-
-```bash
-# Add to ~/.bashrc or ~/.zshrc
-alias tup='tose up'
-alias tstatus='tose status'
-alias tlogs='tose logs'
-alias tdown='tose down'
-```
+| Variable | Description |
+|----------|-------------|
+| `TOSE_API_KEY` | Override API key |
+| `TOSE_API_URL` | Override API base URL (default: `https://api-v2.tose.sh`) |
+| `TOSE_WORKSPACE` | Override workspace slug |
+| `TOSE_PROJECT` | Override project slug |
 
 ## Exit Codes
-
-TOSE CLI uses standard exit codes:
 
 | Code | Meaning |
 |------|---------|
 | 0 | Success |
 | 1 | General error |
-| 2 | Invalid usage/arguments |
-
-Check exit code in scripts:
-
-```bash
-tose status
-if [ $? -eq 0 ]; then
-  echo "Success"
-else
-  echo "Failed"
-fi
-```
-
-## Environment Variables
-
-TOSE CLI respects these environment variables:
-
-### `TOSE_API_URL`
-
-Override the default API URL:
-
-```bash
-export TOSE_API_URL=https://custom-api.tose.sh
-tose up
-```
-
-### Standard Variables
-
-- `HOME` - Used for config file location (`~/.tose/`)
-- `CI` - Detected in CI environments
-- `NO_COLOR` - Disable colored output
-
-## Configuration File
-
-TOSE CLI stores configuration at:
-
-```bash
-~/.tose/config.json
-```
-
-Example content:
-
-```json
-{
-  "apiKey": "ws_xxxxxxxxxxxxx",
-  "workspaceId": "ws_123456",
-  "baseUrl": "https://api.tose.sh"
-}
-```
-
-To reset configuration:
-
-```bash
-rm ~/.tose/config.json
-tose up  # Will prompt for API key again
-```
-
-## Common Patterns
-
-### CI/CD Integration
-
-Use in your CI/CD pipeline:
-
-```yaml
-# GitHub Actions example
-- name: Deploy to TOSE
-  env:
-    TOSE_API_KEY: ${{ secrets.TOSE_API_KEY }}
-  run: |
-    npm install -g @tosesh/tose
-    # Store API key
-    mkdir -p ~/.tose
-    echo '{"apiKey":"'$TOSE_API_KEY'"}' > ~/.tose/config.json
-    # Deploy
-    tose up
-```
-
-### Automated Status Checks
-
-Monitor deployments:
-
-```bash
-#!/bin/bash
-# check-status.sh
-
-tose status --project my-app > /tmp/status.txt
-
-if grep -q "Running" /tmp/status.txt; then
-  echo "✓ Deployment is running"
-  exit 0
-else
-  echo "✗ Deployment issue detected"
-  exit 1
-fi
-```
-
-### Log Aggregation
-
-Save logs for analysis:
-
-```bash
-# Save last 1000 lines
-tose logs --project my-app -n 1000 > logs-$(date +%Y%m%d).txt
-
-# Stream to file
-tose logs --project my-app --follow >> continuous-logs.txt
-```
-
-## Best Practices
-
-### 1. Use Interactive Mode for First-Time Setup
-
-Interactive prompts help you understand options:
-
-```bash
-tose up  # Guides you through all options
-```
-
-### 2. Use Flags for Automation
-
-Flags work better in scripts:
-
-```bash
-tose status --project my-app
-```
-
-### 3. Check Status After Deployment
-
-Always verify successful deployment:
-
-```bash
-tose up && tose status
-```
-
-### 4. Monitor Logs During Deployment
-
-Watch deployment progress:
-
-```bash
-tose up
-# In another terminal
-tose logs --follow
-```
-
-### 5. Store API Keys Securely
-
-Don't hardcode API keys:
-
-```bash
-# Good: Use environment variables
-export TOSE_API_KEY=$(cat ~/.secrets/tose-key)
-
-# Bad: Hardcode in scripts
-TOSE_API_KEY="ws_123..."  # Don't do this
-```
 
 ## Next Steps
 
-Explore each command in detail:
-
-- [tose up](/commands/up) - Complete deployment guide
-- [tose status](/commands/status) - Status monitoring
-- [tose logs](/commands/logs) - Log viewing and streaming
-- [tose down](/commands/down) - Stopping deployments
-
-Or learn about:
-
-- [Configuration](/guide/configuration) - Configure TOSE CLI
-- [Git Integration](/guide/git) - Set up Git workflows
-- [Environment Variables](/guide/environment) - Manage env vars
+- [Installation](/guide/installation) - Install TOSE CLI
+- [Getting Started](/guide/getting-started) - Deploy your first app
+- [Configuration](/guide/configuration) - Configuration reference

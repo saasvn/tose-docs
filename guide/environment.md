@@ -1,328 +1,188 @@
 # Environment Variables
 
-Manage environment variables in your deployments with TOSE CLI.
+Manage environment variables for your TOSE deployments.
 
 ## Overview
 
-TOSE CLI provides powerful environment variable management with:
+TOSE CLI provides a complete set of commands for managing environment variables:
 
-- Multi-file `.env` support
-- Automatic file detection
-- Intelligent merging with conflict detection
-- Sensitive value masking
-- File categorization
+- **`tose env list`** - View all variables
+- **`tose env set`** - Set variables from the command line
+- **`tose env rm`** - Remove variables
+- **`tose env push`** - Upload from a local .env file
+- **`tose env pull`** - Download to a local .env file
 
-## .env File Support
+## Quick Start
 
-### Supported File Patterns
-
-TOSE CLI automatically detects these file patterns:
-
-```
-.env
-.env.local
-.env.development
-.env.production
-.env.staging
-.env.test
-```
-
-### File Discovery
-
-TOSE CLI searches your project directory recursively:
+### Set Variables
 
 ```bash
-$ tose up
+$ tose env set NODE_ENV=production PORT=3000 DATABASE_URL=postgres://...
 
-✓ Found 3 .env files:
-  - .env (5 variables)
-  - .env.local (3 variables)
-  - .env.production (12 variables)
+✓ Set 3 variable(s)
 ```
 
-## Multi-File Selection
-
-Select one or multiple files:
+### View Variables
 
 ```bash
-? Select .env files to include:
-  ❯◉ .env (5 variables)
-   ◉ .env.production (12 variables)
-   ◯ .env.local (3 variables)
+$ tose env list
+
+KEY                          VALUE                                    SECRET
+DATABASE_URL                 postgresql://user:pass@host/db           no
+NODE_ENV                     production                               no
+PORT                         3000                                     no
+API_KEY                      ****...                                  yes
 ```
 
-**Navigation:**
-- Use arrow keys to navigate
-- Press Space to select/deselect
-- Press Enter to confirm
+### Push from .env File
 
-## File Merging
+```bash
+$ tose env push .env.production
 
-### Merge Order
-
-Files are merged in selection order. Later files override earlier ones:
-
-```
-.env           →  BASE_URL=http://localhost
-.env.production →  BASE_URL=https://api.prod.com  (overrides)
+✓ Pushing 8 variables to my-app...
+✓ 8 variables pushed
 ```
 
-Result: `BASE_URL=https://api.prod.com`
+### Pull to Local File
 
-### Conflict Detection
+```bash
+$ tose env pull .env.local
 
-TOSE CLI warns about conflicts:
-
-```
-⚠️  Conflicts detected:
-  - BASE_URL (defined in .env and .env.production)
-  - API_KEY (defined in .env.local and .env.production)
+✓ Fetching environment variables...
+Pulled 8 variables to .env.local
 ```
 
-## Variable Preview
+## .env File Format
 
-Preview variables before deployment:
+TOSE CLI parses standard `.env` file format:
 
+```bash
+# Comments are ignored
+KEY=value
+ANOTHER_KEY=value with spaces
+
+# Quoted values (quotes are stripped)
+QUOTED="value in double quotes"
+SINGLE='value in single quotes'
+
+# URLs and special characters work fine
+DATABASE_URL=postgresql://user:pass@host:5432/db
+API_URL=https://api.example.com/v1
 ```
-Environment Variables (13 total):
 
-NODE_ENV=production
-API_URL=https://api.example.com
-DATABASE_URL=postgres://... (masked)
-JWT_SECRET=****** (masked)
-PORT=3000
-LOG_LEVEL=info
-... (7 more variables)
+## Push vs Set
+
+| Feature | `tose env push` | `tose env set` |
+|---------|-----------------|----------------|
+| Source | .env file | Command-line args |
+| Multiple values | All from file at once | Space-separated pairs |
+| Replace mode | `--replace` flag available | Always merge |
+| Best for | Bulk import | Quick updates |
+
+## Merge vs Replace
+
+By default, `tose env push` uses **merge** mode:
+- New keys are added
+- Existing keys are updated
+- Keys not in the file are preserved
+
+With `--replace`, all existing variables are removed and replaced with the file contents:
+
+```bash
+# Merge (default) - preserves existing vars
+tose env push .env.production
+
+# Replace - removes all vars, sets only what's in file
+tose env push .env.production --replace
 ```
 
 ## Sensitive Value Masking
 
-TOSE CLI automatically masks sensitive values containing:
+TOSE CLI automatically masks sensitive values in the `tose env list` output. Keys containing these patterns are masked:
 
 - `PASSWORD`
 - `SECRET`
 - `TOKEN`
-- `API_KEY`
-- `PRIVATE_KEY`
-- `AUTH`
-- `CREDENTIAL`
+- `KEY` (API_KEY, PRIVATE_KEY, etc.)
 
-Example:
+```
+KEY                   VALUE                SECRET
+DATABASE_URL          postgresql://...     no
+API_KEY               ****...              yes
+JWT_SECRET            ****...              yes
+PORT                  3000                 no
+```
+
+Long values (>50 chars) are also truncated with `...`.
+
+## Workflows
+
+### Development to Production
 
 ```bash
-# Visible
-PORT=3000
-NODE_ENV=production
+# Develop locally with .env
+echo "NODE_ENV=development" > .env
+echo "PORT=3000" >> .env
 
-# Masked
-DATABASE_PASSWORD=****** (masked)
-JWT_SECRET=****** (masked)
-API_KEY=****** (masked)
+# Push production config
+tose env push .env.production
+
+# Verify
+tose env list
 ```
 
-## Best Practices
+### Sync Across Projects
 
-### 1. File Organization
+```bash
+# Pull from staging
+tose env pull .env.staging --workspace my-ws --project staging
+
+# Push to production
+tose env push .env.staging --workspace my-ws --project production
+```
+
+### CI/CD
+
+```bash
+# Set secrets in CI pipeline
+tose env set \
+  DATABASE_URL="$DATABASE_URL" \
+  API_KEY="$API_KEY" \
+  JWT_SECRET="$JWT_SECRET"
+```
+
+### Apply Changes
+
+After changing environment variables, redeploy to apply:
+
+```bash
+tose env set NODE_ENV=production
+tose redeploy
+```
+
+## File Organization
+
+Recommended `.env` file structure:
 
 ```
-.env                  # Development defaults
+.env                  # Default/development
 .env.local           # Local overrides (gitignored)
 .env.production      # Production values
 .env.staging         # Staging values
-.env.test            # Test values
 ```
 
-### 2. Git Ignore
+Add sensitive files to `.gitignore`:
 
 ```bash
 # .gitignore
 .env.local
 .env*.local
 .env.production
-.env.staging
 ```
 
-### 3. Variable Naming
+## Related Commands
 
-Use clear, uppercase names:
-
-```bash
-# Good
-DATABASE_URL=postgres://...
-API_KEY=abc123
-JWT_SECRET=secret123
-
-# Avoid
-db=postgres://...
-key=abc123
-```
-
-### 4. Environment-Specific Files
-
-```bash
-# Local development
-tose up  # Select .env + .env.local
-
-# Production
-tose up  # Select .env + .env.production
-
-# Staging
-tose up  # Select .env + .env.staging
-```
-
-### 5. Required Variables
-
-Document required variables:
-
-```bash
-# .env.example
-DATABASE_URL=
-API_KEY=
-JWT_SECRET=
-PORT=3000
-```
-
-## File Format
-
-### Syntax
-
-```bash
-# Comments are supported
-KEY=value
-
-# No quotes needed (but supported)
-KEY="value"
-KEY='value'
-
-# Multiline values
-KEY="line 1
-line 2"
-
-# Empty values
-EMPTY=
-```
-
-### Special Characters
-
-```bash
-# Spaces in values
-NAME=John Doe
-
-# URLs
-API_URL=https://api.example.com/v1
-
-# Paths
-DATA_PATH=/var/data/app
-```
-
-## Common Workflows
-
-### Local Development
-
-```bash
-# .env
-NODE_ENV=development
-PORT=3000
-DATABASE_URL=postgres://localhost/myapp_dev
-
-# .env.local (gitignored)
-DATABASE_URL=postgres://localhost/myapp_dev_john
-DEBUG=true
-```
-
-Deploy:
-```bash
-tose up
-# Select .env and .env.local
-```
-
-### Production Deployment
-
-```bash
-# .env.production
-NODE_ENV=production
-PORT=3000
-DATABASE_URL=postgres://prod-server/myapp
-API_URL=https://api.prod.com
-LOG_LEVEL=error
-```
-
-Deploy:
-```bash
-tose up
-# Select .env and .env.production
-```
-
-### Multiple Environments
-
-```bash
-# Development
-tose up
-# Select .env + .env.development
-
-# Staging
-tose up
-# Select .env + .env.staging
-
-# Production
-tose up
-# Select .env + .env.production
-```
-
-## Updating Variables
-
-### Via tose up
-
-```bash
-tose up
-# Select "Update configuration"
-# Change .env file selections
-# Or edit files and re-select
-```
-
-### Via Dashboard
-
-1. Log in to dashboard
-2. Navigate to project
-3. Go to **Settings** > **Environment Variables**
-4. Edit variables manually
-
-## Troubleshooting
-
-### No .env Files Found
-
-If no files are detected:
-
-```bash
-# Check files exist
-ls -la .env*
-
-# Verify file names
-# Must match: .env, .env.local, .env.production, etc.
-```
-
-### Variables Not Applied
-
-If variables don't work:
-
-1. Check file was selected during deployment
-2. Verify variable names are correct
-3. Redeploy to apply changes:
-   ```bash
-   tose up
-   # Select "Redeploy"
-   ```
-
-### Sensitive Values Exposed
-
-If sensitive values show in logs:
-
-- Use masked naming: `PASSWORD`, `SECRET`, `KEY`
-- Check application logs (not CLI logs)
-- Report security issues immediately
-
-## Related Topics
-
-- [Configuration](/guide/configuration) - TOSE CLI configuration
-- [Getting Started](/guide/getting-started) - Deployment guide
-- [tose up](/commands/up) - Deployment command
+- [`tose env`](/commands/env) - Full command reference
+- [`tose up`](/commands/up) - Deploy (auto-pushes env vars)
+- [`tose redeploy`](/commands/deploy#tose-redeploy) - Apply env changes
+- [`tose configuration`](/guide/configuration) - Config file reference

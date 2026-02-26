@@ -2,7 +2,7 @@ import { defineConfig } from 'vitepress'
 
 export default defineConfig({
   title: 'TOSE CLI Documentation',
-  description: 'Complete documentation for TOSE CLI - A powerful deployment and application management tool',
+  description: 'Complete documentation for TOSE CLI - Deploy and manage your applications from the command line',
 
   locales: {
     root: {
@@ -21,18 +21,26 @@ export default defineConfig({
             text: 'Introduction',
             items: [
               { text: 'What is TOSE CLI?', link: '/' },
-              { text: 'Getting Started', link: '/guide/getting-started' },
-              { text: 'Installation', link: '/guide/installation' }
+              { text: 'Installation', link: '/guide/installation' },
+              { text: 'Getting Started', link: '/guide/getting-started' }
             ]
           },
           {
             text: 'Commands',
             items: [
               { text: 'Overview', link: '/commands/overview' },
+              { text: 'tose login / logout', link: '/commands/login' },
+              { text: 'tose init / use', link: '/commands/init' },
               { text: 'tose up', link: '/commands/up' },
+              { text: 'tose deploy / redeploy', link: '/commands/deploy' },
               { text: 'tose status', link: '/commands/status' },
               { text: 'tose logs', link: '/commands/logs' },
-              { text: 'tose down', link: '/commands/down' }
+              { text: 'tose down / restart', link: '/commands/down' },
+              { text: 'tose open', link: '/commands/open' },
+              { text: 'tose env', link: '/commands/env' },
+              { text: 'tose domain', link: '/commands/domain' },
+              { text: 'tose db', link: '/commands/db' },
+              { text: 'tose generate', link: '/commands/generate' }
             ]
           },
           {
@@ -42,14 +50,6 @@ export default defineConfig({
               { text: 'Environment Variables', link: '/guide/environment' },
               { text: 'Git Integration', link: '/guide/git' },
               { text: 'Dockerfile Examples', link: '/guide/dockerfile' }
-            ]
-          },
-          {
-            text: 'Architecture',
-            items: [
-              { text: 'Project Structure', link: '/architecture/structure' },
-              { text: 'API Client', link: '/architecture/api-client' },
-              { text: 'Workflow', link: '/architecture/workflow' }
             ]
           },
           {
@@ -79,18 +79,26 @@ export default defineConfig({
             text: 'Giới thiệu',
             items: [
               { text: 'TOSE CLI là gì?', link: '/vi/guide/introduction' },
-              { text: 'Bắt đầu', link: '/vi/guide/getting-started' },
-              { text: 'Cài đặt', link: '/vi/guide/installation' }
+              { text: 'Cài đặt', link: '/vi/guide/installation' },
+              { text: 'Bắt đầu', link: '/vi/guide/getting-started' }
             ]
           },
           {
             text: 'Các lệnh',
             items: [
               { text: 'Tổng quan', link: '/vi/commands/overview' },
+              { text: 'tose login / logout', link: '/vi/commands/login' },
+              { text: 'tose init / use', link: '/vi/commands/init' },
               { text: 'tose up', link: '/vi/commands/up' },
+              { text: 'tose deploy / redeploy', link: '/vi/commands/deploy' },
               { text: 'tose status', link: '/vi/commands/status' },
               { text: 'tose logs', link: '/vi/commands/logs' },
-              { text: 'tose down', link: '/vi/commands/down' }
+              { text: 'tose down / restart', link: '/vi/commands/down' },
+              { text: 'tose open', link: '/vi/commands/open' },
+              { text: 'tose env', link: '/vi/commands/env' },
+              { text: 'tose domain', link: '/vi/commands/domain' },
+              { text: 'tose db', link: '/vi/commands/db' },
+              { text: 'tose generate', link: '/vi/commands/generate' }
             ]
           },
           {
@@ -100,14 +108,6 @@ export default defineConfig({
               { text: 'Biến môi trường', link: '/vi/guide/environment' },
               { text: 'Tích hợp Git', link: '/vi/guide/git' },
               { text: 'Ví dụ Dockerfile', link: '/vi/guide/dockerfile' }
-            ]
-          },
-          {
-            text: 'Kiến trúc',
-            items: [
-              { text: 'Cấu trúc dự án', link: '/vi/architecture/structure' },
-              { text: 'API Client', link: '/vi/architecture/api-client' },
-              { text: 'Luồng hoạt động', link: '/vi/architecture/workflow' }
             ]
           },
           {

@@ -1,238 +1,159 @@
 # tose logs
 
-View deployment logs with filtering and real-time streaming.
+View build logs or stream live application logs.
 
 ## Synopsis
 
 ```bash
-tose logs [options]
+tose logs [project] [options]
 ```
 
 ## Description
 
-The `tose logs` command displays logs from your deployments with:
+The `tose logs` command displays two types of logs:
 
-- Color-coded output by log level
-- Timestamp information
-- Configurable line limits
-- Real-time streaming support
-- Filter by deployment ID
+- **Build logs** (`--build`): Docker build output from the deployment process
+- **Live logs** (default): Real-time application output from running pods
+
+Logs are color-coded by severity for easy reading.
+
+## Arguments
+
+| Argument | Description |
+|----------|-------------|
+| `[project]` | Optional. Project slug or `workspace/project` format |
 
 ## Options
 
 | Option | Alias | Description |
 |--------|-------|-------------|
-| `--project <id>` | `-p` | View logs for specific project |
-| `--deployment <id>` | `-d` | View logs for specific deployment |
+| `--build` | | Show build logs instead of live logs |
+| `--follow` | `-f` | Stream logs in real-time via WebSocket |
 | `--lines <number>` | `-n` | Number of lines to display (default: 100) |
-| `--follow` | `-f` | Stream logs in real-time |
+| `--deployment <id>` | `-d` | View logs for a specific deployment |
 
 ## Usage
 
-### Interactive Mode
+### Stream Build Logs
 
-View logs with guided selection:
-
-```bash
-tose logs
-```
-
-### View Last 50 Lines
+Watch the Docker build process in real-time:
 
 ```bash
-tose logs -n 50
+$ tose logs --build -f
+
+Finding latest deployment...
+
+Step 1/12 : FROM node:18-alpine AS builder
+ ---> a1b2c3d4e5f6
+Step 2/12 : WORKDIR /app
+ ---> Using cache
+Step 3/12 : COPY package*.json ./
+ ---> Using cache
+Step 4/12 : RUN npm ci
+ ---> Running in abc123def456
+npm warn deprecated some-package@1.0.0
+added 834 packages in 12s
+Step 5/12 : COPY . .
+Step 6/12 : RUN npm run build
+ ---> Running in xyz789abc012
+> my-app@1.0.0 build
+> tsc && vite build
+...
+Successfully built a1b2c3d4e5f6
+Successfully tagged my-app:latest
 ```
 
-### View Specific Project
+### Stream Live Application Logs
 
 ```bash
-tose logs --project my-app
+$ tose logs -f
+
+[2025-06-15 10:30:15] Server started on port 3000
+[2025-06-15 10:30:16] Connected to database
+[2025-06-15 10:31:02] GET /api/users 200 12ms
+[2025-06-15 10:31:05] GET /api/health 200 2ms
+[2025-06-15 10:31:10] POST /api/login 201 45ms
 ```
 
-### View Specific Deployment
+### View Build Logs for Specific Deployment
 
 ```bash
-tose logs --deployment dep_abc123
+$ tose logs --build -d dep_abc123
 ```
 
-### Stream Logs in Real-Time
+### View Logs Without Streaming
 
 ```bash
-tose logs --follow
+$ tose logs --build
+
+Finding latest deployment...
+(shows completed build logs if deployment is finished)
 ```
 
-### Combined Options
+::: tip
+For live logs, the `--follow` flag is required since live logs are streamed via WebSocket.
+:::
 
-```bash
-tose logs --project my-app -n 200 --follow
-```
+## Log Color Coding
 
-## Log Levels
+Build logs are color-coded for readability:
 
-Logs are color-coded by severity:
+| Pattern | Color | Meaning |
+|---------|-------|---------|
+| `ERROR` | Red | Build or runtime errors |
+| `WARN` | Yellow | Warnings |
+| `Step N/M` | Cyan | Docker build steps |
+| Other | Default | Normal output |
 
-| Level | Color | Icon | Description |
-|-------|-------|------|-------------|
-| INFO | Blue | ℹ️ | Informational messages |
-| WARN | Yellow | ⚠️ | Warning messages |
-| ERROR | Red | ❌ | Error messages |
-| DEBUG | Gray | 🔍 | Debug information |
+## WebSocket Streaming
 
-## Example Output
+When using `-f` / `--follow`, logs are streamed via WebSocket:
 
-```bash
-$ tose logs -n 20
-
-Deployment Logs (dep_abc123)
-
-[2025-01-15 10:30:15] INFO ℹ️ Starting deployment...
-[2025-01-15 10:30:16] INFO ℹ️ Cloning repository from GitHub
-[2025-01-15 10:30:20] INFO ℹ️ Installing dependencies...
-[2025-01-15 10:30:45] INFO ℹ️ Running npm install
-[2025-01-15 10:31:00] INFO ℹ️ Build successful
-[2025-01-15 10:31:02] INFO ℹ️ Starting application on port 3000
-[2025-01-15 10:31:05] INFO ✅ Application running
-[2025-01-15 10:31:10] INFO ℹ️ Health check passed
-```
+- Press `Ctrl+C` to stop streaming
+- Connection auto-closes when build finishes (`[END]` message)
+- Errors are displayed in red (`[ERROR]` messages)
+- Reconnects are not automatic - rerun the command if disconnected
 
 ## Use Cases
 
-### Debug Deployment Issues
+### Debug a Failed Build
 
 ```bash
-tose logs --project my-app -n 200
+# Check what went wrong
+tose logs --build -d dep_abc123
 ```
+
+Look for red `ERROR` lines in the output.
 
 ### Monitor Deployment Progress
 
 ```bash
-tose up
-# In another terminal
-tose logs --follow
+# Terminal 1: trigger deploy
+tose deploy
+
+# Terminal 2: watch build
+tose logs --build -f
 ```
 
-### Save Logs for Analysis
+### Debug Runtime Issues
 
 ```bash
-tose logs -n 1000 > deployment-logs.txt
-```
+# Stream live logs
+tose logs -f
 
-### Check Specific Deployment
-
-```bash
-tose logs --deployment dep_abc123
-```
-
-### CI/CD Log Capture
-
-```bash
-# In CI pipeline
-tose logs --project $PROJECT_NAME -n 500 | tee build-logs.txt
-```
-
-## Log Patterns
-
-### Application Startup
-
-```
-[timestamp] INFO Cloning repository...
-[timestamp] INFO Installing dependencies...
-[timestamp] INFO Building application...
-[timestamp] INFO Starting application...
-[timestamp] INFO Application running on port 3000
-```
-
-### Deployment Errors
-
-```
-[timestamp] ERROR Build failed: syntax error
-[timestamp] ERROR npm install failed with code 1
-[timestamp] ERROR Container failed health check
-```
-
-### Runtime Logs
-
-```
-[timestamp] INFO Request: GET /api/users
-[timestamp] INFO Response: 200 OK
-[timestamp] WARN High memory usage: 85%
-[timestamp] ERROR Database connection lost
-```
-
-## Best Practices
-
-### 1. Start with Recent Logs
-
-```bash
-tose logs -n 50  # Last 50 lines
-```
-
-### 2. Increase Lines for Debugging
-
-```bash
-tose logs -n 500  # More context
-```
-
-### 3. Use Follow Mode During Deployment
-
-```bash
-tose logs --follow
-```
-
-### 4. Filter by Deployment
-
-```bash
-# Get deployment ID from status
+# Or check status first
 tose status
-# View specific deployment
-tose logs --deployment dep_xyz789
+tose logs -f
 ```
 
-### 5. Save Important Logs
+### Save Logs to File
 
 ```bash
-tose logs -n 1000 > logs-$(date +%Y%m%d).txt
+tose logs --build -d dep_abc123 > build-log.txt
 ```
-
-## Troubleshooting
-
-### No Logs Available
-
-If no logs appear:
-
-1. Check deployment exists:
-   ```bash
-   tose status
-   ```
-
-2. Verify deployment ID:
-   ```bash
-   tose status --project my-app
-   ```
-
-3. Try different project:
-   ```bash
-   tose logs  # Use interactive selection
-   ```
-
-### Logs Stop Streaming
-
-If `--follow` stops:
-
-- Press Ctrl+C to exit
-- Restart with `tose logs --follow`
-- Check deployment is still running
-
-### Connection Issues
-
-If logs fail to load:
-
-- Verify API key is valid
-- Check internet connection
-- Try again without `--follow`
 
 ## Related Commands
 
 - [`tose status`](/commands/status) - Check deployment status
-- [`tose up`](/commands/up) - Deploy application
-- [`tose down`](/commands/down) - Stop deployment
+- [`tose deploy`](/commands/deploy) - Trigger deployment
+- [`tose open`](/commands/open) - Open project URL

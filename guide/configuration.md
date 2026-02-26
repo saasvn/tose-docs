@@ -1,273 +1,117 @@
 # Configuration
 
-Learn how to configure TOSE CLI for your needs.
+TOSE CLI uses two configuration files: a global config and a per-directory context file.
 
-## Configuration File
+## Global Configuration
 
-TOSE CLI stores configuration in a JSON file located at:
-
-```
-~/.tose/config.json
-```
+Located at `~/.tose/config.json`, this file stores your credentials and global preferences.
 
 ### Structure
 
 ```json
 {
-  "apiKey": "ws_xxxxxxxxxxxxx",
-  "workspaceId": "ws_123456",
-  "baseUrl": "https://api.tose.sh"
+  "apiKey": "tose_sk_xxxxxxxxxxxx",
+  "defaultWorkspace": "my-workspace",
+  "activeWorkspace": "my-workspace",
+  "activeProject": "my-app"
 }
 ```
 
 ### Fields
 
-| Field | Type | Description | Required |
-|-------|------|-------------|----------|
-| `apiKey` | string | Your TOSE API key | Yes |
-| `workspaceId` | string | Default workspace ID | No |
-| `baseUrl` | string | API base URL | No |
+| Field | Type | Description |
+|-------|------|-------------|
+| `apiKey` | string | Your TOSE API key (starts with `tose_sk_`) |
+| `defaultWorkspace` | string | Default workspace slug (set during `tose login`) |
+| `activeWorkspace` | string | Active workspace (set via `tose use`) |
+| `activeProject` | string | Active project (set via `tose use`) |
 
-## API Key
+### Managing Config
 
-### Getting Your API Key
-
-1. Log in to [TOSE Dashboard](https://tose.sh)
-2. Navigate to **Settings** > **API Keys**
-3. Click **Create New API Key**
-4. Copy the key (starts with `ws_`)
-
-### Setting API Key
-
-#### Via Interactive Prompt
+**Login (creates config):**
 
 ```bash
-tose up
-# Enter API key when prompted
+tose login
 ```
 
-#### Via Manual Configuration
+**Logout (clears config):**
 
 ```bash
-mkdir -p ~/.tose
-cat > ~/.tose/config.json << 'EOF'
-{
-  "apiKey": "ws_your_key_here"
-}
-EOF
+tose logout
 ```
 
-#### Via Environment Variable
+**Set active project:**
 
 ```bash
-export TOSE_API_KEY="ws_xxxxx"
-# Then manually create config
+tose use my-workspace/my-app
 ```
 
-### API Key Types
-
-**User-Scoped Keys**
-- Can access multiple workspaces
-- User must select workspace
-- Good for personal use
-
-**Workspace-Scoped Keys**
-- Tied to specific workspace
-- No workspace selection needed
-- Good for team collaboration
-
-### Security Best Practices
-
-1. **Never commit API keys**
+**Clear active project:**
 
 ```bash
-# Add to .gitignore
-echo '*.tose' >> .gitignore
+tose use --clear
 ```
 
-2. **Use environment variables in CI/CD**
-
-```yaml
-# GitHub Actions
-env:
-  TOSE_API_KEY: ${{ secrets.TOSE_API_KEY }}
-```
-
-3. **Rotate keys regularly**
-
-Generate new keys every 90 days from dashboard.
-
-4. **Use different keys per environment**
-
-- Development: Personal workspace key
-- CI/CD: Dedicated automation key
-- Production: Workspace-scoped key
-
-## Workspace Configuration
-
-### Default Workspace
-
-Set default workspace to skip selection:
-
-```json
-{
-  "apiKey": "ws_xxxxx",
-  "workspaceId": "ws_123456"
-}
-```
-
-### Clearing Workspace
-
-To reset workspace selection:
-
-```bash
-# Edit config and remove workspaceId
-nano ~/.tose/config.json
-```
-
-Or:
-
-```bash
-# Delete config entirely
-rm ~/.tose/config.json
-tose up  # Will re-prompt
-```
-
-## Custom API URL
-
-Override the default API URL:
-
-### Via Config File
-
-```json
-{
-  "apiKey": "ws_xxxxx",
-  "baseUrl": "https://custom-api.tose.sh"
-}
-```
-
-### Via Environment Variable
-
-```bash
-export TOSE_API_URL="https://custom-api.tose.sh"
-tose up
-```
-
-### Use Cases
-
-- **Custom Deployment**: Self-hosted TOSE instance
-- **Regional Endpoints**: Use closer API server
-- **Development**: Test against staging API
-
-## Configuration Management
-
-### View Current Config
+**View current config:**
 
 ```bash
 cat ~/.tose/config.json
 ```
 
-### Backup Configuration
+## Project Context File
 
-```bash
-cp ~/.tose/config.json ~/.tose/config.json.backup
+Located at `.tose.json` in your project directory. Created by `tose init` or `tose up`.
+
+### Structure
+
+```json
+{
+  "workspace": "my-workspace",
+  "project": "my-app"
+}
 ```
 
-### Reset Configuration
+### Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `workspace` | string | Workspace slug |
+| `project` | string | Project slug |
+
+### Creating Context
+
+**Via init:**
 
 ```bash
-rm ~/.tose/config.json
-tose up  # Will create new config
+tose init
 ```
 
-### Multiple Configurations
-
-For multiple accounts:
+**Via up (auto-creates):**
 
 ```bash
-# Save configs
-cp ~/.tose/config.json ~/.tose/config.personal.json
-cp ~/.tose/config.json ~/.tose/config.work.json
-
-# Switch configs
-cp ~/.tose/config.work.json ~/.tose/config.json
+tose up
 ```
 
-Or use shell aliases:
+::: tip Version Control
+You can commit `.tose.json` to share the project link with your team, or add it to `.gitignore` for individual configurations.
+:::
 
-```bash
-# In ~/.bashrc or ~/.zshrc
-alias tose-personal='TOSE_API_KEY=ws_personal_key tose'
-alias tose-work='TOSE_API_KEY=ws_work_key tose'
-```
+## Environment Variables
 
-## Troubleshooting
+TOSE CLI respects these environment variables, which override config file values:
 
-### Config File Not Found
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `TOSE_API_KEY` | Override API key | `tose_sk_xxxxxxxxxxxx` |
+| `TOSE_API_URL` | Override API base URL | `https://api-v2.tose.sh` |
+| `TOSE_WORKSPACE` | Override workspace slug | `my-workspace` |
+| `TOSE_PROJECT` | Override project slug | `my-app` |
 
-Create the directory:
-
-```bash
-mkdir -p ~/.tose
-```
-
-### Permission Denied
-
-Fix permissions:
-
-```bash
-chmod 700 ~/.tose
-chmod 600 ~/.tose/config.json
-```
-
-### Invalid JSON
-
-Validate JSON:
-
-```bash
-cat ~/.tose/config.json | python -m json.tool
-```
-
-### API Key Not Working
-
-1. Verify key format (starts with `ws_`)
-2. Check key hasn't been revoked in dashboard
-3. Ensure no extra spaces or newlines
-4. Try generating new key
-
-### Workspace Issues
-
-If workspace selection fails:
-
-```bash
-# Remove cached workspace
-jq 'del(.workspaceId)' ~/.tose/config.json > ~/.tose/config.tmp.json
-mv ~/.tose/config.tmp.json ~/.tose/config.json
-```
-
-## Advanced Configuration
-
-### Per-Project Configuration
-
-While TOSE CLI doesn't support per-project configs yet, you can use shell scripts:
-
-```bash
-#!/bin/bash
-# deploy-staging.sh
-
-export TOSE_API_KEY="ws_staging_key"
-export TOSE_API_URL="https://staging-api.tose.sh"
-
-tose up --project staging-app
-```
-
-### CI/CD Configuration
-
-Example for GitHub Actions:
+### Usage in CI/CD
 
 ```yaml
+# GitHub Actions
 name: Deploy
-
 on:
   push:
     branches: [main]
@@ -276,49 +120,108 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-
-      - name: Setup TOSE Config
+      - uses: actions/checkout@v4
+      - name: Install TOSE CLI
+        run: npm install -g @tosesh/tose
+      - name: Deploy
         env:
           TOSE_API_KEY: ${{ secrets.TOSE_API_KEY }}
-        run: |
-          mkdir -p ~/.tose
-          echo "{\"apiKey\":\"$TOSE_API_KEY\"}" > ~/.tose/config.json
-
-      - name: Deploy
-        run: |
-          npm install -g @tosesh/tose
-          tose up
+          TOSE_WORKSPACE: my-workspace
+          TOSE_PROJECT: my-app
+        run: tose deploy
 ```
 
-## Configuration Schema
+### Shell Aliases for Multiple Accounts
 
-Full configuration schema:
-
-```typescript
-interface ToseConfig {
-  // Required: Your API key
-  apiKey: string
-
-  // Optional: Default workspace ID
-  workspaceId?: string
-
-  // Optional: Custom API base URL
-  baseUrl?: string
-}
+```bash
+# ~/.bashrc or ~/.zshrc
+alias tose-personal='TOSE_API_KEY=tose_sk_personal tose'
+alias tose-work='TOSE_API_KEY=tose_sk_work tose'
 ```
 
-### Validation
+## Resolution Priority
 
-TOSE CLI validates configuration on startup:
+When TOSE CLI needs a value, it checks these sources in order:
 
-- `apiKey` must be present and start with `ws_`
-- `baseUrl` must be valid URL if provided
-- `workspaceId` must start with `ws_` if provided
+### API Key
+1. `--api-key` flag
+2. `TOSE_API_KEY` environment variable
+3. `~/.tose/config.json` → `apiKey`
+4. Interactive prompt
+
+### Workspace
+1. Positional argument (`tose deploy ws/proj`)
+2. `--workspace` flag
+3. `TOSE_WORKSPACE` environment variable
+4. `.tose.json` → `workspace`
+5. `~/.tose/config.json` → `activeWorkspace`
+6. `~/.tose/config.json` → `defaultWorkspace`
+7. Interactive prompt
+
+### Project
+1. Positional argument (`tose deploy ws/proj`)
+2. `--project` flag
+3. `TOSE_PROJECT` environment variable
+4. `.tose.json` → `project`
+5. `~/.tose/config.json` → `activeProject`
+6. Interactive prompt
+
+## Security Best Practices
+
+### Never Commit API Keys
+
+```bash
+# .gitignore
+.tose/
+```
+
+### Use Environment Variables in CI/CD
+
+```bash
+export TOSE_API_KEY=tose_sk_xxxxxxxxxxxx
+tose deploy
+```
+
+### Set Proper File Permissions
+
+```bash
+chmod 700 ~/.tose
+chmod 600 ~/.tose/config.json
+```
+
+## Troubleshooting
+
+### Config File Not Found
+
+```bash
+mkdir -p ~/.tose
+tose login
+```
+
+### Invalid API Key
+
+```bash
+# Reset and re-login
+tose logout
+tose login
+```
+
+### Wrong Workspace/Project
+
+```bash
+# Check current context
+tose whoami
+
+# Re-link project
+tose init
+
+# Or set active project
+tose use my-workspace/correct-project
+```
 
 ## Related Topics
 
 - [Installation](/guide/installation) - Initial setup
-- [Getting Started](/guide/getting-started) - First-time configuration
+- [Getting Started](/guide/getting-started) - First deployment
 - [Environment Variables](/guide/environment) - Managing env vars
-- [API Authentication](/api/authentication) - API key details
+- [Commands Overview](/commands/overview) - All commands

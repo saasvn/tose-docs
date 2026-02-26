@@ -1,131 +1,163 @@
 # tose status
 
-Check the status of your deployments.
+Show project status and pod health.
 
 ## Synopsis
 
 ```bash
-tose status [options]
+tose status [project]
 ```
 
 ## Description
 
-The `tose status` command displays the current status of your deployments, including:
+Displays detailed status information for your project, including:
 
-- Deployment ID and version
-- Current phase (Building, Running, Failed, etc.)
-- Creation timestamp
-- Project URL
-- Health status and replica counts
+- Project status (active, stopped, etc.)
+- Pod health (ready count, individual pod status, restarts, age)
+- Resource limits (CPU and memory)
+- Latest deployment info with time-ago formatting
 
-## Options
+## Arguments
 
-| Option | Alias | Description |
-|--------|-------|-------------|
-| `--project <id>` | `-p` | Check specific project by ID or slug |
-| `--all` | `-a` | Show status for all projects |
+| Argument | Description |
+|----------|-------------|
+| `[project]` | Optional. Project slug or `workspace/project` format |
 
 ## Usage
 
-### Interactive Mode
-
-Check status with guided selection:
+### Check Linked Project
 
 ```bash
-tose status
-```
+$ tose status
 
-Prompts for:
-1. Workspace selection (if multiple)
-2. Project selection
+Project: my-app
+Status:  active
+Pods:    3/3 ready
+  pod-abc-1  Running  restarts=0  age=2h
+  pod-abc-2  Running  restarts=0  age=2h
+  pod-abc-3  Running  restarts=1  age=1h
+CPU:     2000m
+Memory:  4Gi
+
+Latest deployment:
+  ID:      dep_abc123
+  Version: 5
+  Status:  running
+  Time:    2h ago
+  URL:     https://my-app.tose.sh
+```
 
 ### Check Specific Project
 
 ```bash
-tose status --project my-app
+$ tose status my-workspace/my-app
 ```
 
-or by project ID:
+### Minimal Output (No Pods Running)
 
 ```bash
-tose status --project prj_abc123
+$ tose status
+
+Project: my-app
+Status:  stopped
+
+Latest deployment:
+  ID:      dep_abc123
+  Version: 3
+  Status:  stopped
+  Time:    1d ago
 ```
 
-### Check All Projects
+## Status Values
+
+| Status | Description |
+|--------|-------------|
+| `active` | Project is running normally |
+| `pending` | Deployment is queued |
+| `building` | Docker image is being built |
+| `deploying` | Containers are starting up |
+| `running` | Application is live and healthy |
+| `stopped` | Deployment has been stopped |
+| `failed` | Deployment encountered an error |
+
+## JSON Output
 
 ```bash
-tose status --all
+$ tose status --json
 ```
 
-## Example Output
-
+```json
+{
+  "success": true,
+  "data": {
+    "project": {
+      "slug": "my-app",
+      "status": "active"
+    },
+    "pods": {
+      "ready": 3,
+      "total": 3,
+      "items": [
+        {
+          "name": "pod-abc-1",
+          "status": "Running",
+          "restarts": 0,
+          "age": "2h"
+        }
+      ]
+    },
+    "resources": {
+      "cpu": { "used": "100m", "limit": "2000m" },
+      "memory": { "used": "500Mi", "limit": "4Gi" }
+    },
+    "latestDeployment": {
+      "id": "dep_abc123",
+      "version": 5,
+      "status": "running",
+      "service_url": "https://my-app.tose.sh"
+    }
+  }
+}
 ```
-Deployment Status
-
-Project: my-api-server
-  Slug: my-api-server
-  URL: https://my-api-server.tose.app
-
-Latest Deployment:
-  ID: dep_xyz789
-  Status: ✅ Running
-  Version: v12
-  Created: 2 hours ago
-
-Health:
-  Replicas: 2/2 healthy
-  Uptime: 99.8%
-  Last Check: 30 seconds ago
-```
-
-## Status Phases
-
-| Phase | Icon | Description |
-|-------|------|-------------|
-| Pending | ⏳ | Deployment queued |
-| Building | 🔨 | Building application |
-| Deploying | 🚀 | Deploying containers |
-| Running | ✅ | Successfully running |
-| Failed | ❌ | Deployment failed |
-| Stopped | ⏸️ | Manually stopped |
 
 ## Use Cases
-
-### Quick Health Check
-
-```bash
-tose status
-```
 
 ### Monitor After Deployment
 
 ```bash
-tose up
+tose deploy
 tose status
 ```
 
-### CI/CD Integration
+### CI/CD Health Check
 
 ```bash
 #!/bin/bash
-tose status --project my-app
-
+tose status --json | jq -e '.data.pods.ready == .data.pods.total'
 if [ $? -eq 0 ]; then
-  echo "Deployment healthy"
+  echo "All pods healthy"
 else
-  echo "Deployment issue detected"
+  echo "Unhealthy pods detected"
   exit 1
 fi
 ```
 
-### Check Multiple Projects
+### Check Pod Restarts
 
-```bash
-tose status --all > status-report.txt
+If a pod is restarting frequently, it may indicate a crash loop:
+
 ```
+Pods:    2/3 ready
+  pod-abc-1  Running      restarts=0   age=2h
+  pod-abc-2  Running      restarts=0   age=2h
+  pod-abc-3  CrashLoop    restarts=15  age=2h
+```
+
+Check the logs to debug: `tose logs -f`
 
 ## Related Commands
 
-- [`tose up`](/commands/up) - Deploy application
-- [`tose logs`](/commands/logs) - View detailed logs
-- [`tose down`](/commands/down) - Stop deployment
+- [`tose logs`](/commands/logs) - View logs for debugging
+- [`tose deploy`](/commands/deploy) - Trigger a new deployment
+- [`tose restart`](/commands/down#tose-restart) - Restart pods
+- [`tose open`](/commands/open) - Open project URL

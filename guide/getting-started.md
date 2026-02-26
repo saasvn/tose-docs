@@ -1,479 +1,215 @@
 # Getting Started
 
-This guide will walk you through deploying your first application with TOSE CLI.
+Deploy your first application with TOSE CLI in under 5 minutes.
 
 ## Prerequisites
 
-Before you begin, make sure you have:
+- [TOSE CLI installed](/guide/installation)
+- A TOSE account with an [API key](/guide/installation#getting-your-api-key)
+- A project with a Git repository on GitHub
 
-- [Node.js 14+](/guide/installation#prerequisites) installed
-- [TOSE CLI](/guide/installation) installed globally
-- A TOSE account with an API key
-- A project ready to deploy (optional: with Git repository)
-
-## Step 1: Prepare Your Project
-
-Navigate to your project directory:
+## Step 1: Login
 
 ```bash
-cd /path/to/your/project
+$ tose login
+
+? Enter your TOSE API key: tose_sk_xxxxxxxxxxxx
+✓ API key verified
+Default workspace: my-workspace
+Logged in! API key saved to ~/.tose/config.json
 ```
 
-TOSE CLI works best with projects that have:
+## Step 2: Deploy
 
-- A Git repository initialized (optional but recommended)
-- Environment variables in `.env` files (optional)
-- A Node.js application running on a specific port
-
-::: tip Git Integration
-If your project is connected to a Git repository (GitHub, GitLab, Bitbucket), TOSE CLI will auto-detect it and offer continuous deployment.
-:::
-
-## Step 2: Deploy Your Application
-
-Run the deployment command:
+Navigate to your project and run `tose up`:
 
 ```bash
-tose up
-```
+$ cd my-app
+$ tose up
 
-TOSE CLI will guide you through an interactive setup process.
+No project linked. Setting up...
 
-### 2.1 Authentication
-
-If this is your first time, you'll be prompted for your API key:
-
-```
-? Enter your TOSE API key: ws_xxxxxxxxxxxxx
-```
-
-Your API key will be securely saved to `~/.tose/config.json` for future use.
-
-::: tip Getting Your API Key
-You can get your API key from [TOSE Dashboard](https://tose.sh) > Settings > API Keys
-:::
-
-### 2.2 Workspace Selection
-
-If you have multiple workspaces, select one:
-
-```
-? Select a workspace:
-  ❯ My Personal Workspace
-    Company Team Workspace
-    [Create New Workspace]
-```
-
-For single-workspace accounts, this step is skipped automatically.
-
-### 2.3 Project Selection
-
-Choose an existing project or create a new one:
-
-```
-? What would you like to do?
+Using workspace: my-workspace
+Fetching projects...
+? Select project:
   ❯ Create new project
-    Select existing project: my-app
-    Select existing project: api-server
-```
+? Project name: my-app
+Creating project...
+✓ Project "my-app" created
 
-If creating a new project:
+Linked to my-workspace/my-app
 
-```
-? Enter project name: my-awesome-app
-```
+Detected git repo: username/my-app (main)
+✓ Git connected: username/my-app (main)
+Using server: TOSE Cloud
+✓ Server assigned
 
-### 2.4 Check Existing Deployment
+Found 1 .env file(s). Push environment variables? Yes
+✓ Pushing 3 variables...
+✓ 3 variables pushed
 
-If the project has an existing deployment, you'll see:
-
-```
-✓ Found existing deployment: dep_abc123
-
-Deployment Information:
-  ID: dep_abc123
-  Status: Running
-  URL: https://my-awesome-app.tose.app
-  Created: 2 hours ago
-
-? What would you like to do?
-  ❯ Redeploy with new configuration
-    View existing logs
-    Update configuration
-    Cancel
-```
-
-### 2.5 Git Configuration
-
-TOSE CLI will attempt to auto-detect your Git repository:
-
-```
-✓ Detected Git repository: https://github.com/username/my-awesome-app
-
-? Confirm Git repository URL: (Y/n)
-```
-
-If not detected or you want to change it:
-
-```
-? Enter Git repository URL: https://github.com/username/my-app
-```
-
-Supported formats:
-- HTTPS: `https://github.com/username/repo.git`
-- SSH: `git@github.com:username/repo.git`
-- Short: `username/repo`
-
-Select a branch:
-
-```
-? Select branch:
-  ❯ main
-    develop
-    feature/new-ui
-    [Enter custom branch]
-```
-
-::: warning Git Repository Linking
-For automatic deployments on Git push, make sure your Git repository is connected to your TOSE workspace in the dashboard.
-:::
-
-### 2.6 Port Configuration
-
-Specify the port your application runs on:
-
-```
-? Enter application port: (3000)
-```
-
-Common ports:
-- `3000` - Node.js/React apps (default)
-- `8080` - Java/Spring apps
-- `5000` - Python/Flask apps
-- `4200` - Angular apps
-
-### 2.7 Environment Variables
-
-TOSE CLI will search for `.env` files in your project:
-
-```
-✓ Found 3 .env files
-
-? Select .env files to include: (Use <space> to select, <return> to submit)
-  ❯◉ .env (5 variables)
-   ◯ .env.local (3 variables)
-   ◯ .env.production (8 variables)
-```
-
-Preview selected variables:
-
-```
-Environment Variables Preview (13 total):
-  NODE_ENV=production
-  API_URL=https://api.example.com
-  DATABASE_URL=postgres://... (masked)
-  JWT_SECRET=****** (masked)
-  PORT=3000
-  ... (8 more)
-```
-
-::: tip Sensitive Values
-TOSE CLI automatically masks sensitive values like passwords, tokens, and API keys in the preview.
-:::
-
-### 2.8 Configuration Summary
-
-Review your configuration before deployment:
-
-```
-📋 Configuration Summary
-
-Project: my-awesome-app
-  ID: prj_xyz789
-  Slug: my-awesome-app
-  Port: 3000
-
-Git Repository:
-  URL: https://github.com/username/my-awesome-app
-  Branch: main
-
-Environment Variables:
-  13 variables from:
-    - .env (5 variables)
-    - .env.production (8 variables)
-
-? Proceed with deployment? (Y/n)
-```
-
-### 2.9 Deployment
-
-After confirmation, TOSE CLI will:
-
-1. Create or update the project
-2. Upload environment variables
-3. Link the Git repository
-4. Trigger deployment
-
-```
-✓ Project created successfully
-✓ Environment variables uploaded
-✓ Git repository linked
+✓ Deploying...
 ✓ Deployment triggered
+  Deployment ID: dep_abc123
+  Status: pending
+  URL: https://my-app.tose.sh
 
-🚀 Deployment started!
-  ID: dep_new123
-  URL: https://my-awesome-app.tose.app
-
-View logs: tose logs --deployment dep_new123
-Check status: tose status --project my-awesome-app
+Stream build logs with: tose logs --build -f
 ```
 
-## Step 3: Monitor Deployment
+That's it. `tose up` handles everything: project creation, Git connection, environment variables, and deployment.
 
-Check the deployment status:
+## Step 3: Monitor
+
+### Watch the Build
 
 ```bash
-tose status
+$ tose logs --build -f
+
+Step 1/12 : FROM node:18-alpine AS builder
+ ---> a1b2c3d4e5f6
+Step 2/12 : WORKDIR /app
+ ---> Using cache
+Step 3/12 : COPY package*.json ./
+Step 4/12 : RUN npm ci
+ ---> Running in abc123def456
+added 834 packages in 12s
+Step 5/12 : COPY . .
+Step 6/12 : RUN npm run build
+...
+Successfully built a1b2c3d4e5f6
 ```
 
-Output:
-
-```
-Deployment Status
-
-Deployment ID: dep_new123
-Status: Building
-Created: Just now
-URL: https://my-awesome-app.tose.app
-
-Build Progress:
-  ✓ Cloning repository
-  ⏳ Installing dependencies
-  ⏳ Building application
-  ⏳ Starting containers
-```
-
-## Step 4: View Logs
-
-Stream deployment logs in real-time:
+### Check Status
 
 ```bash
-tose logs
+$ tose status
+
+Project: my-app
+Status:  active
+Pods:    2/2 ready
+  pod-abc-1  Running  restarts=0  age=5m
+  pod-abc-2  Running  restarts=0  age=5m
+CPU:     1000m
+Memory:  2Gi
+
+Latest deployment:
+  ID:      dep_abc123
+  Version: 1
+  Status:  running
+  Time:    5m ago
+  URL:     https://my-app.tose.sh
 ```
 
-Or view last 50 lines:
+### Open in Browser
 
 ```bash
-tose logs -n 50
+$ tose open
+
+Opening https://my-app.tose.sh
 ```
 
-Example output:
+## Step 4: Make Changes
 
-```
-[2025-01-15 10:30:15] INFO Cloning repository...
-[2025-01-15 10:30:18] INFO Installing dependencies...
-[2025-01-15 10:30:45] INFO npm install completed
-[2025-01-15 10:30:46] INFO Building application...
-[2025-01-15 10:31:20] INFO Build successful
-[2025-01-15 10:31:22] INFO Starting application on port 3000
-[2025-01-15 10:31:25] INFO Application started successfully
-```
+After pushing code changes to GitHub:
 
-## Step 5: Access Your Application
+```bash
+$ tose deploy
 
-Once deployed, your application is available at:
+✓ Deploying my-workspace/my-app...
+✓ Deployment triggered
+  Deployment ID: dep_xyz789
+  Status: pending
+  Commit: a1b2c3d
 
-```
-https://[project-slug].tose.app
+Stream build logs with: tose logs --build -f
 ```
 
-For example:
+## Project Structure
+
+A typical project that works with TOSE:
+
 ```
-https://my-awesome-app.tose.app
+my-app/
+├── .git/                    # Git repository
+├── .env                     # Environment variables
+├── .tose.json               # TOSE project link (created by tose up)
+├── Dockerfile               # Docker build instructions
+├── package.json             # Dependencies
+└── src/
+    └── index.js             # Application entry point
 ```
 
-::: tip Custom Domains
-You can add custom domains in the TOSE Dashboard under Project Settings.
+::: tip No Dockerfile?
+If your project doesn't have a Dockerfile, use `tose generate` to create one with AI:
+
+```bash
+$ tose generate
+
+Scanning source code...
+✓ Language: Node.js | Framework: Express | Package Manager: npm
+Generating Dockerfile with AI...
+✓ Dockerfile generated and saved
+```
 :::
 
 ## Common Workflows
 
-### Update Deployment Configuration
-
-To update environment variables or settings:
+### Update Environment Variables
 
 ```bash
-tose up
+# Set variables directly
+tose env set NODE_ENV=production PORT=3000
+
+# Or push from .env file
+tose env push .env.production
+
+# Redeploy to apply
+tose redeploy
 ```
 
-Select "Update configuration" when prompted.
-
-### Redeploy Application
-
-To trigger a new deployment:
+### Add a Custom Domain
 
 ```bash
-tose up
+tose domain add myapp.com
+# Then configure DNS CNAME to point to your-project.tose.sh
 ```
 
-Select "Redeploy with new configuration".
-
-### View Status
-
-Quick status check:
+### Create a Database
 
 ```bash
-tose status --project my-awesome-app
+$ tose db create
+
+? Database name: my-app-db
+? Database type: PostgreSQL
+✓ Database "my-app-db" created
+  Connection: postgresql://user:pass@db.tose.sh:5432/my-app-db
+
+# Set connection string as env var
+$ tose env set DATABASE_URL=postgresql://user:pass@db.tose.sh:5432/my-app-db
+$ tose redeploy
 ```
 
-### Stream Logs
-
-Follow logs in real-time:
+### Stop and Restart
 
 ```bash
-tose logs --follow
-```
-
-### Stop Deployment
-
-Stop a running deployment:
-
-```bash
+# Stop deployment
 tose down
+
+# Restart pods (no rebuild)
+tose restart
+
+# Redeploy (same image, new pods)
+tose redeploy
+
+# Full deploy (rebuild from latest commit)
+tose deploy
 ```
 
-## Project Structure Example
+## What's Next?
 
-Here's a typical project structure that works well with TOSE CLI:
-
-```
-my-awesome-app/
-├── .git/                    # Git repository
-├── .env                     # Development variables
-├── .env.production          # Production variables
-├── src/
-│   ├── index.js            # Application entry point
-│   └── ...
-├── package.json            # Dependencies
-└── README.md
-```
-
-## Environment Variables Best Practices
-
-### Organizing .env Files
-
-Use different files for different environments:
-
-```bash
-.env                 # Default/development
-.env.local          # Local overrides (gitignored)
-.env.production     # Production values
-.env.staging        # Staging values
-```
-
-### Naming Conventions
-
-Use clear, uppercase names:
-
-```bash
-# Good
-DATABASE_URL=postgres://...
-API_KEY=abc123
-JWT_SECRET=secret123
-
-# Avoid
-db=postgres://...
-key=abc123
-secret=secret123
-```
-
-### Sensitive Values
-
-Keep sensitive data out of Git:
-
-```bash
-# .gitignore
-.env.local
-.env*.local
-```
-
-TOSE CLI will mask these automatically:
-- `*PASSWORD*`
-- `*SECRET*`
-- `*TOKEN*`
-- `*API_KEY*`
-- `*PRIVATE_KEY*`
-
-## Troubleshooting
-
-### Git Repository Not Detected
-
-If Git detection fails:
-
-1. Ensure you're in a Git repository:
-   ```bash
-   git status
-   ```
-
-2. Check remote URL:
-   ```bash
-   git remote get-url origin
-   ```
-
-3. Manually enter the URL when prompted
-
-### API Key Invalid
-
-If your API key doesn't work:
-
-1. Verify it starts with `ws_`
-2. Check it's not expired in the dashboard
-3. Ensure you copied it completely
-4. Try generating a new key
-
-### Deployment Failed
-
-If deployment fails:
-
-1. Check logs for errors:
-   ```bash
-   tose logs -n 100
-   ```
-
-2. Verify environment variables:
-   ```bash
-   tose up
-   # Select "Update configuration"
-   ```
-
-3. Check application port is correct
-
-4. Ensure Git repository is accessible
-
-### Port Already in Use
-
-If the port is in use:
-
-```bash
-tose up
-# Enter a different port when prompted
-```
-
-## Next Steps
-
-Now that you've deployed your first application:
-
-- [Learn about all commands](/commands/overview)
-- [Configure environment variables](/guide/environment)
-- [Set up Git integration](/guide/git)
-- [Explore configuration options](/guide/configuration)
-
-## Getting Help
-
-Need assistance?
-
-- View command help: `tose --help`
-- Check specific command: `tose up --help`
-- Visit [documentation](/)
-- Email: tobi@wearetopgroup.com
-- [GitHub Issues](https://github.com/tosesh/tose/issues)
+- [Commands Overview](/commands/overview) - Full command reference
+- [Configuration](/guide/configuration) - Configuration file reference
+- [Environment Variables](/guide/environment) - Manage env vars
+- [Git Integration](/guide/git) - Git workflow details
+- [Dockerfile Examples](/guide/dockerfile) - Dockerfile templates
