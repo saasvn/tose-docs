@@ -12,7 +12,7 @@ module.exports = {
     {
       name: 'docs',
       script: 'npx',
-      args: 'serve .vitepress/dist -l 4173 -s',
+      args: 'serve .vitepress/dist -l 4173',
       cwd: '/home/deploy/tose-docs',
       instances: 1,
       exec_mode: 'fork',

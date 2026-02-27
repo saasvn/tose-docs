@@ -7,7 +7,7 @@
     "docs:dev": "vitepress dev",
     "docs:build": "vitepress build",
     "docs:preview": "vitepress preview",
-    "docs:serve": "serve .vitepress/dist -l 4173 -s"
+    "docs:serve": "serve .vitepress/dist -l 4173"
   },
   "keywords": [],
   "author": "",
