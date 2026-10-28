@@ -57,7 +57,8 @@ export default defineConfig({
             items: [
               { text: 'REST API', link: '/api/reference' },
               { text: 'Authentication', link: '/api/authentication' },
-              { text: 'Endpoints', link: '/api/endpoints' }
+              { text: 'Endpoints', link: '/api/endpoints' },
+              { text: 'MCP Connector', link: '/mcp' }
             ]
           }
         ]
@@ -115,7 +116,8 @@ export default defineConfig({
             items: [
               { text: 'REST API', link: '/vi/api/reference' },
               { text: 'Xác thực', link: '/vi/api/authentication' },
-              { text: 'Endpoints', link: '/vi/api/endpoints' }
+              { text: 'Endpoints', link: '/vi/api/endpoints' },
+              { text: 'MCP Connector', link: '/vi/mcp' }
             ]
           }
         ],
