@@ -37,7 +37,7 @@ Xem [`tose disk`](/vi/commands/disk) để biết mọi tùy chọn, hoặc [API
 - là đường dẫn tuyệt đối (bắt đầu bằng `/`);
 - không phải chính `/`;
 - không chứa `..`;
-- không phải thư mục hệ thống: `/proc`, `/sys`, `/dev`, `/etc`, `/bin`, `/sbin`, `/usr`, `/lib`, `/lib64`, `/boot`, `/run`, `/var/run`.
+- không phải, và không nằm trong, thư mục hệ thống: `/proc`, `/sys`, `/dev`, `/etc`, `/bin`, `/sbin`, `/usr`, `/lib`, `/lib32`, `/lib64`, `/boot`, `/run`, `/var/run` (ví dụ `/etc/app` cũng bị từ chối).
 
 Lựa chọn thường gặp là `/data`, `/app/storage` hoặc `/var/lib/<app>`. Hãy đảm bảo ứng dụng ghi dữ liệu vào đúng đường dẫn đó.
 

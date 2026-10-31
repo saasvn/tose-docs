@@ -29,7 +29,7 @@ Add a disk to a project, grow it, or change its mount path. Requires workspace a
 ### Synopsis
 
 ```bash
-tose disk set [project] --size <gib> --mount <path>
+tose disk set [project] --size <gib> [--mount <path>]
 ```
 
 ### Options
@@ -37,7 +37,7 @@ tose disk set [project] --size <gib> --mount <path>
 | Option | Description |
 |--------|-------------|
 | `--size <gib>` | Disk size in GiB, 1–1000. Can only grow |
-| `--mount <path>` | Absolute mount path inside the container, e.g. `/data` |
+| `--mount <path>` | Absolute mount path inside the container, e.g. `/data`. Required when creating the disk; when growing, the current path is kept if omitted |
 
 See [Persistent Disks](/guide/persistent-disks#mount-path) for the mount path rules.
 
@@ -48,7 +48,7 @@ See [Persistent Disks](/guide/persistent-disks#mount-path) for the mount path ru
 tose disk set --size 10 --mount /data
 
 # Grow it later
-tose disk set --size 30 --mount /data
+tose disk set --size 30
 
 # Apply the change
 tose redeploy

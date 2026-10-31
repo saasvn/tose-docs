@@ -25,13 +25,13 @@ Thêm ổ đĩa cho dự án, tăng dung lượng hoặc đổi đường dẫn 
 ### Tóm tắt {#tose-disk-set-synopsis}
 
 ```bash
-tose disk set [project] --size <gib> --mount <path>
+tose disk set [project] --size <gib> [--mount <path>]
 ```
 
 | Tùy chọn | Mô tả |
 |--------|-------------|
 | `--size <gib>` | Dung lượng tính bằng GiB, 1–1000. Chỉ được tăng |
-| `--mount <path>` | Đường dẫn mount tuyệt đối trong container, ví dụ `/data` |
+| `--mount <path>` | Đường dẫn mount tuyệt đối trong container, ví dụ `/data`. Bắt buộc khi tạo ổ đĩa; khi tăng dung lượng có thể bỏ qua để giữ đường dẫn hiện tại |
 
 Quy tắc đường dẫn mount xem tại [Ổ đĩa bền vững](/vi/guide/persistent-disks#mount-path).
 
@@ -40,7 +40,7 @@ Quy tắc đường dẫn mount xem tại [Ổ đĩa bền vững](/vi/guide/per
 tose disk set --size 10 --mount /data
 
 # Tăng dung lượng sau đó
-tose disk set --size 30 --mount /data
+tose disk set --size 30
 
 # Áp dụng thay đổi
 tose redeploy

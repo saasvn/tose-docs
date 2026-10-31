@@ -37,7 +37,7 @@ The mount path must:
 - be an absolute path (start with `/`);
 - not be `/` itself;
 - not contain `..`;
-- not be a system directory: `/proc`, `/sys`, `/dev`, `/etc`, `/bin`, `/sbin`, `/usr`, `/lib`, `/lib64`, `/boot`, `/run`, `/var/run`.
+- not be, or be inside, a system directory: `/proc`, `/sys`, `/dev`, `/etc`, `/bin`, `/sbin`, `/usr`, `/lib`, `/lib32`, `/lib64`, `/boot`, `/run`, `/var/run` (so `/etc/app` is rejected too).
 
 Typical choices are `/data`, `/app/storage`, or `/var/lib/<app>`. Make sure your app writes its state to that path.
 
