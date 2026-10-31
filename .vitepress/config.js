@@ -41,6 +41,7 @@ export default defineConfig({
               { text: 'tose domain', link: '/commands/domain' },
               { text: 'tose db', link: '/commands/db' },
               { text: 'tose desktop', link: '/commands/desktop' },
+              { text: 'tose disk / volumes / pricing', link: '/commands/disk' },
               { text: 'tose generate', link: '/commands/generate' }
             ]
           },
@@ -50,7 +51,9 @@ export default defineConfig({
               { text: 'Configuration File', link: '/guide/configuration' },
               { text: 'Environment Variables', link: '/guide/environment' },
               { text: 'Git Integration', link: '/guide/git' },
-              { text: 'Dockerfile Examples', link: '/guide/dockerfile' }
+              { text: 'Dockerfile Examples', link: '/guide/dockerfile' },
+              { text: 'Persistent Disks', link: '/guide/persistent-disks' },
+              { text: 'Pricing', link: '/guide/pricing' }
             ]
           },
           {
@@ -67,7 +70,8 @@ export default defineConfig({
               { text: 'REST API', link: '/api/reference' },
               { text: 'Authentication', link: '/api/authentication' },
               { text: 'Endpoints', link: '/api/endpoints' },
-              { text: 'Desktops', link: '/api/desktops' }
+              { text: 'Desktops', link: '/api/desktops' },
+              { text: 'Disks, Volumes & Pricing', link: '/api/disks' }
             ]
           }
         ]
@@ -109,6 +113,7 @@ export default defineConfig({
               { text: 'tose domain', link: '/vi/commands/domain' },
               { text: 'tose db', link: '/vi/commands/db' },
               { text: 'tose desktop', link: '/commands/desktop' },
+              { text: 'tose disk / volumes / pricing', link: '/vi/commands/disk' },
               { text: 'tose generate', link: '/vi/commands/generate' }
             ]
           },
@@ -118,7 +123,9 @@ export default defineConfig({
               { text: 'File cấu hình', link: '/vi/guide/configuration' },
               { text: 'Biến môi trường', link: '/vi/guide/environment' },
               { text: 'Tích hợp Git', link: '/vi/guide/git' },
-              { text: 'Ví dụ Dockerfile', link: '/vi/guide/dockerfile' }
+              { text: 'Ví dụ Dockerfile', link: '/vi/guide/dockerfile' },
+              { text: 'Ổ đĩa bền vững', link: '/vi/guide/persistent-disks' },
+              { text: 'Bảng giá', link: '/vi/guide/pricing' }
             ]
           },
           {
@@ -133,7 +140,8 @@ export default defineConfig({
             items: [
               { text: 'REST API', link: '/vi/api/reference' },
               { text: 'Xác thực', link: '/vi/api/authentication' },
-              { text: 'Endpoints', link: '/vi/api/endpoints' }
+              { text: 'Endpoints', link: '/vi/api/endpoints' },
+              { text: 'Ổ đĩa, Volume & Bảng giá', link: '/vi/api/disks' }
             ]
           }
         ],

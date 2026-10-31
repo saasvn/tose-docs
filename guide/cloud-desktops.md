@@ -106,8 +106,9 @@ minutes is put to sleep automatically.
 
 - **Compute** is billed per running second while the desktop runs. After a confirmed sleep,
   compute charges stop.
-- **The disk is billed for as long as the desktop exists**, whether running or sleeping.
-  Delete the desktop to stop disk charges.
+- **The disk is billed for as long as the desktop exists**, whether running or sleeping, at the
+  [persistent disk](/guide/persistent-disks) rate. It appears in the workspace volumes list as a
+  `desktop` disk and can be grown there. Delete the desktop to stop disk charges.
 
 ## Human and agent control
 

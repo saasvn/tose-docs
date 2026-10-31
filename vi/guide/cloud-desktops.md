@@ -108,8 +108,9 @@ Tự động ngủ: khi đặt `auto_sleep_minutes`, desktop không có hoạt �
 
 - **Tính toán** được tính phí theo từng giây desktop chạy. Sau khi xác nhận đã ngủ, phí tính toán
   dừng lại.
-- **Ổ đĩa được tính phí chừng nào desktop còn tồn tại**, dù đang chạy hay đang ngủ. Hãy xóa
-  desktop để dừng phí ổ đĩa.
+- **Ổ đĩa được tính phí chừng nào desktop còn tồn tại**, dù đang chạy hay đang ngủ, theo đơn giá
+  [ổ đĩa bền vững](/vi/guide/persistent-disks). Ổ đĩa xuất hiện trong danh sách volume của workspace với loại `desktop` và có
+  thể mở rộng tại đó. Hãy xóa desktop để dừng phí ổ đĩa.
 
 ## Điều khiển bởi con người và agent
 
