@@ -83,7 +83,7 @@ Deleting a disk permanently erases everything on it and stops storage billing. T
 
 ## Retention
 
-Disks are kept until you delete them, or until you delete the project, template, or database that owns them.
+Disks are kept until you delete them, or until you delete the project, template, database, or cloud desktop that owns them.
 
 - **Stopping or suspending** a project (`tose down`, sleep) stops compute but **never deletes** the disk.
 - **Wallet exhaustion** suspends compute only. Your disks and data are kept, and storage keeps accruing while they exist. The accrued storage cost is charged after your next top-up; then redeploy to resume.

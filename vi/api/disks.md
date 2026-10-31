@@ -8,13 +8,13 @@ Endpoint của workspace nằm dưới `/api/workspaces/{slug}` và dùng cùng 
 
 ### Volume {#volume}
 
-Một ổ đĩa bền vững, thuộc về một dự án, template hoặc cơ sở dữ liệu được quản lý.
+Một ổ đĩa bền vững, thuộc về một dự án, template, cơ sở dữ liệu được quản lý hoặc cloud desktop.
 
 | Trường | Kiểu | Mô tả |
 |-------|------|-------------|
 | `id` | string | ID volume |
 | `workspace_id` | string | Workspace sở hữu |
-| `workload_type` | string | `project`, `template` hoặc `database` |
+| `workload_type` | string | `project`, `template`, `database` hoặc `desktop` |
 | `workload_id` | string | ID của workload sở hữu |
 | `workload_name` | string | Tên của workload sở hữu |
 | `pvc_name` | string | Tên PVC Kubernetes |
@@ -45,7 +45,7 @@ Một ổ đĩa bền vững, thuộc về một dự án, template hoặc cơ s
 
 ### Liệt kê volume {#list-volumes}
 
-Mọi ổ đĩa trong workspace (dự án, template và cơ sở dữ liệu).
+Mọi ổ đĩa trong workspace (dự án, template, cơ sở dữ liệu và cloud desktop).
 
 ```http
 GET /api/workspaces/{slug}/volumes
@@ -76,7 +76,7 @@ PATCH /api/workspaces/{slug}/volumes/{volume_id}
 
 **Phản hồi:** `{ "volume": Volume }`
 
-Chỉ được tăng dung lượng. `size_gib` nhỏ hơn sẽ trả về `400` kèm hướng dẫn di chuyển dữ liệu sang ổ đĩa mới nhỏ hơn. Tăng dung lượng khi ví hết tiền sẽ trả về `403`.
+Chỉ được tăng dung lượng. `size_gib` nhỏ hơn sẽ trả về `400` kèm hướng dẫn di chuyển dữ liệu sang ổ đĩa mới nhỏ hơn. Tăng dung lượng khi ví hết tiền sẽ trả về `403`. Ổ đĩa home của cloud desktop chỉ tăng được sau khi đã bind (trả về `409` trước lần khởi động đầu tiên) và không vượt quá giới hạn ổ đĩa desktop của nền tảng (vượt quá trả về `400`).
 
 ## Ổ đĩa dự án {#project-disk}
 

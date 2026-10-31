@@ -8,13 +8,13 @@ Workspace endpoints live under `/api/workspaces/{slug}` and use the same authent
 
 ### Volume
 
-One persistent disk, owned by a project, template, or managed database.
+One persistent disk, owned by a project, template, managed database, or cloud desktop.
 
 | Field | Type | Description |
 |-------|------|-------------|
 | `id` | string | Volume ID |
 | `workspace_id` | string | Owning workspace |
-| `workload_type` | string | `project`, `template`, or `database` |
+| `workload_type` | string | `project`, `template`, `database`, or `desktop` |
 | `workload_id` | string | ID of the owning workload |
 | `workload_name` | string | Name of the owning workload |
 | `pvc_name` | string | Underlying Kubernetes PVC name |
@@ -45,7 +45,7 @@ One persistent disk, owned by a project, template, or managed database.
 
 ### List Volumes
 
-All disks in the workspace (projects, templates, and databases).
+All disks in the workspace (projects, templates, databases, and cloud desktops).
 
 ```http
 GET /api/workspaces/{slug}/volumes
@@ -76,7 +76,7 @@ PATCH /api/workspaces/{slug}/volumes/{volume_id}
 
 **Response:** `{ "volume": Volume }`
 
-Sizes are grow-only. A smaller `size_gib` returns `400` with guidance on migrating data to a new, smaller disk. Growing a disk on an empty wallet returns `403`.
+Sizes are grow-only. A smaller `size_gib` returns `400` with guidance on migrating data to a new, smaller disk. Growing a disk on an empty wallet returns `403`. A cloud desktop's home disk can be grown only once it has bound (`409` before the desktop first starts) and up to the platform's desktop disk limit (`400` above it).
 
 ## Project Disk
 

@@ -40,6 +40,7 @@ export default defineConfig({
               { text: 'tose env', link: '/commands/env' },
               { text: 'tose domain', link: '/commands/domain' },
               { text: 'tose db', link: '/commands/db' },
+              { text: 'tose desktop', link: '/commands/desktop' },
               { text: 'tose disk / volumes / pricing', link: '/commands/disk' },
               { text: 'tose generate', link: '/commands/generate' }
             ]
@@ -56,11 +57,20 @@ export default defineConfig({
             ]
           },
           {
+            text: 'Cloud Desktops',
+            items: [
+              { text: 'Cloud Desktops Guide', link: '/guide/cloud-desktops' },
+              { text: 'tose desktop', link: '/commands/desktop' },
+              { text: 'Desktops API', link: '/api/desktops' }
+            ]
+          },
+          {
             text: 'API Reference',
             items: [
               { text: 'REST API', link: '/api/reference' },
               { text: 'Authentication', link: '/api/authentication' },
               { text: 'Endpoints', link: '/api/endpoints' },
+              { text: 'Desktops', link: '/api/desktops' },
               { text: 'Disks, Volumes & Pricing', link: '/api/disks' }
             ]
           }
@@ -102,6 +112,7 @@ export default defineConfig({
               { text: 'tose env', link: '/vi/commands/env' },
               { text: 'tose domain', link: '/vi/commands/domain' },
               { text: 'tose db', link: '/vi/commands/db' },
+              { text: 'tose desktop', link: '/commands/desktop' },
               { text: 'tose disk / volumes / pricing', link: '/vi/commands/disk' },
               { text: 'tose generate', link: '/vi/commands/generate' }
             ]
@@ -115,6 +126,13 @@ export default defineConfig({
               { text: 'Ví dụ Dockerfile', link: '/vi/guide/dockerfile' },
               { text: 'Ổ đĩa bền vững', link: '/vi/guide/persistent-disks' },
               { text: 'Bảng giá', link: '/vi/guide/pricing' }
+            ]
+          },
+          {
+            text: 'Cloud Desktop',
+            items: [
+              { text: 'Hướng dẫn Cloud Desktop', link: '/vi/guide/cloud-desktops' },
+              { text: 'API Desktops (tiếng Anh)', link: '/api/desktops' }
             ]
           },
           {

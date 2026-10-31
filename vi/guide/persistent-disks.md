@@ -83,7 +83,7 @@ Xóa ổ đĩa sẽ xóa vĩnh viễn mọi dữ liệu trên đó và dừng t�
 
 ## Chính sách lưu giữ {#retention}
 
-Ổ đĩa được giữ cho tới khi bạn xóa nó, hoặc xóa dự án, template hay cơ sở dữ liệu sở hữu nó.
+Ổ đĩa được giữ cho tới khi bạn xóa nó, hoặc xóa dự án, template, cơ sở dữ liệu hay cloud desktop sở hữu nó.
 
 - **Dừng hoặc tạm ngưng** dự án (`tose down`, ngủ) sẽ dừng compute nhưng **không bao giờ xóa** ổ đĩa.
 - **Hết số dư ví** chỉ tạm ngưng compute. Ổ đĩa và dữ liệu được giữ nguyên, và phí lưu trữ vẫn tiếp tục tính khi ổ đĩa còn tồn tại. Phí lưu trữ tích lũy sẽ được trừ sau lần nạp tiền kế tiếp; sau đó redeploy để tiếp tục.
