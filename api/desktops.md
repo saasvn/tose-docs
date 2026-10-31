@@ -17,8 +17,8 @@ Authenticate every request with your API key in the `X-API-Key` header
 | `POST` | `/desktops` | admin | `202` `{desktop, operation}` |
 | `GET` | `/desktops` | member | `200` `{desktops: [...]}` |
 | `GET` | `/desktops/{desktop_id}` | member | `200` desktop |
-| `POST` | `/desktops/{desktop_id}/wake` | member | `202` `{desktop, operation}` |
-| `POST` | `/desktops/{desktop_id}/sleep` | member | `202` `{desktop, operation}` |
+| `POST` | `/desktops/{desktop_id}/wake` | member | `202` `{desktop, operation}`, or `200` if already running |
+| `POST` | `/desktops/{desktop_id}/sleep` | member | `202` `{desktop, operation}`, or `200` if already sleeping |
 | `DELETE` | `/desktops/{desktop_id}?confirm={name}` | admin | `202` `{desktop, operation}` |
 | `GET` | `/desktops/{desktop_id}/operations/{operation_id}` | member | `200` operation |
 | `GET` | `/desktops/{desktop_id}/events` | member | `200` `{events: [...]}` |
@@ -85,8 +85,8 @@ the in-flight operation.
 |-------|------|----------|-------------|
 | `name` | string | yes | Desktop name |
 | `server_id` | string | yes | Server to run on |
-| `cpu` | string | yes | CPU allocation |
-| `ram` | string | yes | RAM allocation |
+| `cpu` | string | yes | CPU allocation: cores (`"2"`) or millicores (`"500m"`) |
+| `ram` | string | yes | RAM allocation: a bare number means GiB (`"4"`), or a quantity such as `"512Mi"` |
 | `disk_size_gi` | number | yes | Disk size in GiB |
 | `storage_class` | string | no | Storage class for the disk |
 | `resolution` | string | no | Screen resolution, e.g. `1920x1080` |
@@ -119,8 +119,9 @@ curl -X POST "$TOSE_API/api/workspaces/$WS/desktops/$DESKTOP_ID/wake" -H "X-API-
 curl -X POST "$TOSE_API/api/workspaces/$WS/desktops/$DESKTOP_ID/sleep" -H "X-API-Key: $TOSE_API_KEY"
 ```
 
-Both return `202` with `{desktop, operation}`. Sleep releases CPU and RAM and keeps the disk;
-wake boots the same disk again. Memory is not preserved.
+Both return `202` with `{desktop, operation}`. When the desktop is already in the requested state
+(for example waking a running desktop), they return `200` with `operation: null`. Sleep releases
+CPU and RAM and keeps the disk; wake boots the same disk again. Memory is not preserved.
 
 ### Poll an operation
 
@@ -135,6 +136,7 @@ Poll until `status` is `succeeded` or `failed`.
 
 `DELETE /desktops/{desktop_id}?confirm={name}` (admin). The `confirm` parameter must equal the
 desktop name; requests without it are rejected. Deleting removes the disk permanently.
+A workspace that still has desktops cannot be deleted (`409`); delete its desktops first.
 
 ```bash
 curl -X DELETE "$TOSE_API/api/workspaces/$WS/desktops/$DESKTOP_ID?confirm=dev" \
