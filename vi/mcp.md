@@ -33,8 +33,11 @@ Connector không có tool gọi API tùy ý. Nó không đọc hay sửa đượ
 
 `deploy_project` và `rollback_deployment` luôn chạy hai bước:
 
-1. Lần gọi đầu không thay đổi gì. Nó trả về một **kế hoạch** gồm project, repository và branch (hoặc deployment đích), phiên bản đang chạy và tác động. Kèm theo là một `approval_token` dùng một lần.
-2. Client hiển thị kế hoạch cho bạn. Chỉ khi bạn đồng ý, client mới gọi lại tool với token đó.
+1. Lần gọi đầu không thay đổi gì. Nó trả về một **kế hoạch** (project, repository và branch hoặc deployment đích, phiên bản đang chạy và tác động), một `approval_url` và một `approval_token` dùng một lần.
+2. Mở `approval_url` trên trình duyệt. TOSE hiển thị kế hoạch dưới tài khoản của bạn. Bấm **Approve** hoặc **Decline**.
+3. Bảo client tiếp tục. Client gọi lại tool với token, và chỉ khi đó TOSE mới deploy hoặc rollback.
+
+Client không thể phê duyệt thay bạn: token không có tác dụng cho tới khi bạn phê duyệt kế hoạch trên trang TOSE. Kế hoạch đã bị từ chối sẽ không bao giờ chạy được.
 
 Token phê duyệt gắn với user, kết nối, project, hành động và deployment đích khi rollback. Token hết hạn sau 10 phút và chỉ dùng được một lần. Nếu client gửi lại một token đã dùng, TOSE trả về deployment ban đầu và không deploy lần nữa.
 
@@ -54,7 +57,8 @@ Khi tool lỗi, nội dung trả về bắt đầu bằng một mã cố định
 | `INVALID_ARGUMENT` | Thiếu tham số hoặc tham số ngoài phạm vi. |
 | `INSUFFICIENT_SCOPE` | Kết nối chỉ có quyền đọc. Hãy kết nối lại và cho phép deploy. |
 | `FORBIDDEN` | Vai trò của bạn không được deploy hay rollback. |
-| `APPROVAL_INVALID`, `APPROVAL_EXPIRED`, `APPROVAL_USED` | Gọi tool không kèm `approval_token` để lấy kế hoạch mới. |
+| `APPROVAL_PENDING` | Bạn chưa phê duyệt kế hoạch. Mở `approval_url`, phê duyệt, rồi bảo client tiếp tục. |
+| `APPROVAL_INVALID`, `APPROVAL_EXPIRED`, `APPROVAL_USED` | Phê duyệt sai, hết hạn, đã bị từ chối hoặc đã dùng. Gọi tool không kèm `approval_token` để lấy kế hoạch mới. |
 | `DEPLOY_IN_PROGRESS` | Theo dõi deployment đang chạy bằng `get_deployment_status`. |
 | `NO_GIT_CONNECTION`, `NO_SERVER`, `NO_IMAGE` | Project chưa sẵn sàng cho thao tác này. Sửa trong dashboard. |
 | `CONFLICT` | Project đang bị khóa, ví dụ khi chuyển môi trường. |
@@ -65,19 +69,20 @@ Khi tool lỗi, nội dung trả về bắt đầu bằng một mã cố định
 - "Project TOSE nào của tôi deploy lỗi lần gần nhất?"
 - "Vì sao lần deploy mới nhất của `shop-api` lỗi? Cho tôi xem các dòng build log liên quan."
 - "Cho xem log lỗi của `shop-api` trong 30 phút qua."
-- "Deploy `marketing-site`." Client sẽ hiển thị kế hoạch và chờ bạn phê duyệt.
+- "Deploy `marketing-site`." Client sẽ hiển thị kế hoạch và đường link để bạn phê duyệt.
 - "Rollback `shop-api` về deployment trước bản hiện tại."
 
 ## Dữ liệu và quyền riêng tư
 
 - **Connector đọc gì:** project, deployment, build log và runtime log của workspace bạn đã chọn, ngoài ra không đọc gì khác.
 - **Không bao giờ trả về:** giá trị biến môi trường, thông tin đăng nhập database, registry hay cluster, và API key.
-  - Trước khi trả log và thông báo lỗi, TOSE xóa giá trị biến môi trường của project và các dạng credential phổ biến: URL có mật khẩu, bearer token, private key, token cloud và GitHub, JWT.
+  - Trước khi trả log, commit message và thông báo lỗi, TOSE xóa giá trị biến môi trường của project và các dạng credential phổ biến: URL có mật khẩu, bearer token, private key, token cloud và GitHub, JWT.
   - Việc xóa này chỉ là best effort, vì vậy đừng in secret ra log ứng dụng.
 - **TOSE lưu gì:**
   - Thông tin client đã đăng ký: tên và redirect URI.
   - Hash của token. Access token có hạn 1 giờ, refresh token có hạn 30 ngày.
-  - Một bản ghi audit cho mỗi lần gọi tool, gồm user, client, workspace, project, deployment, tool, kết quả và mã lỗi.
+  - Một bản ghi audit cho mỗi lần gọi tool, gồm user, client, workspace, project, deployment, tool, kết quả và mã lỗi. Deploy và rollback được ghi lại trước khi chạy.
+  - Với mỗi kế hoạch deploy hoặc rollback: nội dung kế hoạch hiển thị trên trang phê duyệt và việc bạn có phê duyệt hay không.
   - Tham số và kết quả của tool không được lưu.
 
 ## Thu hồi quyền

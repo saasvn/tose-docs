@@ -33,8 +33,11 @@ There is no generic API tool. The connector cannot read or change environment va
 
 `deploy_project` and `rollback_deployment` always run in two steps:
 
-1. The first call changes nothing. It returns a **plan**: project, repository and branch or target deployment, what is live now, and the effect. It also returns a one-time `approval_token`.
-2. The client shows you the plan. Only after you approve does it call the tool again with the token.
+1. The first call changes nothing. It returns a **plan** (project, repository and branch or target deployment, what is live now, and the effect), an `approval_url` and a one-time `approval_token`.
+2. Open the `approval_url` in your browser. TOSE shows the plan, signed in as you. Click **Approve** or **Decline**.
+3. Tell the client to continue. It calls the tool again with the token, and only then does TOSE deploy or roll back.
+
+The client cannot approve for you: the token does nothing until you approve the plan on the TOSE page. A declined plan can never run.
 
 An approval token is tied to your user, this connection, the project, the action and the rollback target. It expires after 10 minutes and works once. If the client retries with a token that was already used, TOSE returns the original deployment and does not deploy again.
 
@@ -54,7 +57,8 @@ Failed tool calls return text that starts with a stable code:
 | `INVALID_ARGUMENT` | A parameter is missing or out of range. |
 | `INSUFFICIENT_SCOPE` | The connection is read-only. Reconnect and allow deploying. |
 | `FORBIDDEN` | Your role cannot deploy or roll back. |
-| `APPROVAL_INVALID`, `APPROVAL_EXPIRED`, `APPROVAL_USED` | Request a new plan by calling the tool without `approval_token`. |
+| `APPROVAL_PENDING` | You have not approved the plan yet. Open its `approval_url`, approve it, then ask the client to continue. |
+| `APPROVAL_INVALID`, `APPROVAL_EXPIRED`, `APPROVAL_USED` | The approval is wrong, expired, declined or used. Request a new plan by calling the tool without `approval_token`. |
 | `DEPLOY_IN_PROGRESS` | Wait for the running deployment with `get_deployment_status`. |
 | `NO_GIT_CONNECTION`, `NO_SERVER`, `NO_IMAGE` | The project is not ready for this action. Fix it in the dashboard. |
 | `CONFLICT` | The project is locked, for example during an environment move. |
@@ -65,17 +69,18 @@ Failed tool calls return text that starts with a stable code:
 - "Which of my TOSE projects failed their last deployment?"
 - "Why did the latest deploy of `shop-api` fail? Show me the relevant build log lines."
 - "Show the error logs of `shop-api` from the last 30 minutes."
-- "Deploy `marketing-site`." The client shows the plan and waits for your approval.
+- "Deploy `marketing-site`." The client shows the plan and a link where you approve it.
 - "Roll `shop-api` back to the deployment before the current one."
 
 ## Data and privacy
 
 - **What the connector reads:** projects, deployments, build logs and runtime logs of the workspace you picked, and nothing else.
-- **What it never returns:** environment variable values, database credentials, registry or cluster credentials, and API keys. Before logs and error messages are returned, TOSE removes the project's environment variable values and common credential patterns (URLs with passwords, bearer tokens, private keys, cloud and GitHub tokens, JWTs). Redaction is best effort. Do not print secrets in application logs.
+- **What it never returns:** environment variable values, database credentials, registry or cluster credentials, and API keys. Before logs, commit messages and error messages are returned, TOSE removes the project's environment variable values and common credential patterns (URLs with passwords, bearer tokens, private keys, cloud and GitHub tokens, JWTs). Redaction is best effort. Do not print secrets in application logs.
 - **What TOSE stores:**
   - The registered client: name and redirect URIs.
   - Hashes of the issued tokens. Access tokens last 1 hour and refresh tokens 30 days.
-  - An audit record for every tool call: user, client, workspace, project, deployment, tool, outcome and error code.
+  - An audit record for every tool call: user, client, workspace, project, deployment, tool, outcome and error code. Deploys and rollbacks are recorded before they run.
+  - For each deploy or rollback plan: the plan shown on the approval page and whether you approved it.
   - Tool arguments and results are not stored.
 - **Logs:** runtime logs older than the live window are archived and are only available from the dashboard.
 
