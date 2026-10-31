@@ -120,8 +120,9 @@ một loại người điều khiển:
 - `agent`: một chương trình hoặc AI agent dùng các REST action.
 
 Mỗi desktop có **một quyền điều khiển duy nhất**. Session đang giữ quyền này có thể gửi thao tác
-nhập liệu (click, gõ, phím tắt, cuộn, terminal, ghi file). Các thành viên khác vẫn có thể xem màn
-hình và dùng các thao tác chỉ đọc như `screenshot` và `file.read`.
+nhập liệu (click, gõ, phím tắt, cuộn, terminal, đọc và ghi file, chụp màn hình) và xem màn hình.
+Các session khác nhận `403` cho đến khi giành quyền. API key chỉ mở được session `agent`. Session
+kết thúc khi người giữ mất quyền truy cập workspace và tối đa sau 12 giờ.
 
 ### Giành quyền điều khiển (takeover)
 

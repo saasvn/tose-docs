@@ -23,7 +23,7 @@ Authenticate every request with your API key in the `X-API-Key` header
 | `GET` | `/desktops/{desktop_id}/operations/{operation_id}` | member | `200` operation |
 | `GET` | `/desktops/{desktop_id}/events` | member | `200` `{events: [...]}` |
 | `GET` | `/desktops/{desktop_id}/sessions` | member | `200` `{sessions: [...]}` |
-| `POST` | `/desktops/{desktop_id}/sessions` | member | `201` `{session, token, websocket_path, vnc_password}` |
+| `POST` | `/desktops/{desktop_id}/sessions` | member | `201` `{session, token, websocket_path, websocket_protocols, vnc_password}` |
 | `DELETE` | `/desktops/{desktop_id}/sessions/{session_id}` | member | `204` |
 | `POST` | `/desktops/{desktop_id}/actions` | member | action result |
 
@@ -164,6 +164,10 @@ A session grants access to a running desktop and carries the control lease.
 | `controller` | string | yes | `human` or `agent` |
 | `takeover` | boolean | no | Take the control lease from its current holder |
 
+API keys can only open `agent` sessions; asking for `human` returns `403`. A session ends when its
+holder loses access to the workspace (membership removed, API key revoked or expired) and after
+12 hours at most, whatever its activity.
+
 ```bash
 curl -X POST "$TOSE_API/api/workspaces/$WS/desktops/$DESKTOP_ID/sessions" \
   -H "X-API-Key: $TOSE_API_KEY" -H "Content-Type: application/json" \
@@ -176,7 +180,8 @@ Response `201`:
 |-------|-------------|
 | `session` | The session object; use `session.id` as `session_id` in actions |
 | `token` | Short-lived gateway token for this session |
-| `websocket_path` | Gateway path for the screen stream |
+| `websocket_path` | Gateway path for the screen stream (contains no token) |
+| `websocket_protocols` | WebSocket subprotocols to send when connecting: `binary` and `tose.desktop.token.<token>` |
 | `vnc_password` | Password for the VNC viewer behind the gateway |
 
 ### List and delete
@@ -192,11 +197,16 @@ Delete returns `204` and releases the lease if the session held it.
 ### Gateway
 
 ```
-GET /api/desktop-gateway/{session_id}?token={token}
+GET /api/desktop-gateway/{session_id}
+Sec-WebSocket-Protocol: binary, tose.desktop.token.{token}
 ```
 
-A WebSocket endpoint that carries the desktop screen (RFB over websockify). It is the only way to
-reach a desktop's display; raw VNC is never exposed publicly.
+A WebSocket endpoint that carries the desktop screen (RFB). Pass `websocket_protocols` from the
+session response as the subprotocols, so the token never appears in a URL or a log. The `Origin`
+must be the dashboard's. It is the only way to reach a desktop's display: desktops accept no
+network connections, and the platform reaches VNC inside the pod through the Kubernetes API.
+The stream closes within 5 seconds of the session losing the lease. For older clients a
+`?token={token}` query parameter is still accepted.
 
 ## Actions
 
@@ -204,17 +214,17 @@ reach a desktop's display; raw VNC is never exposed publicly.
 
 | Action | Parameters | Result | Requires lease |
 |--------|------------|--------|----------------|
-| `screenshot` | none | `{image_base64, mime}` | no |
+| `screenshot` | none | `{image_base64, mime}` | yes |
 | `click` | `x`, `y`, `button?` | | yes |
 | `type` | `text` | | yes |
 | `key` | `keys` | | yes |
 | `scroll` | `x`, `y`, `direction`, `amount?` | | yes |
 | `terminal.exec` | `command`, `timeout_seconds?` | `{stdout, stderr, exit_code}` | yes |
-| `file.read` | `path` | `{content_base64}` | no |
+| `file.read` | `path` | `{content_base64}` | yes |
 | `file.write` | `path`, `content_base64` | | yes |
 
-Actions marked "no" need workspace membership and a valid session; the others also need the
-session to hold the control lease. File paths are confined to `/home/ubuntu`.
+Every action needs the caller's own session (same user and API key) to hold the control lease;
+otherwise it returns `403`. File paths are confined to `/home/ubuntu`.
 
 ```bash
 curl -X POST "$TOSE_API/api/workspaces/$WS/desktops/$DESKTOP_ID/actions" \

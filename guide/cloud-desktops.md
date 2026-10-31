@@ -118,8 +118,9 @@ controller type:
 - `agent`: a program or AI agent using the REST actions.
 
 A desktop has **one control lease**. The session that holds it can send input (click, type,
-key, scroll, terminal, file write). Other members can still view the screen and use read-only
-actions such as `screenshot` and `file.read`.
+key, scroll, terminal, file read and write, screenshot) and watch the screen. Other sessions get
+`403` until they take over. API keys can only open `agent` sessions. A session ends when its holder
+loses access to the workspace and after 12 hours at most.
 
 ### Takeover
 
