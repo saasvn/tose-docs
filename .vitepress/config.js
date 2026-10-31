@@ -40,6 +40,7 @@ export default defineConfig({
               { text: 'tose env', link: '/commands/env' },
               { text: 'tose domain', link: '/commands/domain' },
               { text: 'tose db', link: '/commands/db' },
+              { text: 'tose desktop', link: '/commands/desktop' },
               { text: 'tose generate', link: '/commands/generate' }
             ]
           },
@@ -53,11 +54,20 @@ export default defineConfig({
             ]
           },
           {
+            text: 'Cloud Desktops',
+            items: [
+              { text: 'Cloud Desktops Guide', link: '/guide/cloud-desktops' },
+              { text: 'tose desktop', link: '/commands/desktop' },
+              { text: 'Desktops API', link: '/api/desktops' }
+            ]
+          },
+          {
             text: 'API Reference',
             items: [
               { text: 'REST API', link: '/api/reference' },
               { text: 'Authentication', link: '/api/authentication' },
-              { text: 'Endpoints', link: '/api/endpoints' }
+              { text: 'Endpoints', link: '/api/endpoints' },
+              { text: 'Desktops', link: '/api/desktops' }
             ]
           }
         ]
@@ -98,6 +108,7 @@ export default defineConfig({
               { text: 'tose env', link: '/vi/commands/env' },
               { text: 'tose domain', link: '/vi/commands/domain' },
               { text: 'tose db', link: '/vi/commands/db' },
+              { text: 'tose desktop', link: '/commands/desktop' },
               { text: 'tose generate', link: '/vi/commands/generate' }
             ]
           },
@@ -108,6 +119,13 @@ export default defineConfig({
               { text: 'Biến môi trường', link: '/vi/guide/environment' },
               { text: 'Tích hợp Git', link: '/vi/guide/git' },
               { text: 'Ví dụ Dockerfile', link: '/vi/guide/dockerfile' }
+            ]
+          },
+          {
+            text: 'Cloud Desktop',
+            items: [
+              { text: 'Hướng dẫn Cloud Desktop', link: '/vi/guide/cloud-desktops' },
+              { text: 'API Desktops (tiếng Anh)', link: '/api/desktops' }
             ]
           },
           {

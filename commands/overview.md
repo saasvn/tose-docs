@@ -77,6 +77,19 @@ These options are available on **all** commands:
 | [`tose db create`](/commands/db#tose-db-create) | Create a new database |
 | [`tose db info`](/commands/db#tose-db-info) | Show database connection info |
 
+### Cloud Desktops
+
+| Command | Description |
+|---------|-------------|
+| [`tose desktop list`](/commands/desktop#tose-desktop-list) | List desktops in workspace |
+| [`tose desktop create`](/commands/desktop#tose-desktop-create) | Create a persistent desktop |
+| [`tose desktop status`](/commands/desktop#tose-desktop-status) | Show desktop details |
+| [`tose desktop wake / sleep`](/commands/desktop#tose-desktop-wake-sleep) | Start or stop compute, keep the disk |
+| [`tose desktop delete`](/commands/desktop#tose-desktop-delete) | Delete a desktop and its disk |
+| [`tose desktop events`](/commands/desktop#tose-desktop-events) | Show the desktop audit log |
+| [`tose desktop screenshot`](/commands/desktop#tose-desktop-screenshot) | Save a screenshot |
+| [`tose desktop exec`](/commands/desktop#tose-desktop-exec) | Run a shell command on the desktop |
+
 ### Utilities
 
 | Command | Description |
