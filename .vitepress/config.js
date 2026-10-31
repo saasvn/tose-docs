@@ -4,8 +4,8 @@ export default defineConfig({
   title: 'TOSE CLI Documentation',
   description: 'Complete documentation for TOSE CLI - Deploy and manage your applications from the command line',
 
-  // README.md is the maintainer guide, not a site page.
-  srcExclude: ['README.md'],
+  // Maintainer files, not site pages.
+  srcExclude: ['README.md', 'AGENTS.md'],
 
   locales: {
     root: {
