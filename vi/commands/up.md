@@ -74,6 +74,19 @@ Chọn dự án hiện có hoặc tạo mới:
     api-server
 ```
 
+Khi tạo dự án mới, bạn có thể gắn ổ đĩa lưu trữ bền vững:
+
+| Tùy chọn | Mô tả |
+|--------|-------------|
+| `--disk-size <gib>` | Gắn ổ đĩa bền vững với dung lượng này (1–1000 GiB) cho dự án mới |
+| `--disk-mount <path>` | Đường dẫn mount của ổ đĩa, ví dụ `/data` |
+
+```bash
+tose up --disk-size 10 --disk-mount /data
+```
+
+Với dự án đã có, dùng [`tose disk set`](/vi/commands/disk#tose-disk-set). Xem [Ổ đĩa bền vững](/vi/guide/persistent-disks).
+
 ### Bước 4: Cấu hình Git
 
 Tự động phát hiện hoặc nhập thủ công Git repository:

@@ -77,6 +77,17 @@ These options are available on **all** commands:
 | [`tose db create`](/commands/db#tose-db-create) | Create a new database |
 | [`tose db info`](/commands/db#tose-db-info) | Show database connection info |
 
+### Disks and Pricing
+
+| Command | Description |
+|---------|-------------|
+| [`tose disk get`](/commands/disk) | Show the project's persistent disk |
+| [`tose disk set`](/commands/disk#tose-disk-set) | Add, grow, or move a project disk |
+| [`tose disk delete`](/commands/disk#tose-disk-delete) | Delete a project disk and its data |
+| [`tose volumes list`](/commands/disk#tose-volumes-list) | List all disks in the workspace |
+| [`tose volumes resize`](/commands/disk#tose-volumes-resize) | Grow any disk by volume ID |
+| [`tose pricing`](/commands/disk#tose-pricing) | Show compute and storage rates |
+
 ### Utilities
 
 | Command | Description |

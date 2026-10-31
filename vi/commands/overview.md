@@ -1,6 +1,6 @@
 # Tổng quan các lệnh
 
-TOSE CLI cung cấp bốn lệnh chính để quản lý triển khai của bạn.
+TOSE CLI cung cấp các lệnh chính sau để quản lý triển khai của bạn.
 
 ## Các lệnh có sẵn
 
@@ -10,6 +10,9 @@ TOSE CLI cung cấp bốn lệnh chính để quản lý triển khai của bạ
 | [`tose status`](/vi/commands/status) | Kiểm tra trạng thái triển khai | Giám sát tình trạng và tiến trình triển khai |
 | [`tose logs`](/vi/commands/logs) | Xem logs triển khai | Debug vấn đề, giám sát đầu ra ứng dụng |
 | [`tose down`](/vi/commands/down) | Dừng triển khai | Dừng các triển khai đang chạy |
+| [`tose disk`](/vi/commands/disk) | Quản lý ổ đĩa bền vững của dự án | Lưu file upload, SQLite, dữ liệu cần giữ qua các lần triển khai |
+| [`tose volumes`](/vi/commands/disk#tose-volumes-list) | Liệt kê và mở rộng mọi ổ đĩa trong workspace | Kiểm tra dung lượng và chi phí lưu trữ |
+| [`tose pricing`](/vi/commands/disk#tose-pricing) | Xem bảng giá compute và lưu trữ | Ước tính chi phí |
 
 ## Cấu trúc lệnh
 

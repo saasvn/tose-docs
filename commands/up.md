@@ -5,7 +5,7 @@ Smart deploy: automatically initialize, connect Git, push env vars, and deploy i
 ## Synopsis
 
 ```bash
-tose up [--workspace <slug>] [--project <slug>] [-y]
+tose up [--workspace <slug>] [--project <slug>] [--disk-size <gib> --disk-mount <path>] [-y]
 ```
 
 ## Description
@@ -84,6 +84,19 @@ Stream build logs with: tose logs --build -f
 ```bash
 $ tose up --workspace my-ws --project my-app -y
 ```
+
+### With a Persistent Disk
+
+| Option | Description |
+|--------|-------------|
+| `--disk-size <gib>` | Attach a persistent disk of this size (1–1000 GiB) to the new project |
+| `--disk-mount <path>` | Mount path for the disk, e.g. `/data` |
+
+```bash
+$ tose up --disk-size 10 --disk-mount /data
+```
+
+These flags apply when `tose up` creates a new project. For an existing project use [`tose disk set`](/commands/disk#tose-disk-set). See [Persistent Disks](/guide/persistent-disks) for the rules and trade-offs.
 
 ## Workflow Steps
 
