@@ -75,7 +75,7 @@ Billing follows the provisioned size; see [Pricing](/guide/pricing#storage).
 tose disk delete --confirm my-app
 ```
 
-The `--confirm` value must equal the project slug.
+The `--confirm` value must equal the project slug. Stop the project first (`tose down`): a disk cannot be deleted while the app is running on it.
 
 ::: danger Deleting a disk deletes its data
 Deleting a disk permanently erases everything on it and stops storage billing. There is no undo and no snapshot to restore from. Back up anything you need first.
@@ -86,11 +86,13 @@ Deleting a disk permanently erases everything on it and stops storage billing. T
 Disks are kept until you delete them, or until you delete the project, template, or database that owns them.
 
 - **Stopping or suspending** a project (`tose down`, sleep) stops compute but **never deletes** the disk.
-- **Wallet exhaustion** suspends compute only. Your disks and data are kept, and storage keeps accruing while they exist; top up and redeploy to resume.
+- **Wallet exhaustion** suspends compute only. Your disks and data are kept, and storage keeps accruing while they exist. The accrued storage cost is charged after your next top-up; then redeploy to resume.
+- Workspaces that never made a payment and only used the free bonus are cleaned up after 14 days without balance, **disks included**.
+- Adding or growing a disk requires a positive wallet balance.
 
 ## Templates and managed databases
 
-- **1-click templates** get a **2 GiB** disk by default.
+- **1-click templates** get a **2 GiB** disk by default, so a template always runs exactly 1 replica.
 - **Managed databases** store their data on the same kind of disk.
 
 Both are listed with project disks under [`tose volumes list`](/commands/disk#tose-volumes-list), resize the same way (grow-only), and are billed at the same storage rate.

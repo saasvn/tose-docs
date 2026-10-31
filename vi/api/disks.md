@@ -76,7 +76,7 @@ PATCH /api/workspaces/{slug}/volumes/{volume_id}
 
 **Phản hồi:** `{ "volume": Volume }`
 
-Chỉ được tăng dung lượng. `size_gib` nhỏ hơn sẽ trả về `400` kèm hướng dẫn di chuyển dữ liệu sang ổ đĩa mới nhỏ hơn.
+Chỉ được tăng dung lượng. `size_gib` nhỏ hơn sẽ trả về `400` kèm hướng dẫn di chuyển dữ liệu sang ổ đĩa mới nhỏ hơn. Tăng dung lượng khi ví hết tiền sẽ trả về `403`.
 
 ## Ổ đĩa dự án {#project-disk}
 
@@ -130,7 +130,7 @@ Xóa ổ đĩa cùng **toàn bộ dữ liệu** và dừng tính phí lưu trữ
 DELETE /api/workspaces/{slug}/projects/{project_slug}/disk?confirm={project_slug}
 ```
 
-Tham số `confirm` phải trùng với slug của dự án.
+Tham số `confirm` phải trùng với slug của dự án. Trả về `409` khi dự án còn bản triển khai đang chạy; hãy dừng dự án trước.
 
 **Phản hồi:** `{ "message": "..." }`
 

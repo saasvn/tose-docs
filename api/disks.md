@@ -76,7 +76,7 @@ PATCH /api/workspaces/{slug}/volumes/{volume_id}
 
 **Response:** `{ "volume": Volume }`
 
-Sizes are grow-only. A smaller `size_gib` returns `400` with guidance on migrating data to a new, smaller disk.
+Sizes are grow-only. A smaller `size_gib` returns `400` with guidance on migrating data to a new, smaller disk. Growing a disk on an empty wallet returns `403`.
 
 ## Project Disk
 
@@ -130,7 +130,7 @@ Delete the disk and **all its data**, and stop storage billing. Requires admin.
 DELETE /api/workspaces/{slug}/projects/{project_slug}/disk?confirm={project_slug}
 ```
 
-The `confirm` query parameter must equal the project slug.
+The `confirm` query parameter must equal the project slug. Returns `409` while the project has a running deployment; stop it first.
 
 **Response:** `{ "message": "..." }`
 

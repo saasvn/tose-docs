@@ -46,7 +46,7 @@ There is no snapshot fee. Disk snapshots are not offered yet.
 
 ## Running out of balance
 
-When your wallet runs out, TOSE suspends compute. Persistent disks and their data are **not** deleted; see [Persistent Disks](/guide/persistent-disks#retention).
+When your wallet runs out, TOSE suspends compute. Persistent disks and their data are **not** deleted, and their storage cost keeps accruing; it is charged after your next top-up. See [Persistent Disks](/guide/persistent-disks#retention).
 
 ## Related
 

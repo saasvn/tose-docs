@@ -46,7 +46,7 @@ Không có phí snapshot. Hiện chưa hỗ trợ snapshot ổ đĩa.
 
 ## Khi hết số dư {#running-out-of-balance}
 
-Khi ví hết tiền, TOSE tạm ngưng compute. Ổ đĩa bền vững và dữ liệu **không** bị xóa; xem [Ổ đĩa bền vững](/vi/guide/persistent-disks#retention).
+Khi ví hết tiền, TOSE tạm ngưng compute. Ổ đĩa bền vững và dữ liệu **không** bị xóa, và phí lưu trữ vẫn tiếp tục tích lũy; khoản này được trừ sau lần nạp tiền kế tiếp. Xem [Ổ đĩa bền vững](/vi/guide/persistent-disks#retention).
 
 ## Liên quan {#related}
 

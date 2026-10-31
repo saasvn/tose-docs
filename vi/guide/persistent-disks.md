@@ -75,7 +75,7 @@ Chi phí tính theo dung lượng đã cấp phát; xem [Bảng giá](/vi/guide/
 tose disk delete --confirm my-app
 ```
 
-Giá trị `--confirm` phải trùng với slug của dự án.
+Giá trị `--confirm` phải trùng với slug của dự án. Hãy dừng dự án trước (`tose down`): không thể xóa ổ đĩa khi ứng dụng vẫn đang chạy trên nó.
 
 ::: danger Xóa ổ đĩa sẽ xóa dữ liệu
 Xóa ổ đĩa sẽ xóa vĩnh viễn mọi dữ liệu trên đó và dừng tính phí lưu trữ. Không thể hoàn tác và không có snapshot để khôi phục. Hãy sao lưu những gì bạn cần trước.
@@ -86,11 +86,13 @@ Xóa ổ đĩa sẽ xóa vĩnh viễn mọi dữ liệu trên đó và dừng t�
 Ổ đĩa được giữ cho tới khi bạn xóa nó, hoặc xóa dự án, template hay cơ sở dữ liệu sở hữu nó.
 
 - **Dừng hoặc tạm ngưng** dự án (`tose down`, ngủ) sẽ dừng compute nhưng **không bao giờ xóa** ổ đĩa.
-- **Hết số dư ví** chỉ tạm ngưng compute. Ổ đĩa và dữ liệu được giữ nguyên, và phí lưu trữ vẫn tiếp tục tính khi ổ đĩa còn tồn tại; nạp tiền và redeploy để tiếp tục.
+- **Hết số dư ví** chỉ tạm ngưng compute. Ổ đĩa và dữ liệu được giữ nguyên, và phí lưu trữ vẫn tiếp tục tính khi ổ đĩa còn tồn tại. Phí lưu trữ tích lũy sẽ được trừ sau lần nạp tiền kế tiếp; sau đó redeploy để tiếp tục.
+- Workspace chưa từng thanh toán và chỉ dùng tiền thưởng miễn phí sẽ bị dọn dẹp sau 14 ngày hết số dư, **bao gồm cả ổ đĩa**.
+- Muốn thêm hoặc tăng dung lượng ổ đĩa, số dư ví phải lớn hơn 0.
 
 ## Template và cơ sở dữ liệu được quản lý {#templates-and-managed-databases}
 
-- **Template 1-click** mặc định có ổ đĩa **2 GiB**.
+- **Template 1-click** mặc định có ổ đĩa **2 GiB**, nên template luôn chạy đúng 1 replica.
 - **Cơ sở dữ liệu được quản lý** lưu dữ liệu trên cùng loại ổ đĩa.
 
 Cả hai được liệt kê cùng ổ đĩa của dự án trong [`tose volumes list`](/vi/commands/disk#tose-volumes-list), mở rộng theo cùng cách (chỉ tăng) và tính phí theo cùng mức giá lưu trữ.
