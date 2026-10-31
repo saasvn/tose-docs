@@ -23,6 +23,10 @@ Creates a `.tose.json` file in the current directory that links it to a specific
 | `--workspace <slug>` | Specify workspace |
 | `--project <slug>` | Specify project |
 | `-y, --yes` | Skip confirmation prompts |
+| `--disk-size <gib>` | Attach a persistent disk of this size (1–1000 GiB) when creating a new project |
+| `--disk-mount <path>` | Mount path for the disk, e.g. `/data` |
+
+The disk flags apply only when `tose init` creates a new project; for an existing project use [`tose disk set`](/commands/disk#tose-disk-set). See [Persistent Disks](/guide/persistent-disks).
 
 ### Usage
 
