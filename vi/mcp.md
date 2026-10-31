@@ -24,7 +24,7 @@ Muốn kết nối workspace khác thì thêm connector lần nữa và chọn w
 | `get_deployment_status` | Trạng thái của một deployment (hoặc deployment mới nhất) và 5 deployment gần nhất. | Không |
 | `inspect_deployment` | Commit, branch, tác giả, image, trigger, thời gian, URL và lỗi của một deployment. | Không |
 | `read_logs` | `source=build` đọc build log của một deployment. `source=runtime` đọc log ứng dụng gần đây (tối đa 24 giờ, có thể lọc theo `level`). Trả về tối đa 500 dòng và 64 KB. | Không |
-| `deploy_project` | Build và deploy commit mới nhất của branch đã kết nối. | **Có**, cần phê duyệt |
+| `deploy_project` | Build và deploy commit đầu của branch đã kết nối, đúng commit hiển thị trong kế hoạch. | **Có**, cần phê duyệt |
 | `rollback_deployment` | Đưa image của một deployment cũ lên chạy lại. | **Có**, cần phê duyệt |
 
 Connector không có tool gọi API tùy ý. Nó không đọc hay sửa được biến môi trường, domain, database, thanh toán hay thành viên.
@@ -33,11 +33,13 @@ Connector không có tool gọi API tùy ý. Nó không đọc hay sửa đượ
 
 `deploy_project` và `rollback_deployment` luôn chạy hai bước:
 
-1. Lần gọi đầu không thay đổi gì. Nó trả về một **kế hoạch** (project, repository và branch hoặc deployment đích, phiên bản đang chạy và tác động), một `approval_url` và một `approval_token` dùng một lần.
+1. Lần gọi đầu không thay đổi gì. Nó trả về một **kế hoạch**, một `approval_url` và một `approval_token` dùng một lần. Kế hoạch cho biết project, phiên bản đang chạy và tác động. Kế hoạch deploy còn cho biết repository, branch và commit sẽ được build. Kế hoạch rollback cho biết deployment đích.
 2. Mở `approval_url` trên trình duyệt. TOSE hiển thị kế hoạch dưới tài khoản của bạn. Bấm **Approve** hoặc **Decline**.
 3. Bảo client tiếp tục. Client gọi lại tool với token, và chỉ khi đó TOSE mới deploy hoặc rollback.
 
-Client không thể phê duyệt thay bạn: token không có tác dụng cho tới khi bạn phê duyệt kế hoạch trên trang TOSE. Kế hoạch đã bị từ chối sẽ không bao giờ chạy được.
+Client không thể phê duyệt thay bạn: token không có tác dụng cho tới khi bạn phê duyệt kế hoạch trên trang TOSE. Kế hoạch đã bị từ chối sẽ không bao giờ chạy được. Bạn cũng có thể mở lại link và rút lại phê duyệt khi client chưa dùng nó.
+
+Phê duyệt deploy chỉ áp dụng cho commit hiển thị trong kế hoạch. Nếu có người push lên branch trước khi deploy bắt đầu, TOSE từ chối với `APPROVAL_STALE` và không build gì. Hãy yêu cầu kế hoạch mới để xem commit mới.
 
 Token phê duyệt gắn với user, kết nối, project, hành động và deployment đích khi rollback. Token hết hạn sau 10 phút và chỉ dùng được một lần. Nếu client gửi lại một token đã dùng, TOSE trả về deployment ban đầu và không deploy lần nữa.
 
@@ -58,7 +60,8 @@ Khi tool lỗi, nội dung trả về bắt đầu bằng một mã cố định
 | `INSUFFICIENT_SCOPE` | Kết nối chỉ có quyền đọc. Hãy kết nối lại và cho phép deploy. |
 | `FORBIDDEN` | Vai trò của bạn không được deploy hay rollback. |
 | `APPROVAL_PENDING` | Bạn chưa phê duyệt kế hoạch. Mở `approval_url`, phê duyệt, rồi bảo client tiếp tục. |
-| `APPROVAL_INVALID`, `APPROVAL_EXPIRED`, `APPROVAL_USED` | Phê duyệt sai, hết hạn, đã bị từ chối hoặc đã dùng. Gọi tool không kèm `approval_token` để lấy kế hoạch mới. |
+| `APPROVAL_STALE` | Branch có commit mới sau khi bạn phê duyệt. Chưa có gì được deploy. Yêu cầu kế hoạch mới và xem commit mới. |
+| `APPROVAL_INVALID`, `APPROVAL_EXPIRED`, `APPROVAL_USED` | Phê duyệt sai, hết hạn, đã bị từ chối, đã rút lại hoặc đã dùng. Gọi tool không kèm `approval_token` để lấy kế hoạch mới. |
 | `DEPLOY_IN_PROGRESS` | Theo dõi deployment đang chạy bằng `get_deployment_status`. |
 | `NO_GIT_CONNECTION`, `NO_SERVER`, `NO_IMAGE` | Project chưa sẵn sàng cho thao tác này. Sửa trong dashboard. |
 | `CONFLICT` | Project đang bị khóa, ví dụ khi chuyển môi trường. |

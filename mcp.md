@@ -24,7 +24,7 @@ To connect another workspace, add the connector again and pick the other workspa
 | `get_deployment_status` | Status of one deployment, or the latest one, plus the 5 most recent deployments. | No |
 | `inspect_deployment` | Commit, branch, author, image, trigger, timings, URL and error of one deployment. | No |
 | `read_logs` | `source=build` reads a deployment's build log. `source=runtime` reads recent application logs (up to 24 hours back, optional `level`). Returns at most 500 lines and 64 KB. | No |
-| `deploy_project` | Builds and deploys the latest commit of the project's connected branch. | **Yes**, needs approval |
+| `deploy_project` | Builds and deploys the head commit of the project's connected branch, as shown in the plan. | **Yes**, needs approval |
 | `rollback_deployment` | Puts the image of an earlier deployment live again. | **Yes**, needs approval |
 
 There is no generic API tool. The connector cannot read or change environment variables, domains, databases, billing or members.
@@ -33,11 +33,13 @@ There is no generic API tool. The connector cannot read or change environment va
 
 `deploy_project` and `rollback_deployment` always run in two steps:
 
-1. The first call changes nothing. It returns a **plan** (project, repository and branch or target deployment, what is live now, and the effect), an `approval_url` and a one-time `approval_token`.
+1. The first call changes nothing. It returns a **plan**, an `approval_url` and a one-time `approval_token`. The plan shows the project, what is live now and the effect. A deploy plan also shows the repository, branch and the commit it will build. A rollback plan shows the target deployment.
 2. Open the `approval_url` in your browser. TOSE shows the plan, signed in as you. Click **Approve** or **Decline**.
 3. Tell the client to continue. It calls the tool again with the token, and only then does TOSE deploy or roll back.
 
-The client cannot approve for you: the token does nothing until you approve the plan on the TOSE page. A declined plan can never run.
+The client cannot approve for you: the token does nothing until you approve the plan on the TOSE page. A declined plan can never run. You can also open the link again and withdraw an approval until the client uses it.
+
+A deploy approval covers the commit shown in the plan. If someone pushes to the branch before the deploy starts, TOSE refuses with `APPROVAL_STALE` and builds nothing. Ask for a new plan to review the new commit.
 
 An approval token is tied to your user, this connection, the project, the action and the rollback target. It expires after 10 minutes and works once. If the client retries with a token that was already used, TOSE returns the original deployment and does not deploy again.
 
@@ -58,7 +60,8 @@ Failed tool calls return text that starts with a stable code:
 | `INSUFFICIENT_SCOPE` | The connection is read-only. Reconnect and allow deploying. |
 | `FORBIDDEN` | Your role cannot deploy or roll back. |
 | `APPROVAL_PENDING` | You have not approved the plan yet. Open its `approval_url`, approve it, then ask the client to continue. |
-| `APPROVAL_INVALID`, `APPROVAL_EXPIRED`, `APPROVAL_USED` | The approval is wrong, expired, declined or used. Request a new plan by calling the tool without `approval_token`. |
+| `APPROVAL_STALE` | The branch has a new commit since you approved. Nothing was deployed. Request a new plan and review the new commit. |
+| `APPROVAL_INVALID`, `APPROVAL_EXPIRED`, `APPROVAL_USED` | The approval is wrong, expired, declined, withdrawn or used. Request a new plan by calling the tool without `approval_token`. |
 | `DEPLOY_IN_PROGRESS` | Wait for the running deployment with `get_deployment_status`. |
 | `NO_GIT_CONNECTION`, `NO_SERVER`, `NO_IMAGE` | The project is not ready for this action. Fix it in the dashboard. |
 | `CONFLICT` | The project is locked, for example during an environment move. |
