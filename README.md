@@ -38,10 +38,10 @@ owner before you publish it. Do not copy a claim from an older page.
   the canonical page. When a price changes, update tose-app first, then this
   page and its mirror, then tose-web.
 - **CLI pages** (`commands/` and `vi/commands/`)
-  document the published npm package `@tosesh/tose`. Its source is not in any
-  of the related repositories below, and its npm metadata has no `repository`
-  field. Until the source is found, check commands and flags against the
-  published package, and check the API calls behind them against tose-app.
+  document the published npm package `@tosesh/tose`, built from
+  [saasvn/tose-cli](https://github.com/saasvn/tose-cli). Check commands and
+  flags against that repository, and the API calls behind them against
+  tose-app.
 
 ## Pages and locales
 
@@ -89,5 +89,5 @@ sidebar or nav entries in the config.
   marketing landing page. Its pricing copy must match the canonical pricing
   page.
 - [saasvn/tose-docs](https://github.com/saasvn/tose-docs): this repository.
-- [saasvn/tose-cli](https://github.com/saasvn/tose-cli): a TypeScript CLI
-  scaffold. It is not the source of `@tosesh/tose`.
+- [saasvn/tose-cli](https://github.com/saasvn/tose-cli): source of the
+  published CLI `@tosesh/tose`.
