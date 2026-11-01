@@ -1,5 +1,9 @@
 # API Endpoints
 
+::: warning Chỉ là ví dụ
+Các endpoint trên trang này chỉ mang tính minh họa. Danh sách chính thức là spec OpenAPI tại `https://api.tose.sh/api/openapi.yaml`. Xem [Tài liệu REST API](/vi/api/reference).
+:::
+
 Tham khảo đầy đủ các endpoint API của TOSE.
 
 ## Base URL
@@ -18,7 +22,7 @@ GET /api/v1/workspaces
 
 **Headers:**
 ```http
-X-API-KEY: ws_xxxxx
+X-API-KEY: tose_sk_xxxxx
 ```
 
 **Response:**

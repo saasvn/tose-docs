@@ -218,7 +218,7 @@ Ví dụ nội dung:
 
 ```json
 {
-  "apiKey": "ws_xxxxxxxxxxxxx",
+  "apiKey": "tose_sk_xxxxxxxxxxxx",
   "workspaceId": "ws_123456",
   "baseUrl": "https://api.tose.sh"
 }

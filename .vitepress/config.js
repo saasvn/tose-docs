@@ -56,7 +56,8 @@ export default defineConfig({
               { text: 'Git Integration', link: '/guide/git' },
               { text: 'Dockerfile Examples', link: '/guide/dockerfile' },
               { text: 'Persistent Disks', link: '/guide/persistent-disks' },
-              { text: 'Pricing', link: '/guide/pricing' }
+              { text: 'Pricing', link: '/guide/pricing' },
+              { text: 'Self-hosting', link: '/guide/self-hosting' }
             ]
           },
           {
@@ -72,6 +73,7 @@ export default defineConfig({
             items: [
               { text: 'REST API', link: '/api/reference' },
               { text: 'Authentication', link: '/api/authentication' },
+              { text: 'Errors', link: '/api/errors' },
               { text: 'Endpoints', link: '/api/endpoints' },
               { text: 'Desktops', link: '/api/desktops' },
               { text: 'Disks, Volumes & Pricing', link: '/api/disks' }
@@ -128,7 +130,8 @@ export default defineConfig({
               { text: 'Tích hợp Git', link: '/vi/guide/git' },
               { text: 'Ví dụ Dockerfile', link: '/vi/guide/dockerfile' },
               { text: 'Ổ đĩa bền vững', link: '/vi/guide/persistent-disks' },
-              { text: 'Bảng giá', link: '/vi/guide/pricing' }
+              { text: 'Bảng giá', link: '/vi/guide/pricing' },
+              { text: 'Tự host', link: '/vi/guide/self-hosting' }
             ]
           },
           {
@@ -143,6 +146,7 @@ export default defineConfig({
             items: [
               { text: 'REST API', link: '/vi/api/reference' },
               { text: 'Xác thực', link: '/vi/api/authentication' },
+              { text: 'Mã lỗi', link: '/vi/api/errors' },
               { text: 'Endpoints', link: '/vi/api/endpoints' },
               { text: 'Ổ đĩa, Volume & Bảng giá', link: '/vi/api/disks' }
             ]

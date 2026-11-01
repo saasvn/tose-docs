@@ -1,5 +1,9 @@
 # API Endpoints
 
+::: warning Example only
+The endpoints on this page are illustrative. The authoritative list is the OpenAPI spec at `https://api.tose.sh/api/openapi.yaml`. See the [REST API reference](/api/reference).
+:::
+
 Reference for all available API endpoints.
 
 ## Base URL
