@@ -157,6 +157,7 @@ POST /projects
 | `404` | Not Found |
 | `429` | Too Many Requests |
 | `500` | Internal Server Error |
+| `503` | Service Unavailable. Retry after the `Retry-After` header |
 
 ## Rate Limiting
 

@@ -225,6 +225,7 @@ GET /api/v1/git/repositories?workspaceId=ws_123
 | 404 | Không tìm thấy |
 | 429 | Quá nhiều yêu cầu |
 | 500 | Lỗi server |
+| 503 | Dịch vụ tạm thời không khả dụng. Thử lại sau `Retry-After` |
 
 ## Error Response
 

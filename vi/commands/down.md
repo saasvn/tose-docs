@@ -89,6 +89,18 @@ tose down --project my-app --force
 4. **Dọn dẹp tài nguyên** - Tài nguyên được giải phóng
 5. **Cập nhật trạng thái** - Triển khai được đánh dấu "Đã dừng"
 
+### Dừng toàn bộ dự án
+
+Dừng một triển khai `running` sẽ dừng **toàn bộ dự án**. Trong một lần ghi có khoá, mọi triển khai của dự án đang `running` hoặc `deploying`, và mọi triển khai còn ở trước bước deploy (`pending`, `cloning`, `building`, `pushing`), được đánh dấu `stopped`. Dự án giữ ở 0 replica cho đến khi bạn deploy lại.
+
+- Chỉ các triển khai được tạo trước khi Stop bắt đầu bị ảnh hưởng. Deploy được yêu cầu sau đó vẫn build và phát hành bình thường.
+- Bản build bị dừng không có deploy, không gửi email và không có sự kiện thành công hay thất bại.
+- Dừng một triển khai `deploying` hoàn tất bất đồng bộ. Builder khôi phục phiên bản phục vụ gần nhất nếu có, nếu không thì scale workload về 0. Triển khai có thể kết thúc ở `running` kèm lý do trong `error_message` nếu image của nó vẫn đang phục vụ. Chạy [`tose status`](/vi/commands/status) sau khi dừng để xem trạng thái cuối.
+- Nếu không lấy được khoá workload của dự án trong 60 giây, API trả về `503 Service Unavailable` kèm header `Retry-After` và chưa có gì bị dừng. Chạy lại `tose down` sau khoảng chờ đó. Stop phản hồi trong khoảng 100 giây.
+- Redeploy sau đó không bao giờ chọn image của rollout đã bị huỷ.
+
+Xem [Dừng triển khai](/vi/api/reference#dung-trien-khai) trong tài liệu API.
+
 ## Best Practices
 
 ### 1. Kiểm tra trạng thái trước
