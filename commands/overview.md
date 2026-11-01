@@ -295,19 +295,19 @@ tose status --json
 
 | Field | Meaning |
 |-------|---------|
-| `code` | The `code` of the API error envelope when the API sent one: stable snake_case values such as `not_found`, `forbidden` or `credentials_in_url`. Branch on it, never on `message`. Without an envelope the code comes from the HTTP status (`UNAUTHORIZED`, `NOT_FOUND`, `RATE_LIMITED`, `SERVER_ERROR`, …). The CLI raises some codes itself, for example `INPUT_REQUIRED`, `CONFIRMATION_REQUIRED`, `DEPLOY_FAILED` and `SKILL_INTEGRITY` |
+| `code` | The `code` of the API error envelope when the API sent one: stable snake_case values such as `not_found`, `forbidden` or `credentials_in_url`. Branch on it, never on `message`. Without an envelope the code comes from the HTTP status (`UNAUTHORIZED`, `NOT_FOUND`, `RATE_LIMITED`, `SERVER_ERROR`, …). A 403 caused by your key is reported as `INSUFFICIENT_SCOPE` (with `details.required_scope`) or `API_KEY_WORKSPACE_SCOPED` instead of the API's code. The CLI raises some codes itself, for example `INPUT_REQUIRED`, `CONFIRMATION_REQUIRED`, `DEPLOY_FAILED` and `SKILL_INTEGRITY` |
 | `request_id` | From the API error body or its `X-Request-Id` header. Quote it when you report a problem |
 | `retryable` | `true` means the same command may succeed if you run it again later |
-| `details` | Extra context from the API, for example `required_scope` for a missing key scope |
+| `details` | Extra context from the API, for example `required_scope`, which the CLI sets when `code` is `INSUFFICIENT_SCOPE` |
 | `doc_url` | Link to documentation for this error, or `null` |
 
 `schema_version` changes only when a field is removed or changes meaning. New fields can appear at any time, so ignore the ones you do not know.
 
 ## API key handling
 
-The CLI sends your key only in the `X-API-Key` header, never in a URL. That includes the WebSocket behind `tose logs -f`, and the CLI refuses to open a stream whose URL carries `api_key`, `x-api-key` or `access_token`.
+The CLI sends your key only in the `X-API-Key` header, never in a URL. That includes the WebSocket behind `tose logs -f`, and the CLI refuses to open a stream whose URL carries a credential parameter such as `api_key`, `x-api-key` or `access_token`.
 
-If the API answers `400 credentials_in_url`, something put the key in a query string, such as an old client, a proxy or a hand-built URL. The CLI says so and tells you to rotate that key: create a new one, run `tose login` again, then revoke the old one. In `--json` mode the error has `code` `credentials_in_url`.
+If the API answers `400 credentials_in_url`, something put the key in a query string, such as an old client, a proxy or a hand-built URL. The CLI says so and tells you to rotate that key. To rotate: create a new key, run `tose login` with it, then revoke the old one. In `--json` mode the error has `code` `credentials_in_url`.
 
 ## Environment Variables
 
@@ -324,7 +324,7 @@ If the API answers `400 credentials_in_url`, something put the key in a query st
 |------|------|---------|
 | `0` | `SUCCESS` | Done, or accepted and still running (`status: "pending"`) |
 | `1` | `ERROR` | Any other failure, including API and network errors |
-| `2` | `USAGE` | Invalid or missing flags, arguments or input; nothing was sent |
+| `2` | `USAGE` | Invalid or missing flags, arguments or input, or the API rejected the request as invalid (400/422, including `credentials_in_url`) |
 | `3` | `UNAUTHORIZED` | No API key, or the API rejected it (401/403, including a missing key scope) |
 | `4` | `CONFIRMATION_REQUIRED` | A destructive command needs `--yes` or `--confirm <name>` |
 | `5` | `CANCELLED` | You declined the prompt, a wait was interrupted, or the deployment was cancelled |

@@ -150,7 +150,7 @@ tose logs --project my-app --follow
 
 ## Đầu ra JSON và lỗi
 
-Với `--json`, stdout chỉ có đúng một tài liệu JSON; tiến trình và cảnh báo đi vào stderr. `--json` không bao giờ tự xác nhận thao tác phá huỷ.
+Với `--json`, stdout chỉ có đúng một tài liệu JSON; tiến trình và cảnh báo đi vào stderr. `--json` không bao giờ tự xác nhận thao tác phá hủy.
 
 ```json
 {
@@ -171,10 +171,10 @@ Với `--json`, stdout chỉ có đúng một tài liệu JSON; tiến trình v�
 
 | Trường | Ý nghĩa |
 |--------|---------|
-| `code` | `code` trong error envelope của API khi API gửi về: giá trị snake_case ổn định như `not_found`, `forbidden`, `credentials_in_url`. Hãy rẽ nhánh theo `code`, không theo `message`. Nếu không có envelope, mã lấy từ HTTP status (`UNAUTHORIZED`, `NOT_FOUND`, `RATE_LIMITED`, ...). CLI tự sinh một số mã như `INPUT_REQUIRED`, `CONFIRMATION_REQUIRED`, `DEPLOY_FAILED`, `SKILL_INTEGRITY` |
+| `code` | `code` trong error envelope của API khi API gửi về: giá trị snake_case ổn định như `not_found`, `forbidden`, `credentials_in_url`. Hãy rẽ nhánh theo `code`, không theo `message`. Nếu không có envelope, mã lấy từ HTTP status (`UNAUTHORIZED`, `NOT_FOUND`, `RATE_LIMITED`, ...). Lỗi 403 do key được báo là `INSUFFICIENT_SCOPE` (kèm `details.required_scope`) hoặc `API_KEY_WORKSPACE_SCOPED` thay cho mã của API. CLI tự sinh một số mã như `INPUT_REQUIRED`, `CONFIRMATION_REQUIRED`, `DEPLOY_FAILED`, `SKILL_INTEGRITY` |
 | `request_id` | Lấy từ body lỗi của API hoặc header `X-Request-Id`; hãy nêu khi báo sự cố |
 | `retryable` | `true` nghĩa là chạy lại cùng lệnh sau đó có thể thành công |
-| `details` | Ngữ cảnh thêm từ API, ví dụ `required_scope` khi key thiếu scope |
+| `details` | Ngữ cảnh thêm từ API, ví dụ `required_scope`, do CLI đặt khi `code` là `INSUFFICIENT_SCOPE` |
 | `doc_url` | Liên kết tới tài liệu về lỗi này, hoặc `null` |
 
 ### Mã thoát
@@ -183,17 +183,17 @@ Với `--json`, stdout chỉ có đúng một tài liệu JSON; tiến trình v�
 |----|-----|---------|
 | `0` | `SUCCESS` | Xong, hoặc đã được nhận và vẫn đang chạy (`status: "pending"`) |
 | `1` | `ERROR` | Mọi lỗi khác, gồm lỗi API và mạng |
-| `2` | `USAGE` | Flag, tham số hoặc đầu vào sai/thiếu; chưa gửi gì |
+| `2` | `USAGE` | Flag, tham số hoặc đầu vào sai/thiếu, hoặc API từ chối request là không hợp lệ (400/422, gồm `credentials_in_url`) |
 | `3` | `UNAUTHORIZED` | Không có API key, hoặc API từ chối (401/403, gồm thiếu scope) |
-| `4` | `CONFIRMATION_REQUIRED` | Lệnh phá huỷ cần `--yes` hoặc `--confirm <name>` |
-| `5` | `CANCELLED` | Bạn từ chối xác nhận, một lần chờ bị ngắt, hoặc triển khai bị huỷ |
+| `4` | `CONFIRMATION_REQUIRED` | Lệnh phá hủy cần `--yes` hoặc `--confirm <name>` |
+| `5` | `CANCELLED` | Bạn từ chối xác nhận, một lần chờ bị ngắt, hoặc triển khai bị hủy |
 | `6` | `NOT_FOUND` | Workspace, dự án hoặc tài nguyên không tồn tại |
 | `7` | `TIMEOUT` | Chờ quá lâu; thao tác vẫn có thể hoàn tất |
 | `8` | `OPERATION_FAILED` | Một deploy, build hoặc thao tác desktop kết thúc ở trạng thái lỗi |
 
 ### API key không bao giờ nằm trong URL
 
-CLI chỉ gửi key trong header `X-API-Key`, kể cả WebSocket của `tose logs -f`, và từ chối mở luồng nếu URL mang `api_key`, `x-api-key` hoặc `access_token`. Nếu API trả `400 credentials_in_url`, nghĩa là có thứ gì đó đã đặt key vào query string (client cũ, proxy hoặc URL tự dựng). CLI sẽ báo và khuyên bạn xoay key: tạo key mới, chạy lại `tose login`, rồi thu hồi key cũ. Ở chế độ `--json`, lỗi có `code` là `credentials_in_url`.
+CLI chỉ gửi key trong header `X-API-Key`, kể cả WebSocket của `tose logs -f`, và từ chối mở luồng nếu URL mang tham số chứa credential, chẳng hạn `api_key`, `x-api-key` hoặc `access_token`. Nếu API trả `400 credentials_in_url`, nghĩa là có thứ gì đó đã đặt key vào query string (client cũ, proxy hoặc URL tự dựng). CLI sẽ báo và khuyên bạn đổi key. Cách đổi: tạo key mới, chạy `tose login` với key đó, rồi thu hồi key cũ. Ở chế độ `--json`, lỗi có `code` là `credentials_in_url`.
 
 ## Chế độ tương tác vs Dựa trên flag
 

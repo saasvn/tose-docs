@@ -24,7 +24,7 @@ Tạo database mới.
 tose db create [--name <name>] [--type <type>] [--server <id>]
 ```
 
-Trong terminal, phần bạn bỏ qua sẽ được hỏi tương tác. Không có terminal, hoặc khi dùng `--json`, thiếu `--name` hay `--type` sẽ lỗi `INPUT_REQUIRED` và cho biết flag cần truyền. CLI gửi `db_type` và `server_id` lên API, đúng như API yêu cầu.
+Trong terminal, `--name` và `--type` còn thiếu sẽ được hỏi tương tác; `--server` không bao giờ được hỏi. Không có terminal, hoặc khi dùng `--json`, thiếu `--name` hay `--type` sẽ lỗi `INPUT_REQUIRED` và cho biết flag cần truyền. CLI gửi `db_type` và `server_id` lên API, đúng như API yêu cầu.
 
 ### Tùy chọn
 

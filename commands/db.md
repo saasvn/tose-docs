@@ -35,6 +35,8 @@ $ tose db list --json
 
 ```json
 {
+  "schema_version": "1",
+  "status": "ok",
   "success": true,
   "data": [
     {
@@ -67,7 +69,7 @@ tose db create [--name <name>] [--type <type>] [--server <id>]
 
 ### Description
 
-Creates a database in your workspace. In a terminal, anything you leave out is asked interactively. Without a terminal, or with `--json`, a missing `--name` or `--type` fails with `INPUT_REQUIRED` and names the flag to pass.
+Creates a database in your workspace. In a terminal, a missing `--name` or `--type` is asked interactively. `--server` is never prompted for. Without a terminal, or with `--json`, a missing `--name` or `--type` fails with `INPUT_REQUIRED` and names the flag to pass.
 
 The CLI sends `db_type` and `server_id` to the API, as it requires.
 
@@ -128,6 +130,8 @@ The output is the database object returned by the API.
 
 ```json
 {
+  "schema_version": "1",
+  "status": "ok",
   "success": true,
   "data": {
     "id": "db_abc123",
@@ -176,6 +180,8 @@ Connection URL:
 
 ```json
 {
+  "schema_version": "1",
+  "status": "ok",
   "success": true,
   "data": {
     "id": "db_abc123",
