@@ -56,7 +56,9 @@ export default defineConfig({
               { text: 'Git Integration', link: '/guide/git' },
               { text: 'Dockerfile Examples', link: '/guide/dockerfile' },
               { text: 'Persistent Disks', link: '/guide/persistent-disks' },
-              { text: 'Pricing', link: '/guide/pricing' }
+              { text: 'Pricing', link: '/guide/pricing' },
+              { text: 'Referral program', link: '/guide/referral' },
+              { text: 'Blog and editorial MCP (planned)', link: '/guide/blog-and-editorial-mcp' }
             ]
           },
           {
@@ -139,7 +141,9 @@ export default defineConfig({
               { text: 'Tích hợp Git', link: '/vi/guide/git' },
               { text: 'Ví dụ Dockerfile', link: '/vi/guide/dockerfile' },
               { text: 'Ổ đĩa bền vững', link: '/vi/guide/persistent-disks' },
-              { text: 'Bảng giá', link: '/vi/guide/pricing' }
+              { text: 'Bảng giá', link: '/vi/guide/pricing' },
+              { text: 'Chương trình giới thiệu', link: '/vi/guide/referral' },
+              { text: 'Blog và MCP biên tập (dự kiến)', link: '/vi/guide/blog-and-editorial-mcp' }
             ]
           },
           {
