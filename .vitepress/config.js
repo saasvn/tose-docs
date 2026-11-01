@@ -68,6 +68,17 @@ export default defineConfig({
             ]
           },
           {
+            text: 'MCP and Agents',
+            items: [
+              { text: 'Protocol, OAuth and scopes', link: '/mcp/oauth' },
+              { text: 'Tasks', link: '/mcp/tasks' },
+              { text: 'Apps', link: '/mcp/apps' },
+              { text: 'Skills', link: '/mcp/skills' },
+              { text: 'Agent access', link: '/mcp/agent-access' },
+              { text: 'Client compatibility', link: '/mcp/clients' }
+            ]
+          },
+          {
             text: 'API Reference',
             items: [
               { text: 'REST API', link: '/api/reference' },
@@ -136,6 +147,17 @@ export default defineConfig({
             items: [
               { text: 'Hướng dẫn Cloud Desktop', link: '/vi/guide/cloud-desktops' },
               { text: 'API Desktops (tiếng Anh)', link: '/api/desktops' }
+            ]
+          },
+          {
+            text: 'MCP và Agent',
+            items: [
+              { text: 'Giao thức, OAuth và scope', link: '/vi/mcp/oauth' },
+              { text: 'Tasks', link: '/vi/mcp/tasks' },
+              { text: 'Apps', link: '/vi/mcp/apps' },
+              { text: 'Skills', link: '/vi/mcp/skills' },
+              { text: 'Agent access', link: '/vi/mcp/agent-access' },
+              { text: 'Tương thích client', link: '/vi/mcp/clients' }
             ]
           },
           {
