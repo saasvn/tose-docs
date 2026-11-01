@@ -6,6 +6,10 @@ Tìm hiểu cách xác thực với TOSE API.
 
 TOSE API sử dụng xác thực dựa trên API key. Mỗi yêu cầu phải bao gồm API key trong header.
 
+::: tip Giới hạn quyền của key
+Key có thể được giới hạn bằng scope và luôn thuộc về một workspace. Xem [API key và scope](/vi/api/api-keys). Mọi thay đổi thực hiện bằng key đều được ghi vào [audit log](/vi/api/audit).
+:::
+
 ## API Key Authentication
 
 ### Header yêu cầu

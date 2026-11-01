@@ -72,6 +72,9 @@ export default defineConfig({
             items: [
               { text: 'REST API', link: '/api/reference' },
               { text: 'Authentication', link: '/api/authentication' },
+              { text: 'API Keys & Scopes', link: '/api/api-keys' },
+              { text: 'Audit Log', link: '/api/audit' },
+              { text: 'MCP Connector', link: '/mcp' },
               { text: 'Endpoints', link: '/api/endpoints' },
               { text: 'Desktops', link: '/api/desktops' },
               { text: 'Disks, Volumes & Pricing', link: '/api/disks' }
@@ -143,6 +146,9 @@ export default defineConfig({
             items: [
               { text: 'REST API', link: '/vi/api/reference' },
               { text: 'Xác thực', link: '/vi/api/authentication' },
+              { text: 'API key & Scope', link: '/vi/api/api-keys' },
+              { text: 'Audit log', link: '/vi/api/audit' },
+              { text: 'MCP Connector', link: '/vi/mcp' },
               { text: 'Endpoints', link: '/vi/api/endpoints' },
               { text: 'Ổ đĩa, Volume & Bảng giá', link: '/vi/api/disks' }
             ]

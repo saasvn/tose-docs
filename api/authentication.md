@@ -14,6 +14,10 @@ const app = initialize({
 })
 ```
 
+::: tip Limit what a key can do
+A key can be limited with scopes, and always belongs to one workspace. See [API Keys and Scopes](/api/api-keys). Every change made with a key is recorded in the [audit log](/api/audit).
+:::
+
 ## Obtaining an API Key
 
 1. Sign up for an account at [https://tose.example.com](https://tose.example.com)
