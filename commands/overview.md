@@ -282,10 +282,18 @@ tose status --json
 
 ## Exit Codes
 
-| Code | Meaning |
-|------|---------|
-| 0 | Success |
-| 1 | General error |
+| Code | Name | Meaning |
+|------|------|---------|
+| 0 | `SUCCESS` | Done, or accepted and still running |
+| 1 | `ERROR` | Any other failure |
+| 2 | `USAGE` | Invalid or missing flags, arguments or input |
+| 3 | `UNAUTHORIZED` | No API key, or the API rejected it |
+| 4 | `CONFIRMATION_REQUIRED` | A destructive command needs `--yes` or `--confirm <name>` |
+| 5 | `CANCELLED` | Confirmation declined, a wait interrupted, or the deployment cancelled |
+| 6 | `NOT_FOUND` | The workspace, project or resource does not exist |
+| 7 | `TIMEOUT` | Waiting took too long; the operation may still finish |
+| 8 | `OPERATION_FAILED` | A deploy, build or desktop operation ended in a failed state |
+| 9 | `INSUFFICIENT_BALANCE` | The workspace wallet balance is zero or negative, so a deploy, redeploy or rollback was refused. `next_actions` carries the top-up page in `url` |
 
 ## Next Steps
 
