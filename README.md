@@ -61,24 +61,25 @@ sidebar or nav entries in the config.
 ## Preview and deploy
 
 - **When to use:** preview edits locally, or publish the site.
-- **Scope:** a static VitePress build of this repository, served by PM2.
-- **Source of truth:** the `docs:*` scripts in `package.json`
-  for dev, build, preview, and static serve. The PM2 app in
-  `ecosystem.config.cjs` serves the built output; its
-  header comment has the PM2 start sequence.
-- **How to look up or run:** install dependencies from `package-lock.json`.
-  Use the dev script for local editing. To publish, run the build script on
-  the host and then start or restart the PM2 app from `ecosystem.config.cjs`.
-  Nothing in this repository automates publishing.
-- **Access and permission:** this repository does not record which host the
-  PM2 `cwd` points to, who can deploy there, or whether the public docs URL is
-  served by this PM2 app. That URL is the docs link in tose-app's dashboard
-  (`frontend/src/components/Header.astro`). Ask the platform owners. Do not
-  guess.
-- **Verification and fallback:** the build fails on dead links inside pages.
-  After building, preview it and check every changed page in both locales,
-  including the sidebar entries. Because the site is a static build, rolling
-  back means rebuilding from a known-good commit.
+- **Scope:** a static VitePress build of this repository, published to Cloudflare Pages, which
+  serves `docs.tose.sh`.
+- **Source of truth:** the `docs:*` scripts in `package.json` for dev, build and preview, and
+  [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) for publishing.
+  `ecosystem.config.cjs` is an older PM2 setup that serves the build with `serve`; nothing points
+  at it now.
+- **How to look up or run:** install dependencies from `package-lock.json` and use the dev script
+  for local editing. Every pull request and push builds the site. A push to `master` publishes the
+  build to the Pages project named by the `CLOUDFLARE_PAGES_PROJECT` variable as a `master`
+  deployment, which is production when the project's production branch is `master`. The workflow
+  can also be started from the Actions tab.
+- **Access and permission:** the `production` GitHub environment holds variable
+  `CLOUDFLARE_PAGES_PROJECT` and secrets `CLOUDFLARE_API_TOKEN` (Account → Cloudflare Pages → Edit)
+  and `CLOUDFLARE_ACCOUNT_ID`. Without them the deploy job warns that it skipped and stays green.
+- **Verification and fallback:** the build fails on dead links inside pages, so check every changed
+  page in both locales with the preview script before merging. After publishing, the workflow
+  checks the deployment URL and waits until `docs.tose.sh` serves the same app bundle. To roll back,
+  promote an earlier deployment in the Pages dashboard (Deployments → Rollback), or re-run the
+  workflow on a known-good commit.
 
 ## Related repositories
 
