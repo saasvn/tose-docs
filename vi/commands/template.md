@@ -115,3 +115,4 @@ Template gọi nhà cung cấp AI (Gemini, OpenAI và các nhà cung cấp khác
 - [Biến môi trường](/vi/guide/environment)
 - [Bảng giá](/vi/guide/pricing)
 - [Ổ đĩa bền vững](/vi/guide/persistent-disks)
+- [Runbook template Dewee](/vi/guide/dewee-template)
