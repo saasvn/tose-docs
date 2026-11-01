@@ -2,7 +2,7 @@
 
 Create and run 1-click templates (GoClaw, Multix) from the command line.
 
-All commands accept the [global options](/commands/overview#global-options), including `--json`.
+All commands accept `--json`. See the [global options](/commands/overview#global-options).
 
 ## Quick start
 
@@ -17,7 +17,7 @@ tose template deploy demo --wait --json                # waits, then returns the
 
 ## tose template catalog
 
-List the templates you can create. Each entry shows its key, port, CPU and RAM, storage, whether it generates credentials (presence only, never the values), paid or unlocked state, and the estimated TOSE charge. Fields appear only when the API sends them.
+List the templates you can create. Each entry shows its key, port, CPU and RAM. Storage, the names of generated credentials (never their values), paid or unlocked state and the estimated TOSE charge appear when the API sends them.
 
 ```bash
 tose template catalog
@@ -30,7 +30,7 @@ Create a template instance.
 ### Synopsis
 
 ```bash
-tose template create <name> [--template <key>]
+tose template create [name] [--template <key>]
 ```
 
 ### Options
@@ -42,7 +42,7 @@ tose template create <name> [--template <key>]
 
 - The key is checked against the live catalog. An unknown key exits `2` and creates nothing.
 - Without `--template`, `goclaw` is used. In a terminal the CLI offers the catalog to pick from.
-- The output states that AI provider usage is [BYOK](#ai-provider-usage-byok) and is not billed to your wallet.
+- In terminal output, when the catalog provides it, the CLI states that AI provider usage is [BYOK](#ai-provider-usage-byok) and not billed to your wallet, and shows the estimated TOSE charge. The name is asked for in a terminal if you omit it.
 
 ## tose template env
 
@@ -65,9 +65,9 @@ Use one of these for API keys and other secrets:
 
 | Method | Behavior |
 |--------|----------|
-| `--env-file <path>` | Reads `KEY=VALUE` lines from a file. The CLI refuses the file unless it is `chmod 600` (not readable by group or others) |
+| `--env-file <path>` | Reads `KEY=VALUE` lines from a file. The CLI refuses a file that group or others can access, so use `chmod 600`. The check is skipped on Windows |
 | `--env-stdin` | Reads `KEY=VALUE` lines from standard input, for example from a secret store |
-| Bare key name (`<KEY>`) | Asks for the value at a masked prompt. Refused without a terminal |
+| Bare key name (`<KEY>`) | Asks for the value at a masked prompt. Refused without a terminal, and with `--json` or `--non-interactive` (exit `2`, `INPUT_REQUIRED`) |
 
 An inline `KEY=VALUE` still works, but only use it for non-secret configuration. The CLI prints a warning because the value lands in shell history and process lists.
 
@@ -81,13 +81,14 @@ Deploy a template instance.
 ### Synopsis
 
 ```bash
-tose template deploy <slug> [--wait] [--timeout <duration>]
+tose template deploy <slug> [--mode <mode>] [--wait] [--timeout <duration>]
 ```
 
 ### Options
 
 | Option | Description |
 |--------|-------------|
+| `--mode <mode>` | `image` or `build`. Default: `image` |
 | `--wait` | Poll until the rollout finishes |
 | `--timeout <duration>` | How long `--wait` may take, such as `90s` or `15m`. Default: `15m` |
 
@@ -96,10 +97,8 @@ tose template deploy <slug> [--wait] [--timeout <duration>]
 | Code | Meaning |
 |------|---------|
 | `0` | The rollout finished |
-| `8` | The rollout failed or was terminated |
+| `8` | The rollout failed, was cancelled or was terminated |
 | `7` | The wait timed out. The rollout may still finish on the server |
-
-The full list is in [Exit Codes](/commands/overview#exit-codes).
 
 ### Links and secrets
 
@@ -109,7 +108,7 @@ The full list is in [Exit Codes](/commands/overview#exit-codes).
 
 ## AI provider usage (BYOK)
 
-Templates that call an AI provider (Gemini, OpenAI and others) use your own provider key. The provider bills that usage. The TOSE wallet is charged only for the infrastructure, which is the estimated TOSE charge shown by `tose template catalog` and `tose template create`.
+Templates that call an AI provider (Gemini, OpenAI and others) use your own provider key. The provider bills that usage. The TOSE wallet is charged only for the infrastructure, which is the estimated TOSE charge shown by `tose template catalog`.
 
 ## Related
 

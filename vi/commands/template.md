@@ -2,7 +2,7 @@
 
 Tạo và chạy template 1-click (GoClaw, Multix) từ dòng lệnh.
 
-Mọi lệnh đều nhận các tùy chọn toàn cục (xem [Tổng quan](/vi/commands/overview)), bao gồm `--json`.
+Mọi lệnh đều nhận `--json`.
 
 ## Bắt đầu nhanh
 
@@ -17,7 +17,7 @@ tose template deploy demo --wait --json                # chờ xong, rồi trả
 
 ## tose template catalog
 
-Liệt kê các template có thể tạo. Mỗi mục hiển thị key, cổng, CPU và RAM, dung lượng lưu trữ, template có sinh thông tin đăng nhập hay không (chỉ báo có hay không, không bao giờ in giá trị), trạng thái trả phí hoặc đã mở khóa, và phí TOSE ước tính. Trường nào API không gửi thì không hiển thị.
+Liệt kê các template có thể tạo. Mỗi mục hiển thị key, cổng, CPU và RAM. Dung lượng lưu trữ, tên các thông tin đăng nhập được sinh ra (không bao giờ in giá trị), trạng thái trả phí hoặc đã mở khóa và phí TOSE ước tính chỉ hiển thị khi API gửi về.
 
 ```bash
 tose template catalog
@@ -30,7 +30,7 @@ Tạo một instance template.
 ### Tóm tắt {#tose-template-create-synopsis}
 
 ```bash
-tose template create <name> [--template <key>]
+tose template create [name] [--template <key>]
 ```
 
 ### Tùy chọn
@@ -42,7 +42,7 @@ tose template create <name> [--template <key>]
 
 - Key được kiểm tra với catalog hiện hành. Key không tồn tại sẽ thoát với mã `2` và không tạo gì cả.
 - Không có `--template` thì dùng `goclaw`. Trong terminal, CLI cho bạn chọn từ catalog.
-- Kết quả nêu rõ việc dùng nhà cung cấp AI là [BYOK](#su-dung-nha-cung-cap-ai-byok) và không tính vào ví.
+- Trong output ở terminal, khi catalog cung cấp thông tin, CLI nêu rõ việc dùng nhà cung cấp AI là [BYOK](#su-dung-nha-cung-cap-ai-byok), không tính vào ví, và hiển thị phí TOSE ước tính. Nếu bỏ qua tên, CLI hỏi trong terminal.
 
 ## tose template env
 
@@ -65,9 +65,9 @@ Dùng một trong các cách sau cho API key và các secret khác:
 
 | Cách | Hành vi |
 |------|---------|
-| `--env-file <path>` | Đọc các dòng `KEY=VALUE` từ file. CLI từ chối file nếu không phải `chmod 600` (group hoặc người khác đọc được) |
+| `--env-file <path>` | Đọc các dòng `KEY=VALUE` từ file. CLI từ chối file mà group hoặc người khác truy cập được, nên hãy dùng `chmod 600`. Windows không bị kiểm tra bước này |
 | `--env-stdin` | Đọc các dòng `KEY=VALUE` từ standard input, ví dụ từ kho secret |
-| Chỉ có tên key (`<KEY>`) | Hỏi giá trị ở prompt ẩn. Bị từ chối nếu không có terminal |
+| Chỉ có tên key (`<KEY>`) | Hỏi giá trị ở prompt ẩn. Bị từ chối nếu không có terminal, hoặc khi dùng `--json` / `--non-interactive` (mã `2`, `INPUT_REQUIRED`) |
 
 `KEY=VALUE` viết thẳng trên dòng lệnh vẫn dùng được, nhưng chỉ nên dùng cho cấu hình không phải secret. CLI in cảnh báo vì giá trị sẽ nằm trong lịch sử shell và danh sách tiến trình.
 
@@ -81,13 +81,14 @@ Deploy một instance template.
 ### Tóm tắt {#tose-template-deploy-synopsis}
 
 ```bash
-tose template deploy <slug> [--wait] [--timeout <duration>]
+tose template deploy <slug> [--mode <mode>] [--wait] [--timeout <duration>]
 ```
 
 ### Tùy chọn
 
 | Tùy chọn | Mô tả |
 |----------|-------|
+| `--mode <mode>` | `image` hoặc `build`. Mặc định: `image` |
 | `--wait` | Thăm dò cho đến khi rollout kết thúc |
 | `--timeout <duration>` | Thời gian tối đa của `--wait`, ví dụ `90s` hoặc `15m`. Mặc định: `15m` |
 
@@ -96,10 +97,8 @@ tose template deploy <slug> [--wait] [--timeout <duration>]
 | Mã | Ý nghĩa |
 |----|---------|
 | `0` | Rollout hoàn tất |
-| `8` | Rollout thất bại hoặc bị chấm dứt |
+| `8` | Rollout thất bại, bị hủy hoặc bị chấm dứt |
 | `7` | Hết thời gian chờ. Rollout vẫn có thể hoàn tất trên server |
-
-Danh sách đầy đủ ở phần mã thoát trong [Tổng quan](/vi/commands/overview).
 
 ### Liên kết và secret
 
@@ -109,7 +108,7 @@ Danh sách đầy đủ ở phần mã thoát trong [Tổng quan](/vi/commands/o
 
 ## Sử dụng nhà cung cấp AI (BYOK) {#su-dung-nha-cung-cap-ai-byok}
 
-Template gọi nhà cung cấp AI (Gemini, OpenAI và các nhà cung cấp khác) dùng key riêng của bạn. Nhà cung cấp tính phí phần sử dụng đó. Ví TOSE chỉ bị trừ phần hạ tầng, tức là phí TOSE ước tính hiển thị bởi `tose template catalog` và `tose template create`.
+Template gọi nhà cung cấp AI (Gemini, OpenAI và các nhà cung cấp khác) dùng key riêng của bạn. Nhà cung cấp tính phí phần sử dụng đó. Ví TOSE chỉ bị trừ phần hạ tầng, tức là phí TOSE ước tính hiển thị bởi `tose template catalog`.
 
 ## Liên quan
 
