@@ -12,7 +12,7 @@ Host hỗ trợ MCP Apps (`io.modelcontextprotocol/ui`) hiển thị một view 
 
 ## Host nào hỗ trợ
 
-Hỗ trợ tùy theo host và phiên bản. [Ma trận client](./clients) ghi lại những gì mỗi nhà cung cấp tuyên bố. Chưa host nào được kiểm chứng với TOSE, nên hãy coi Apps là phần cộng thêm, đừng để quy trình của bạn phụ thuộc vào nó.
+Hỗ trợ tùy theo host và phiên bản. [Ma trận client](https://github.com/saasvn/tose-app/blob/master/docs/mcp-client-matrix.md) trong tose-app ghi lại những gì mỗi nhà cung cấp tuyên bố. Chưa host nào được kiểm chứng với TOSE, nên hãy coi Apps là phần cộng thêm, đừng để quy trình của bạn phụ thuộc vào nó.
 
 ## Chi phí trong plan chỉ là ước tính
 

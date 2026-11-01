@@ -6,7 +6,7 @@ The connector works with any client that supports remote MCP over Streamable HTT
 
 **None.** The matrix marks a client as verified only after someone connects it and records the date and version. No real agent client runs in TOSE's automated tests, so none is listed as verified. Claude, ChatGPT, Cursor, VS Code and MCP Inspector are all expected to work from their vendors' documentation, not from a TOSE test.
 
-If you connect one, report the result to TOSE support so it can be recorded.
+A result is recorded in the matrix by a TOSE maintainer, with the date and client version.
 
 ## What the server offers
 
@@ -25,7 +25,7 @@ These are checked by TOSE's automated tests against the server, not against a cl
 
 ## What happens when a client lacks a feature
 
-- **No Tasks:** `deploy_project` returns at once with a deployment ID, and the agent polls `get_deployment_status` until it is finished.
+- **No Tasks:** after you approve the plan, `deploy_project` returns at once with a deployment ID, and the agent polls `get_deployment_status` until it is finished.
 - **No Apps:** the plan and status come back as plain text. You approve on the approval page in your browser, and you can open that link yourself.
 - **No Skills:** the server instructions and tool descriptions carry the same plan, approve, run and poll workflow.
 - **Older protocol revision:** the client gets the same tools; only the refused-write signal differs (see [step-up](./oauth#insufficient-scope-step-up)).

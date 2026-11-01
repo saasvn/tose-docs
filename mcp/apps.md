@@ -12,7 +12,7 @@ Hosts that support MCP Apps (`io.modelcontextprotocol/ui`) show an interactive v
 
 ## Which hosts support them
 
-Support depends on the host and its version. The [client matrix](./clients) records what each vendor documents. None has been verified against TOSE yet, so treat Apps as a bonus, not something your workflow depends on.
+Support depends on the host and its version. The [client matrix](https://github.com/saasvn/tose-app/blob/master/docs/mcp-client-matrix.md) in tose-app records what each vendor documents. None has been verified against TOSE yet, so treat Apps as a bonus, not something your workflow depends on.
 
 ## Cost in the plan is an estimate
 

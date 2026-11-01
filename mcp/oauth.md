@@ -20,7 +20,7 @@ A client can identify itself in either of two ways. TOSE accepts both:
 - **Client ID Metadata Document (CIMD), preferred.** The client uses an `https` URL as its `client_id`, and TOSE fetches the JSON document at that URL. The consent page names the domain that published it.
 - **Dynamic client registration.** Clients without a metadata document register with `POST /oauth/register`. The consent page shows these clients as unverified.
 
-Both flows use the authorization code grant with PKCE (S256 only). Clients authenticate with `none`; key-based client authentication such as `private_key_jwt` is not supported.
+Both flows use the authorization code grant with PKCE (S256 only). Clients that use a metadata document authenticate with `none`. Dynamically registered clients use `none` or a client secret (`client_secret_post` or `client_secret_basic`). Key-based client authentication such as `private_key_jwt` is not supported.
 
 ## Scopes
 
@@ -54,7 +54,7 @@ Both are recorded in the audit history as `denied`.
 
 Requests from a browser carry an `Origin` header, and TOSE rejects origins it does not know before authenticating. `API_BASE_URL` and `FRONTEND_URL` are always allowed. Server-side clients send no `Origin` header and are not affected.
 
-To use a client that runs in a browser, such as a hosted MCP Inspector, the operator of the TOSE instance adds its origin to `MCP_ALLOWED_ORIGINS`, a comma-separated list. For a local Inspector, that is `http://localhost:6274`. Without it the client gets HTTP 403. If you use TOSE Cloud and a client needs an origin added, contact support.
+To use a client that runs in a browser, such as a hosted MCP Inspector, the operator of the TOSE instance adds its origin to `MCP_ALLOWED_ORIGINS`, a comma-separated list. For a local Inspector, that is `http://localhost:6274`. Without it the client gets HTTP 403. 
 
 ## Client support
 

@@ -1,6 +1,6 @@
 # Tasks: durable deploys and rollbacks
 
-A client that supports the MCP tasks extension (`io.modelcontextprotocol/tasks`) gets a **task** back when it asks to deploy or roll back, instead of a one-off plan. A task survives restarts and can be followed until the deployment finishes. Clients without the extension keep the two-step flow in [the connector guide](https://docs.tose.sh/mcp).
+A client that supports the MCP tasks extension (`io.modelcontextprotocol/tasks`) gets a **task** back when it asks to deploy or roll back, instead of a one-off plan. A task survives restarts and can be followed until the deployment finishes. Clients without the extension keep the two-step flow: the first call returns a plan, an `approval_url` and a one-time `approval_token`, you approve the plan in your browser, and the client calls the tool again with the token.
 
 ## Lifecycle
 
@@ -8,6 +8,7 @@ A client that supports the MCP tasks extension (`io.modelcontextprotocol/tasks`)
 |--------|---------|
 | `input_required` | The plan is waiting for you. The task carries a link to the approval page. |
 | `working` | You approved, and the deployment is in progress. |
+| `cancelled` | The task was cancelled. See [Cancelling](#cancelling). |
 | `completed` | The deployment is live or has failed. A failure, a declined plan or an expired approval complete the task with an error result that starts with a stable code such as `DEPLOY_FAILED`, `APPROVAL_DECLINED` or `APPROVAL_EXPIRED`. |
 
 ## Approval stays in your browser
@@ -18,7 +19,7 @@ The agent cannot approve its own task. You open the approval page, signed in as 
 
 - **Polling:** the client calls `tasks/get` about every 5 seconds. The server does not send task status notifications, so a client must poll.
 - **Expiry:** a task lives for 24 hours from creation.
-- **Isolation:** a task is visible only to the same user, workspace and connection that created it.
+- **Isolation:** a task is visible only to the same user, workspace, OAuth client and connection that created it. A task past its expiry is reported as expired.
 
 ## Cancelling
 

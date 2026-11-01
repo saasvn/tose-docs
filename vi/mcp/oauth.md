@@ -20,7 +20,7 @@ Client có thể tự nhận diện theo một trong hai cách. TOSE chấp nh�
 - **Client ID Metadata Document (CIMD), ưu tiên.** Client dùng một URL `https` làm `client_id`, và TOSE tải tài liệu JSON tại URL đó. Trang đồng ý (consent) hiển thị tên miền đã phát hành tài liệu.
 - **Đăng ký động.** Client không có metadata document đăng ký bằng `POST /oauth/register`. Trang consent hiển thị các client này là chưa xác minh.
 
-Cả hai luồng đều dùng authorization code kèm PKCE (chỉ S256). Client xác thực bằng `none`; không hỗ trợ xác thực client bằng khóa như `private_key_jwt`.
+Cả hai luồng đều dùng authorization code kèm PKCE (chỉ S256). Client dùng metadata document xác thực bằng `none`. Client đăng ký động dùng `none` hoặc client secret (`client_secret_post` hoặc `client_secret_basic`). Không hỗ trợ xác thực client bằng khóa như `private_key_jwt`.
 
 ## Scope
 
@@ -54,7 +54,7 @@ Cả hai đều được ghi vào lịch sử audit với kết quả `denied`.
 
 Request từ trình duyệt có header `Origin`, và TOSE từ chối origin lạ trước khi xác thực. `API_BASE_URL` và `FRONTEND_URL` luôn được cho phép. Client phía server không gửi `Origin` nên không bị ảnh hưởng.
 
-Để dùng client chạy trên trình duyệt, ví dụ MCP Inspector bản hosted, người vận hành instance TOSE thêm origin của nó vào `MCP_ALLOWED_ORIGINS`, là danh sách ngăn cách bằng dấu phẩy. Với Inspector chạy cục bộ, giá trị là `http://localhost:6274`. Nếu thiếu, client nhận HTTP 403. Nếu bạn dùng TOSE Cloud và cần thêm origin, hãy liên hệ hỗ trợ.
+Để dùng client chạy trên trình duyệt, ví dụ MCP Inspector bản hosted, người vận hành instance TOSE thêm origin của nó vào `MCP_ALLOWED_ORIGINS`, là danh sách ngăn cách bằng dấu phẩy. Với Inspector chạy cục bộ, giá trị là `http://localhost:6274`. Nếu thiếu, client nhận HTTP 403.
 
 ## Client được hỗ trợ
 
