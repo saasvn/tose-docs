@@ -225,6 +225,12 @@ tose down --force
 tose up
 ```
 
+### "INSUFFICIENT_BALANCE" (HTTP 402) {#insufficient-balance}
+
+Your workspace wallet balance is zero or negative, so TOSE refuses to deploy, redeploy or roll back. The dashboard and API return HTTP `402` with the code `INSUFFICIENT_BALANCE` and create no deployment. A GitHub push or a project's first deploy creates a deployment that ends as `failed` with `insufficient wallet balance` before the build starts. An agent over MCP gets `INSUFFICIENT_BALANCE` when it asks for the plan.
+
+**Solution:** top up the wallet from the dashboard billing page, then deploy again. See [When the balance is zero](/guide/pricing#when-the-balance-is-zero).
+
 ### "Port already in use"
 
 **Solution:** Change port in configuration:
