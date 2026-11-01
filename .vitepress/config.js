@@ -36,6 +36,7 @@ export default defineConfig({
               { text: 'tose init / use', link: '/commands/init' },
               { text: 'tose up', link: '/commands/up' },
               { text: 'tose deploy / redeploy', link: '/commands/deploy' },
+              { text: 'tose deployment', link: '/commands/deployment' },
               { text: 'tose status', link: '/commands/status' },
               { text: 'tose logs', link: '/commands/logs' },
               { text: 'tose down / restart', link: '/commands/down' },
@@ -43,6 +44,7 @@ export default defineConfig({
               { text: 'tose env', link: '/commands/env' },
               { text: 'tose domain', link: '/commands/domain' },
               { text: 'tose db', link: '/commands/db' },
+              { text: 'tose skills', link: '/commands/skills' },
               { text: 'tose desktop', link: '/commands/desktop' },
               { text: 'tose disk / volumes / pricing', link: '/commands/disk' },
               { text: 'tose generate', link: '/commands/generate' }
@@ -119,6 +121,7 @@ export default defineConfig({
               { text: 'tose init / use', link: '/vi/commands/init' },
               { text: 'tose up', link: '/vi/commands/up' },
               { text: 'tose deploy / redeploy', link: '/vi/commands/deploy' },
+              { text: 'tose deployment', link: '/vi/commands/deployment' },
               { text: 'tose status', link: '/vi/commands/status' },
               { text: 'tose logs', link: '/vi/commands/logs' },
               { text: 'tose down / restart', link: '/vi/commands/down' },
@@ -126,6 +129,7 @@ export default defineConfig({
               { text: 'tose env', link: '/vi/commands/env' },
               { text: 'tose domain', link: '/vi/commands/domain' },
               { text: 'tose db', link: '/vi/commands/db' },
+              { text: 'tose skills', link: '/vi/commands/skills' },
               { text: 'tose desktop', link: '/commands/desktop' },
               { text: 'tose disk / volumes / pricing', link: '/vi/commands/disk' },
               { text: 'tose generate', link: '/vi/commands/generate' }
