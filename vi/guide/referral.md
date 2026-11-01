@@ -20,9 +20,9 @@ Tỷ lệ và ngưỡng là giá trị chính sách do backend nắm giữ. Đ�
 
 ## Cách một lượt giới thiệu hoạt động
 
-1. **Chia sẻ link.** Mỗi người dùng có một mã giới thiệu. Link có dạng `https://<app-host>/login?ref=MA_CUA_BAN`. URL chính xác là trường `profile.referral_url` của API tổng quan; trang Referrals trong dashboard workspace hiển thị link kèm nút sao chép.
+1. **Chia sẻ link.** Mã giới thiệu được tạo lần đầu bạn mở trang Referrals của một workspace (hoặc gọi API tổng quan); trước đó bạn chưa có mã. Link có dạng `https://<app-host>/login?ref=MA_CUA_BAN`. URL chính xác là trường `profile.referral_url` của API tổng quan; trang Referrals trong dashboard workspace hiển thị link kèm nút sao chép.
 2. **Người dùng mới đăng ký.** Mã đi qua đăng ký bằng email (`referral_code` trong body) và qua luồng chuyển hướng đăng nhập GitHub, Google. Trang đăng nhập cũng nhớ mã trong cookie `tose_ref` và bộ nhớ trình duyệt để mã không mất khi chuyển hướng.
-3. **Mối quan hệ được ghi nhận.** Mỗi người được giới thiệu có đúng một relationship, gắn với mã của bạn và *workspace thụ hưởng*, tức workspace có ví nhận credit của bạn (mặc định là workspace cũ nhất bạn sở hữu).
+3. **Mối quan hệ được ghi nhận.** Mỗi người được giới thiệu có đúng một relationship, gắn với mã của bạn và *workspace thụ hưởng*, tức workspace có ví nhận credit của bạn (mặc định là workspace có trang Referrals bạn mở đầu tiên, nếu bạn sở hữu; nếu không thì workspace cũ nhất bạn sở hữu, rồi tới workspace cũ nhất bạn là thành viên).
 4. **Người được giới thiệu thanh toán.** Khi một khoản thanh toán hoàn tất, TOSE tạo một hoa hồng cho khoản đó và cộng vào ví thụ hưởng dưới dạng giao dịch `referral_credit`.
 
 ### Điều kiện tính hoa hồng
@@ -68,13 +68,13 @@ Yêu cầu quyền truy cập workspace và scope `billing.read` với [API key 
 | `tiers` | Ba hạng với `rate_bps`, `threshold_amount`, `is_current`, `is_reached` |
 | `relationships`, `commissions`, `events` | 50, 50 và 80 bản ghi mới nhất |
 
-Các loại sự kiện có thể gặp: `relationship_created`, `commission_credited`, `tier_updated`, `self_referral_ignored`.
+Các loại sự kiện có thể gặp: `profile_created`, `relationship_created`, `commission_credited`, `tier_updated`, `self_referral_ignored`. Danh sách gồm cả sự kiện mà bạn là người được giới thiệu, không chỉ người giới thiệu.
 
 ## Link chiến dịch và quyền riêng tư
 
 - Chỉ tham số `ref` được dùng để ghi nhận. Các tham số UTM khác không được dùng để tính thưởng, nên đừng dựa vào chúng để xác định thanh toán đủ điều kiện.
-- Mã được lưu trong cookie `tose_ref` của khách truy cập (first-party, chỉ phục vụ luồng đăng ký).
-- Dữ liệu giới thiệu chỉ người giới thiệu thấy: tên người được giới thiệu xuất hiện trong danh sách ở dashboard của chính bạn.
+- Trang đăng nhập lưu mã trong cookie `tose_ref` 90 ngày trên domain cookie của TOSE, và trong local storage của trình duyệt không hết hạn. Tham số `ref` trong link mới hơn sẽ thay mã đã lưu.
+- Danh sách `relationships` và `commissions` chứa hồ sơ người được giới thiệu theo cách API serialize, hiện gồm email và định danh OAuth, không chỉ tên. Hãy coi đó là dữ liệu cá nhân. Việc thu hẹp được theo dõi tại [tose-app#198](https://github.com/saasvn/tose-app/issues/198).
 
 ## FAQ
 

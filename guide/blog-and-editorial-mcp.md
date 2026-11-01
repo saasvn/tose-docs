@@ -19,7 +19,7 @@ Tool names, scopes and examples will be published only after they run against th
 | Surface | Status | Purpose | Documentation |
 |---------|--------|---------|---------------|
 | TOSE deployment MCP server (`tose-app`) | Live | Plan, approve and run deployments with scoped OAuth access | [Protocol, OAuth and scopes](/mcp/oauth), [Agent access](/mcp/agent-access) |
-| Browser WebMCP on the public site (`tose-web`) | Experimental, off by default | Three read-only public tools in a supporting browser: estimate deployment cost, list pages, open a page. No sign-in, no API calls | The site repository's `docs/webmcp.md` |
+| Browser WebMCP on the public site (`tose-web`) | Experimental, off by default | Three public tools in a supporting browser: estimate deployment cost and list pages (read-only), and open a page (client-side navigation). No sign-in, no API calls | The site repository's `docs/webmcp.md` |
 | Editorial blog MCP server | Planned | Manage blog content | This page |
 
 The deployment server does not manage blog content, and WebMCP never touches an account.

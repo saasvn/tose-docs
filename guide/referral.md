@@ -20,9 +20,9 @@ The rates and thresholds are policy values held by the backend. Do not hard-code
 
 ## How a referral works
 
-1. **Share your link.** Every user has a referral code. The link is `https://<app-host>/login?ref=YOUR_CODE`. The exact URL is the `profile.referral_url` field of the overview, and the Referrals page of the workspace dashboard shows it with a copy button.
+1. **Share your link.** A referral code is created the first time you open the Referrals page of a workspace (or call the overview API). Until then you have no code. The link is `https://<app-host>/login?ref=YOUR_CODE`. The exact URL is the `profile.referral_url` field of the overview, and the Referrals page of the workspace dashboard shows it with a copy button.
 2. **A new user signs up.** The code travels through email registration (`referral_code` in the request body) and through the GitHub and Google sign-in redirects. The login page also remembers the code in a `tose_ref` cookie and browser storage so it survives the redirect.
-3. **A relationship is recorded.** One referral relationship per referred user, linking them to your code and to your *beneficiary workspace*, the workspace whose wallet receives your credit (by default the oldest workspace you own).
+3. **A relationship is recorded.** One referral relationship per referred user, linking them to your code and to your *beneficiary workspace*, the workspace whose wallet receives your credit (by default the workspace whose Referrals page you opened first, if you own it; otherwise your oldest owned workspace, then your oldest membership).
 4. **The referred user pays.** When a payment completes, TOSE creates one commission for that payment and adds it to the beneficiary wallet as a `referral_credit` transaction.
 
 ### What counts
@@ -68,13 +68,13 @@ Requires access to the workspace and the `billing.read` scope for [scoped API ke
 | `tiers` | The three tiers with `rate_bps`, `threshold_amount`, `is_current`, `is_reached` |
 | `relationships`, `commissions`, `events` | The latest 50, 50 and 80 records |
 
-Event types you may see: `relationship_created`, `commission_credited`, `tier_updated`, `self_referral_ignored`.
+Event types you may see: `profile_created`, `relationship_created`, `commission_credited`, `tier_updated`, `self_referral_ignored`. The list includes events where you are the referred user, not only the referrer.
 
 ## Campaign links and privacy
 
 - Only the `ref` parameter is read for attribution. Other UTM parameters are not used for rewards, so do not rely on them to qualify a payment.
-- The code is stored in the `tose_ref` cookie of the visitor (first-party, about the sign-up flow only).
-- Referral records are visible to the referrer: referred users' names appear in the lists of your own dashboard.
+- The login page stores the code in a `tose_ref` cookie for 90 days on the TOSE cookie domain, and in browser local storage with no expiry. A `ref` in a newer link replaces the stored code.
+- The `relationships` and `commissions` lists include the referred user's profile as the API serializes it, which today contains the email address and OAuth identifiers, not only the name. Treat that as personal data. Narrowing it is tracked in [tose-app#198](https://github.com/saasvn/tose-app/issues/198).
 
 ## FAQ
 

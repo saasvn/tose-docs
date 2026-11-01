@@ -19,7 +19,7 @@ Tên tool, scope và ví dụ chỉ được công bố sau khi chạy thử v�
 | Bề mặt | Trạng thái | Mục đích | Tài liệu |
 |--------|------------|----------|----------|
 | Server MCP triển khai của TOSE (`tose-app`) | Đang chạy | Lập kế hoạch, duyệt và chạy deployment với quyền OAuth có scope | [Giao thức, OAuth và scope](/vi/mcp/oauth), [Agent access](/vi/mcp/agent-access) |
-| WebMCP trong trình duyệt trên site công khai (`tose-web`) | Thử nghiệm, mặc định tắt | Ba tool chỉ đọc dữ liệu công khai trong trình duyệt hỗ trợ: ước tính chi phí deploy, liệt kê trang, mở trang. Không đăng nhập, không gọi API | `docs/webmcp.md` trong repo của site |
+| WebMCP trong trình duyệt trên site công khai (`tose-web`) | Thử nghiệm, mặc định tắt | Ba tool dữ liệu công khai trong trình duyệt hỗ trợ: ước tính chi phí deploy và liệt kê trang (chỉ đọc), mở trang (điều hướng phía client). Không đăng nhập, không gọi API | `docs/webmcp.md` trong repo của site |
 | Server MCP biên tập blog | Dự kiến | Quản lý nội dung blog | Trang này |
 
 Server triển khai không quản lý nội dung blog, và WebMCP không bao giờ chạm vào tài khoản.
