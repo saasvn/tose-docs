@@ -4,15 +4,15 @@ TOSE ghi lại mọi thay đổi thực hiện qua REST API, để bạn trả l
 
 ## Những gì được ghi
 
-Mọi request tới `/api` có thay đổi dữ liệu (`POST`, `PUT`, `PATCH` và `DELETE`) đều được ghi vào audit log sau khi xử lý xong. Request bị TOSE **từ chối** cũng được ghi, nên một key thử làm việc không được phép sẽ để lại dấu vết.
+Mọi request tới `/api` có thay đổi dữ liệu (`POST`, `PUT`, `PATCH` và `DELETE`) đều được ghi vào audit log sau khi xử lý xong. Request bị chính sách phân quyền **từ chối** cũng được ghi, nên một key thử làm việc mà scope hoặc vai trò không cho phép sẽ để lại dấu vết. Request bị từ chối sớm hơn, như key không hợp lệ, hết hạn hoặc đã thu hồi, hay key dùng cho workspace khác, thì không được ghi.
 
 Mỗi bản ghi gồm:
 
 | Trường | Ý nghĩa |
 |--------|---------|
 | `user_id` | Người mà request hành động thay mặt. |
-| `auth_type` | Cách xác thực: `session` (đã đăng nhập), `api_key` hoặc `oauth` (một kết nối [MCP connector](/vi/mcp)). |
-| `credential_id` | API key hoặc kết nối đã gửi request, khi đó không phải phiên đăng nhập. |
+| `auth_type` | Cách xác thực: `session` (đã đăng nhập) hoặc `api_key`. |
+| `credential_id` | API key đã gửi request, khi đó không phải phiên đăng nhập. |
 | `workspace_id` | Workspace mà request tác động. |
 | `action`, `risk` | Thao tác (ví dụ `env.write`) và mức rủi ro: `low`, `medium`, `high` hoặc `critical`. |
 | `method`, `route`, `params` | HTTP method, route template (ví dụ `/api/workspaces/:slug/api-keys`) và các path parameter. |

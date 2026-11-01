@@ -45,7 +45,7 @@ An approval token is tied to your user, this connection, the project, the action
 
 Every write call also requires all of the following:
 
-- The connection was granted deploy access on the consent screen (`deployments:write` scope).
+- The connection was granted deploy access on the consent screen (the `deployments:write` scope, or the narrower `deployments:execute` for deploys and `deployments:rollback` for rollbacks).
 - You are still an owner or admin of the workspace at the time of the call.
 - No other deployment of the project is in progress.
 
@@ -57,7 +57,7 @@ Failed tool calls return text that starts with a stable code:
 |------|---------|
 | `NOT_FOUND` | The project or deployment is not in the connected workspace. |
 | `INVALID_ARGUMENT` | A parameter is missing or out of range. |
-| `INSUFFICIENT_SCOPE` | The connection is read-only. Reconnect and allow deploying. |
+| `INSUFFICIENT_SCOPE` | The connection lacks the scope this tool needs, for example a read-only connection calling a write tool. Reconnect and allow deploying. |
 | `FORBIDDEN` | Your role cannot deploy or roll back. |
 | `APPROVAL_PENDING` | You have not approved the plan yet. Open its `approval_url`, approve it, then ask the client to continue. |
 | `APPROVAL_STALE` | The branch has a new commit since you approved. Nothing was deployed. Request a new plan and review the new commit. |
@@ -91,7 +91,7 @@ Failed tool calls return text that starts with a stable code:
 
 Refresh tokens last 30 days, so revoke a connection you no longer trust instead of waiting for it to expire. You can revoke access in any of these ways:
 
-- In the dashboard, open your workspace **Settings**, then **Agent access**. The page lists your connections for that workspace. Click **Revoke** next to one: the client is signed out at once and has to connect again. You only see and revoke your own connections.
+- In the dashboard, open your workspace **Settings**, then **Agent access**. The page lists your connections, with this workspace's first and the others labelled with their workspace. Click **Revoke** next to one: the client is signed out at once and has to connect again. You only see and revoke your own connections.
 - Remove the connector in your MCP client. Clients that support OAuth token revocation revoke its tokens right away.
 - Call `DELETE /api/mcp/connections/{family_id}` from a signed-in dashboard session. `GET /api/mcp/connections` lists your connections. API keys cannot call these two routes; see [API keys and scopes](/api/api-keys#routes-that-reject-api-keys).
 - Losing your membership of the workspace cuts the connection off immediately. Being demoted to member removes deploy access immediately.

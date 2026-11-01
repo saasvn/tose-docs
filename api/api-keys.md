@@ -9,7 +9,7 @@ For how to send a key with a request, see [Authentication](/api/authentication).
 - A key belongs to **one workspace**, the one it was created in. It can read and change that workspace and nothing else.
 - A key never gains account-level or platform-level power, even when the person who created it is a platform admin. See [Routes that reject API keys](#routes-that-reject-api-keys).
 - TOSE checks the creator's workspace membership on every request. If the person is removed from the workspace, or demoted, their keys lose that access at once.
-- A request for any other workspace is refused with `403 forbidden`.
+- A request for any other workspace is refused with `403`.
 
 ## Create a key
 
@@ -81,7 +81,7 @@ Prefer scoped keys. When you can, replace a full-access key with a scoped one an
 - **Set `expires_in_days`** for keys that are not long-lived infrastructure, and rotate them.
 - **Keep keys out of source control and URLs.** Store them in your CI secret store. A request that carries a key in its query string is rejected with `400 credentials_in_url`.
 - **A scoped key cannot create a broader key.** A key can only create keys whose scopes it already has, and a scoped key must list the scopes of the key it creates.
-- **Review your keys.** `GET /api/workspaces/{slug}/api-keys` lists them, and `DELETE /api/workspaces/{slug}/api-keys/{key_id}` revokes one. Every key action is recorded in the [audit log](/api/audit).
+- **Review your keys.** `GET /api/workspaces/{slug}/api-keys` lists them, and `DELETE /api/workspaces/{slug}/api-keys/{key_id}` revokes one. Creating and revoking keys is recorded in the [audit log](/api/audit).
 
 ## Routes that reject API keys
 
@@ -96,7 +96,7 @@ Some routes act on a person's account or on shared infrastructure, not on one wo
 | `GET /api/mcp/connections`, `DELETE /api/mcp/connections/{family_id}`, `GET /api/mcp/tasks`, `GET /api/mcp/audit` | Connections belong to the person who made them, so only that person can see or revoke them. |
 | `POST` and `DELETE /api/servers`, `PUT /api/servers/{id}/development`, `POST` and `DELETE /api/registries`, `GET /api/registries` | Servers and registries are shared platform infrastructure. |
 
-A few account-level reads do accept a key, limited to its own workspace: `GET /api/workspaces` lists only the key's workspace, `GET /api/workspaces/available-templates` returns the template catalog, and `GET /api/servers` and the `GET /api/github/...` reads check the workspace the key is bound to.
+A few account-level reads do accept a key, limited to its own workspace: `GET /api/workspaces` lists only the key's workspace, `GET /api/workspaces/available-templates` returns the template catalog, and `GET /api/servers` and the `GET /api/github/...` reads check the workspace the key is bound to. The GitHub reads also need the `projects:read` scope.
 
 ### Behavior change: `POST /api/upload` no longer accepts API keys
 

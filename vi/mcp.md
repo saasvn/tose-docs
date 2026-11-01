@@ -45,7 +45,7 @@ Token phê duyệt gắn với user, kết nối, project, hành động và dep
 
 Mỗi lệnh ghi còn cần đủ các điều kiện sau:
 
-- Kết nối được cấp quyền deploy ở màn hình đồng ý (scope `deployments:write`).
+- Kết nối được cấp quyền deploy ở màn hình đồng ý (scope `deployments:write`, hoặc scope hẹp hơn là `deployments:execute` cho deploy và `deployments:rollback` cho rollback).
 - Tại thời điểm gọi, bạn vẫn là owner hoặc admin của workspace.
 - Project không có deployment nào khác đang chạy.
 
@@ -57,7 +57,7 @@ Khi tool lỗi, nội dung trả về bắt đầu bằng một mã cố định
 |----|---------|
 | `NOT_FOUND` | Project hoặc deployment không nằm trong workspace đã kết nối. |
 | `INVALID_ARGUMENT` | Thiếu tham số hoặc tham số ngoài phạm vi. |
-| `INSUFFICIENT_SCOPE` | Kết nối chỉ có quyền đọc. Hãy kết nối lại và cho phép deploy. |
+| `INSUFFICIENT_SCOPE` | Kết nối thiếu scope mà tool này cần, ví dụ kết nối chỉ-đọc gọi tool ghi. Hãy kết nối lại và cho phép deploy. |
 | `FORBIDDEN` | Vai trò của bạn không được deploy hay rollback. |
 | `APPROVAL_PENDING` | Bạn chưa phê duyệt kế hoạch. Mở `approval_url`, phê duyệt, rồi bảo client tiếp tục. |
 | `APPROVAL_STALE` | Branch có commit mới sau khi bạn phê duyệt. Chưa có gì được deploy. Yêu cầu kế hoạch mới và xem commit mới. |
@@ -92,7 +92,7 @@ Khi tool lỗi, nội dung trả về bắt đầu bằng một mã cố định
 
 Refresh token có hạn 30 ngày, vì vậy hãy thu hồi kết nối bạn không còn tin tưởng thay vì chờ nó hết hạn. Bạn có thể thu hồi theo các cách sau:
 
-- Trong dashboard, mở **Settings** của workspace, rồi chọn **Agent access**. Trang này liệt kê các kết nối của bạn trong workspace đó. Bấm **Revoke** cạnh kết nối cần thu hồi: client bị đăng xuất ngay và phải kết nối lại. Bạn chỉ thấy và thu hồi được kết nối của chính mình.
+- Trong dashboard, mở **Settings** của workspace, rồi chọn **Agent access**. Trang này liệt kê các kết nối của bạn, kết nối của workspace này ở đầu và các kết nối khác được gắn tên workspace của chúng. Bấm **Revoke** cạnh kết nối cần thu hồi: client bị đăng xuất ngay và phải kết nối lại. Bạn chỉ thấy và thu hồi được kết nối của chính mình.
 - Gỡ connector trong MCP client. Client nào hỗ trợ thu hồi OAuth token sẽ thu hồi ngay.
 - Từ phiên dashboard đã đăng nhập, gọi `DELETE /api/mcp/connections/{family_id}`. Dùng `GET /api/mcp/connections` để xem danh sách kết nối. API key không gọi được hai route này; xem [API key và scope](/vi/api/api-keys#route-tu-choi-api-key).
 - Khi bạn mất quyền thành viên workspace, kết nối bị cắt ngay. Nếu bạn bị hạ xuống member, quyền deploy bị gỡ ngay.

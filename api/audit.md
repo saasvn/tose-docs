@@ -4,15 +4,15 @@ TOSE records every change made through the REST API, so you can answer who did w
 
 ## What is recorded
 
-Every request to `/api` that changes something (`POST`, `PUT`, `PATCH` and `DELETE`) is written to the audit log after it finishes. Requests that TOSE **denied** are recorded too, so a key trying something it is not allowed to do leaves a trace.
+Every request to `/api` that changes something (`POST`, `PUT`, `PATCH` and `DELETE`) is written to the audit log after it finishes. Requests that the authorization policy **denied** are recorded too, so a key trying something its scopes or role do not allow leaves a trace. Requests rejected earlier, such as an invalid, expired or revoked key, or a key used against another workspace, are not recorded.
 
 Each entry holds:
 
 | Field | Meaning |
 |-------|---------|
 | `user_id` | The person the request acted for. |
-| `auth_type` | How the request authenticated: `session` (signed in), `api_key` or `oauth` (an [MCP connector](/mcp) connection). |
-| `credential_id` | The API key or connection that made the request, when it was not a session. |
+| `auth_type` | How the request authenticated: `session` (signed in) or `api_key`. |
+| `credential_id` | The API key that made the request, when it was not a session. |
 | `workspace_id` | The workspace the request touched. |
 | `action`, `risk` | The operation (for example `env.write`) and its risk level: `low`, `medium`, `high` or `critical`. |
 | `method`, `route`, `params` | The HTTP method, the route template (for example `/api/workspaces/:slug/api-keys`) and the path parameters. |

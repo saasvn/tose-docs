@@ -9,7 +9,7 @@ Cách gửi key kèm request nằm ở trang [Xác thực](/vi/api/authenticatio
 - Key thuộc **một workspace**, chính là workspace đã tạo ra nó. Key đọc và thay đổi được workspace đó, không làm được gì ngoài workspace.
 - Key không bao giờ có quyền cấp tài khoản hay cấp nền tảng, kể cả khi người tạo key là platform admin. Xem [Route từ chối API key](#route-tu-choi-api-key).
 - TOSE kiểm tra tư cách thành viên của người tạo key ở mỗi request. Nếu người đó bị xóa khỏi workspace hoặc bị hạ vai trò, key của họ mất quyền tương ứng ngay lập tức.
-- Request tới workspace khác bị từ chối với `403 forbidden`.
+- Request tới workspace khác bị từ chối với `403`.
 
 ## Tạo key
 
@@ -81,7 +81,7 @@ Nên dùng key có scope. Khi có thể, hãy thay key toàn quyền bằng key 
 - **Đặt `expires_in_days`** cho key không phải hạ tầng dài hạn, và xoay key định kỳ.
 - **Không đưa key vào source control hay URL.** Lưu trong kho secret của CI. Request mang key trong query string bị từ chối với `400 credentials_in_url`.
 - **Key có scope không tạo được key rộng hơn.** Một key chỉ tạo được key có scope mà nó đang có, và key có scope bắt buộc liệt kê scope của key mới.
-- **Rà soát key.** `GET /api/workspaces/{slug}/api-keys` liệt kê key, `DELETE /api/workspaces/{slug}/api-keys/{key_id}` thu hồi một key. Mọi thao tác với key được ghi vào [audit log](/vi/api/audit).
+- **Rà soát key.** `GET /api/workspaces/{slug}/api-keys` liệt kê key, `DELETE /api/workspaces/{slug}/api-keys/{key_id}` thu hồi một key. Việc tạo và thu hồi key được ghi vào [audit log](/vi/api/audit).
 
 ## Route từ chối API key {#route-tu-choi-api-key}
 
@@ -96,7 +96,7 @@ Một số route tác động lên tài khoản của một người hoặc hạ
 | `GET /api/mcp/connections`, `DELETE /api/mcp/connections/{family_id}`, `GET /api/mcp/tasks`, `GET /api/mcp/audit` | Kết nối thuộc về người tạo ra nó, nên chỉ người đó xem và thu hồi được. |
 | `POST` và `DELETE /api/servers`, `PUT /api/servers/{id}/development`, `POST` và `DELETE /api/registries`, `GET /api/registries` | Server và registry là hạ tầng nền tảng dùng chung. |
 
-Một vài route đọc cấp tài khoản vẫn nhận key, nhưng chỉ trong workspace của key: `GET /api/workspaces` chỉ liệt kê workspace của key, `GET /api/workspaces/available-templates` trả về catalog template, còn `GET /api/servers` và các route đọc `GET /api/github/...` kiểm tra workspace mà key đang gắn.
+Một vài route đọc cấp tài khoản vẫn nhận key, nhưng chỉ trong workspace của key: `GET /api/workspaces` chỉ liệt kê workspace của key, `GET /api/workspaces/available-templates` trả về catalog template, còn `GET /api/servers` và các route đọc `GET /api/github/...` kiểm tra workspace mà key đang gắn. Các route đọc GitHub còn cần scope `projects:read`.
 
 ### Thay đổi hành vi: `POST /api/upload` không còn nhận API key
 
