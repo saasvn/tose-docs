@@ -63,7 +63,7 @@ export default defineConfig({
           {
             text: 'Cloud Desktops',
             items: [
-              { text: 'Cloud Desktops Guide', link: '/guide/cloud-desktops' },
+              { text: 'Cloud Desktops Guide (Coming soon)', link: '/guide/cloud-desktops' },
               { text: 'tose desktop', link: '/commands/desktop' },
               { text: 'Desktops API', link: '/api/desktops' }
             ]
@@ -147,7 +147,7 @@ export default defineConfig({
           {
             text: 'Cloud Desktop',
             items: [
-              { text: 'Hướng dẫn Cloud Desktop', link: '/vi/guide/cloud-desktops' },
+              { text: 'Hướng dẫn Cloud Desktop (Coming soon)', link: '/vi/guide/cloud-desktops' },
               { text: 'API Desktops (tiếng Anh)', link: '/api/desktops' }
             ]
           },
