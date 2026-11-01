@@ -9,7 +9,6 @@ Mọi response lỗi JSON của TOSE API đều có cùng một envelope.
   "message": "Project not found",
   "request_id": "0f8fad5b-d9cb-469f-a165-70867728950e",
   "retryable": false,
-  "details": {},
   "doc_url": "https://docs.tose.sh/api/errors#not_found"
 }
 ```
@@ -54,7 +53,7 @@ Mỗi HTTP status có một mã mặc định. Handler có thể trả mã cụ 
 trị bắt đầu bằng `tose_sk_`. API từ chối request trước khi xác thực và không bao giờ dùng secret
 đó. Hãy gửi API key trong header `X-API-Key`, hoặc session token trong `Authorization: Bearer`.
 Hãy xoay (rotate) mọi key đã bị gửi trong URL. Xem
-[Xác thực](/vi/api/authentication#không-đặt-credential-trong-url).
+[Xác thực](/vi/api/authentication#credentials-in-url).
 
 ### `unauthenticated` {#unauthenticated}
 
@@ -68,7 +67,8 @@ credential hợp lệ.
 ### `forbidden` {#forbidden}
 
 `403`. Credential hợp lệ nhưng không được phép làm việc này. API key chỉ dùng được cho workspace
-của nó, và một số hành động cần vai trò owner hoặc admin.
+của nó, và một số hành động cần vai trò owner hoặc admin. Người dùng đăng nhập nhưng không phải thành viên
+workspace sẽ nhận `404 not_found`.
 
 ### `insufficient_scope` {#insufficient_scope}
 
@@ -122,7 +122,7 @@ key không thể tạo key khác với scope mà nó không có.
 ### `upstream_error` {#upstream_error}
 
 `502`. Cụm Kubernetes hoặc một dịch vụ upstream khác từ chối hoặc làm hỏng thao tác. An toàn để
-thử lại. Có thể thử lại.
+thử lại.
 
 ### `unavailable` {#unavailable}
 

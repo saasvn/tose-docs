@@ -1,7 +1,7 @@
 # REST API Reference
 
 The TOSE API is described by one versioned OpenAPI 3.1 contract. The API serves it, and the TOSE
-CLI, the MCP connector and this site validate against the same file. This page does not list
+CLI and the MCP connector validate against the same file. This page does not list
 endpoints by hand, because a hand-written copy drifts from the router. Read the spec instead.
 
 ## The OpenAPI spec

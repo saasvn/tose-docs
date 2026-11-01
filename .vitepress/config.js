@@ -74,7 +74,6 @@ export default defineConfig({
               { text: 'REST API', link: '/api/reference' },
               { text: 'Authentication', link: '/api/authentication' },
               { text: 'Errors', link: '/api/errors' },
-              { text: 'Endpoints', link: '/api/endpoints' },
               { text: 'Desktops', link: '/api/desktops' },
               { text: 'Disks, Volumes & Pricing', link: '/api/disks' }
             ]
@@ -147,7 +146,6 @@ export default defineConfig({
               { text: 'REST API', link: '/vi/api/reference' },
               { text: 'Xác thực', link: '/vi/api/authentication' },
               { text: 'Mã lỗi', link: '/vi/api/errors' },
-              { text: 'Endpoints', link: '/vi/api/endpoints' },
               { text: 'Ổ đĩa, Volume & Bảng giá', link: '/vi/api/disks' }
             ]
           }

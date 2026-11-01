@@ -9,7 +9,6 @@ Every JSON error response from the TOSE API has the same envelope.
   "message": "Project not found",
   "request_id": "0f8fad5b-d9cb-469f-a165-70867728950e",
   "retryable": false,
-  "details": {},
   "doc_url": "https://docs.tose.sh/api/errors#not_found"
 }
 ```
@@ -54,7 +53,7 @@ status, such as `credentials_in_url` for `400`.
 or a value that starts with `tose_sk_`. The API rejects the request before authentication and
 never uses the secret. Send the API key in the `X-API-Key` header, or a session token in
 `Authorization: Bearer`. Rotate any key that was sent in a URL. See
-[Authentication](/api/authentication#never-put-credentials-in-the-url).
+[Authentication](/api/authentication#credentials-in-url).
 
 ### `unauthenticated` {#unauthenticated}
 
@@ -67,11 +66,12 @@ never uses the secret. Send the API key in the `X-API-Key` header, or a session 
 ### `forbidden` {#forbidden}
 
 `403`. The credential is valid but may not do this. An API key works only for its own workspace,
-and some actions need the owner or admin role.
+and some actions need the owner or admin role. A signed-in user who is not a member of a
+workspace gets `404 not_found` instead.
 
 ### `insufficient_scope` {#insufficient_scope}
 
-`403`. The key or connection lacks a required scope. The response names it in `required_scope`.
+`403`. The key or session lacks a required scope. The response names it in `required_scope`.
 A key cannot create another key with scopes it does not have.
 
 ### `not_found` {#not_found}
@@ -122,7 +122,7 @@ project is running.
 ### `upstream_error` {#upstream_error}
 
 `502`. The Kubernetes cluster or another upstream service rejected or failed the operation. Safe
-to retry. Retryable.
+to retry.
 
 ### `unavailable` {#unavailable}
 

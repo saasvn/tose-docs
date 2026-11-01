@@ -39,7 +39,7 @@ Never commit an API key. Never put it in a URL, a query string, a log line or cl
 An app that acts for a signed-in user sends the session token as `Authorization: Bearer <token>`.
 Browsers use the `tose_token` cookie, which holds the same token.
 
-## Never put credentials in the URL
+## Never put credentials in the URL {#credentials-in-url}
 
 URLs end up in proxy logs, browser history and analytics, so the API refuses credentials there. A
 request is rejected with `400` and code `credentials_in_url`, before authentication runs, when its
@@ -50,7 +50,7 @@ query string has either of these:
 
 ```bash
 # Rejected: 400 credentials_in_url
-curl "https://api.tose.sh/api/workspaces?api_key=tose_sk_xxxx"
+curl "https://api.tose.sh/api/workspaces?api_key=..."
 
 # Correct
 curl https://api.tose.sh/api/workspaces -H "X-API-Key: $TOSE_API_KEY"

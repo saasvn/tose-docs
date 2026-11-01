@@ -38,7 +38,7 @@ Không commit API key. Không đặt key vào URL, query string, dòng log hoặ
 Ứng dụng hoạt động thay mặt người dùng đã đăng nhập gửi session token trong
 `Authorization: Bearer <token>`. Trình duyệt dùng cookie `tose_token`, chứa cùng token đó.
 
-## Không đặt credential trong URL
+## Không đặt credential trong URL {#credentials-in-url}
 
 URL bị ghi vào log của proxy, lịch sử trình duyệt và công cụ analytics, nên API từ chối credential
 trong URL. Request bị trả về `400` với mã `credentials_in_url`, trước cả bước xác thực, khi query
@@ -49,7 +49,7 @@ string có một trong các thứ sau:
 
 ```bash
 # Bị từ chối: 400 credentials_in_url
-curl "https://api.tose.sh/api/workspaces?api_key=tose_sk_xxxx"
+curl "https://api.tose.sh/api/workspaces?api_key=..."
 
 # Đúng
 curl https://api.tose.sh/api/workspaces -H "X-API-Key: $TOSE_API_KEY"

@@ -1,7 +1,7 @@
 # Tài liệu REST API
 
 TOSE API được mô tả bằng một hợp đồng OpenAPI 3.1 có đánh phiên bản. API tự phục vụ file này,
-đồng thời TOSE CLI, MCP connector và trang tài liệu này đều đối chiếu với cùng một file. Trang này
+đồng thời TOSE CLI và MCP connector đều đối chiếu với cùng một file. Trang này
 không liệt kê endpoint bằng tay, vì bản chép tay sẽ lệch khỏi router. Hãy đọc spec.
 
 ## Spec OpenAPI

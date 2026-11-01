@@ -14,7 +14,7 @@ bất kỳ biến nào dưới đây. Thông báo lỗi liệt kê mọi key cò
 | `DATABASE_URL` | Chuỗi kết nối PostgreSQL. |
 | `ENCRYPTION_KEY` | Mã hóa các secret được lưu như kubeconfig và biến môi trường. Khóa mã hóa là SHA-256 của giá trị này. |
 
-Ngoài production (`APP_ENV` không đặt hoặc là `development`), API dùng giá trị phát triển cục bộ
+Mọi giá trị `APP_ENV` khác đúng `production` (kể cả `prod`, `Production`, `staging` hoặc không đặt) đều bỏ qua bước kiểm tra này, và API dùng giá trị phát triển cục bộ
 cho `JWT_SECRET` và `DATABASE_URL`, và bước kiểm tra luôn qua. Đừng dựa vào các giá trị mặc định đó
 cho một hệ thống thật. Mặc định là `development`, vì vậy hãy đặt `APP_ENV=production` một cách
 tường minh.
@@ -43,7 +43,7 @@ xoay `JWT_SECRET` mà không mất dữ liệu.
 
 ## Credential không nằm trong URL và log
 
-API chỉ đọc credential từ header `X-API-Key`, `Authorization: Bearer` và cookie `tose_token`. API
+Với request REST, API chỉ đọc credential từ header `X-API-Key`, `Authorization: Bearer` và cookie `tose_token`. API
 từ chối giá trị `api_key`, `access_token` và `tose_sk_` trong query string bằng
 `400 credentials_in_url`, và access log chỉ ghi đường dẫn, không ghi query string. Nếu reverse
 proxy hoặc load balancer của bạn ghi toàn bộ URL, các log đó nằm ngoài tầm kiểm soát của API, nên
