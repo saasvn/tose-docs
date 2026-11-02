@@ -33,7 +33,9 @@ curl -X PUT "https://api.tose.sh/api/workspaces/$WS/projects/web" \
 
 **Response:** `200` with the project. When nothing changed, the unchanged project is returned.
 
-Changes take effect on the next deployment. A project with a [persistent disk](/guide/persistent-disks) must keep one replica and cannot change `server_id`. | Status | Meaning |
+Changes take effect on the next deployment. A project with a [persistent disk](/guide/persistent-disks) must keep one replica and cannot change `server_id`.
+
+| Status | Meaning |
 |--------|---------|
 | `400` | `status` is not one of the allowed values, the slug is malformed, the project has a persistent disk and you raise `replicas` above `1` or change `server_id`, or the server is not valid for the workspace |
 | `409` | The slug is already taken in the workspace |
@@ -110,7 +112,8 @@ The call creates a push webhook. If the webhook cannot be created, the connectio
 
 | Status | Meaning |
 |--------|---------|
-| `400` | `repo_full_name` is missing or not `owner/repo`, the repository is not reachable through the installation, the branch does not exist, or the workspace has no attached installation and you gave no `installation_id` |
+| `400` | `repo_full_name` is missing or not `owner/repo`, the repository is not reachable through the installation, the branch does not exist, or no attached installation can reach the repository |
+| `403` | `installation_id` is not attached to this workspace |
 | `409` | The project already has a Git connection |
 | `503` | The GitHub App is not configured on this deployment |
 

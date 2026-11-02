@@ -151,7 +151,7 @@ Bỏ `disk` để tạo dự án stateless.
 
 ### Lấy bảng giá {#get-pricing}
 
-Công khai: gửi request không cần API key hay session. Trả về giá CPU và RAM theo giờ theo từng mức số dư ví, mức cao nhất đứng trước (`min_balance_usd` là số dư từ đó mức giá áp dụng), cùng bảng giá lưu trữ bền vững.
+Công khai: gửi request không cần API key hay session. Trả về giá CPU và RAM theo giờ theo từng mức số dư ví, mức thấp nhất đứng trước (`min_balance_usd` là số dư từ đó mức giá áp dụng), cùng bảng giá lưu trữ bền vững.
 
 ```http
 GET /api/pricing
@@ -163,9 +163,9 @@ GET /api/pricing
 {
   "compute": {
     "tiers": [
-      { "min_balance_usd": 200, "cpu_usd_per_hour": 0.012, "ram_gb_usd_per_hour": 0.006 },
+      { "min_balance_usd": 0, "cpu_usd_per_hour": 0.02, "ram_gb_usd_per_hour": 0.01 },
       { "min_balance_usd": 100, "cpu_usd_per_hour": 0.014, "ram_gb_usd_per_hour": 0.007 },
-      { "min_balance_usd": 0, "cpu_usd_per_hour": 0.02, "ram_gb_usd_per_hour": 0.01 }
+      { "min_balance_usd": 200, "cpu_usd_per_hour": 0.012, "ram_gb_usd_per_hour": 0.006 }
     ]
   },
   "storage": {

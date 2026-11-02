@@ -20,7 +20,7 @@ An API key that names a workspace other than its own in `workspace_slug` gets `4
 
 ## Read endpoints
 
-All return a bare JSON array, possibly empty. A `503` means the GitHub App is not configured on this deployment.
+All return a bare JSON array, possibly empty, except that `GET /api/github/repos` returns `400` when no GitHub App installation is accessible. A `503` means the GitHub App is not configured on this deployment.
 
 ### List repositories
 

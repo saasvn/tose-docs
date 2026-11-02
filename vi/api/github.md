@@ -20,7 +20,7 @@ API key nêu workspace khác workspace của chính nó trong `workspace_slug` n
 
 ## Endpoint đọc
 
-Tất cả trả mảng JSON thuần, có thể rỗng. `503` nghĩa là GitHub App chưa được cấu hình trên hệ thống này.
+Tất cả trả mảng JSON thuần, có thể rỗng, trừ `GET /api/github/repos` trả `400` khi không có GitHub App installation nào truy cập được. `503` nghĩa là GitHub App chưa được cấu hình trên hệ thống này.
 
 ### Liệt kê repository {#repos}
 

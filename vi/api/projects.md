@@ -112,7 +112,8 @@ Lệnh tạo webhook push. Nếu không tạo được webhook, kết nối vẫ
 
 | Mã | Ý nghĩa |
 |--------|---------|
-| `400` | Thiếu `repo_full_name` hoặc không phải `owner/repo`, repository không truy cập được qua installation, branch không tồn tại, hoặc workspace chưa gắn installation nào và bạn không gửi `installation_id` |
+| `400` | Thiếu `repo_full_name` hoặc không phải `owner/repo`, repository không truy cập được qua installation, branch không tồn tại, hoặc không installation nào đã gắn truy cập được repository |
+| `403` | `installation_id` chưa được gắn vào workspace này |
 | `409` | Dự án đã có kết nối Git |
 | `503` | GitHub App chưa được cấu hình trên hệ thống này |
 
