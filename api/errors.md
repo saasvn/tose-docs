@@ -15,7 +15,7 @@ Every JSON error response from the TOSE API has the same envelope.
 
 | Field | Description |
 |-------|-------------|
-| `code` | Stable, machine-readable code in snake_case. Branch on this. |
+| `code` | Stable, machine-readable code, snake_case (deploy, rollback and the redeploy balance check use UPPER_SNAKE_CASE). Branch on this. |
 | `message` | Human-readable text. The wording can change, so do not parse it. |
 | `request_id` | ID of the failed call. It equals the `X-Request-ID` response header. Quote it to support. |
 | `retryable` | `true` when repeating the same request unchanged may succeed. |
@@ -135,10 +135,56 @@ Retryable.
 
 Any other error status uses the code `http_<status>`.
 
+## Deploy action codes
+
+`POST .../deploy` and `POST .../deployments/{id}/rollback` report their own code in UPPER_SNAKE_CASE, not a code derived from the HTTP status. `POST .../redeploy` does so only for `INSUFFICIENT_BALANCE`; its other errors keep the snake_case codes above. Access errors on all three routes (`not_found`, `forbidden`) are snake_case too. The MCP tools `deploy_project` and `rollback_deployment` report the same codes. The envelope is unchanged, so the `doc_url` of each error ends in the anchor below, for example `https://docs.tose.sh/api/errors#INSUFFICIENT_BALANCE`.
+
+Clients that compared `code` with `payment_required`, `unavailable`, `invalid_request`, `not_found` or `internal_error` on deploy and rollback must compare with the codes below instead. On redeploy only `payment_required` changed, to `INSUFFICIENT_BALANCE`. Every other route keeps the snake_case codes above.
+
+### `INSUFFICIENT_BALANCE` {#INSUFFICIENT_BALANCE}
+
+`402`. The workspace wallet is empty (zero or negative balance) or missing, so the deployment was refused and none was created. A workspace owner tops up the wallet in the billing page, then repeats the request. Not retryable until the balance is positive. See [Pricing](/guide/pricing).
+
+### `UNAVAILABLE` {#UNAVAILABLE}
+
+`503`. The GitHub App is not configured on this TOSE instance, so the head commit cannot be read. `retryable` is `true`. Nothing was created. Retry later; on a self-hosted instance, configure the GitHub App.
+
+### `NO_GIT_CONNECTION` {#NO_GIT_CONNECTION}
+
+`400`. The project has no Git repository connected, so there is nothing to build. Connect a repository, then deploy again.
+
+### `NO_SERVER` {#NO_SERVER}
+
+`400`. The project has no server (Kubernetes cluster) configured. Assign a server to the project, then deploy or roll back again. Redeploy answers `400 invalid_request` in this case.
+
+### `INVALID_REPO` {#INVALID_REPO}
+
+`400`. The connected repository name is not in the form `owner/name`. Disconnect and connect the repository again.
+
+### `NO_IMAGE` {#NO_IMAGE}
+
+`400`. Rollback only: the target deployment has no built Docker image, for example because its build failed. Pick an earlier deployment that was built.
+
+### `NOT_FOUND` {#NOT_FOUND}
+
+`404`. Rollback only: the deployment id does not exist in this project. A project or workspace you cannot see uses the snake_case `not_found` instead.
+
+### `UPSTREAM_ERROR` {#UPSTREAM_ERROR}
+
+`500`. GitHub did not give a client or the head of the branch, for example because the installation lost access. Check that the GitHub App can still read the repository, then retry. `retryable` is `false`.
+
+### `INTERNAL` {#INTERNAL}
+
+`500`. Unexpected server failure while recording the deployment or the rollback. Quote `request_id` to support if it persists.
+
+### `ROLLBACK_FAILED` {#ROLLBACK_FAILED}
+
+`500`. Rollback only: starting the earlier image failed. The message carries the reason; it can come from the cluster or from a step before it, such as reading the server, project secrets or disk. Read the message, fix the cause, then try again or pick another deployment.
+
 ## MCP tool errors
 
-The MCP connector reports tool failures with a code in UPPER_SNAKE_CASE. These are separate from
-the REST codes above. A tool that changes something first returns a plan, and the user approves
+The MCP connector reports tool failures with a code in UPPER_SNAKE_CASE. Deploy and rollback share
+the codes of the deploy action section above; the rest are separate from the REST codes. A tool that changes something first returns a plan, and the user approves
 it before it runs.
 
 ### Approval

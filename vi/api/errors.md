@@ -15,7 +15,7 @@ Mọi response lỗi JSON của TOSE API đều có cùng một envelope.
 
 | Trường | Mô tả |
 |--------|-------|
-| `code` | Mã ổn định, đọc được bằng máy, dạng snake_case. Hãy xử lý theo trường này. |
+| `code` | Mã ổn định, đọc được bằng máy, dạng snake_case (deploy, rollback và bước kiểm tra số dư của redeploy dùng UPPER_SNAKE_CASE). Hãy xử lý theo trường này. |
 | `message` | Nội dung cho người đọc. Câu chữ có thể đổi, đừng phân tích nó. |
 | `request_id` | ID của request lỗi, bằng header `X-Request-ID` của response. Hãy gửi cho bộ phận hỗ trợ. |
 | `retryable` | `true` khi gửi lại y nguyên request có thể thành công. |
@@ -135,9 +135,55 @@ thử lại.
 
 Mọi status lỗi khác dùng mã `http_<status>`.
 
+## Mã lỗi của hành động deploy
+
+`POST .../deploy` và `POST .../deployments/{id}/rollback` trả mã riêng của hành động theo dạng UPPER_SNAKE_CASE, không phải mã suy ra từ HTTP status. `POST .../redeploy` chỉ làm vậy với `INSUFFICIENT_BALANCE`; các lỗi khác của redeploy giữ mã snake_case ở trên. Lỗi quyền truy cập ở cả ba route (`not_found`, `forbidden`) cũng là snake_case. Tool MCP `deploy_project` và `rollback_deployment` báo cùng các mã này. Envelope không đổi, nên `doc_url` của mỗi lỗi kết thúc bằng anchor bên dưới, ví dụ `https://docs.tose.sh/api/errors#INSUFFICIENT_BALANCE`.
+
+Client từng so sánh `code` với `payment_required`, `unavailable`, `invalid_request`, `not_found` hoặc `internal_error` ở deploy và rollback phải đổi sang so sánh với các mã dưới đây. Ở redeploy chỉ `payment_required` đổi thành `INSUFFICIENT_BALANCE`. Mọi route khác vẫn dùng mã snake_case ở trên.
+
+### `INSUFFICIENT_BALANCE` {#INSUFFICIENT_BALANCE}
+
+`402`. Ví của workspace đã hết tiền (số dư bằng 0 hoặc âm) hoặc không có ví, nên deploy bị từ chối và không có deployment nào được tạo. Chủ workspace nạp tiền ở trang billing rồi gửi lại request. Không nên retry cho đến khi số dư dương. Xem [Bảng giá](/vi/guide/pricing).
+
+### `UNAVAILABLE` {#UNAVAILABLE}
+
+`503`. GitHub App chưa được cấu hình trên instance TOSE này, nên không đọc được commit đầu của nhánh. `retryable` là `true`. Chưa có gì được tạo. Hãy thử lại sau; với instance tự host, hãy cấu hình GitHub App.
+
+### `NO_GIT_CONNECTION` {#NO_GIT_CONNECTION}
+
+`400`. Project chưa kết nối repository Git nào nên không có gì để build. Hãy kết nối repository rồi deploy lại.
+
+### `NO_SERVER` {#NO_SERVER}
+
+`400`. Project chưa được gán server (cụm Kubernetes). Hãy gán server cho project rồi deploy hoặc rollback lại. Redeploy trả `400 invalid_request` trong trường hợp này.
+
+### `INVALID_REPO` {#INVALID_REPO}
+
+`400`. Tên repository đã kết nối không có dạng `owner/name`. Hãy ngắt kết nối và kết nối lại repository.
+
+### `NO_IMAGE` {#NO_IMAGE}
+
+`400`. Chỉ với rollback: deployment đích không có Docker image đã build, ví dụ vì build bị lỗi. Hãy chọn một deployment trước đó đã build thành công.
+
+### `NOT_FOUND` {#NOT_FOUND}
+
+`404`. Chỉ với rollback: id deployment không tồn tại trong project này. Project hoặc workspace mà bạn không xem được dùng mã snake_case `not_found`.
+
+### `UPSTREAM_ERROR` {#UPSTREAM_ERROR}
+
+`500`. GitHub không trả client hoặc commit đầu của nhánh, ví dụ do installation mất quyền truy cập. Hãy kiểm tra GitHub App còn đọc được repository, rồi thử lại. `retryable` là `false`.
+
+### `INTERNAL` {#INTERNAL}
+
+`500`. Lỗi bất ngờ của server khi ghi lại deployment hoặc rollback. Nếu lặp lại, hãy gửi `request_id` cho bộ phận hỗ trợ.
+
+### `ROLLBACK_FAILED` {#ROLLBACK_FAILED}
+
+`500`. Chỉ với rollback: khởi chạy image cũ thất bại. Message nêu lý do; lỗi có thể đến từ cụm hoặc từ một bước trước đó như đọc server, secret của project hoặc ổ đĩa. Hãy đọc message, sửa nguyên nhân rồi thử lại hoặc chọn deployment khác.
+
 ## Lỗi của tool MCP
 
-MCP connector báo lỗi tool bằng mã dạng UPPER_SNAKE_CASE. Chúng tách biệt với các mã REST ở trên.
+MCP connector báo lỗi tool bằng mã dạng UPPER_SNAKE_CASE. Deploy và rollback dùng chung các mã ở mục hành động deploy ở trên; các mã còn lại tách biệt với mã REST.
 Tool làm thay đổi hệ thống sẽ trả về một kế hoạch trước, và người dùng duyệt kế hoạch đó rồi nó mới
 được chạy.
 
