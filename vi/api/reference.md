@@ -95,6 +95,8 @@ POST /api/v1/projects
 }
 ```
 
+**Khối Git và scope của API key:** khi yêu cầu có khối `git`, lần triển khai đầu chỉ được xếp hàng nếu người gọi có `deployments:execute`. Chỉ có `projects:write` thì dự án và kết nối Git vẫn được tạo với `auto_deploy` tắt, và phản hồi chứa `deploy_skipped` thay cho `deployment_id` và `build_logs_url`. Xem [Scope và tự động triển khai](/vi/api/authentication#scope-va-tu-đong-trien-khai).
+
 ### Triển khai
 
 #### Liệt kê triển khai

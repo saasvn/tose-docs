@@ -148,6 +148,8 @@ POST /api/v1/projects
 }
 ```
 
+**Git block and API key scopes:** when the request includes a `git` block, the first deployment is queued only if the caller has `deployments:execute`. With only `projects:write`, the project and Git connection are created with `auto_deploy` off and the response contains `deploy_skipped` instead of `deployment_id` and `build_logs_url`. See [Scopes and automatic deploys](/api/authentication#scopes-and-automatic-deploys).
+
 **Example:**
 
 ```typescript
