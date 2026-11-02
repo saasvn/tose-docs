@@ -23,7 +23,7 @@ The gateway only routes. The Dewee runtime decides whether each route is on, and
 | Public MCP is on, token missing or wrong | `401` with a `WWW-Authenticate` header. |
 | Public MCP is on, valid token | The request is served. |
 
-The `/mcp/server` route follows the public MCP flag. OAuth discovery depends on the OAuth setting, and `/mcp/workspace` depends on the workspace MCP setting. Rate limits and CORS also come from the runtime, so the gateway adds no CORS headers.
+The runtime has separate switches for public MCP, OAuth and workspace MCP, so a route can be off while another is on. Rate limits and CORS also come from the runtime, so the gateway adds no CORS headers.
 
 ## Paths that are never exposed
 
@@ -35,7 +35,7 @@ MCP routes are passed through without buffering or compression, so server-sent e
 
 ## Check the routes
 
-From outside the instance, with a placeholder host and token:
+From outside the instance, with a placeholder host:
 
 ```bash
 # Public MCP off: 404. On, no token: 401 with WWW-Authenticate.

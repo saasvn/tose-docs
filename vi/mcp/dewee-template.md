@@ -23,7 +23,7 @@ Gateway chỉ định tuyến. Runtime Dewee quyết định từng route đang 
 | MCP công khai đang bật, thiếu hoặc sai token | `401` kèm header `WWW-Authenticate`. |
 | MCP công khai đang bật, token hợp lệ | Request được xử lý. |
 
-Route `/mcp/server` theo cờ MCP công khai. OAuth discovery phụ thuộc cấu hình OAuth, còn `/mcp/workspace` phụ thuộc cấu hình workspace MCP. Giới hạn tốc độ và CORS cũng do runtime xử lý, nên gateway không thêm header CORS.
+Runtime có các công tắc riêng cho MCP công khai, OAuth và workspace MCP, nên một route có thể tắt trong khi route khác bật. Giới hạn tốc độ và CORS cũng do runtime xử lý, nên gateway không thêm header CORS.
 
 ## Path không bao giờ được mở ra ngoài
 
@@ -35,7 +35,7 @@ Các route MCP được chuyển tiếp không buffer và không nén, nên serv
 
 ## Kiểm tra các route
 
-Từ bên ngoài instance, với host và token là giá trị giả định:
+Từ bên ngoài instance, với host là giá trị giả định:
 
 ```bash
 # MCP công khai tắt: 404. Bật mà không có token: 401 kèm WWW-Authenticate.
@@ -45,4 +45,4 @@ curl -i https://<your-instance-domain>/mcp/server
 curl -i https://<your-instance-domain>/mcp/bridge
 ```
 
-Xem [Agent access](./agent-access) cho connector của nền tảng và [OAuth scope](./oauth#scopes) để biết cách token được cấp ở đó.
+Xem [Agent access](./agent-access) cho connector của nền tảng và [OAuth scope](./oauth#scope) để biết cách token được cấp ở đó.
