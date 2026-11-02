@@ -48,6 +48,19 @@ There is no snapshot fee. Disk snapshots are not offered yet.
 
 When your wallet runs out, TOSE suspends compute. Persistent disks and their data are **not** deleted, and their storage cost keeps accruing; it is charged after your next top-up. See [Persistent Disks](/guide/persistent-disks#retention).
 
+A top-up resumes most suspended templates automatically. Deploying a suspended template needs a positive wallet balance too: otherwise the deploy is refused with `402 INSUFFICIENT_BALANCE` and the template stays suspended (see [Template deploy and resume API](/api/template-deploy#suspended-needs-balance)).
+
+### Dewee and GoClaw instances after a top-up {#suspended-gateway-templates}
+
+A Dewee or GoClaw instance only resumes after a top-up when it has a live gateway token: a valid token is stored, the running workload reads it, and the workload's variables Secret carries it. Without that, the instance stays `suspended` rather than coming back reachable without authentication. The deployment history gets a failed `system` entry with a `GATEWAY_TOKEN_*` code, and the workspace owner gets an email with a link to the instance.
+
+To bring it back, open the instance and choose **Issue token and resume** (or redeploy it). This needs the owner or admin role and a positive balance. Afterwards:
+
+- existing clients must send the issued token (workspace admins can read it under the template's variables);
+- active sessions end, because the pod restarts.
+
+The same action is available as `POST /api/workspaces/{slug}/templates/{template_slug}/resume`; see the [API](/api/template-deploy#resume) and the [`GATEWAY_TOKEN_*` codes](/api/template-deploy#gateway-token-codes).
+
 ## Related
 
 - [Persistent Disks](/guide/persistent-disks)
