@@ -33,7 +33,7 @@ Tỷ lệ và ngưỡng là giá trị chính sách do backend nắm giữ. Đ�
 - Hoa hồng là `số tiền thanh toán × tỷ lệ`, tính bằng cent và làm tròn xuống. Kết quả bằng 0 cent thì không tạo hoa hồng.
 - Mỗi khoản thanh toán tạo **tối đa một** hoa hồng. Webhook gửi hai lần không ghi credit hai lần.
 - Mỗi người dùng chỉ có **một** người giới thiệu. Mã thứ hai không thay thế mã đầu.
-- Tự dùng mã của chính mình sẽ bị bỏ qua (ghi sự kiện `self_referral_ignored`). Mã không tồn tại cũng bị bỏ qua.
+- Tự dùng mã của chính mình sẽ bị bỏ qua (ghi sự kiện `referral_rejected` với lý do `self_referral`). Mã không tồn tại cũng bị bỏ qua.
 
 ### Trạng thái hoa hồng
 
@@ -49,14 +49,13 @@ Trang Referrals hiển thị cho từng hoa hồng tỷ lệ thực sự đã á
 
 - **Hoàn tiền Polar tự động.** Khi Polar hoàn tiền một khoản thanh toán, TOSE thu hồi phần hoa hồng tương ứng bằng một giao dịch `referral_reversal` âm trong ví thụ hưởng. Sự kiện hoàn tiền gửi lại không làm thay đổi gì.
 - **Hạng theo doanh số ròng.** Doanh số ròng là thanh toán trừ hoàn tiền, nên một khoản hoàn tiền có thể làm hạng của bạn giảm cho các khoản thanh toán *sau đó*. Hoa hồng đã ghi credit không bao giờ bị tính lại.
-- **Ví không bao giờ âm.** Một lần đảo chỉ trừ tối đa số dư dương của ví. Nếu số dư thấp hơn số cần thu hồi, TOSE chịu phần thiếu; workload của bạn không bị tạm dừng hay thu hồi vì việc này.
+- **Việc đảo hoa hồng không bao giờ làm ví âm.** Chỉ trừ tối đa số dư dương của ví (không trừ gì nếu số dư đã bằng 0 hoặc âm). Nếu số dư thấp hơn số cần thu hồi, TOSE chịu phần thiếu; workload của bạn không bị tạm dừng hay thu hồi vì việc này.
 - **Chưa tự động:** hoàn tiền SePay, và chargeback của cả hai nhà cung cấp, được **nhân viên vận hành TOSE xử lý thủ công**. Cho tới khi họ xử lý, hoa hồng vẫn ở trạng thái credited. Điều chỉnh thủ công chỉ đổi ví: không đổi bản ghi hoa hồng, doanh số ròng hay hạng của bạn.
 
 ## Hạn chế đã biết {#han-che-da-biet}
 
 | Khía cạnh | Hiện nay | Theo dõi |
 |-----------|----------|----------|
-| Ai được gắn referral | Mã được áp dụng khi đăng ký và cả khi đăng nhập hoặc OAuth callback, nên người dùng cũ chưa có người giới thiệu có thể bị gắn khi đăng nhập bằng link mới. Chỉ coi người đăng ký hoàn toàn mới là đủ điều kiện; đừng hứa khác với ai. | [tose-app#132](https://github.com/saasvn/tose-app/issues/132) |
 | Hoàn tiền SePay và chargeback | Chưa tự động. Nhân viên vận hành xử lý thủ công (xem [Hoàn tiền và các trường hợp xử lý thủ công](#hoan-tien-va-xu-ly-thu-cong)). | [tose-app#134](https://github.com/saasvn/tose-app/issues/134) |
 | Thưởng hai chiều và campaign | Chưa có. Chỉ người giới thiệu được thưởng. Bonus đăng ký của ví là giao dịch `signup_bonus` riêng, không thuộc chương trình giới thiệu. | [tose-app#139](https://github.com/saasvn/tose-app/issues/139) |
 
@@ -78,13 +77,13 @@ Yêu cầu quyền truy cập workspace và scope `billing.read` với [API key 
 | `relationships`, `commissions`, `events` | 50, 50 và 80 bản ghi mới nhất. Mỗi hoa hồng có `applied_rate_bps`, `status` và `reversed_commission_amount` |
 | `reconciliation` | Tổng hoa hồng, giao dịch ví và hạng, để kiểm tra chúng khớp nhau |
 
-Các loại sự kiện có thể gặp: `profile_created`, `relationship_created`, `commission_credited`, `commission_reversed`, `tier_updated`, `self_referral_ignored`. Danh sách gồm cả sự kiện mà bạn là người được giới thiệu, không chỉ người giới thiệu.
+Các loại sự kiện có thể gặp: `profile_created`, `relationship_created`, `commission_credited`, `commission_reversed`, `tier_updated`, `referral_rejected` (lý do, như `self_referral`, `invalid_code` hoặc `existing_user`, nằm trong metadata). Danh sách gồm cả sự kiện mà bạn là người được giới thiệu, không chỉ người giới thiệu.
 
 ## Link chiến dịch và quyền riêng tư
 
 - Chỉ tham số `ref` được dùng để ghi nhận. Các tham số UTM khác không được dùng để tính thưởng, nên đừng dựa vào chúng để xác định thanh toán đủ điều kiện.
 - Trang đăng nhập lưu mã trong cookie `tose_ref` 90 ngày trên domain cookie của TOSE, và trong local storage của trình duyệt không hết hạn. Tham số `ref` trong link mới hơn sẽ thay mã đã lưu.
-- Danh sách `relationships` và `commissions` chứa hồ sơ người được giới thiệu theo cách API serialize, hiện gồm email và định danh OAuth, không chỉ tên. Hãy coi đó là dữ liệu cá nhân. Việc thu hẹp được theo dõi tại [tose-app#198](https://github.com/saasvn/tose-app/issues/198).
+- Danh sách `relationships` và `commissions` chỉ trả `id` và `username` của người được giới thiệu. Email và định danh OAuth không được hiển thị cho người giới thiệu.
 
 ## FAQ
 
@@ -98,7 +97,7 @@ Các loại sự kiện có thể gặp: `profile_created`, `relationship_create
 
 | Triệu chứng | Nguyên nhân có thể |
 |-------------|--------------------|
-| Người được giới thiệu không có trong danh sách | Họ đăng ký không kèm mã, hoặc dùng mã không tồn tại. Mã đưa vào sau khi tài khoản đã có người giới thiệu sẽ bị bỏ qua. |
+| Người được giới thiệu không có trong danh sách | Họ đăng ký không kèm mã, hoặc dùng mã không tồn tại. Mã dùng khi đăng nhập vào tài khoản đã tồn tại sẽ bị bỏ qua. |
 | Không có hoa hồng cho một khoản thanh toán | Người thanh toán chưa có relationship active, số tiền bằng 0, hoặc hoa hồng làm tròn xuống 0 cent. |
 | `403` từ API tổng quan | Key hoặc người dùng thiếu `billing.read` hoặc quyền truy cập workspace đó. |
 

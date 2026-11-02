@@ -33,7 +33,7 @@ The rates and thresholds are policy values held by the backend. Do not hard-code
 - The commission is `payment amount × rate`, calculated in cents and rounded down. A result of zero cents creates no commission.
 - Each payment produces **at most one** commission. A webhook that arrives twice does not credit twice.
 - A user has **one** referrer. A second code does not replace the first.
-- Your own code is ignored if you use it yourself (a `self_referral_ignored` event is logged). An unknown code is ignored.
+- Your own code is ignored if you use it yourself (a `referral_rejected` event with reason `self_referral` is logged). An unknown code is ignored.
 
 ### Status of a commission
 
@@ -49,14 +49,13 @@ The referral page shows, for each commission, the rate that was actually applied
 
 - **Polar refunds are automatic.** When Polar refunds a payment, TOSE takes back the refunded share of the commission with a negative `referral_reversal` entry in the beneficiary wallet. A replayed refund event changes nothing.
 - **Rank follows net volume.** Net volume is payments minus refunds, so a refund can lower your tier for *later* payments. It never changes commissions already credited.
-- **The wallet never goes negative.** A reversal takes at most the positive balance of the wallet. If the balance is lower than the amount to take back, TOSE absorbs the shortfall; it does not suspend or reclaim your workloads because of it.
+- **A reversal never makes the wallet negative.** It takes at most the positive balance of the wallet (nothing if the balance is already zero or negative). If the balance is lower than the amount to take back, TOSE absorbs the shortfall; it does not suspend or reclaim your workloads because of it.
 - **Not automated yet:** SePay refunds, and chargebacks from either provider, are handled **manually by a TOSE operator**. Until an operator acts, the commission stays credited. A manual adjustment changes the wallet only: it does not change the commission record, your net volume or your rank.
 
 ## Known limitations
 
 | Area | Today | Tracking |
 |------|-------|----------|
-| Who can be attached | The code is applied on registration and also on login and OAuth callbacks, so an existing user without a referrer can be attached by signing in through a new link. Treat only brand-new sign-ups as eligible; do not promise otherwise to anyone. | [tose-app#132](https://github.com/saasvn/tose-app/issues/132) |
 | SePay refunds and chargebacks | Not automated. An operator handles them by hand (see [Refunds and manual cases](#refunds-and-manual-cases)). | [tose-app#134](https://github.com/saasvn/tose-app/issues/134) |
 | Two-sided rewards and campaigns | Not available. Only the referrer is rewarded. The wallet signup bonus is a separate `signup_bonus` transaction and is not part of the referral program. | [tose-app#139](https://github.com/saasvn/tose-app/issues/139) |
 
@@ -78,13 +77,13 @@ Requires access to the workspace and the `billing.read` scope for [scoped API ke
 | `relationships`, `commissions`, `events` | The latest 50, 50 and 80 records. Each commission carries `applied_rate_bps`, `status` and `reversed_commission_amount` |
 | `reconciliation` | Totals of commissions, wallet entries and rank, for checking that they agree |
 
-Event types you may see: `profile_created`, `relationship_created`, `commission_credited`, `commission_reversed`, `tier_updated`, `self_referral_ignored`. The list includes events where you are the referred user, not only the referrer.
+Event types you may see: `profile_created`, `relationship_created`, `commission_credited`, `commission_reversed`, `tier_updated`, `referral_rejected` (the reason, such as `self_referral`, `invalid_code` or `existing_user`, is in its metadata). The list includes events where you are the referred user, not only the referrer.
 
 ## Campaign links and privacy
 
 - Only the `ref` parameter is read for attribution. Other UTM parameters are not used for rewards, so do not rely on them to qualify a payment.
 - The login page stores the code in a `tose_ref` cookie for 90 days on the TOSE cookie domain, and in browser local storage with no expiry. A `ref` in a newer link replaces the stored code.
-- The `relationships` and `commissions` lists include the referred user's profile as the API serializes it, which today contains the email address and OAuth identifiers, not only the name. Treat that as personal data. Narrowing it is tracked in [tose-app#198](https://github.com/saasvn/tose-app/issues/198).
+- The `relationships` and `commissions` lists return only the `id` and `username` of the referred users. Email addresses and OAuth identifiers are not exposed to the referrer.
 
 ## FAQ
 
@@ -98,7 +97,7 @@ Event types you may see: `profile_created`, `relationship_created`, `commission_
 
 | Symptom | Likely cause |
 |---------|--------------|
-| Referred user not listed | They registered without the code, or used a code that does not exist. A code supplied after the account already has a referrer is ignored. |
+| Referred user not listed | They registered without the code, or used a code that does not exist. A code used when signing in to an existing account is ignored. |
 | No commission for a payment | The payer has no active relationship, the payment amount is zero, or the commission rounds down to zero cents. |
 | `403` from the overview | The key or user lacks `billing.read` or access to that workspace. |
 
