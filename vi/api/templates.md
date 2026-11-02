@@ -1,8 +1,10 @@
 # API template
 
-Các endpoint cho [template 1-click](/vi/commands/template): đọc template, đổi image, deploy và đọc lịch sử deployment.
+Các endpoint cho [template 1-click](/vi/commands/template): xem catalog, tạo template, đổi image, biến môi trường và domain, deploy hoặc dừng, đọc lịch sử deployment và log.
 
-Endpoint của template nằm dưới `/api/workspaces/{slug}/templates` và dùng cùng cách xác thực với phần còn lại của API; xem [Xác thực](/vi/api/authentication). Mọi thành viên workspace đều đọc được. Thay đổi template hoặc deploy cần quyền admin của workspace.
+Endpoint của template nằm dưới `/api/workspaces/{slug}/templates` và dùng cùng cách xác thực với phần còn lại của API; xem [Xác thực](/vi/api/authentication). Mọi thành viên workspace đều đọc được. Thay đổi template hoặc deploy cần vai trò `owner` hoặc `admin` của workspace.
+
+[Spec OpenAPI](https://api.tose.sh/api/openapi.yaml) là nguồn chuẩn cho từng trường. Trang này giải thích hành vi xung quanh.
 
 ## Template chọn image như thế nào
 
@@ -15,6 +17,107 @@ Một template lưu tối đa một **custom image**. Deploy bằng image chạy
 | `rollback` | Image của một deployment trước đó, chọn tường minh bằng `rollback_to`. |
 
 Khi template chưa lưu image nào, deploy bằng image chạy image mặc định của catalog và ghi nguồn là `catalog`. Lần deploy image đã lưu được ghi trên deployment là `custom`, kể cả khi bản thân template vẫn đang đánh dấu `catalog`.
+
+## Catalog và tạo template {#catalog}
+
+### Liệt kê catalog
+
+```http
+GET /api/workspaces/available-templates
+```
+
+Mọi người dùng đã xác thực đều đọc được. `available-templates` là route cố định, không phải slug workspace. Mỗi mục có `name`, `key`, `description`, `default_port`, `default_cpu`, `default_ram`, `default_image`, `required_envs` và `unlock_fee_vnd`. Dùng `key` làm `template_name` khi tạo template.
+
+### Tạo template
+
+```http
+POST /api/workspaces/{slug}/templates
+```
+
+```json
+{ "name": "My agent", "template_name": "goclaw", "cpu": "1", "ram": "2" }
+```
+
+Tạo template ở trạng thái `pending`; chưa có gì chạy cho tới khi bạn [deploy](#deploy-template). Slug lấy từ `name`, thêm hậu tố ngẫu nhiên nếu bị trùng. Template có `unlock_fee_vnd` bị khóa: workspace phải trả phí mở khóa một lần trước, nếu chưa thì lệnh trả `402` kèm thông tin mở khóa. Template bị khóa chỉ nhận `cpu` `1` hoặc `2` và `ram` `2` hoặc `4`; giá trị khác trả `400`. Template khác cần ví có số dư dương.
+
+### Trạng thái mở khóa
+
+```http
+GET /api/workspaces/{slug}/templates/unlock-status
+```
+
+Một object theo key template, mỗi template bị khóa một mục: `unlocked`, `unlock_fee_vnd`, `unlock_credit_usd_cents`, `exchange_rate_vnd_per_usd`, `unlock_url` và `payment_purpose`. Khoản phí vẫn dùng được như credit trong ví. Xem [Bảng giá](/vi/guide/pricing).
+
+### Liệt kê template
+
+```http
+GET /api/workspaces/{slug}/templates
+```
+
+Mảng thuần, mới nhất trước, không phân trang. Template chưa từng deploy trả `last_deployment` với giá trị rỗng và bằng 0, không phải `null`.
+
+## Vòng đời {#lifecycle}
+
+### Dừng
+
+```http
+POST /api/workspaces/{slug}/templates/{template_slug}/stop
+```
+
+Đưa workload về 0 replica và đặt trạng thái `stopped`. Trả `400` khi template chưa được gán server.
+
+### Xóa
+
+```http
+DELETE /api/workspaces/{slug}/templates/{template_slug}
+```
+
+::: danger Không thể hoàn tác
+Xóa template sẽ xóa ổ đĩa bền vững cùng toàn bộ dữ liệu, workload Kubernetes, ingress, bản ghi DNS, biến môi trường, domain và lịch sử deployment.
+:::
+
+Nếu không xóa được ổ đĩa, lệnh trả `502` và giữ nguyên template, nên bạn có thể thử lại.
+
+## Biến môi trường {#environment-variables}
+
+```http
+GET    /api/workspaces/{slug}/templates/{template_slug}/envs
+POST   /api/workspaces/{slug}/templates/{template_slug}/envs
+DELETE /api/workspaces/{slug}/templates/{template_slug}/envs/{key}
+GET    /api/workspaces/{slug}/templates/{template_slug}/envs/{key}/reveal
+```
+
+- **Liệt kê:** mọi thành viên. Thành viên dưới `admin` thấy mọi giá trị là `***`. Admin hoặc owner thấy giá trị thật, trừ biến đánh dấu `is_secret` luôn là `***`.
+- **Đặt:** `owner` hoặc `admin`. Body là mảng thuần các `{ "key", "value", "is_secret" }`. Mỗi mục được upsert theo `key`, mục có `key` rỗng bị bỏ qua, giá trị được lưu đã mã hóa. Thay đổi có hiệu lực ở lần deploy tiếp theo.
+- **Xóa:** `owner` hoặc `admin`. Xóa một key không tồn tại vẫn trả `200`.
+- **Reveal:** chỉ `owner` hoặc `admin`. Trả `{ "value": "..." }`, giá trị đã giải mã của một biến, kể cả secret. Đây là lệnh duy nhất trả giá trị secret, và chính sách truy cập xếp nó vào rủi ro cao (`env.reveal`). Không ghi log hay cache phản hồi.
+
+```bash
+curl "https://api.tose.sh/api/workspaces/$WS/templates/demo/envs/API_KEY/reveal" \
+  -H "X-API-Key: $TOSE_API_KEY"
+```
+
+## Domain {#domains}
+
+```http
+GET    /api/workspaces/{slug}/templates/{template_slug}/domains
+POST   /api/workspaces/{slug}/templates/{template_slug}/domains
+DELETE /api/workspaces/{slug}/templates/{template_slug}/domains/{domain_id}
+```
+
+Thêm nhận `{ "domain": "app.example.com" }` và lưu dạng chữ thường (`201`). Subdomain của nền tảng hoạt động ngay. Với domain riêng, trỏ bản ghi A tới `target_ip`; `dns_status` giữ `pending` cho tới khi bạn làm xong. Domain đang dùng bởi template khác trả `409`, và thêm lại domain đã gỡ của chính template này sẽ khôi phục nó. Domain mặc định không gỡ được (`400`).
+
+## Log {#logs}
+
+```http
+GET /api/workspaces/{slug}/templates/{template_slug}/deployments/{id}/logs
+GET /api/workspaces/{slug}/templates/{template_slug}/live-logs
+```
+
+Cả hai là WebSocket, cùng quy tắc xác thực và origin với stream log của dự án. Frame từ client bị bỏ qua, server chỉ gửi text frame. Lỗi phát hiện trước khi nâng cấp kết nối (template hoặc deployment không tồn tại, thiếu quyền thành viên) là phản hồi lỗi JSON bình thường.
+
+- **Log build** (`deployments/{id}/logs`): mỗi frame một dòng log build. Với deployment đã kết thúc (`running`, `failed` hoặc `stopped`), log đã lưu được phát lại rồi gửi `[END]` và đóng kết nối. Nếu chưa, dòng mới được đẩy khi build chạy và `[END]` đóng kết nối. `[END]` là frame điều khiển duy nhất, nên hãy đọc trạng thái cuối từ `GET .../deployments/{id}`.
+- **Log runtime** (`live-logs`): theo dõi stdout và stderr của pod, bắt đầu từ 200 dòng cuối. Template phải ở trạng thái `running` (nếu không trả `400`). Mỗi frame là một khối thô tối đa 4096 byte, không căn theo dòng. Stream kết thúc bằng `[END]`; khi lỗi, server gửi trước một frame bắt đầu bằng `[ERROR] `.
 
 ## Đọc template {#get-template}
 

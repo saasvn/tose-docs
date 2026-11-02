@@ -151,7 +151,7 @@ Omit `disk` to create a stateless project.
 
 ### Get Pricing
 
-Public; no authentication required.
+Public: send the request without an API key or session. It returns the CPU and RAM hourly rates by wallet balance band, highest band first (`min_balance_usd` is the balance from which a band applies), and the persistent storage tariff.
 
 ```http
 GET /api/pricing
@@ -163,9 +163,9 @@ GET /api/pricing
 {
   "compute": {
     "tiers": [
-      { "min_balance_usd": 0, "cpu_usd_per_hour": 0.02, "ram_gb_usd_per_hour": 0.01 },
+      { "min_balance_usd": 200, "cpu_usd_per_hour": 0.012, "ram_gb_usd_per_hour": 0.006 },
       { "min_balance_usd": 100, "cpu_usd_per_hour": 0.014, "ram_gb_usd_per_hour": 0.007 },
-      { "min_balance_usd": 200, "cpu_usd_per_hour": 0.012, "ram_gb_usd_per_hour": 0.006 }
+      { "min_balance_usd": 0, "cpu_usd_per_hour": 0.02, "ram_gb_usd_per_hour": 0.01 }
     ]
   },
   "storage": {

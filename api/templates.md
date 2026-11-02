@@ -1,8 +1,10 @@
 # Templates API
 
-Endpoints for [1-click templates](/commands/template): read a template, change its image, deploy it, and read its deployment history.
+Endpoints for [1-click templates](/commands/template): browse the catalog, create a template, change its image, environment and domains, deploy or stop it, and read its deployment history and logs.
 
-Template endpoints live under `/api/workspaces/{slug}/templates` and use the same authentication as the rest of the API; see [Authentication](/api/authentication). Reading is available to any workspace member. Changing a template or deploying it requires a workspace admin.
+Template endpoints live under `/api/workspaces/{slug}/templates` and use the same authentication as the rest of the API; see [Authentication](/api/authentication). Reading is available to any workspace member. Changing a template or deploying it requires the workspace `owner` or `admin` role.
+
+The [OpenAPI spec](https://api.tose.sh/api/openapi.yaml) is the source of truth for every field. This page explains the behavior around it.
 
 ## How a template picks its image
 
@@ -15,6 +17,107 @@ A template stores at most one **custom image**. An image deploy runs that stored
 | `rollback` | The image of an earlier deployment, chosen explicitly with `rollback_to`. |
 
 When a template has no stored image, an image deploy runs the catalog default and records `catalog` as the source. A deploy of the stored image is recorded on the deployment as `custom`, even when the template itself is still marked `catalog`.
+
+## Catalog and creation
+
+### List the catalog
+
+```http
+GET /api/workspaces/available-templates
+```
+
+Any authenticated caller may read it. `available-templates` is a fixed route, not a workspace slug. Each entry has `name`, `key`, `description`, `default_port`, `default_cpu`, `default_ram`, `default_image`, `required_envs` and `unlock_fee_vnd`. Use `key` as `template_name` when you create a template.
+
+### Create a template
+
+```http
+POST /api/workspaces/{slug}/templates
+```
+
+```json
+{ "name": "My agent", "template_name": "goclaw", "cpu": "1", "ram": "2" }
+```
+
+Creates the template in status `pending`; nothing runs until you [deploy](#deploy-template) it. The slug comes from `name`, with a random suffix when it is taken. Templates with an `unlock_fee_vnd` are gated: the workspace must pay the one-time unlock first, and until then the call returns `402` with the unlock details. Gated templates accept `cpu` `1` or `2` and `ram` `2` or `4`; other values return `400`. Other templates need a wallet with a positive balance.
+
+### Unlock status
+
+```http
+GET /api/workspaces/{slug}/templates/unlock-status
+```
+
+An object keyed by template key, with one entry per gated template: `unlocked`, `unlock_fee_vnd`, `unlock_credit_usd_cents`, `exchange_rate_vnd_per_usd`, `unlock_url` and `payment_purpose`. The fee stays available as wallet credit. See [Pricing](/guide/pricing).
+
+### List templates
+
+```http
+GET /api/workspaces/{slug}/templates
+```
+
+A bare array, newest first, with no paging. A template that was never deployed returns `last_deployment` with empty and zero values, not `null`.
+
+## Lifecycle
+
+### Stop
+
+```http
+POST /api/workspaces/{slug}/templates/{template_slug}/stop
+```
+
+Scales the workload to zero replicas and sets the status to `stopped`. Returns `400` when the template has no server assigned.
+
+### Delete
+
+```http
+DELETE /api/workspaces/{slug}/templates/{template_slug}
+```
+
+::: danger Cannot be undone
+Deleting a template removes its persistent disk with all data, the Kubernetes workload, ingress, DNS records, environment variables, domains and deployment history.
+:::
+
+If the disk cannot be deleted, the call returns `502` and leaves the template untouched, so you can retry.
+
+## Environment variables
+
+```http
+GET    /api/workspaces/{slug}/templates/{template_slug}/envs
+POST   /api/workspaces/{slug}/templates/{template_slug}/envs
+DELETE /api/workspaces/{slug}/templates/{template_slug}/envs/{key}
+GET    /api/workspaces/{slug}/templates/{template_slug}/envs/{key}/reveal
+```
+
+- **List:** any member. A member below `admin` sees every value as `***`. An admin or owner sees plain values, except variables marked `is_secret`, which are always `***`.
+- **Set:** `owner` or `admin`. The body is a bare array of `{ "key", "value", "is_secret" }`. Each item is upserted by `key`, items with an empty `key` are skipped, and values are stored encrypted. Changes take effect on the next deploy.
+- **Delete:** `owner` or `admin`. Deleting a key that does not exist still returns `200`.
+- **Reveal:** `owner` or `admin` only. Returns `{ "value": "..." }`, the decrypted value of one variable, including secrets. It is the only call that returns a secret value, and the access policy rates it as high risk (`env.reveal`). Do not log or cache the response.
+
+```bash
+curl "https://api.tose.sh/api/workspaces/$WS/templates/demo/envs/API_KEY/reveal" \
+  -H "X-API-Key: $TOSE_API_KEY"
+```
+
+## Domains
+
+```http
+GET    /api/workspaces/{slug}/templates/{template_slug}/domains
+POST   /api/workspaces/{slug}/templates/{template_slug}/domains
+DELETE /api/workspaces/{slug}/templates/{template_slug}/domains/{domain_id}
+```
+
+Add takes `{ "domain": "app.example.com" }` and stores it lower-cased (`201`). Platform subdomains are active at once. For a custom domain, point an A record at `target_ip`; `dns_status` stays `pending` until you do. A domain already used by another template returns `409`, and adding back a removed domain of this template restores it. The default domain cannot be removed (`400`).
+
+## Logs
+
+```http
+GET /api/workspaces/{slug}/templates/{template_slug}/deployments/{id}/logs
+GET /api/workspaces/{slug}/templates/{template_slug}/live-logs
+```
+
+Both are WebSockets with the same authentication and origin rules as project log streaming. Frames from the client are ignored, and the server sends text frames only. Errors found before the upgrade (unknown template or deployment, missing membership) are normal JSON error responses.
+
+- **Build logs** (`deployments/{id}/logs`): one build log line per frame. For a deployment that already finished (`running`, `failed` or `stopped`), the stored log is replayed and then `[END]` is sent and the connection closes. Otherwise new lines are pushed as the build runs, and `[END]` closes it. `[END]` is the only control frame, so read the final status from `GET .../deployments/{id}`.
+- **Runtime logs** (`live-logs`): follows the stdout and stderr of the template's pods, starting with the last 200 lines. The template must be `running` (`400` otherwise). Each frame is a raw chunk of up to 4096 bytes, not aligned to lines. The stream ends with `[END]`; on failure the server first sends one frame that starts with `[ERROR] `.
 
 ## Get Template
 
