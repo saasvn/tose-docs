@@ -86,6 +86,7 @@ export default defineConfig({
               { text: 'Authentication', link: '/api/authentication' },
               { text: 'Endpoints', link: '/api/endpoints' },
               { text: 'Desktops', link: '/api/desktops' },
+              { text: 'Templates', link: '/api/templates' },
               { text: 'Disks, Volumes & Pricing', link: '/api/disks' }
             ]
           }
@@ -168,6 +169,7 @@ export default defineConfig({
               { text: 'REST API', link: '/vi/api/reference' },
               { text: 'Xác thực', link: '/vi/api/authentication' },
               { text: 'Endpoints', link: '/vi/api/endpoints' },
+              { text: 'Template', link: '/vi/api/templates' },
               { text: 'Ổ đĩa, Volume & Bảng giá', link: '/vi/api/disks' }
             ]
           }

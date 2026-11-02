@@ -92,6 +92,12 @@ tose template deploy <slug> [--mode <mode>] [--wait] [--timeout <duration>]
 | `--wait` | Poll until the rollout finishes |
 | `--timeout <duration>` | How long `--wait` may take, such as `90s` or `15m`. Default: `15m` |
 
+### Which image runs
+
+`--mode image` runs the image stored on the template. It does not replace a custom image with the catalog default, and every template that existed before this behavior counts as custom, so nothing is upgraded implicitly. A template created from the catalog starts with the catalog image stored. When the catalog has a different version, the API reports it in a `warnings` array. Upgrading and rolling back are explicit options of the [Templates API](/api/templates#deploy-template) (`image_source=catalog`, `rollback_to`, `expected_image`); the CLI does not expose them yet.
+
+Rolling back an image does not roll back the database schema or data.
+
 ### Exit codes with `--wait`
 
 | Code | Meaning |
@@ -112,6 +118,7 @@ Templates that call an AI provider (Gemini, OpenAI and others) use your own prov
 
 ## Related
 
+- [Templates API](/api/templates)
 - [Environment Variables](/guide/environment)
 - [Pricing](/guide/pricing)
 - [Persistent Disks](/guide/persistent-disks)
