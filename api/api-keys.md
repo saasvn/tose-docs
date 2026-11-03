@@ -66,6 +66,7 @@ Notes:
 - `deployments:read` also covers reading projects, logs and the workspace, so a read-only key for a status dashboard needs only that one scope.
 - Reading an environment variable value (`env.reveal`) needs `env:read`. Treat `env:read` like a secret.
 - `deployments:write` exists only for the [MCP connector](/mcp) and cannot be granted to an API key.
+- `tose up` with a key that has `projects:write` but not `deployments:execute` connects Git with auto-deploy off, starts no deployment and exits with `INSUFFICIENT_SCOPE` (`details.required_scope: deployments:execute`, `details.git_connected: true`, `details.deploy_skipped: true`). Run `tose deploy` with a key that has `deployments:execute`. See [`tose up`](/commands/up#api-key-without-deployments-execute).
 - Scopes limit the key, never the person. Even with a scope, a request can still be refused when the workspace role of the key's creator is too low for the action.
 
 ## Full-access keys

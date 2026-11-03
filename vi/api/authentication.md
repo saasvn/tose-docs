@@ -88,6 +88,8 @@ Với key có `projects:write` nhưng không có `deployments:execute`:
 | Tạo dự án có khối `git` | Thành công và trả `deploy_skipped` thay cho `deployment_id` và `build_logs_url`. |
 | Bật `auto_deploy`, hoặc đổi nhánh của kết nối đang tự động triển khai | Thất bại với `403 insufficient_scope` và `required_scope: deployments:execute`. |
 
+CLI theo cùng quy tắc này: `tose up` với key như vậy kết nối Git, không bắt đầu lần triển khai nào và thoát với `INSUFFICIENT_SCOPE`. Hãy chạy [`tose deploy`](/vi/commands/deploy) với key có `deployments:execute`. Xem [`tose up`](/vi/commands/up#api-key-khong-co-deployments-execute).
+
 Hãy thêm `deployments:execute` vào key, hoặc dùng phiên đăng nhập, khi muốn mỗi lần push Git tự động triển khai.
 
 ## WebSocket
