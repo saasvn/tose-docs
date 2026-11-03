@@ -108,6 +108,7 @@ export default defineConfig({
               { text: 'Projects', link: '/api/projects' },
               { text: 'GitHub', link: '/api/github' },
               { text: 'Templates', link: '/api/templates' },
+              { text: 'Template deploy and resume', link: '/api/template-deploy' },
               { text: 'Disks, Volumes & Pricing', link: '/api/disks' }
             ]
           }
@@ -212,6 +213,7 @@ export default defineConfig({
               { text: 'GitHub', link: '/vi/api/github' },
               { text: 'Template', link: '/vi/api/templates' },
               { text: 'Attribution khi đăng ký', link: '/vi/api/signup-attribution' },
+              { text: 'Deploy và resume template', link: '/vi/api/template-deploy' },
               { text: 'Ổ đĩa, Volume & Bảng giá', link: '/vi/api/disks' }
             ]
           }

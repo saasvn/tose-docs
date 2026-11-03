@@ -102,6 +102,19 @@ Khi ví hết tiền, TOSE vẫn tạm ngưng compute như trước. Các instan
 
 **Cách khắc phục:** nạp tiền vào ví ở trang billing trên dashboard, rồi deploy lại. Deploy chạy bình thường khi số dư lớn hơn 0.
 
+Nạp tiền sẽ tự động khôi phục hầu hết template đang bị tạm ngưng. Deploy một template đang `suspended` cũng cần số dư ví dương: nếu không, deploy bị từ chối với `402 INSUFFICIENT_BALANCE` và template vẫn ở trạng thái suspended (xem [API deploy và resume template](/vi/api/template-deploy#suspended-needs-balance)).
+
+### Instance Dewee và GoClaw sau khi nạp tiền {#suspended-gateway-templates}
+
+Instance Dewee hoặc GoClaw chỉ tự khôi phục sau khi nạp tiền khi có gateway token còn hiệu lực: token hợp lệ được lưu, workload đang chạy đọc được token đó, và Secret biến của workload có nó. Nếu không, instance vẫn `suspended` thay vì quay lại ở trạng thái truy cập được mà không cần xác thực. Lịch sử deployment có thêm một mục `system` thất bại với mã `GATEWAY_TOKEN_*`, và chủ workspace nhận email kèm liên kết tới instance.
+
+Để đưa instance trở lại, mở instance và chọn **Issue token and resume** (hoặc redeploy). Cần vai trò owner hoặc admin và số dư dương. Sau đó:
+
+- client hiện có phải gửi token mới được cấp (admin workspace đọc được trong mục biến của template);
+- các phiên đang hoạt động kết thúc, vì pod khởi động lại.
+
+Thao tác tương tự có ở `POST /api/workspaces/{slug}/templates/{template_slug}/resume`; xem [API](/vi/api/template-deploy#resume) và [mã `GATEWAY_TOKEN_*`](/vi/api/template-deploy#gateway-token-codes).
+
 ## Liên quan {#related}
 
 - [Ổ đĩa bền vững](/vi/guide/persistent-disks)
