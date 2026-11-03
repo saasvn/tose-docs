@@ -14,7 +14,7 @@ TOSE CLI lưu trữ cấu hình trong file JSON tại:
 
 ```json
 {
-  "apiKey": "ws_xxxxxxxxxxxxx",
+  "apiKey": "tose_sk_xxxxxxxxxxxxx",
   "workspaceId": "ws_123456",
   "baseUrl": "https://api.tose.sh"
 }
@@ -35,7 +35,7 @@ TOSE CLI lưu trữ cấu hình trong file JSON tại:
 1. Đăng nhập vào [TOSE Dashboard](https://tose.sh)
 2. Điều hướng đến **Settings** > **API Keys**
 3. Nhấp **Create New API Key**
-4. Sao chép key (bắt đầu bằng `ws_`)
+4. Sao chép key (bắt đầu bằng `tose_sk_`)
 
 ### Thiết lập API Key
 
@@ -52,7 +52,7 @@ tose up
 mkdir -p ~/.tose
 cat > ~/.tose/config.json << 'EOF'
 {
-  "apiKey": "ws_your_key_here"
+  "apiKey": "tose_sk_your_key_here"
 }
 EOF
 ```
@@ -68,7 +68,7 @@ EOF
 
 2. **Sử dụng biến môi trường**
    ```bash
-   export TOSE_API_KEY="ws_xxxxx"
+   export TOSE_API_KEY="tose_sk_xxxxx"
    ```
 
 3. **Rotate key thường xuyên**
@@ -82,7 +82,7 @@ EOF
 
 ```json
 {
-  "apiKey": "ws_xxxxx",
+  "apiKey": "tose_sk_xxxxx",
   "workspaceId": "ws_123456"
 }
 ```
@@ -102,7 +102,7 @@ Ghi đè URL API mặc định:
 
 ```json
 {
-  "apiKey": "ws_xxxxx",
+  "apiKey": "tose_sk_xxxxx",
   "baseUrl": "https://custom-api.tose.sh"
 }
 ```
@@ -172,7 +172,7 @@ cat ~/.tose/config.json | python -m json.tool
 
 ### API Key không hoạt động
 
-1. Xác minh key bắt đầu bằng `ws_`
+1. Xác minh key bắt đầu bằng `tose_sk_`
 2. Kiểm tra key chưa bị thu hồi
 3. Thử tạo key mới
 

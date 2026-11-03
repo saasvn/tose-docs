@@ -122,3 +122,4 @@ Templates that call an AI provider (Gemini, OpenAI and others) use your own prov
 - [Environment Variables](/guide/environment)
 - [Pricing](/guide/pricing)
 - [Persistent Disks](/guide/persistent-disks)
+- [Dewee template runbook](/guide/dewee-template)
