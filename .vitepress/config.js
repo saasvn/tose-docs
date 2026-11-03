@@ -75,6 +75,13 @@ export default defineConfig({
             ]
           },
           {
+            text: 'Cloud Harness',
+            items: [
+              { text: 'Cloud Harness Guide', link: '/guide/cloud-harness' },
+              { text: 'Runtimes API', link: '/api/runtimes' }
+            ]
+          },
+          {
             text: 'MCP and Agents',
             items: [
               { text: 'Protocol, OAuth and scopes', link: '/mcp/oauth' },
@@ -95,6 +102,7 @@ export default defineConfig({
               { text: 'MCP Connector', link: '/mcp' },
               { text: 'Errors', link: '/api/errors' },
               { text: 'Desktops', link: '/api/desktops' },
+              { text: 'Runtimes', link: '/api/runtimes' },
               { text: 'Disks, Volumes & Pricing', link: '/api/disks' }
             ]
           }
@@ -167,6 +175,13 @@ export default defineConfig({
             ]
           },
           {
+            text: 'Cloud Harness',
+            items: [
+              { text: 'Hướng dẫn Cloud Harness', link: '/vi/guide/cloud-harness' },
+              { text: 'API Runtimes', link: '/vi/api/runtimes' }
+            ]
+          },
+          {
             text: 'MCP và Agent',
             items: [
               { text: 'Giao thức, OAuth và scope', link: '/vi/mcp/oauth' },
@@ -186,6 +201,7 @@ export default defineConfig({
               { text: 'Audit log', link: '/vi/api/audit' },
               { text: 'MCP Connector', link: '/vi/mcp' },
               { text: 'Mã lỗi', link: '/vi/api/errors' },
+              { text: 'Runtimes', link: '/vi/api/runtimes' },
               { text: 'Ổ đĩa, Volume & Bảng giá', link: '/vi/api/disks' }
             ]
           }
