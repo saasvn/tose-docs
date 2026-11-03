@@ -28,7 +28,7 @@ GET /api/workspaces/available-templates
 
 Mọi người dùng đã xác thực đều đọc được. `available-templates` là route cố định, không phải slug workspace. Các mục có `name`, `key`, `description`, `source`, `branch`, `default_port`, `default_cpu`, `default_ram`, `default_image`, `required_envs` và `unlock_fee_vnd`. Một số mục khác: mục Cloud Harness không có `default_image` và thêm `release`, `max_instances`, `pricing`. Hãy đọc danh sách trường của từng mục từ phản hồi hoặc spec OpenAPI. Dùng `key` làm `template_name` khi tạo template.
 
-### Tạo template
+### Tạo template {#create-a-template}
 
 ```http
 POST /api/workspaces/{slug}/templates
@@ -47,6 +47,51 @@ GET /api/workspaces/{slug}/templates/unlock-status
 ```
 
 Một object theo key template, mỗi template bị khóa một mục: `unlocked`, `unlock_fee_vnd`, `unlock_credit_usd_cents`, `exchange_rate_vnd_per_usd`, `unlock_url` và `payment_purpose`. Khoản phí vẫn dùng được như credit trong ví. Xem [Bảng giá](/vi/guide/pricing).
+
+### Trạng thái release công khai {#public-release-status}
+
+```http
+GET /api/public/template-releases
+```
+
+Công khai: không cần xác thực, không gắn workspace, không có dữ liệu tenant. Phản hồi được cache 300 giây (`Cache-Control: public, max-age=300`) và không chứa tên image, digest hay liên kết bằng chứng. Dùng nó để hiển thị template 1-click (Dewee, GoClaw) đã được xác minh hay chưa, ví dụ trên trang marketing.
+
+```json
+{
+  "templates": [
+    {
+      "key": "dewee",
+      "status": "experimental",
+      "unlock_fee_vnd": 0,
+      "default_cpu": 1,
+      "default_ram_gb": 2,
+      "region": "SGP1"
+    }
+  ]
+}
+```
+
+Ví dụ chỉ minh họa hình dạng; hãy đọc giá trị thật từ phản hồi. `templates[]` có một mục cho mỗi template trong catalog:
+
+| Trường | Ý nghĩa |
+|--------|---------|
+| `key` | Key template, cùng giá trị với `template_name` khi [tạo template](#create-a-template) |
+| `status` | `verified`, `experimental`, `deprecated` hoặc `unavailable` (bên dưới) |
+| `version` | Phiên bản release. Chỉ có khi `status` là `verified` |
+| `last_validated_at` | Ngày của lần chạy staging đạt. Chỉ có khi `status` là `verified` |
+| `unlock_fee_vnd` | Phí mở khóa một lần, tính bằng VND. Khoản này vẫn nằm trong ví dưới dạng credit; xem [Bảng giá](/vi/guide/pricing) |
+| `default_cpu` | vCPU mặc định |
+| `default_ram_gb` | RAM mặc định, tính bằng GB |
+| `region` | Region nơi instance chạy |
+
+| `status` | Ý nghĩa |
+|----------|---------|
+| `verified` | Image trong catalog đã đạt một lần chạy staging end-to-end. Mục có `version` và `last_validated_at`. Bản ghi thiếu một trong hai sẽ báo `experimental`, không bao giờ báo `verified` |
+| `experimental` | Được cung cấp, nhưng chưa ghi nhận lần chạy staging đạt cho image trong catalog. Image không có trong manifest cũng là `experimental` |
+| `deprecated` | Image trong catalog bị đánh dấu ngừng dùng |
+| `unavailable` | Cờ công khai của endpoint đang tắt, nên mọi template đều báo trạng thái này bất kể trạng thái thật |
+
+`verified` do release gate trong `templates/verified-images.json` của [saasvn/tose-app](https://github.com/saasvn/tose-app) quyết định (xem [Release gate và bảng tương thích](/vi/guide/dewee-template#release-gate-and-compatibility)), không phải do endpoint này. Chưa có gì là `verified` cho tới khi một lần chạy staging thật nâng cấp một image, nên trước đó hãy mong đợi `experimental`.
 
 ### Liệt kê template
 

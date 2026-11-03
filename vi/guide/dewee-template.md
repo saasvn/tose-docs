@@ -180,6 +180,8 @@ TOSE chỉ công bố một phiên bản Dewee là đã xác minh sau khi một 
 
 Khi có một lần chạy đã xác minh, bảng này sẽ có thêm digest, commit, revision TOSE, ngày và chữ *verified*. Đừng coi template là one-click đã xác minh trước thời điểm đó.
 
+Khi endpoint trạng thái công khai đang bật, [`GET /api/public/template-releases`](/vi/api/templates#public-release-status) báo cùng trạng thái này cho từng template: `verified` (kèm `version` và `last_validated_at`), `experimental`, `deprecated`, hoặc `unavailable` khi cờ tắt. Release gate trong `templates/verified-images.json` quyết định `verified`, và chưa có gì được xác minh cho tới khi một lần chạy staging thật nâng cấp một image.
+
 ## Checklist triển khai theo giai đoạn {#staged-rollout-checklist}
 
 1. Tạo instance trong workspace không phải production.
