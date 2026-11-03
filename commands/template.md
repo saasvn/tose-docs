@@ -173,6 +173,22 @@ tose template deploy demo --rollback <deployment_id> --yes --wait
 - Generated credentials and the one-time bootstrap secret are never printed. Open the dashboard link and complete the bootstrap sign-in there.
 - A wallet shortage, a missing TLS domain or a failed disk provisioning is reported with the step to take next.
 
+## tose template stop / delete {#tose-template-stop-delete}
+
+```bash
+tose template stop <slug>
+tose template delete <slug>
+```
+
+Both need the workspace `owner` or `admin` role and ask for confirmation. `--yes` skips the prompt.
+
+- **`stop`** scales the instance to zero and sets it to `stopped`. Disk and settings are kept, and `tose template deploy` starts it again.
+- **`delete`** removes the instance with its disk, environment variables, domains and deployment history. It cannot be undone.
+
+Both also end a build that is still running. Its deployments are marked `stopped`, its build and push containers are removed, and the build log ends with `=== Build Stopped ===`. You do not need to wait for a build to finish before you stop or delete the template. Deleting a workspace ends its template builds the same way.
+
+An instance that is being deleted refuses other changes with `409` until the delete finishes. See [Templates API](/api/templates#lifecycle) for the exact responses.
+
 ## AI provider usage (BYOK)
 
 Templates that call an AI provider (Gemini, OpenAI and others) use your own provider key. The provider bills that usage. The TOSE wallet is charged only for the infrastructure, which is the estimated TOSE charge shown by `tose template catalog`.

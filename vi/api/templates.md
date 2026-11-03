@@ -26,7 +26,7 @@ Khi template chưa lưu image nào, deploy bằng image chạy image mặc đị
 GET /api/workspaces/available-templates
 ```
 
-Mọi người dùng đã xác thực đều đọc được. `available-templates` là route cố định, không phải slug workspace. Các mục có `name`, `key`, `description`, `source`, `branch`, `default_port`, `default_cpu`, `default_ram`, `default_image`, `required_envs` và `unlock_fee_vnd`. Một số mục khác: mục Cloud Harness không có `default_image` và thêm `release`, `max_instances`, `pricing`. Hãy đọc danh sách trường của từng mục từ phản hồi hoặc spec OpenAPI. Dùng `key` làm `template_name` khi tạo template.
+Mọi người dùng đã xác thực đều đọc được. `available-templates` là route cố định, không phải slug workspace. Các mục có `name`, `key`, `description`, `source`, `branch`, `default_port`, `default_cpu`, `default_ram`, `default_image`, `required_envs` và `unlock_fee_vnd`. Một số mục khác: mục Cloud Harness được dựng từ release manifest nên trả `source`, `branch` và `default_image` là chuỗi rỗng, và thêm `release`, `max_instances`, `pricing`. Hãy đọc danh sách trường của từng mục từ phản hồi hoặc spec OpenAPI. Dùng `key` làm `template_name` khi tạo template.
 
 ### Tạo template
 
@@ -39,6 +39,8 @@ POST /api/workspaces/{slug}/templates
 ```
 
 Tạo template ở trạng thái `pending`; chưa có gì chạy cho tới khi bạn [deploy](#deploy-template). Slug lấy từ `name`, thêm hậu tố ngẫu nhiên nếu bị trùng. Template có `unlock_fee_vnd` lớn hơn 0 bị khóa: workspace phải trả phí mở khóa một lần trước, nếu chưa thì lệnh trả `402` kèm thông tin mở khóa. Template bị khóa chỉ nhận `cpu` `1` hoặc `2` và `ram` `2` hoặc `4`; giá trị khác trả `400`. Template khác cần ví có số dư dương, nếu không lệnh trả `402`, và `cpu`, `ram` là số nguyên, nếu không trả `400`.
+
+Trả `409` khi một template cùng tên đang được tạo cùng lúc (hãy thử lại sau khi lệnh kia xong). Với Cloud Harness, lệnh cũng trả `409` khi workspace đã đạt giới hạn instance, và `503` khi không có cụm nào khả dụng.
 
 ### Trạng thái mở khóa
 
@@ -64,7 +66,11 @@ Mảng template thuần, mới nhất trước, không phân trang. Chi tiết d
 POST /api/workspaces/{slug}/templates/{template_slug}/stop
 ```
 
-Đưa workload về 0 replica và đặt trạng thái `stopped`. Trả `400` khi template chưa được gán server.
+Đưa workload về 0 replica và đặt trạng thái `stopped`. Trả `400` khi template chưa được gán server, và `409` khi template đang bị xóa.
+
+Dừng cũng kết thúc build đang chạy. Mọi deployment của template ở trạng thái `pending`, `building` hoặc `deploying` được đánh dấu `stopped` trước, rồi container build và push của chúng bị gỡ, nên không còn gì tiếp tục build hoặc push image cho template bạn đã dừng. Log deployment kết thúc bằng `=== Build Stopped ===` và sau đó được phát lại như mọi log đã kết thúc (xem [Log](#logs)). Nếu không kết thúc được các build, lệnh trả `500` kèm `Failed to stop the template's builds`; template được giữ nguyên, nên hãy thử lại.
+
+Instance Cloud Harness chỉ được đánh dấu `stopped` sau khi cụm đã dừng pod của nó. `502` nghĩa là pod vẫn đang chạy và có thể gọi lại. `503` nghĩa là Cloud Harness đang tắt trên nền tảng này.
 
 ### Xóa
 
@@ -76,7 +82,9 @@ DELETE /api/workspaces/{slug}/templates/{template_slug}
 Xóa template sẽ xóa ổ đĩa bền vững cùng toàn bộ dữ liệu, workload Kubernetes, ingress, bản ghi DNS, biến môi trường, domain và lịch sử deployment.
 :::
 
-Nếu không xóa được ổ đĩa, lệnh trả `502` và giữ nguyên template, nên bạn có thể thử lại. Xóa template Cloud Harness thì trả `202` với `status: "deleting"` và hoàn tất ở nền, hoặc `503` khi Cloud Harness đang tắt.
+Build hoặc image deploy đang chạy được kết thúc trước, đúng như với [Dừng](#lifecycle): các deployment của nó được đánh dấu `stopped` và container build, push bị gỡ trước khi lịch sử deployment bị xóa. Điều tương tự xảy ra với mọi template của một workspace khi workspace bị xóa.
+
+Nếu không xóa được ổ đĩa, lệnh trả `502` và giữ nguyên template, nên bạn có thể thử lại. Xóa template Cloud Harness thì trả `202` với `status: "deleting"` và hoàn tất ở nền, hoặc `503` khi Cloud Harness đang tắt. Khi còn ở `deleting`, mọi thay đổi khác lên instance trả `409`, và `DELETE` lặp lại trả `202` một lần nữa.
 
 ## Biến môi trường {#environment-variables}
 
@@ -88,8 +96,8 @@ GET    /api/workspaces/{slug}/templates/{template_slug}/envs/{key}/reveal
 ```
 
 - **Liệt kê:** mọi thành viên. Thành viên dưới `admin` thấy mọi giá trị là `***`. Admin hoặc owner thấy giá trị thật, trừ biến đánh dấu `is_secret` luôn là `***`.
-- **Đặt:** `owner` hoặc `admin`. Body là mảng thuần các `{ "key", "value", "is_secret" }`. Mỗi mục được upsert theo `key`, mục có `key` rỗng bị bỏ qua, giá trị được lưu đã mã hóa. Thay đổi có hiệu lực ở lần deploy tiếp theo.
-- **Xóa:** `owner` hoặc `admin`. Xóa một key không tồn tại vẫn trả `200`. Với template yêu cầu gateway token, xóa `GOCLAW_GATEWAY_TOKEN` trả `409` kèm `GATEWAY_TOKEN_REQUIRED`.
+- **Đặt:** `owner` hoặc `admin`. Body là mảng thuần các `{ "key", "value", "is_secret" }`. Mỗi mục được upsert theo `key`, mục có `key` rỗng bị bỏ qua, giá trị được lưu đã mã hóa. Thay đổi có hiệu lực ở lần deploy tiếp theo. Trả `409` khi template đang bị xóa. Với Dewee và GoClaw, lệnh cũng trả `409` kèm `GATEWAY_TOKEN_CONFLICT` (hai biến gateway token khác nhau), `422` kèm `GATEWAY_TOKEN_INVALID` (token sai định dạng hoặc quá ngắn) và `500` kèm `GATEWAY_TOKEN_UNAVAILABLE` (không kiểm tra được). Không lỗi nào lặp lại giá trị. Xem [Mã gateway token](/vi/api/template-deploy#gateway-token-codes).
+- **Xóa:** `owner` hoặc `admin`. Xóa một key không tồn tại vẫn trả `200`. Với template yêu cầu gateway token, xóa `GOCLAW_GATEWAY_TOKEN` trả `409` kèm `GATEWAY_TOKEN_REQUIRED`; `DEWEE_GATEWAY_TOKEN` không được bảo vệ và xóa được với `200`. Mọi lệnh xóa đều trả `409` khi template đang bị xóa.
 - **Reveal:** chỉ `owner` hoặc `admin`. Trả `{ "value": "..." }`, giá trị đã giải mã của một biến, kể cả secret. Đây là lệnh duy nhất trả giá trị secret, và chính sách truy cập xếp nó vào rủi ro cao (`env.reveal`). Không ghi log hay cache phản hồi.
 
 ```bash
@@ -105,7 +113,7 @@ POST   /api/workspaces/{slug}/templates/{template_slug}/domains
 DELETE /api/workspaces/{slug}/templates/{template_slug}/domains/{domain_id}
 ```
 
-Thêm nhận `{ "domain": "app.example.com" }` và lưu dạng chữ thường (`201`). Subdomain của nền tảng hoạt động ngay khi DNS nền tảng đã được cấu hình. Với domain riêng, trỏ bản ghi A tới `target_ip`. Nền tảng không kiểm tra bước này, nên `dns_status` của domain riêng luôn là `pending`. Domain đang dùng bởi template khác trả `409`, và thêm lại domain đã gỡ của chính template này sẽ khôi phục nó. Domain mặc định không gỡ được (`400`).
+Thêm nhận `{ "domain": "app.example.com" }` và lưu dạng chữ thường (`201`). Subdomain của nền tảng hoạt động ngay khi DNS nền tảng đã được cấu hình. Với domain riêng, trỏ bản ghi A tới `target_ip`. Nền tảng không kiểm tra bước này, nên `dns_status` của domain riêng luôn là `pending`. Domain đang dùng bởi template khác, hoặc template đang bị xóa, trả `409`. Instance Cloud Harness chỉ truy cập qua domain mặc định, nên thêm domain trả `400`. Gỡ domain cũng trả `409` khi template đang bị xóa. Thêm lại domain đã gỡ của chính template này sẽ khôi phục nó. Domain mặc định không gỡ được (`400`).
 
 ## Log {#logs}
 
@@ -116,7 +124,7 @@ GET /api/workspaces/{slug}/templates/{template_slug}/live-logs
 
 Cả hai là WebSocket, cùng quy tắc xác thực và origin với stream log của dự án. Frame từ client bị bỏ qua, server chỉ gửi text frame. Lỗi phát hiện trước khi nâng cấp kết nối (template hoặc deployment không tồn tại, thiếu quyền thành viên) là phản hồi lỗi JSON bình thường.
 
-- **Log build** (`deployments/{id}/logs`): mỗi frame một dòng log build. Với deployment đã kết thúc (`running`, `failed` hoặc `stopped`), log đã lưu được phát lại rồi gửi `[END]` và đóng kết nối. Nếu chưa, dòng mới được đẩy khi build chạy và `[END]` đóng kết nối. `[END]` là frame điều khiển duy nhất, nên hãy đọc trạng thái cuối từ `GET .../deployments/{id}`.
+- **Log build** (`deployments/{id}/logs`): mỗi frame một dòng log build. Với deployment đã kết thúc (`running`, `failed` hoặc `stopped`), log đã lưu được phát lại rồi gửi `[END]` và đóng kết nối. Build bị kết thúc bởi Dừng hoặc Xóa có dòng `=== Build Stopped ===` ngay trước `[END]`. Nếu chưa, dòng mới được đẩy khi build chạy và `[END]` đóng kết nối. `[END]` là frame điều khiển duy nhất, nên hãy đọc trạng thái cuối từ `GET .../deployments/{id}`.
 - **Log runtime** (`live-logs`): theo dõi stdout và stderr của pod, bắt đầu từ 200 dòng cuối. Template phải ở trạng thái `running` (nếu không trả `400`). Mỗi frame là một khối thô tối đa 4096 byte, không căn theo dòng. Stream kết thúc bằng `[END]`. Nếu không mở được stream log, server gửi một frame bắt đầu bằng `[ERROR] ` rồi đóng mà không có `[END]`; lỗi đọc giữa chừng gửi `[ERROR] ` rồi `[END]`. Hãy xử lý cả hai.
 
 ## Đọc template {#get-template}

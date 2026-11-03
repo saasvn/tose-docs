@@ -166,6 +166,14 @@ curl -s -o /dev/null -w '%{http_code}\n' https://<host-instance-cua-ban>/health
 - **Gián đoạn.** Template chạy một replica trên ổ đĩa chỉ một pod mount được, và deploy lại sẽ thay pod. Hãy dự kiến có gián đoạn khi deploy. TOSE không hứa zero-downtime cho template này.
 - **Chủ động nâng cấp.** Chỉ nâng cấp khi bạn chọn (`--upgrade`), từ một bản sao lưu, ngoài giờ cao điểm. Thay đổi của catalog không tự nâng cấp cho bạn.
 
+## Dừng hoặc xóa instance {#stop-or-delete-an-instance}
+
+- **Dừng** (`tose template stop <slug>`) đưa instance về 0 replica và giữ lại ổ đĩa cùng cấu hình. Deploy lại để khởi động.
+- **Xóa** (`tose template delete <slug>`) xóa instance cùng ổ đĩa, biến, domain và lịch sử. Không thể hoàn tác, nên hãy backup theo [Phiên bản và nâng cấp](#versions-and-upgrades) trước.
+- **Build đang chạy sẽ kết thúc.** Dừng và xóa đều kết thúc build đang chạy. Container build và push bị gỡ, deployment được đánh dấu `stopped` và log của nó kết thúc bằng `=== Build Stopped ===`. Vì vậy dừng hoặc xóa là cách an toàn để hủy một build bị kẹt hoặc không cần nữa. Xóa workspace cũng kết thúc các build template.
+
+Xem [`tose template stop / delete`](/vi/commands/template#tose-template-stop-delete) và [API template](/vi/api/templates#lifecycle).
+
 ## Release gate và bảng tương thích {#release-gate-and-compatibility}
 
 TOSE chỉ công bố một phiên bản Dewee là đã xác minh sau khi một lần chạy end-to-end đạt trên cụm staging: tạo, xác thực qua domain công khai, WebSocket, MCP, dữ liệu còn sau khi khởi động lại, deploy lại và rollback, cùng các tình huống tiêu cực ở trên ([tose-app#276](https://github.com/saasvn/tose-app/issues/276)).

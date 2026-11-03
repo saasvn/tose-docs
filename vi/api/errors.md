@@ -179,7 +179,7 @@ Client từng so sánh `code` với `payment_required`, `unavailable`, `invalid_
 
 ### `ROLLBACK_FAILED` {#ROLLBACK_FAILED}
 
-`500`. Chỉ với rollback: khởi chạy image cũ thất bại. Message nêu lý do; lỗi có thể đến từ cụm hoặc từ một bước trước đó như đọc server, secret của project hoặc ổ đĩa. Hãy đọc message, sửa nguyên nhân rồi thử lại hoặc chọn deployment khác.
+`500`. Chỉ với rollback: khởi chạy image cũ thất bại, ở cụm hoặc ở một bước trước đó như đọc server, secret của project hoặc ổ đĩa. Message là thông báo chung (`Rollback failed. See the server log for details.`) và không bao giờ chứa lỗi của cụm, vì lỗi đó có thể chứa chi tiết hạ tầng. Hãy thử lại, chọn deployment khác hoặc gửi `request_id` cho bộ phận hỗ trợ.
 
 ## Lỗi của tool MCP
 

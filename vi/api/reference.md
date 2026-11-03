@@ -106,6 +106,7 @@ Yêu cầu vai trò owner hoặc admin. Trạng thái khác `pending`, `cloning`
 | Trạng thái | Ý nghĩa |
 |--------|---------|
 | `400` | Triển khai không ở trạng thái có thể dừng |
+| `502` | Cụm không đưa ứng dụng về 0 replica nên chưa có gì được ghi là `stopped`. Message là `Failed to stop deployment. See the server log for details.` và không bao giờ chứa lỗi của cụm. Hãy thử lại |
 | `503` | Chưa có gì bị dừng: không lấy được khoá workload của dự án trong 60 giây vì một bước deploy đang kết thúc, hoặc không kết nối được cơ sở dữ liệu. Phản hồi có header `Retry-After` |
 
 Stop phản hồi trong khoảng 100 giây. Khi gặp `503`, chờ số giây trong `Retry-After` rồi gửi lại yêu cầu. Việc thử lại là an toàn vì chưa có gì bị dừng.

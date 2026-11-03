@@ -166,6 +166,14 @@ curl -s -o /dev/null -w '%{http_code}\n' https://<your-instance-host>/health
 - **Downtime.** The template runs one replica on a disk that one pod can mount, and redeploys replace the pod. Expect an interruption during a deploy. TOSE does not promise zero downtime for this template.
 - **Opt-in.** Upgrade only when you choose to (`--upgrade`), from a backup, outside peak use. A catalog change does not upgrade you.
 
+## Stop or delete an instance
+
+- **Stop** (`tose template stop <slug>`) scales the instance to zero and keeps its disk and settings. Deploy again to start it.
+- **Delete** (`tose template delete <slug>`) removes the instance with its disk, variables, domains and history. It cannot be undone, so take the backups from [Versions and upgrades](#versions-and-upgrades) first.
+- **A build in progress ends.** Stop and delete both end a running build. The build and push containers are removed, the deployment is marked `stopped` and its log ends with `=== Build Stopped ===`. Stopping or deleting is therefore a safe way to cancel a build that is stuck or no longer wanted. Deleting a workspace ends its template builds too.
+
+See [`tose template stop / delete`](/commands/template#tose-template-stop-delete) and the [Templates API](/api/templates#lifecycle).
+
 ## Release gate and compatibility
 
 TOSE publishes a Dewee version as verified only after an end-to-end run passes against a staging cluster: create, authenticate over the public domain, WebSocket, MCP, persisted data after restart, redeploy and rollback, plus the negative cases above ([tose-app#276](https://github.com/saasvn/tose-app/issues/276)).

@@ -179,7 +179,7 @@ Clients that compared `code` with `payment_required`, `unavailable`, `invalid_re
 
 ### `ROLLBACK_FAILED` {#ROLLBACK_FAILED}
 
-`500`. Rollback only: starting the earlier image failed. The message carries the reason; it can come from the cluster or from a step before it, such as reading the server, project secrets or disk. Read the message, fix the cause, then try again or pick another deployment.
+`500`. Rollback only: starting the earlier image failed, in the cluster or in a step before it, such as reading the server, project secrets or disk. The message is generic (`Rollback failed. See the server log for details.`) and never carries the cluster error, because that can contain infrastructure detail. Retry, pick another deployment, or quote `request_id` to support.
 
 ## MCP tool errors
 

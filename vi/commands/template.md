@@ -173,6 +173,22 @@ tose template deploy demo --rollback <deployment_id> --yes --wait
 - Thông tin đăng nhập được sinh ra và bootstrap secret dùng một lần không bao giờ được in. Hãy mở liên kết dashboard và hoàn tất đăng nhập bootstrap ở đó.
 - Thiếu số dư ví, thiếu domain TLS hoặc cấp ổ đĩa thất bại đều được báo kèm bước cần làm tiếp theo.
 
+## tose template stop / delete {#tose-template-stop-delete}
+
+```bash
+tose template stop <slug>
+tose template delete <slug>
+```
+
+Cả hai cần vai trò `owner` hoặc `admin` của workspace và hỏi xác nhận. `--yes` bỏ qua câu hỏi.
+
+- **`stop`** đưa instance về 0 replica và đặt trạng thái `stopped`. Ổ đĩa và cấu hình được giữ lại, và `tose template deploy` sẽ khởi động lại nó.
+- **`delete`** xóa instance cùng ổ đĩa, biến môi trường, domain và lịch sử deployment. Không thể hoàn tác.
+
+Cả hai cũng kết thúc build đang chạy. Các deployment của nó được đánh dấu `stopped`, container build và push bị gỡ, và log build kết thúc bằng `=== Build Stopped ===`. Bạn không cần chờ build xong rồi mới dừng hoặc xóa template. Xóa workspace cũng kết thúc các build template theo cách tương tự.
+
+Instance đang bị xóa từ chối các thay đổi khác với `409` cho tới khi việc xóa hoàn tất. Xem chi tiết phản hồi ở [API template](/vi/api/templates#lifecycle).
+
 ## Sử dụng nhà cung cấp AI (BYOK) {#su-dung-nha-cung-cap-ai-byok}
 
 Template gọi nhà cung cấp AI (Gemini, OpenAI và các nhà cung cấp khác) dùng key riêng của bạn. Nhà cung cấp tính phí phần sử dụng đó. Ví TOSE chỉ bị trừ phần hạ tầng, tức là phí TOSE ước tính hiển thị bởi `tose template catalog`.
