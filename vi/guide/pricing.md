@@ -88,10 +88,19 @@ xóa xong.
 
 Tạo instance và đánh thức docker host của nó đều cần số dư ví lớn hơn 0.
 
-## Khi hết số dư {#running-out-of-balance}
+## Khi số dư bằng 0 {#when-the-balance-is-zero}
 
-Khi ví hết tiền, TOSE tạm ngưng compute. Các instance Cloud Harness đang chạy bị dừng và docker host
-của chúng được tạm dừng. Ổ đĩa bền vững và dữ liệu **không** bị xóa, và phí lưu trữ vẫn tiếp tục tích lũy; khoản này được trừ sau lần nạp tiền kế tiếp. Xem [Ổ đĩa bền vững](/vi/guide/persistent-disks#retention).
+TOSE từ chối mọi deploy khi số dư ví của workspace bằng 0 hoặc âm. Bạn thấy gì tuỳ vào nơi bắt đầu deploy:
+
+| Nơi bắt đầu | Điều xảy ra |
+|-------------|-------------|
+| Dashboard và API | Deploy, redeploy và rollback trả HTTP `402` với mã lỗi `INSUFFICIENT_BALANCE`. Không tạo deployment. Xem [Thông báo lỗi thường gặp](/guide/troubleshooting#insufficient-balance). |
+| Push GitHub và lần deploy đầu của dự án | Deployment được tạo nhưng chuyển sang `failed` trước khi build, kèm thông báo `insufficient wallet balance`. |
+| Agent qua MCP | `deploy_project` và `rollback_deployment` trả `INSUFFICIENT_BALANCE` ngay ở bước plan, nên bạn không bị hỏi duyệt một thay đổi không chạy được. Xem [Tasks](/vi/mcp/tasks#vi-het-tien). |
+
+Khi ví hết tiền, TOSE vẫn tạm ngưng compute như trước. Các instance Cloud Harness đang chạy bị dừng và docker host của chúng được tạm dừng. Ổ đĩa bền vững và dữ liệu **không** bị xóa, và phí lưu trữ vẫn tiếp tục tích lũy; khoản này được trừ sau lần nạp tiền kế tiếp. Xem [Ổ đĩa bền vững](/vi/guide/persistent-disks#retention). Phần compute chưa trả được sẽ được xoá nợ, nên bạn không phải trả sau khi nạp tiền.
+
+**Cách khắc phục:** nạp tiền vào ví ở trang billing trên dashboard, rồi deploy lại. Deploy chạy bình thường khi số dư lớn hơn 0.
 
 ## Liên quan {#related}
 

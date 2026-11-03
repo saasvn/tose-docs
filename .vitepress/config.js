@@ -36,6 +36,7 @@ export default defineConfig({
               { text: 'tose init / use', link: '/commands/init' },
               { text: 'tose up', link: '/commands/up' },
               { text: 'tose deploy / redeploy', link: '/commands/deploy' },
+              { text: 'tose deployment', link: '/commands/deployment' },
               { text: 'tose status', link: '/commands/status' },
               { text: 'tose logs', link: '/commands/logs' },
               { text: 'tose down / restart', link: '/commands/down' },
@@ -43,6 +44,7 @@ export default defineConfig({
               { text: 'tose env', link: '/commands/env' },
               { text: 'tose domain', link: '/commands/domain' },
               { text: 'tose db', link: '/commands/db' },
+              { text: 'tose skills', link: '/commands/skills' },
               { text: 'tose desktop', link: '/commands/desktop' },
               { text: 'tose template', link: '/commands/template' },
               { text: 'tose disk / volumes / pricing', link: '/commands/disk' },
@@ -57,13 +59,17 @@ export default defineConfig({
               { text: 'Git Integration', link: '/guide/git' },
               { text: 'Dockerfile Examples', link: '/guide/dockerfile' },
               { text: 'Persistent Disks', link: '/guide/persistent-disks' },
-              { text: 'Pricing', link: '/guide/pricing' }
+              { text: 'Dewee Template Runbook', link: '/guide/dewee-template' },
+              { text: 'Pricing', link: '/guide/pricing' },
+              { text: 'Self-hosting', link: '/guide/self-hosting' },
+              { text: 'Referral program', link: '/guide/referral' },
+              { text: 'Blog and editorial MCP (planned)', link: '/guide/blog-and-editorial-mcp' }
             ]
           },
           {
             text: 'Cloud Desktops',
             items: [
-              { text: 'Cloud Desktops Guide', link: '/guide/cloud-desktops' },
+              { text: 'Cloud Desktops Guide (Coming soon)', link: '/guide/cloud-desktops' },
               { text: 'tose desktop', link: '/commands/desktop' },
               { text: 'Desktops API', link: '/api/desktops' }
             ]
@@ -91,7 +97,10 @@ export default defineConfig({
             items: [
               { text: 'REST API', link: '/api/reference' },
               { text: 'Authentication', link: '/api/authentication' },
-              { text: 'Endpoints', link: '/api/endpoints' },
+              { text: 'API Keys & Scopes', link: '/api/api-keys' },
+              { text: 'Audit Log', link: '/api/audit' },
+              { text: 'MCP Connector', link: '/mcp' },
+              { text: 'Errors', link: '/api/errors' },
               { text: 'Desktops', link: '/api/desktops' },
               { text: 'Runtimes', link: '/api/runtimes' },
               { text: 'Disks, Volumes & Pricing', link: '/api/disks' }
@@ -128,6 +137,7 @@ export default defineConfig({
               { text: 'tose init / use', link: '/vi/commands/init' },
               { text: 'tose up', link: '/vi/commands/up' },
               { text: 'tose deploy / redeploy', link: '/vi/commands/deploy' },
+              { text: 'tose deployment', link: '/vi/commands/deployment' },
               { text: 'tose status', link: '/vi/commands/status' },
               { text: 'tose logs', link: '/vi/commands/logs' },
               { text: 'tose down / restart', link: '/vi/commands/down' },
@@ -135,6 +145,7 @@ export default defineConfig({
               { text: 'tose env', link: '/vi/commands/env' },
               { text: 'tose domain', link: '/vi/commands/domain' },
               { text: 'tose db', link: '/vi/commands/db' },
+              { text: 'tose skills', link: '/vi/commands/skills' },
               { text: 'tose desktop', link: '/commands/desktop' },
               { text: 'tose template', link: '/vi/commands/template' },
               { text: 'tose disk / volumes / pricing', link: '/vi/commands/disk' },
@@ -149,13 +160,17 @@ export default defineConfig({
               { text: 'Tích hợp Git', link: '/vi/guide/git' },
               { text: 'Ví dụ Dockerfile', link: '/vi/guide/dockerfile' },
               { text: 'Ổ đĩa bền vững', link: '/vi/guide/persistent-disks' },
-              { text: 'Bảng giá', link: '/vi/guide/pricing' }
+              { text: 'Runbook template Dewee', link: '/vi/guide/dewee-template' },
+              { text: 'Bảng giá', link: '/vi/guide/pricing' },
+              { text: 'Tự host', link: '/vi/guide/self-hosting' },
+              { text: 'Chương trình giới thiệu', link: '/vi/guide/referral' },
+              { text: 'Blog và MCP biên tập (dự kiến)', link: '/vi/guide/blog-and-editorial-mcp' }
             ]
           },
           {
             text: 'Cloud Desktop',
             items: [
-              { text: 'Hướng dẫn Cloud Desktop', link: '/vi/guide/cloud-desktops' },
+              { text: 'Hướng dẫn Cloud Desktop (Coming soon)', link: '/vi/guide/cloud-desktops' },
               { text: 'API Desktops (tiếng Anh)', link: '/api/desktops' }
             ]
           },
@@ -182,7 +197,10 @@ export default defineConfig({
             items: [
               { text: 'REST API', link: '/vi/api/reference' },
               { text: 'Xác thực', link: '/vi/api/authentication' },
-              { text: 'Endpoints', link: '/vi/api/endpoints' },
+              { text: 'API key & Scope', link: '/vi/api/api-keys' },
+              { text: 'Audit log', link: '/vi/api/audit' },
+              { text: 'MCP Connector', link: '/vi/mcp' },
+              { text: 'Mã lỗi', link: '/vi/api/errors' },
               { text: 'Runtimes', link: '/vi/api/runtimes' },
               { text: 'Ổ đĩa, Volume & Bảng giá', link: '/vi/api/disks' }
             ]

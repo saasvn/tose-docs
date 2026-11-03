@@ -86,10 +86,19 @@ An instance being deleted counts until its docker host is gone.
 
 Creating an instance and waking its docker host need a positive wallet balance.
 
-## Running out of balance
+## When the balance is zero {#when-the-balance-is-zero}
 
-When your wallet runs out, TOSE suspends compute. Running Cloud Harness instances are stopped and
-their docker hosts suspended. Persistent disks and their data are **not** deleted, and their storage cost keeps accruing; it is charged after your next top-up. See [Persistent Disks](/guide/persistent-disks#retention).
+TOSE refuses every deploy while your workspace wallet balance is zero or negative. What you see depends on where the deploy started:
+
+| Where | What happens |
+|-------|--------------|
+| Dashboard and API | Deploy, redeploy and rollback return HTTP `402` with the error code `INSUFFICIENT_BALANCE`. No deployment is created. See [Common error messages](/guide/troubleshooting#insufficient-balance). |
+| GitHub push and the first deploy of a project | The deployment is created, then moves to `failed` before the build starts, with the message `insufficient wallet balance`. |
+| An agent over MCP | `deploy_project` and `rollback_deployment` return `INSUFFICIENT_BALANCE` at the plan step, so you are never asked to approve a change that cannot run. See [Tasks](/mcp/tasks#empty-wallet). |
+
+When the wallet runs out, TOSE also suspends compute, as before. Running Cloud Harness instances are stopped and their docker hosts suspended. Persistent disks and their data are **not** deleted, and their storage cost keeps accruing; it is charged after your next top-up. See [Persistent Disks](/guide/persistent-disks#retention). Any compute that could not be paid for is written off, so you do not owe it after a top-up.
+
+**To recover:** top up the wallet from the dashboard billing page, then deploy again. Deploys work normally once the balance is above zero.
 
 ## Related
 
