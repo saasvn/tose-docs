@@ -203,7 +203,7 @@ Template đang bị suspend từ chối `deploy` và `resume` khi ví hết ti�
 | Phản hồi | Kết quả ở CLI |
 |----------|---------------|
 | `402 INSUFFICIENT_BALANCE` | Thoát với mã `9`. Liên kết billing là một next action, và template vẫn ở trạng thái suspended. Hãy nạp tiền rồi chạy lại lệnh |
-| `409` do request chạy đua với việc suspend | `retryable`. Chưa có gì được khởi động. Lệnh thử lại là một next action và giữ nguyên các flag của bạn |
+| `409` do request chạy đua với việc suspend | `retryable`. Chưa có gì được khởi động. Lệnh thử lại là một next action và giữ nguyên các flag của bạn, trừ thông tin xác thực (`--api-key`) và `--yes` |
 | `409` vì đã có deployment đang chạy | Không retry được. Next action là [`tose template info`](#tose-template-info) |
 | `409` khi resume một template không bị suspend | Không retry được. Next action là [`tose template deploy`](#tose-template-deploy) |
 

@@ -203,7 +203,7 @@ A suspended template refuses `deploy` and `resume` while the wallet is empty. Th
 | Response | CLI result |
 |----------|------------|
 | `402 INSUFFICIENT_BALANCE` | Exit `9`. The billing link is a next action, and the template stays suspended. Top up, then run the command again |
-| `409` that raced a suspension | `retryable`. Nothing was started. The retry command is a next action and keeps your flags |
+| `409` that raced a suspension | `retryable`. Nothing was started. The retry command is a next action and keeps your flags, except credentials (`--api-key`) and `--yes` |
 | `409` for a deployment already in progress | Not retryable. The next action is [`tose template info`](#tose-template-info) |
 | `409` for a resume of a template that is not suspended | Not retryable. The next action is [`tose template deploy`](#tose-template-deploy) |
 

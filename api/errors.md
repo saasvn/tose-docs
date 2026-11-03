@@ -153,7 +153,7 @@ Clients that compared `code` with `payment_required`, `unavailable`, `invalid_re
 
 `400`. The project has no Git repository connected, so there is nothing to build. Connect a repository, then deploy again.
 
-The [CLI](/commands/deploy) reads `NO_GIT_CONNECTION` and `INSUFFICIENT_BALANCE` from the stable `code` field of the response body, whether it is flat or nested under `error`. It falls back to matching the message only for older servers that send no code, so do not rely on the message text.
+The [CLI](/commands/deploy) reads `NO_GIT_CONNECTION` and `INSUFFICIENT_BALANCE` from the stable `code` field of the response body, whether it is flat or nested under `error`. It matches the message only when the code is missing or generic (for example `payment_required` on a `402`), so do not rely on the message text.
 
 ### `NO_SERVER` {#NO_SERVER}
 
