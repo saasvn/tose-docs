@@ -86,6 +86,20 @@ An instance being deleted counts until its docker host is gone.
 
 Creating an instance and waking its docker host need a positive wallet balance.
 
+## Cloud desktops {#cloud-desktops}
+
+A [cloud desktop](/guide/cloud-desktops) is billed **per second while it runs**, at the compute rates above for its CPU and RAM. A sleeping desktop has no compute charge; its disk is billed as [storage](#storage). Amounts are metered in nano-USD (1 USD = 1,000,000,000), so a short run is not rounded up to a whole hour or cent: the sub-cent remainder carries forward as described under [Sub-cent amounts](#sub-cent-amounts). Compute metered while the balance is zero is forgiven, not charged later.
+
+Waking a desktop needs a positive wallet balance. See [Cloud desktops](/guide/cloud-desktops#retention).
+
+## Cost reports {#cost-reports}
+
+```http
+GET /api/workspaces/{slug}/wallet/costs?days=30
+```
+
+Splits the metered cost of the last `days` days (default 30) by project, by resource and by UTC day, from the usage ledger. Amounts are in nano-USD (`compute_nano_usd`, `storage_nano_usd`, `total_nano_usd`). Each entry in `resources` has a `type`: `project`, `template`, `database`, `desktop`, `runtime`, `volume` or `other`. [Cloud Harness runtimes](/guide/cloud-harness) are listed as `runtime` with the runtime's name and their own compute cost, and a project's disks count towards that project. The report is metered usage: compute metered in an hour that began with a zero balance is listed but was never charged.
+
 ## When the balance is zero {#when-the-balance-is-zero}
 
 TOSE refuses every deploy while your workspace wallet balance is zero or negative. What you see depends on where the deploy started:

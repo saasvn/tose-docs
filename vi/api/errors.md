@@ -62,7 +62,7 @@ credential hợp lệ.
 
 ### `payment_required` {#payment_required}
 
-`402`. Ví của workspace không đủ số dư cho hành động này. Hãy nạp tiền rồi thử lại.
+`402`. Ví của workspace không đủ số dư cho hành động này. Hãy nạp tiền rồi thử lại. Tạo dự án khi ví trống trả `402` với mã `INSUFFICIENT_BALANCE`; trước đây là `403`, nên client từng coi `403` ở đây là lỗi số dư giờ phải đọc `402`.
 
 ### `forbidden` {#forbidden}
 

@@ -114,10 +114,10 @@ GET /api/workspaces/{slug}/templates/{template_slug}/deployments/{id}/logs
 GET /api/workspaces/{slug}/templates/{template_slug}/live-logs
 ```
 
-Both are WebSockets with the same authentication and origin rules as project log streaming. Frames from the client are ignored, and the server sends text frames only. Errors found before the upgrade (unknown template or deployment, missing membership) are normal JSON error responses.
+Both are WebSockets with the same authentication and origin rules as project log streaming. Frames from the client are ignored, and the server sends text frames only. Errors found before the upgrade (unknown template or deployment, missing membership) are normal JSON error responses, and a failed handshake also returns a JSON `error` body.
 
-- **Build logs** (`deployments/{id}/logs`): one build log line per frame. For a deployment that already finished (`running`, `failed` or `stopped`), the stored log is replayed and then `[END]` is sent and the connection closes. Otherwise new lines are pushed as the build runs, and `[END]` closes it. `[END]` is the only control frame, so read the final status from `GET .../deployments/{id}`.
-- **Runtime logs** (`live-logs`): follows the stdout and stderr of the template's pods, starting with the last 200 lines. The template must be `running` (`400` otherwise). Each frame is a raw chunk of up to 4096 bytes, not aligned to lines. The stream ends with `[END]`. If the log stream cannot be opened, the server sends one frame that starts with `[ERROR] ` and closes without `[END]`; a read error mid-stream sends `[ERROR] ` and then `[END]`. Handle both.
+- **Build logs** (`deployments/{id}/logs`): one build log line per frame. For a deployment that already finished (`running`, `failed` or `stopped`), the stored log is replayed and then `[END]` is sent and the connection closes. Otherwise new lines are pushed as the build runs, and `[END]` closes it. When the deployment failed, `[ERROR] Deployment failed` is sent before `[END]`; read the reason from `GET .../deployments/{id}`.
+- **Runtime logs** (`live-logs`): follows the stdout and stderr of the template's pods, starting with the last 200 lines. The template must be `running` (`400` otherwise). Each frame is a raw chunk of up to 4096 bytes, not aligned to lines. The stream ends with `[END]`. If the log stream cannot be opened, or ends with a read error, the server sends one frame that starts with `[ERROR] ` and then `[END]`.
 
 ## Get Template
 

@@ -48,6 +48,17 @@ string with `400 credentials_in_url`, and its access log records the path withou
 string. If your reverse proxy or load balancer logs full URLs, those logs are outside the API's
 control, so disable query logging there too. See [Authentication](/api/authentication).
 
+## Optional operator settings {#optional-operator-settings}
+
+Both settings are off unless you set them.
+
+| Variable | Default | Effect |
+|----------|---------|--------|
+| `POST_DEPLOY_HEALTH_GATE_ENABLED` | `false` | Set to `true` to check the deployed image's Kubernetes readiness for 10 seconds after each successful rollout. The result is stored on the deployment and emitted as an operations event. A failed check never rolls back or stops the deployment. See [Post-deploy health gate](/api/projects#health-gate) |
+| `OPS_RETENTION_DAYS` | unset (keep forever) | A positive whole number of days of completed operations history to keep. `0` or unset deletes nothing; an invalid value stops the API at startup |
+
+Retention deletes old sent `ops_outbox` rows, standalone `info` events and resolved incidents with their timeline. It keeps open incidents, standalone `warning` and `critical` events, and any incident with a recent entry, event or outstanding notification. It first runs ten minutes after startup and then hourly, in batches of at most 500 rows. Deleted history cannot be restored by raising the value later, so choose the window and take a database backup first. Check `[ops-retention]` in the backend log to see what ran. Deleting a workspace removes its operations history in the same transaction.
+
 ## Publish the API contract
 
 The API serves its OpenAPI spec at `/api/openapi.yaml`, so a self-hosted instance documents
