@@ -72,6 +72,8 @@ tose db info <name-or-id>
 
 `<name-or-id>` là tên hoặc ID database. Kết quả gồm loại, trạng thái, port, user, tên database và `connection_url`.
 
+API chỉ trả thông tin kết nối (URL và mật khẩu) cho owner và admin của workspace. Với thành viên khác, các trường này không có: `tose db info` in ghi chú yêu cầu hỏi owner hoặc admin, và với `--json` đối tượng có `credentials_visible: false` cùng `credentials_note`.
+
 ## Quy trình: nối database vào dự án
 
 ```bash

@@ -65,7 +65,7 @@ Run 'tose up' to connect your repository first.
 
 ### Lỗi: số dư ví không đủ
 
-Khi số dư ví của workspace bằng 0 hoặc âm, API từ chối `deploy`, `redeploy` và `rollback` với mã `402` và code `INSUFFICIENT_BALANCE`. Không có deployment nào được tạo. CLI thoát với mã `9`.
+Khi số dư ví của workspace bằng 0 hoặc âm, API từ chối `deploy`, `redeploy` và `rollback` với mã `402` và code `INSUFFICIENT_BALANCE`. Không có deployment nào được tạo. Tạo project mới (`tose up`, `tose init`) khi ví trống cũng bị từ chối theo cách này, với `402` thay cho `403` trước đây, và không project nào được tạo. CLI thoát với mã `9`.
 
 ```bash
 $ tose deploy
