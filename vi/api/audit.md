@@ -26,7 +26,7 @@ Mỗi bản ghi gồm:
 - Query string.
 - Invitation token. Token bị loại khỏi path parameter.
 
-Các lệnh đọc (`GET`) không nằm trong log này.
+Các lệnh đọc (`GET`) không nằm trong log này, trừ một ngoại lệ: [xuất dự án](/vi/api/projects#export) được ghi lại dù được phép hay bị từ chối, vì kết quả cho biết dự án được cấu hình ra sao.
 
 ## Lệnh gọi qua MCP connector
 

@@ -2,7 +2,7 @@
 
 Các endpoint để đổi, restart và xóa dự án, cùng quản lý kết nối Git. Tạo và liệt kê dự án, deploy và đọc log nằm trong [spec OpenAPI](https://api.tose.sh/api/openapi.yaml) phục vụ tại `GET /api/openapi.yaml`; trang này mô tả các luồng quanh chúng.
 
-Mọi đường dẫn nằm dưới `/api/workspaces/{slug}/projects/{project_slug}` và dùng cùng cách xác thực với phần còn lại của API; xem [Xác thực](/vi/api/authentication). Mọi endpoint ở trang này cần vai trò `admin` hoặc `owner` của workspace.
+Mọi đường dẫn nằm dưới `/api/workspaces/{slug}/projects/{project_slug}` và dùng cùng cách xác thực với phần còn lại của API; xem [Xác thực](/vi/api/authentication). Mọi endpoint ở trang này cần vai trò `admin` hoặc `owner` của workspace, trừ [Xuất dự án](#export): mọi thành viên workspace đều gọi được.
 
 ## Cập nhật dự án {#update}
 
@@ -133,8 +133,70 @@ DELETE /api/workspaces/{slug}/projects/{project_slug}/git
 
 Gỡ kết nối và xóa webhook GitHub của nó, trừ khi dự án khác vẫn dùng webhook đó. Các deployment hiện có tiếp tục chạy. **Phản hồi:** `200` kèm `{ "message": "..." }`.
 
+## Xuất dự án {#export}
+
+```http
+GET /api/workspaces/{slug}/projects/{project_slug}/export
+```
+
+Trả về danh mục chỉ đọc của dự án, schema `tose.dev/project-export/v1`, để bạn lập kế hoạch chuyển sang nền tảng khác. Đây không phải bản backup, không thay đổi gì, và không chứng minh việc chuyển đã thành công.
+
+**Quyền truy cập.** Thành viên workspace đã đăng nhập (mọi vai trò) gọi được. API key của workspace cần scope riêng `projects:export`; `projects:read` hoặc `projects:write` không đủ. Cả yêu cầu được phép lẫn bị từ chối đều được ghi vào [audit log](/vi/api/audit). Dự án không tồn tại và dự án thuộc workspace khác đều trả `404`, nên phản hồi không tiết lộ slug nào có thật.
+
+**Nội dung**
+
+| Trường | Nội dung |
+|--------|----------|
+| `schema_version`, `generated_at` | `tose.dev/project-export/v1` và thời điểm xuất |
+| `source` | `workspace_id`, `project_id`, `name`, `slug`. Đây là định danh nguồn; không dùng lại các ID này ở đích |
+| `artifact` | `deployment_id` và `commit_sha` của deployment đang chạy mới nhất, và `image_digest` **chỉ khi** image được ghim bằng OCI digest (`name@sha256:...`). Tag như `:latest` bị bỏ qua |
+| `resources` | `port`, `replicas`, `cpu` và `ram` đang áp dụng |
+| `env_keys` | Chỉ **tên** biến môi trường, đã sắp xếp |
+| `domains` | Domain tùy chỉnh với `name`, `dns_status` và `ssl_status`. Domain mặc định của TOSE không được liệt kê |
+| `volumes` | Metadata volume bền vững của dự án: `id`, `size_gib`, `mount_path`, `status` |
+| `blockers` | Những điều chưa được xác minh, xem bên dưới |
+| `rollback` | Thông báo về những gì rollback của TOSE khôi phục và không khôi phục |
+
+**Không bao giờ có:** giá trị biến môi trường, API key, thông tin đăng nhập registry, kubeconfig, build log hay mật khẩu database.
+
+```json
+{
+  "schema_version": "tose.dev/project-export/v1",
+  "generated_at": "2026-11-03T08:00:00Z",
+  "source": { "workspace_id": "ws_...", "project_id": "prj_...", "name": "Shop", "slug": "shop" },
+  "artifact": { "deployment_id": "dep_...", "image_digest": "registry.example/shop@sha256:<64 ký tự hex>", "commit_sha": "<commit>" },
+  "resources": { "port": 3000, "replicas": 1, "cpu": "500m", "ram": "512Mi" },
+  "env_keys": ["DATABASE_URL", "SESSION_SECRET"],
+  "domains": [{ "name": "shop.example.com", "dns_status": "verified", "ssl_status": "active" }],
+  "volumes": [{ "id": "vol_...", "size_gib": 10, "mount_path": "/data", "status": "bound" }],
+  "blockers": ["volume_backup_and_restore_unverified", "database_dependencies_unresolved", "target_capabilities_unverified", "dns_cutover_requires_approval"],
+  "rollback": { "artifact": "...", "config": "...", "schema": "...", "data": "..." }
+}
+```
+
+Các giá trị trên chỉ là ví dụ. `artifact` để trống khi dự án chưa có deployment đang chạy.
+
+### Blockers
+
+`blockers` liệt kê các điều kiện export không thể chứng minh. Hãy coi mỗi mục là việc phải làm trước khi chuyển DNS.
+
+| Blocker | Ý nghĩa |
+|---------|---------|
+| `immutable_oci_digest_unavailable` | Không có image đang chạy được ghim bằng digest nên không tái tạo chính xác được. Hãy build hoặc xác định digest trước |
+| `volume_backup_and_restore_unverified` | Dự án có volume. TOSE không backup volume qua endpoint này; hãy tạo snapshot hoặc archive nhất quán và thử khôi phục |
+| `database_dependencies_unresolved` | API không biết dự án dùng database nào trong workspace. Hãy xác định và backup (với PostgreSQL: `pg_dump --format=custom`) |
+| `target_capabilities_unverified` | Kiểm tra đích hỗ trợ CPU, bộ nhớ, port, volume và cách kiểm tra sức khỏe |
+| `dns_cutover_requires_approval` | Đổi DNS cần người có thẩm quyền phê duyệt rõ ràng, sau khi đích đã hoạt động tốt |
+
+Ba mục cuối luôn xuất hiện.
+
+### Rollback không phải khôi phục
+
+Đối tượng `rollback` nêu rõ phạm vi rollback của TOSE: chạy lại image cũ cho dự án **hiện tại**, dùng lại biến môi trường và cấu hình hiện tại, và không hoàn tác schema database, dữ liệu database hay dữ liệu volume. Hãy lập kế hoạch riêng cho rollback image, cấu hình, schema và dữ liệu, dựa trên backup đã xác minh.
+
 ## Liên quan
 
 - [Tích hợp Git](/vi/guide/git)
 - [API GitHub](/vi/api/github)
 - [Ổ đĩa bền vững](/vi/guide/persistent-disks)
+- [API key và scope](/vi/api/api-keys)
