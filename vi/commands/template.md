@@ -132,14 +132,14 @@ tose template deploy <slug> [--mode <mode>] [--upgrade | --rollback <deployment_
 |----------|-------|
 | `--mode <mode>` | `image` hoặc `build`. Mặc định: `image` |
 | `--upgrade` | Chuyển sang phiên bản catalog. Gửi `image_source=catalog` và lưu image đó |
-| `--rollback <deployment_id>` | Chạy lại image của một lần deploy trước. Hỏi xác nhận; không có terminal thì cần `--yes` |
+| `--rollback <deployment_id>` | Chạy lại image của một lần deploy trước và lưu image đó, nên các lần deploy sau tiếp tục chạy nó cho đến khi bạn dùng `--upgrade` hoặc đặt image mới. Hỏi xác nhận; không có terminal, hoặc khi dùng `--json` hay `--non-interactive`, thì cần `--yes` (nếu không sẽ thoát với mã `4`) |
 | `--expected-image <image>` | Thất bại với conflict, không deploy gì, nếu image đã cấu hình không còn là image này. Sao chép từ dòng `Configured:` của `tose template info` |
 | `--wait` | Thăm dò cho đến khi rollout kết thúc |
 | `--timeout <duration>` | Thời gian tối đa của `--wait`, ví dụ `90s` hoặc `15m`. Mặc định: `15m` |
 
 - `--upgrade`, `--rollback` và `--expected-image` cần `--mode image`. Dùng cùng `--mode build` thì lệnh thoát với mã `2` và không thay đổi gì.
 - Không thể kết hợp `--upgrade` với `--rollback`.
-- `--rollback` nhận ID của một lần deploy của template này đã chạy, ví dụ lấy từ `tose template logs <slug> --build`. ID rỗng bị từ chối.
+- `--rollback` nhận ID của một lần deploy của template này đã chạy, ví dụ dòng `Deployment ID:` do một lần `tose template deploy` trước in ra, hoặc danh sách trong [API template](/vi/api/templates#deployments). ID rỗng bị từ chối.
 - Một số template bỏ qua các tùy chọn này. Nếu API không áp dụng một tùy chọn, CLI báo lỗi nêu tên tùy chọn và lần deploy đã được khởi chạy, thay vì nói tùy chọn đã hoạt động.
 - Cảnh báo từ API được in ra. Với `--json` chúng nằm ở `data.warnings`.
 

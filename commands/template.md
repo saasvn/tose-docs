@@ -132,14 +132,14 @@ tose template deploy <slug> [--mode <mode>] [--upgrade | --rollback <deployment_
 |--------|-------------|
 | `--mode <mode>` | `image` or `build`. Default: `image` |
 | `--upgrade` | Move to the catalog version. Sends `image_source=catalog` and stores that image |
-| `--rollback <deployment_id>` | Run the image of an earlier deployment again. Asks for confirmation; without a terminal it needs `--yes` |
+| `--rollback <deployment_id>` | Run the image of an earlier deployment again and store it, so later deploys keep running it until you `--upgrade` or set a new image. Asks for confirmation; without a terminal, or with `--json` or `--non-interactive`, it needs `--yes` (otherwise exit `4`) |
 | `--expected-image <image>` | Fail with a conflict, and deploy nothing, if the configured image is no longer this one. Copy it from the `Configured:` line of `tose template info` |
 | `--wait` | Poll until the rollout finishes |
 | `--timeout <duration>` | How long `--wait` may take, such as `90s` or `15m`. Default: `15m` |
 
 - `--upgrade`, `--rollback` and `--expected-image` need `--mode image`. Combined with `--mode build` the command exits `2` and changes nothing.
 - `--upgrade` and `--rollback` cannot be combined.
-- `--rollback` takes the ID of a deployment of this template that ran, for example from `tose template logs <slug> --build`. An empty ID is refused.
+- `--rollback` takes the ID of a deployment of this template that ran, for example the `Deployment ID:` line printed by an earlier `tose template deploy`, or the list in the [Templates API](/api/templates#deployments). An empty ID is refused.
 - Some templates ignore these options. If the API did not apply one, the CLI reports an error naming the option and the deployment it started anyway, instead of saying the option worked.
 - Warnings from the API are printed. With `--json` they are in `data.warnings`.
 
