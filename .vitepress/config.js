@@ -60,7 +60,9 @@ export default defineConfig({
               { text: 'Dockerfile Examples', link: '/guide/dockerfile' },
               { text: 'Persistent Disks', link: '/guide/persistent-disks' },
               { text: 'Pricing', link: '/guide/pricing' },
-              { text: 'Self-hosting', link: '/guide/self-hosting' }
+              { text: 'Self-hosting', link: '/guide/self-hosting' },
+              { text: 'Referral program', link: '/guide/referral' },
+              { text: 'Blog and editorial MCP (planned)', link: '/guide/blog-and-editorial-mcp' }
             ]
           },
           {
@@ -151,7 +153,9 @@ export default defineConfig({
               { text: 'Ví dụ Dockerfile', link: '/vi/guide/dockerfile' },
               { text: 'Ổ đĩa bền vững', link: '/vi/guide/persistent-disks' },
               { text: 'Bảng giá', link: '/vi/guide/pricing' },
-              { text: 'Tự host', link: '/vi/guide/self-hosting' }
+              { text: 'Tự host', link: '/vi/guide/self-hosting' },
+              { text: 'Chương trình giới thiệu', link: '/vi/guide/referral' },
+              { text: 'Blog và MCP biên tập (dự kiến)', link: '/vi/guide/blog-and-editorial-mcp' }
             ]
           },
           {
