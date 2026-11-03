@@ -99,6 +99,25 @@ Changing variables (`set`, `rm`) also needs `admin` or `owner`.
 
 In the dashboard, the edit form shows a secret's value blank. Leave the field blank and save to keep the stored value. Enter a value to replace it. Through the API and the CLI there is no "keep" shortcut: a `POST .../envs` with an empty `value` stores the empty value, so only send the keys you want to change.
 
+## tose template info
+
+Show a template instance, its links and its image versions.
+
+```bash
+tose template info <slug>
+```
+
+The `Image:` block shows:
+
+| Line | Meaning |
+|------|---------|
+| `Deployed` | The image of the last deployment, or `none yet` |
+| `Configured` | The image stored on the template. This is what `--mode image` runs, and the value `--expected-image` is compared with |
+| `Source` | Where the stored image came from, when the API reports it |
+| `Available` | The catalog version, or `no catalog version` |
+
+When the catalog version differs from the configured image, the CLI says an update is available and prints the `--upgrade` command. It also prints the rollback caveat the API sends. With `--json`, the same data is under `data.image`.
+
 ## tose template deploy
 
 Deploy a template instance.
@@ -106,7 +125,7 @@ Deploy a template instance.
 ### Synopsis
 
 ```bash
-tose template deploy <slug> [--mode <mode>] [--wait] [--timeout <duration>]
+tose template deploy <slug> [--mode <mode>] [--upgrade | --rollback <deployment_id>] [--expected-image <image>] [--wait] [--timeout <duration>]
 ```
 
 ### Options
@@ -114,14 +133,31 @@ tose template deploy <slug> [--mode <mode>] [--wait] [--timeout <duration>]
 | Option | Description |
 |--------|-------------|
 | `--mode <mode>` | `image` or `build`. Default: `image` |
+| `--upgrade` | Move to the catalog version. Sends `image_source=catalog` and stores that image |
+| `--rollback <deployment_id>` | Run the image of an earlier deployment again and store it, so later deploys keep running it until you `--upgrade` or set a new image. Asks for confirmation; without a terminal, or with `--json` or `--non-interactive`, it needs `--yes` (otherwise exit `4`) |
+| `--expected-image <image>` | Fail with a conflict, and deploy nothing, if the configured image is no longer this one. Copy it from the `Configured:` line of `tose template info` |
 | `--wait` | Poll until the rollout finishes |
 | `--timeout <duration>` | How long `--wait` may take, such as `90s` or `15m`. Default: `15m` |
 
+- `--upgrade`, `--rollback` and `--expected-image` need `--mode image`. Combined with `--mode build` the command exits `2` and changes nothing.
+- `--upgrade` and `--rollback` cannot be combined.
+- `--rollback` takes the ID of a deployment of this template that ran, for example the `Deployment ID:` line printed by an earlier `tose template deploy`, or the list in the [Templates API](/api/templates#deployments). An empty ID is refused.
+- Some templates ignore these options. If the API did not apply one, the CLI reports an error naming the option and the deployment it started anyway, instead of saying the option worked.
+- Warnings from the API are printed. With `--json` they are in `data.warnings`.
+
+```bash
+tose template info demo                                        # note the Configured: image
+tose template deploy demo --upgrade --expected-image registry.example.com/app:1.4.0 --wait
+tose template deploy demo --rollback <deployment_id> --yes --wait
+```
+
 ### Which image runs
 
-`--mode image` runs the image stored on the template. It does not replace a custom image with the catalog default, and every template that existed before this behavior counts as custom, so nothing is upgraded implicitly. A template created from the catalog starts with the catalog image stored. When the catalog has a different version, the API reports it in a `warnings` array. Upgrading and rolling back are explicit options of the [Templates API](/api/templates#deploy-template) (`image_source=catalog`, `rollback_to`, `expected_image`); the CLI does not expose them yet.
+`--mode image` runs the image stored on the template. A plain deploy does not replace it with the catalog default, and every template that existed before this behavior counts as custom, so nothing is upgraded implicitly. A template created from the catalog starts with the catalog image stored. When the catalog has a different version, the API reports it in `warnings` and `tose template info` shows it as an available update. Use `--upgrade` to move to it. The same options exist in the [Templates API](/api/templates#deploy-template) as `image_source=catalog`, `rollback_to` and `expected_image`.
 
-Rolling back an image does not roll back the database schema or data.
+::: warning Rollback does not undo your data
+`--rollback` runs an older image again. It does **not** roll back the database schema or data. If the newer version already migrated them, the older image may fail or misread them. Restore a backup together with the older image.
+:::
 
 ### Exit codes with `--wait`
 

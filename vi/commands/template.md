@@ -99,6 +99,25 @@ Thay đổi biến (`set`, `rm`) cũng cần `admin` hoặc `owner`.
 
 Trên dashboard, form sửa hiển thị giá trị của secret để trống. Để trống ô và lưu thì giữ nguyên giá trị đã lưu. Nhập giá trị mới thì thay thế. Qua API và CLI không có cách tắt "giữ nguyên": `POST .../envs` với `value` rỗng sẽ lưu giá trị rỗng, vì vậy chỉ gửi những key bạn muốn đổi.
 
+## tose template info
+
+Hiển thị một instance template, các liên kết và phiên bản image của nó.
+
+```bash
+tose template info <slug>
+```
+
+Khối `Image:` hiển thị:
+
+| Dòng | Ý nghĩa |
+|------|---------|
+| `Deployed` | Image của lần deploy gần nhất, hoặc `none yet` |
+| `Configured` | Image đã lưu trên template. Đây là image `--mode image` chạy, và là giá trị mà `--expected-image` so sánh |
+| `Source` | Nguồn của image đã lưu, khi API có báo |
+| `Available` | Phiên bản của catalog, hoặc `no catalog version` |
+
+Khi phiên bản catalog khác image đã cấu hình, CLI báo có bản cập nhật và in lệnh `--upgrade`. CLI cũng in lưu ý về rollback mà API gửi. Với `--json`, cùng dữ liệu nằm ở `data.image`.
+
 ## tose template deploy
 
 Deploy một instance template.
@@ -106,7 +125,7 @@ Deploy một instance template.
 ### Tóm tắt {#tose-template-deploy-synopsis}
 
 ```bash
-tose template deploy <slug> [--mode <mode>] [--wait] [--timeout <duration>]
+tose template deploy <slug> [--mode <mode>] [--upgrade | --rollback <deployment_id>] [--expected-image <image>] [--wait] [--timeout <duration>]
 ```
 
 ### Tùy chọn
@@ -114,14 +133,31 @@ tose template deploy <slug> [--mode <mode>] [--wait] [--timeout <duration>]
 | Tùy chọn | Mô tả |
 |----------|-------|
 | `--mode <mode>` | `image` hoặc `build`. Mặc định: `image` |
+| `--upgrade` | Chuyển sang phiên bản catalog. Gửi `image_source=catalog` và lưu image đó |
+| `--rollback <deployment_id>` | Chạy lại image của một lần deploy trước và lưu image đó, nên các lần deploy sau tiếp tục chạy nó cho đến khi bạn dùng `--upgrade` hoặc đặt image mới. Hỏi xác nhận; không có terminal, hoặc khi dùng `--json` hay `--non-interactive`, thì cần `--yes` (nếu không sẽ thoát với mã `4`) |
+| `--expected-image <image>` | Thất bại với conflict, không deploy gì, nếu image đã cấu hình không còn là image này. Sao chép từ dòng `Configured:` của `tose template info` |
 | `--wait` | Thăm dò cho đến khi rollout kết thúc |
 | `--timeout <duration>` | Thời gian tối đa của `--wait`, ví dụ `90s` hoặc `15m`. Mặc định: `15m` |
 
+- `--upgrade`, `--rollback` và `--expected-image` cần `--mode image`. Dùng cùng `--mode build` thì lệnh thoát với mã `2` và không thay đổi gì.
+- Không thể kết hợp `--upgrade` với `--rollback`.
+- `--rollback` nhận ID của một lần deploy của template này đã chạy, ví dụ dòng `Deployment ID:` do một lần `tose template deploy` trước in ra, hoặc danh sách trong [API template](/vi/api/templates#deployments). ID rỗng bị từ chối.
+- Một số template bỏ qua các tùy chọn này. Nếu API không áp dụng một tùy chọn, CLI báo lỗi nêu tên tùy chọn và lần deploy đã được khởi chạy, thay vì nói tùy chọn đã hoạt động.
+- Cảnh báo từ API được in ra. Với `--json` chúng nằm ở `data.warnings`.
+
+```bash
+tose template info demo                                        # ghi lại image ở dòng Configured:
+tose template deploy demo --upgrade --expected-image registry.example.com/app:1.4.0 --wait
+tose template deploy demo --rollback <deployment_id> --yes --wait
+```
+
 ### Image nào được chạy
 
-`--mode image` chạy image đã lưu trên template. Lệnh không thay custom image bằng image mặc định của catalog, và mọi template có từ trước hành vi này đều được coi là custom, nên không có gì được nâng cấp ngầm. Template tạo từ catalog bắt đầu với image của catalog đã được lưu. Khi catalog có phiên bản khác, API báo trong mảng `warnings`. Nâng cấp và rollback là các tùy chọn tường minh của [API template](/vi/api/templates#deploy-template) (`image_source=catalog`, `rollback_to`, `expected_image`); CLI chưa hỗ trợ chúng.
+`--mode image` chạy image đã lưu trên template. Một lần deploy thông thường không thay nó bằng image mặc định của catalog, và mọi template có từ trước hành vi này đều được coi là custom, nên không có gì được nâng cấp ngầm. Template tạo từ catalog bắt đầu với image của catalog đã được lưu. Khi catalog có phiên bản khác, API báo trong `warnings` và `tose template info` hiển thị đó là bản cập nhật khả dụng. Dùng `--upgrade` để chuyển sang. Các tùy chọn tương ứng trong [API template](/vi/api/templates#deploy-template) là `image_source=catalog`, `rollback_to` và `expected_image`.
 
-Rollback image không rollback schema hay dữ liệu của database.
+::: warning Rollback không hoàn tác dữ liệu của bạn
+`--rollback` chạy lại một image cũ hơn. Nó **không** rollback schema hay dữ liệu của database. Nếu phiên bản mới đã migrate chúng, image cũ có thể lỗi hoặc đọc sai. Hãy khôi phục bản sao lưu cùng với image cũ.
+:::
 
 ### Mã thoát khi dùng `--wait`
 
