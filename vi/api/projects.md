@@ -54,6 +54,15 @@ Kích hoạt rolling restart của deployment đang chạy mà không build imag
 
 `restarted_pods` là số replica của deployment đã restart. Dự án chưa được gán server trả `400`, dự án chưa từng deploy trả `404`.
 
+Restart lấy khóa thao tác của dự án trước khi thay đổi deployment đang chạy, nên còn có thể thất bại với:
+
+| Trạng thái | Ý nghĩa |
+|--------|---------|
+| `409` | Một thao tác ghi khác trên cùng dự án vẫn đang chạy (`project is busy; retry after its current operation finishes`), hoặc dự án là nguồn được giữ lại của một lần chuyển môi trường (`project is the retained source of an environment move`). Body có thông điệp `error`. |
+| `503` | Không lấy được khóa (`Cannot lock project for restart`). |
+
+Câu trả lời `409` do dự án đang bận có thể thử lại an toàn sau khi thao tác hiện tại kết thúc. Deployment không bị thay đổi.
+
 ## Xóa dự án {#delete}
 
 ```http

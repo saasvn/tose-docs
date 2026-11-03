@@ -54,6 +54,15 @@ Triggers a rolling restart of the running deployment without building a new imag
 
 `restarted_pods` is the replica count of the deployment that was restarted. A project with no server assigned returns `400`, and a project that was never deployed returns `404`.
 
+The restart takes the project's operation lock before it changes the live deployment, so it can also fail with:
+
+| Status | Meaning |
+|--------|---------|
+| `409` | Another write to the same project is still running (`project is busy; retry after its current operation finishes`), or the project is the retained source of an environment move (`project is the retained source of an environment move`). The body carries an `error` message. |
+| `503` | The lock could not be taken (`Cannot lock project for restart`). |
+
+A `409` busy answer is safe to retry once the current operation finishes. Nothing was changed on the deployment.
+
 ## Delete a project
 
 ```http

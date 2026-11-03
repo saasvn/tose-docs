@@ -121,7 +121,7 @@ API_KEY=****** (đã che)
 
 ### Giá trị bị che với member của workspace
 
-`member` của workspace không nhận được giá trị biến môi trường: API trả `********` (danh sách env của project) hoặc `***` (danh sách env của template) thay cho giá trị. Chỉ `admin` và `owner` mới thấy giá trị. CLI không bao giờ ghi hoặc gửi các placeholder này như một giá trị thật:
+`member` của workspace không nhận được giá trị biến môi trường: API trả `********` (danh sách env của project) hoặc `***` (danh sách env của template) thay cho giá trị. Chỉ `admin` và `owner` mới thấy giá trị. Dashboard theo cùng quy tắc: ở trang dự án và trang template, member thấy "Hidden" thay cho placeholder, và các thao tác thêm, sửa, xóa, export, copy bị ẩn. Chỉ owner và admin mới xem hoặc đổi được giá trị env. CLI không bao giờ ghi hoặc gửi các placeholder này như một giá trị thật:
 
 - `tose env pull` bỏ qua các key bị che (hiện trong `skipped_masked` khi dùng `--json`), giữ nguyên giá trị mà file local đã có cho các key đó, và thất bại mà không ghi file khi mọi giá trị đều bị che (`FORBIDDEN`, mã thoát `1`).
 - `tose env push`, `tose env set` và `tose template env set` từ chối giá trị là placeholder đã che và không gửi gì (`VALIDATION_ERROR`, mã thoát `2`).
