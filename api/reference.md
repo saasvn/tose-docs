@@ -74,6 +74,50 @@ a `cursor`. The spec states which endpoints page.
 deployment until it is `running`, `failed` or `stopped`. No endpoint accepts an idempotency key,
 so retrying a deploy creates another deployment. Check the deployment list before you retry.
 
+## Stop Deployment
+
+```http
+POST /api/workspaces/:slug/projects/:projectSlug/deployments/:id/stop
+```
+
+Requires the owner or admin role. Any status other than `pending`, `cloning`, `building`, `pushing`, `deploying` or `running` returns `400`. The response is the deployment with status `stopped`.
+
+**Stopping a `running` deployment stops the whole project.** In one locked write, TOSE records `stopped` on:
+
+- every deployment of the project that is `running` or `deploying`, and
+- every deployment of the project that is still before deploy (`pending`, `cloning`, `building` or `pushing`).
+
+The app is scaled to zero replicas and stays there until you deploy again. Only deployments created before the Stop began are affected. A deploy requested after the Stop builds and ships normally. A stopped build gets no deploy, no email, and no success or failure event. A later redeploy never picks the image of a cancelled rollout.
+
+**Stopping a `deploying` deployment finishes asynchronously.** The build pipeline cancels the rollout, then puts back the version that served last, if one exists. Otherwise it scales the workload to zero. If the deployment's own image is still the one serving, the row ends `running` again with the reason in `error_message`. Re-read the deployment with `GET` after a Stop, rather than trusting the status in the response.
+
+**Response:**
+
+```json
+{
+  "id": "dep_xyz789",
+  "status": "stopped"
+}
+```
+
+**Errors:**
+
+| Status | Meaning |
+|--------|---------|
+| `400` | The deployment is not in a stoppable status |
+| `503` | Nothing was stopped: the project's workload lock could not be taken within 60 seconds because a deployment step is finishing, or the database is unreachable. The response carries a `Retry-After` header |
+
+A Stop answers within about 100 seconds. On `503`, wait the number of seconds in `Retry-After`, then send the request again. The retry is safe because nothing was stopped.
+
+```typescript
+const res = await fetch(url, { method: 'POST', headers })
+if (res.status === 503) {
+  const wait = Number(res.headers.get('Retry-After') ?? 5)
+  await new Promise(r => setTimeout(r, wait * 1000))
+  // retry the Stop request
+}
+```
+
 ## Related documentation
 
 - [Authentication](/api/authentication)

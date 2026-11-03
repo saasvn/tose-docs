@@ -75,6 +75,41 @@ deployment đến khi nó là `running`, `failed` hoặc `stopped`. Không endpo
 key, nên gọi lại deploy sẽ tạo thêm một deployment. Hãy kiểm tra danh sách deployment trước khi
 thử lại.
 
+## Dừng triển khai
+
+```http
+POST /api/workspaces/:slug/projects/:projectSlug/deployments/:id/stop
+```
+
+Yêu cầu vai trò owner hoặc admin. Trạng thái khác `pending`, `cloning`, `building`, `pushing`, `deploying` hoặc `running` trả về `400`. Phản hồi là triển khai với trạng thái `stopped`.
+
+**Dừng một triển khai `running` sẽ dừng toàn bộ dự án.** Trong một lần ghi có khoá, TOSE đánh dấu `stopped` cho:
+
+- mọi triển khai của dự án đang `running` hoặc `deploying`, và
+- mọi triển khai của dự án còn ở trước bước deploy (`pending`, `cloning`, `building` hoặc `pushing`).
+
+Ứng dụng được scale về 0 replica và giữ nguyên cho đến khi bạn deploy lại. Chỉ các triển khai được tạo trước khi Stop bắt đầu bị ảnh hưởng. Deploy được yêu cầu sau Stop vẫn build và phát hành bình thường. Bản build bị dừng không có deploy, không gửi email và không có sự kiện thành công hay thất bại. Redeploy sau đó không bao giờ chọn image của rollout đã bị huỷ.
+
+**Dừng một triển khai `deploying` hoàn tất bất đồng bộ.** Pipeline build huỷ rollout rồi khôi phục phiên bản phục vụ gần nhất, nếu có. Nếu không có, workload được scale về 0. Nếu image của chính triển khai đó vẫn đang phục vụ, bản ghi kết thúc ở `running` kèm lý do trong `error_message`. Hãy đọc lại triển khai bằng `GET` sau khi Stop thay vì tin vào trạng thái trong phản hồi.
+
+**Phản hồi:**
+
+```json
+{
+  "id": "dep_xyz789",
+  "status": "stopped"
+}
+```
+
+**Lỗi:**
+
+| Trạng thái | Ý nghĩa |
+|--------|---------|
+| `400` | Triển khai không ở trạng thái có thể dừng |
+| `503` | Chưa có gì bị dừng: không lấy được khoá workload của dự án trong 60 giây vì một bước deploy đang kết thúc, hoặc không kết nối được cơ sở dữ liệu. Phản hồi có header `Retry-After` |
+
+Stop phản hồi trong khoảng 100 giây. Khi gặp `503`, chờ số giây trong `Retry-After` rồi gửi lại yêu cầu. Việc thử lại là an toàn vì chưa có gì bị dừng.
+
 ## Tài liệu liên quan
 
 - [Xác thực](/vi/api/authentication)

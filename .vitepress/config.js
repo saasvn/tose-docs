@@ -92,7 +92,6 @@ export default defineConfig({
               { text: 'API Keys & Scopes', link: '/api/api-keys' },
               { text: 'Audit Log', link: '/api/audit' },
               { text: 'MCP Connector', link: '/mcp' },
-              { text: 'Endpoints', link: '/api/endpoints' },
               { text: 'Errors', link: '/api/errors' },
               { text: 'Desktops', link: '/api/desktops' },
               { text: 'Disks, Volumes & Pricing', link: '/api/disks' }
@@ -184,7 +183,6 @@ export default defineConfig({
               { text: 'API key & Scope', link: '/vi/api/api-keys' },
               { text: 'Audit log', link: '/vi/api/audit' },
               { text: 'MCP Connector', link: '/vi/mcp' },
-              { text: 'Endpoints', link: '/vi/api/endpoints' },
               { text: 'Mã lỗi', link: '/vi/api/errors' },
               { text: 'Ổ đĩa, Volume & Bảng giá', link: '/vi/api/disks' }
             ]
