@@ -15,6 +15,10 @@ Client hỗ trợ extension tasks của MCP (`io.modelcontextprotocol/tasks`) s�
 
 Agent không thể tự duyệt task của mình. Bạn mở trang duyệt, đăng nhập bằng tài khoản của bạn, rồi duyệt hoặc từ chối plan. Chỉ sau đó client mới báo task tiếp tục. Nếu bạn chưa duyệt, task giữ nguyên `input_required`.
 
+## Khi ví hết tiền {#vi-het-tien}
+
+Khi số dư ví của workspace bằng 0 hoặc âm, `deploy_project` và `rollback_deployment` trả `INSUFFICIENT_BALANCE` ngay ở bước plan. Không có plan, task hay link duyệt nào được tạo, nên bạn không bị hỏi duyệt một thay đổi không chạy được. Nếu ví cạn sau khi bạn đã duyệt, chính deployment cũng bị từ chối theo cách tương tự. Hãy nạp tiền ở trang billing trên dashboard rồi yêu cầu agent lại. Xem [Khi số dư bằng 0](/vi/guide/pricing#when-the-balance-is-zero) và [`MCP-CONNECTOR.md`](https://github.com/saasvn/tose-app/blob/master/MCP-CONNECTOR.md) cho chi tiết dành cho maintainer.
+
 ## Poll và hết hạn
 
 - **Poll:** client gọi `tasks/get` khoảng mỗi 5 giây. Server không gửi thông báo trạng thái task, nên client bắt buộc phải poll.

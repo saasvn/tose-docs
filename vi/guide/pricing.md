@@ -44,9 +44,63 @@ Phí lưu trữ mỗi giờ của ổ đĩa nhỏ chỉ là một phần của c
 
 Không có phí snapshot. Hiện chưa hỗ trợ snapshot ổ đĩa.
 
-## Khi hết số dư {#running-out-of-balance}
+## Cloud Harness {#cloud-harness}
 
-Khi ví hết tiền, TOSE tạm ngưng compute. Ổ đĩa bền vững và dữ liệu **không** bị xóa, và phí lưu trữ vẫn tiếp tục tích lũy; khoản này được trừ sau lần nạp tiền kế tiếp. Xem [Ổ đĩa bền vững](/vi/guide/persistent-disks#retention).
+Instance [Cloud Harness](/vi/guide/cloud-harness) không có phí mở khóa. Instance được tính phí theo
+ba phần, theo giá compute và giá lưu trữ ở trên:
+
+| Phần | Cách tính phí | Kích thước |
+|------|---------------|------------|
+| Instance | Mỗi giờ khi instance đang chạy, giống các template khác | Kích thước bạn chọn, cộng phần tài nguyên cố định cho các container chạy cạnh runner |
+| Docker host | **Theo giây khi đang thức**; **$0 khi đang nghỉ (cold)** | Kích thước docker host của bản cài đặt |
+| Ổ đĩa | Chừng nào instance còn tồn tại, kể cả khi đang dừng | Ổ đĩa trạng thái của instance cộng ổ đĩa của docker host |
+
+- **Instance:** (vCPU + vCPU dành riêng) × giá CPU + (GB + GB dành riêng) × giá RAM, làm tròn tới
+  cent mỗi giờ. Instance đang dừng không tính phí compute.
+- **Docker host:** vCPU của nó × giá CPU + GB của nó × giá RAM, theo giờ, tính cho từng giây từ khi
+  xác nhận đã khởi động tới khi xác nhận đã dừng. Docker host thức dậy khi một job cần Docker và tạm
+  dừng khi rảnh. Số tiền dưới 1 cent được cộng dồn, như mô tả ở mục
+  [Số tiền dưới 1 cent](#sub-cent-amounts).
+- **Ổ đĩa:** tổng dung lượng đã cấp phát (GiB) của cả hai ổ đĩa, theo giá lưu trữ.
+
+Giá hiện hành do server tính và trả về trong khối `pricing` của mục `cloudharness` trong danh mục
+template (`GET /api/workspaces/available-templates`); dashboard hiển thị các giá này trên thẻ Cloud
+Harness:
+
+| Trường | Ý nghĩa |
+|--------|---------|
+| `instance.cpu`, `instance.ram` | Kích thước mặc định của instance |
+| `instance.reserved_cpu`, `instance.reserved_ram` | Phần tài nguyên cố định cho các container chạy cạnh runner |
+| `instance.usd_per_hour` | Giá instance mỗi giờ khi đang chạy |
+| `docker_host.cpu`, `docker_host.ram` | Kích thước docker host |
+| `docker_host.usd_per_hour_running` | Giá docker host mỗi giờ khi đang thức |
+| `docker_host.usd_per_hour_cold` | Luôn là `0` |
+| `storage.state_disk_gib`, `storage.runtime_disk_gib` | Dung lượng các ổ đĩa |
+| `storage.usd_per_month` | Giá cả hai ổ đĩa mỗi tháng |
+| `compute_tiers` | Giá instance và docker host cho từng bậc số dư ví |
+
+Các giá theo giờ nằm ngoài `compute_tiers` áp dụng cho bậc số dư thấp nhất.
+
+**Giới hạn số instance.** Mỗi workspace chỉ chứa được một số lượng instance Cloud Harness giới hạn:
+mặc định là 5, trừ khi bản cài đặt TOSE của bạn đặt giới hạn khác. Trường `max_instances` trong danh
+mục hiển thị giới hạn này. Instance đang bị xóa vẫn được tính cho đến khi docker host của nó được
+xóa xong.
+
+Tạo instance và đánh thức docker host của nó đều cần số dư ví lớn hơn 0.
+
+## Khi số dư bằng 0 {#when-the-balance-is-zero}
+
+TOSE từ chối mọi deploy khi số dư ví của workspace bằng 0 hoặc âm. Bạn thấy gì tuỳ vào nơi bắt đầu deploy:
+
+| Nơi bắt đầu | Điều xảy ra |
+|-------------|-------------|
+| Dashboard và API | Deploy, redeploy và rollback trả HTTP `402` với mã lỗi `INSUFFICIENT_BALANCE`. Không tạo deployment. Xem [Thông báo lỗi thường gặp](/guide/troubleshooting#insufficient-balance). |
+| Push GitHub và lần deploy đầu của dự án | Deployment được tạo nhưng chuyển sang `failed` trước khi build, kèm thông báo `insufficient wallet balance`. |
+| Agent qua MCP | `deploy_project` và `rollback_deployment` trả `INSUFFICIENT_BALANCE` ngay ở bước plan, nên bạn không bị hỏi duyệt một thay đổi không chạy được. Xem [Tasks](/vi/mcp/tasks#vi-het-tien). |
+
+Khi ví hết tiền, TOSE vẫn tạm ngưng compute như trước. Các instance Cloud Harness đang chạy bị dừng và docker host của chúng được tạm dừng. Ổ đĩa bền vững và dữ liệu **không** bị xóa, và phí lưu trữ vẫn tiếp tục tích lũy; khoản này được trừ sau lần nạp tiền kế tiếp. Xem [Ổ đĩa bền vững](/vi/guide/persistent-disks#retention). Phần compute chưa trả được sẽ được xoá nợ, nên bạn không phải trả sau khi nạp tiền.
+
+**Cách khắc phục:** nạp tiền vào ví ở trang billing trên dashboard, rồi deploy lại. Deploy chạy bình thường khi số dư lớn hơn 0.
 
 Nạp tiền sẽ tự động khôi phục hầu hết template đang bị tạm ngưng. Deploy một template đang `suspended` cũng cần số dư ví dương: nếu không, deploy bị từ chối với `402 INSUFFICIENT_BALANCE` và template vẫn ở trạng thái suspended (xem [API deploy và resume template](/vi/api/template-deploy#suspended-needs-balance)).
 
@@ -64,5 +118,6 @@ Thao tác tương tự có ở `POST /api/workspaces/{slug}/templates/{template_
 ## Liên quan {#related}
 
 - [Ổ đĩa bền vững](/vi/guide/persistent-disks)
+- [Cloud Harness](/vi/guide/cloud-harness)
 - [`tose pricing` / `tose volumes`](/vi/commands/disk)
 - [API ổ đĩa, volume & bảng giá](/vi/api/disks)

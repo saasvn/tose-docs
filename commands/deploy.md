@@ -85,6 +85,56 @@ Error: Project has no git connection.
 Run 'tose up' to connect your repository first.
 ```
 
+### Error: Insufficient Wallet Balance
+
+When the workspace wallet balance is zero or negative, the API refuses `deploy`, `redeploy` and
+`rollback` with `402` and the code `INSUFFICIENT_BALANCE`. No deployment is created. The CLI exits
+with code `9`.
+
+```bash
+$ tose deploy
+
+Error: insufficient wallet balance
+```
+
+With `--json`, `error.code` is `INSUFFICIENT_BALANCE` and `next_actions` carries the top-up page in
+its `url` field and the command to run once the wallet has credit:
+
+```json
+{
+  "schema_version": "1",
+  "status": "error",
+  "error": {
+    "code": "INSUFFICIENT_BALANCE",
+    "message": "insufficient wallet balance"
+  },
+  "next_actions": [
+    {
+      "command": "tose deploy",
+      "description": "Top up the workspace wallet at https://tose.sh/w/my-workspace/billing, then retry",
+      "url": "https://tose.sh/w/my-workspace/billing"
+    }
+  ]
+}
+```
+
+A deployment queued by a push to GitHub is not refused up front. The build pipeline marks it
+`failed` with an `error_message` that starts with `insufficient wallet balance` (or
+`no wallet found`). `tose deploy --wait` and `tose deployment wait <id>` recognize that failure,
+exit `9` instead of `8` and print the same top-up hint. See [Billing](/guide/pricing) for how the
+wallet works.
+
+### Diagnose with `tose doctor`
+
+```bash
+tose doctor [workspace/project] --json
+```
+
+`tose doctor` checks the Node version, API key, project, Git integration, server and port, quota,
+latest deployment, pod health and custom domain DNS/SSL. When the latest deployment failed because
+of the wallet balance, the deployment check fails with the top-up hint, `next_actions` includes
+the billing `url`, and the command exits `1` with `CHECKS_FAILED`.
+
 ---
 
 ## tose redeploy
@@ -135,6 +185,12 @@ $ tose redeploy --json
 }
 ```
 
+### Error: Insufficient Wallet Balance
+
+`tose redeploy` and `tose rollback` are refused the same way as `tose deploy`: exit code `9`,
+`error.code: "INSUFFICIENT_BALANCE"` and a `next_actions` entry with the top-up `url`. Top up the
+wallet, then run the command again.
+
 ## deploy vs redeploy
 
 | Feature | `tose deploy` | `tose redeploy` |
@@ -150,3 +206,4 @@ $ tose redeploy --json
 - [`tose down`](/commands/down) - Stop deployment
 - [`tose status`](/commands/status) - Check deployment status
 - [`tose logs`](/commands/logs) - View deployment logs
+- [Exit codes](/commands/overview#exit-codes) - Meaning of exit code `9`
