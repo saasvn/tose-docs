@@ -5,7 +5,7 @@ Triển khai hoặc quản lý ứng dụng với lệnh `tose up`.
 ## Tóm tắt
 
 ```bash
-tose up [options]
+tose up [--workspace <slug>] [--project <slug>] [--disk-size <gib> --disk-mount <path>] [--env-file <path>] [--non-interactive] [-y]
 ```
 
 ## Mô tả
@@ -112,7 +112,9 @@ Nhập cổng ứng dụng:
 
 ### Bước 6: Biến môi trường
 
-Chọn file .env:
+Biến môi trường chỉ được tải lên khi bạn đồng ý rõ ràng: trả lời có trong terminal, hoặc truyền `--env-file <path>`. Khi chạy headless, xem [Chạy headless và CI](#chạy-headless-và-ci).
+
+Trong terminal, chọn file .env:
 
 ```
 ✓ Tìm thấy 3 file .env
@@ -158,6 +160,71 @@ Sau khi xác nhận:
 🚀 Triển khai bắt đầu
   ID: dep_xyz789
   URL: https://my-app.tose.app
+```
+
+## Chạy headless và CI
+
+Với `--json`, `--non-interactive` hoặc khi không có terminal (CI, agent, pipe), `tose up` không bao giờ hỏi.
+
+### Thiếu thông tin: lỗi `INPUT_REQUIRED`
+
+Nếu không thể xác định workspace, dự án hoặc K8S server mà không hỏi, `tose up` thoát với mã `2` và mã lỗi `INPUT_REQUIRED`. Trường hợp server áp dụng khi có nhiều server đang hoạt động và dự án chưa được gán server nào.
+
+Khi đó không có gì được tạo hay ghi: không tạo dự án, không kết nối Git, không ghi `.tose.json`, không đặt workspace mặc định trong cấu hình người dùng. Bạn có thể bổ sung thông tin và chạy lại an toàn.
+
+Cách khắc phục: truyền giá trị hoặc đặt biến môi trường:
+
+```bash
+tose up --workspace my-ws --project my-app --json
+# hoặc
+TOSE_WORKSPACE=my-ws TOSE_PROJECT=my-app tose up --json
+```
+
+`--json` chỉ chọn định dạng đầu ra. Nó không bao giờ ngầm hiểu là đồng ý, nên không tự tạo dự án hay tải biến môi trường lên.
+
+### Đẩy biến môi trường bằng `--env-file`
+
+```bash
+tose up --workspace my-ws --project my-app --env-file ./.env.production --json
+```
+
+Đây là cách duy nhất để đẩy biến môi trường khi chạy headless.
+
+| Hành vi | Chi tiết |
+|---------|----------|
+| Kiểm tra trước | File được đọc và kiểm tra trước khi gửi bất kỳ request nào. File thiếu, không đọc được, rỗng, hoặc chứa giá trị che (masked) sẽ làm lệnh thất bại trước khi tạo gì. |
+| Giá trị được giữ kín | Giá trị không bao giờ được in ra, và được che ngay cả khi server trả lại. |
+| Thất bại thì dừng | Nếu tải lên lỗi, lệnh dừng trước khi triển khai. Lệnh không quay lại đẩy từng biến một, nên không bao giờ báo thành công khi chỉ một phần biến được tải lên. |
+
+### Khi không có `--env-file`
+
+File env tìm thấy trong thư mục không được tải lên. Kết quả JSON báo trong `env`:
+
+| `env.status` | Ý nghĩa |
+|--------------|---------|
+| `pushed` | Biến đã được tải lên. `env.variables` là số lượng. |
+| `skipped` | Không tải gì lên. `env.reason` cho biết lý do, ví dụ `env_files_found_no_consent` (có file nhưng không có `--env-file`), `none_requested` (không có file env) hoặc `declined` (bạn trả lời không ở câu hỏi). |
+
+### Không có repository GitHub cục bộ
+
+Dự án mới không được tạo khi thư mục không có repository GitHub cục bộ, vì không thể triển khai. `tose up` thất bại với `GIT_CONNECTION_REQUIRED` và không tạo gì. Lệnh không thể biết trước GitHub App của TOSE có truy cập được repository hay không; việc đó được kiểm tra khi kết nối Git.
+
+### Key thiếu `deployments:execute`
+
+Với key không có `deployments:execute`, `tose up` kết nối Git nhưng không bật auto-deploy, không bắt đầu triển khai và thoát với `INSUFFICIENT_SCOPE` (`details.required_scope: deployments:execute`, `details.git_connected: true`, `details.deploy_skipped: true`). Hãy chạy [`tose deploy`](/vi/commands/deploy) với key có scope đó.
+
+### Kết quả JSON
+
+```json
+{
+  "success": true,
+  "data": {
+    "workspace": "my-workspace",
+    "project": "my-app",
+    "deployment": { "id": "dep_abc123", "status": "pending" },
+    "env": { "status": "skipped", "reason": "none_requested" }
+  }
+}
 ```
 
 ## Trường hợp sử dụng

@@ -5,7 +5,7 @@ Smart deploy: automatically initialize, connect Git, push env vars, and deploy i
 ## Synopsis
 
 ```bash
-tose up [--workspace <slug>] [--project <slug>] [--disk-size <gib> --disk-mount <path>] [-y]
+tose up [--workspace <slug>] [--project <slug>] [--disk-size <gib> --disk-mount <path>] [--env-file <path>] [--non-interactive] [-y]
 ```
 
 ## Description
@@ -15,7 +15,7 @@ tose up [--workspace <slug>] [--project <slug>] [--disk-size <gib> --disk-mount 
 1. **Resolve or create project** - Links to existing project or creates a new one
 2. **Connect Git repository** - Detects and connects your GitHub repo
 3. **Assign server** - Ensures a K8S server is assigned
-4. **Push environment variables** - Detects `.env` files and offers to push them
+4. **Push environment variables** - Offers to push a detected `.env` file in a terminal; headless runs push only a file you pass with `--env-file`
 5. **Deploy** - Triggers the deployment
 
 This is the recommended way to deploy for the first time. For subsequent deployments, you can use [`tose deploy`](/commands/deploy) directly.
@@ -84,6 +84,8 @@ Stream build logs with: tose logs --build -f
 ```bash
 $ tose up --workspace my-ws --project my-app -y
 ```
+
+See [Headless and CI runs](#headless-and-ci-runs) for what `tose up` does, and refuses to do, without a terminal.
 
 ### With a Persistent Disk
 
@@ -154,13 +156,18 @@ Using server: TOSE Cloud
 
 ### Step 4: Push Environment Variables
 
-Scans for `.env*` files and offers to push them:
+Environment variables are uploaded only with your explicit consent, never implied:
 
-```
-Found 2 .env file(s). Push environment variables? Yes
-✓ Pushing 8 variables...
-✓ 8 variables pushed
-```
+- **In a terminal**, `tose up` scans for `.env*` files and asks whether to push one:
+
+  ```
+  Found 2 .env file(s). Push environment variables? Yes
+  ✓ Pushing 8 variables...
+  ✓ 8 variables pushed
+  ```
+
+- **With `--env-file <path>`**, it pushes that file without asking. This is the only way to push variables headlessly.
+- **Otherwise**, env files found in the directory are not uploaded.
 
 Variables are merged (not replaced) - existing variables are preserved unless overridden.
 
@@ -178,6 +185,55 @@ Triggers the deployment and shows the result:
 Stream build logs with: tose logs --build -f
 ```
 
+## Headless and CI runs
+
+With `--json`, `--non-interactive`, or no terminal (CI, an agent, a pipe), `tose up` never prompts.
+
+### Missing input fails with `INPUT_REQUIRED`
+
+If a workspace, a project, or a K8S server cannot be decided without asking, `tose up` exits with code `2` and error code `INPUT_REQUIRED`. The server case applies when several servers are active and none is assigned to the project.
+
+Nothing is created or written in that case: no project, no Git connection, no `.tose.json`, and no default workspace in your user config. You can fix the input and run again safely.
+
+Fix it by passing the value, or setting it in the environment:
+
+```bash
+tose up --workspace my-ws --project my-app --json
+# or
+TOSE_WORKSPACE=my-ws TOSE_PROJECT=my-app tose up --json
+```
+
+`--json` only chooses the output format. It never implies consent, so it does not create a project or upload variables for you.
+
+### Push variables with `--env-file`
+
+```bash
+tose up --workspace my-ws --project my-app --env-file ./.env.production --json
+```
+
+| Behavior | Detail |
+|----------|--------|
+| Validated first | The file is read and checked before any request is made. A missing, unreadable or empty file, or one with masked placeholder values, fails the run before anything is created. |
+| Values stay private | Values are never printed. They are redacted even if the server echoes them back. |
+| Fails closed | If the upload fails, the run stops before deploying. It does not fall back to pushing one variable at a time, so a run never reports success with only some variables uploaded. |
+
+### Without `--env-file`
+
+Env files found in the directory are not uploaded. The JSON result reports what happened in `env`:
+
+| `env.status` | Meaning |
+|--------------|---------|
+| `pushed` | Variables were uploaded. `env.variables` is the count. |
+| `skipped` | Nothing was uploaded. `env.reason` says why, for example `env_files_found_no_consent` (files were found, but no `--env-file`), `none_requested` (no env files) or `declined` (you answered no at the prompt). |
+
+### No local GitHub repository
+
+A new project is not created when the directory has no local GitHub repository, because it could not be deployed. `tose up` fails with `GIT_CONNECTION_REQUIRED` and nothing is created. It cannot tell beforehand whether the TOSE GitHub App can reach the repository; that is checked when Git is connected.
+
+### Key without `deployments:execute`
+
+With a key that lacks `deployments:execute`, `tose up` connects Git without auto-deploy, starts no deployment, and exits with `INSUFFICIENT_SCOPE` (`details.required_scope: deployments:execute`, `details.git_connected: true`, `details.deploy_skipped: true`). Run [`tose deploy`](/commands/deploy) with a key that has that scope.
+
 ## JSON Output
 
 ```bash
@@ -194,6 +250,10 @@ $ tose up --json -y
       "id": "dep_abc123",
       "status": "pending",
       "docker_image": "..."
+    },
+    "env": {
+      "status": "skipped",
+      "reason": "none_requested"
     }
   }
 }
