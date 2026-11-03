@@ -57,7 +57,8 @@ export default defineConfig({
               { text: 'Git Integration', link: '/guide/git' },
               { text: 'Dockerfile Examples', link: '/guide/dockerfile' },
               { text: 'Persistent Disks', link: '/guide/persistent-disks' },
-              { text: 'Pricing', link: '/guide/pricing' }
+              { text: 'Pricing', link: '/guide/pricing' },
+              { text: 'Self-hosting', link: '/guide/self-hosting' }
             ]
           },
           {
@@ -88,6 +89,7 @@ export default defineConfig({
               { text: 'Audit Log', link: '/api/audit' },
               { text: 'MCP Connector', link: '/mcp' },
               { text: 'Endpoints', link: '/api/endpoints' },
+              { text: 'Errors', link: '/api/errors' },
               { text: 'Desktops', link: '/api/desktops' },
               { text: 'Disks, Volumes & Pricing', link: '/api/disks' }
             ]
@@ -144,7 +146,8 @@ export default defineConfig({
               { text: 'Tích hợp Git', link: '/vi/guide/git' },
               { text: 'Ví dụ Dockerfile', link: '/vi/guide/dockerfile' },
               { text: 'Ổ đĩa bền vững', link: '/vi/guide/persistent-disks' },
-              { text: 'Bảng giá', link: '/vi/guide/pricing' }
+              { text: 'Bảng giá', link: '/vi/guide/pricing' },
+              { text: 'Tự host', link: '/vi/guide/self-hosting' }
             ]
           },
           {
@@ -174,6 +177,7 @@ export default defineConfig({
               { text: 'Audit log', link: '/vi/api/audit' },
               { text: 'MCP Connector', link: '/vi/mcp' },
               { text: 'Endpoints', link: '/vi/api/endpoints' },
+              { text: 'Mã lỗi', link: '/vi/api/errors' },
               { text: 'Ổ đĩa, Volume & Bảng giá', link: '/vi/api/disks' }
             ]
           }

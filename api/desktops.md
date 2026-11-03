@@ -31,7 +31,7 @@ The examples below assume:
 
 ```bash
 export TOSE_API=https://api-v2.tose.sh
-export TOSE_API_KEY=ws_your_api_key
+export TOSE_API_KEY=tose_sk_your_api_key
 export WS=my-workspace
 export DESKTOP_ID=<desktop-id>
 ```
@@ -205,8 +205,8 @@ A WebSocket endpoint that carries the desktop screen (RFB). Pass `websocket_prot
 session response as the subprotocols, so the token never appears in a URL or a log. The `Origin`
 must be the dashboard's. It is the only way to reach a desktop's display: desktops accept no
 network connections, and the platform reaches VNC inside the pod through the Kubernetes API.
-The stream closes within 5 seconds of the session losing the lease. For older clients a
-`?token={token}` query parameter is still accepted.
+The stream closes within 5 seconds of the session losing the lease. The `?token={token}` query parameter is a legacy path kept only for older clients. It puts the
+token in a URL, so do not use it in new code.
 
 ## Actions
 
