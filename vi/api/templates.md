@@ -150,7 +150,7 @@ GET /api/workspaces/{slug}/templates/{template_slug}
 | `configured` | string | Custom image đã lưu mà deploy bằng image sẽ chạy. Rỗng nếu chưa đặt |
 | `source` | string | `custom`, `catalog` hoặc `rollback` |
 | `available` | string | Image mặc định của catalog. Rỗng nếu template không có phiên bản catalog |
-| `update_available` | boolean | Image catalog khác image đang cấu hình |
+| `update_available` | boolean | Image catalog khác image đang cấu hình. Là `false` khi chưa lưu image nào (`configured` rỗng), như template chế độ build hoặc Cloud Harness, vì không có image để nâng cấp |
 | `rollback_warning` | string | Lưu ý khi rollback; hãy hiển thị cạnh mọi thao tác rollback |
 
 ## Cập nhật template {#update-template}
@@ -186,6 +186,10 @@ POST /api/workspaces/{slug}/templates/{template_slug}/deploy
 | `expected_image` | string | Image bạn thấy lần cuối ở `image.configured`. Nếu image đã lưu khác, deploy bị từ chối với `409`. Giá trị rỗng tắt việc kiểm tra |
 
 `image_source` phải là `custom` hoặc `catalog`. Khi có `rollback_to`, nó được ưu tiên và `image_source` không được kiểm tra. Mọi `mode` khác `image` đều chạy build, và các trường về image bị bỏ qua.
+
+::: warning Template Cloud Harness
+Pod Cloud Harness được dựng từ release manifest. Không có image để chạy và cũng không có image để rollback, nên `rollback_to`, `image_source` và `expected_image` bị từ chối với `400` trên các template này, bất kể `mode`. Trước đây các trường này bị bỏ qua âm thầm. Hãy gửi body rỗng (hoặc chỉ `mode`).
+:::
 
 ```bash
 # Chạy image đã lưu (mặc định)
@@ -239,7 +243,7 @@ Image được khôi phục, nhưng dữ liệu thì không. Hãy sao lưu datab
 
 | Trạng thái | Ý nghĩa |
 |------------|---------|
-| `400` | Tham chiếu image sai định dạng, `image_source` không phải `custom` hoặc `catalog`, không có image để deploy (không có custom image và không có phiên bản catalog), template chưa được cấu hình server cluster, hoặc Cloud Harness chưa bật |
+| `400` | Tham chiếu image sai định dạng, `image_source` không phải `custom` hoặc `catalog`, không có image để deploy (không có custom image và không có phiên bản catalog), template chưa được cấu hình server cluster, Cloud Harness chưa bật, hoặc template là Cloud Harness mà body có `rollback_to`, `image_source` hoặc `expected_image` (`rollback_to, image_source and expected_image are not supported for Cloud Harness templates`) |
 | `404` | `rollback_to` không trỏ tới deployment nào của template này đã chạy |
 | `409` | Đang có build hoặc deploy bằng image khác của template này, hoặc `expected_image` không khớp image đã lưu, image bị đổi trong lúc yêu cầu bắt đầu, hoặc template đang bị xóa |
 
