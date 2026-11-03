@@ -63,6 +63,7 @@ export default defineConfig({
               { text: 'Pricing', link: '/guide/pricing' },
               { text: 'Self-hosting', link: '/guide/self-hosting' },
               { text: 'Referral program', link: '/guide/referral' },
+              { text: 'Link an earlier enquiry', link: '/guide/link-enquiry' },
               { text: 'Blog and editorial MCP (planned)', link: '/guide/blog-and-editorial-mcp' }
             ]
           },
@@ -170,6 +171,7 @@ export default defineConfig({
               { text: 'Bảng giá', link: '/vi/guide/pricing' },
               { text: 'Tự host', link: '/vi/guide/self-hosting' },
               { text: 'Chương trình giới thiệu', link: '/vi/guide/referral' },
+              { text: 'Liên kết yêu cầu trước đó', link: '/vi/guide/link-enquiry' },
               { text: 'Blog và MCP biên tập (dự kiến)', link: '/vi/guide/blog-and-editorial-mcp' }
             ]
           },
