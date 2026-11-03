@@ -49,7 +49,7 @@ Nếu chưa được cache, nhập API key:
 ? Nhập TOSE API key của bạn:
 ```
 
-- API key phải bắt đầu bằng `ws_`
+- API key phải bắt đầu bằng `tose_sk_`
 - Key được lưu vào `~/.tose/config.json`
 - Được sử dụng cho tất cả lệnh trong tương lai
 
