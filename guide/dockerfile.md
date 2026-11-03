@@ -2,6 +2,10 @@
 
 This guide provides Dockerfile examples for popular web frameworks and languages. These examples are optimized for production use with multi-stage builds to keep image sizes small.
 
+## Base images must be public
+
+Every `FROM` and `COPY --from` image in your Dockerfile is pulled anonymously, so each one must be publicly pullable. A private base image fails the build. Anonymous Docker Hub pulls are rate-limited, so a build can occasionally fail on a pull limit; retry it later.
+
 ## Node.js Frameworks
 
 ### Express.js

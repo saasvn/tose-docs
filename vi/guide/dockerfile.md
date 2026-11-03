@@ -2,6 +2,10 @@
 
 Hướng dẫn này cung cấp các ví dụ Dockerfile cho các framework và ngôn ngữ web phổ biến. Các ví dụ này được tối ưu hóa cho môi trường production với multi-stage builds để giữ kích thước image nhỏ gọn.
 
+## Base image phải public
+
+Mọi image trong `FROM` và `COPY --from` của Dockerfile đều được pull ẩn danh, nên mỗi image phải pull được công khai. Base image private sẽ làm build thất bại. Docker Hub giới hạn số lần pull ẩn danh, nên đôi khi build có thể lỗi do chạm giới hạn; hãy thử lại sau.
+
 ## Node.js Frameworks
 
 ### Express.js

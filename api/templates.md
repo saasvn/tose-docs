@@ -161,6 +161,8 @@ PUT /api/workspaces/{slug}/templates/{template_slug}
 
 Send only the fields you want to change: `name`, `port`, `cpu`, `ram`, `replicas` and `custom_image`. Templates run a single replica, so `replicas` above `1` is refused. Setting a different `custom_image` records `image_source=custom`. Send `""` to clear it.
 
+A custom image must be publicly pullable. The platform attaches no registry credentials to an image it does not own for the template, so a private image fails to pull. Private images in other registries are not supported yet.
+
 | Status | Meaning |
 |--------|---------|
 | `400` | The image reference is malformed, the body is invalid, `cpu` or `ram` is not a valid size for the template, or `replicas` is above `1` |
