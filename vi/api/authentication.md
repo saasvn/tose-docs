@@ -8,6 +8,10 @@ Mỗi request tới TOSE API mang đúng một credential. API kiểm tra theo t
 | 2 | Session token | Header `Authorization: Bearer <token>` | Ứng dụng hoạt động thay mặt người dùng đã đăng nhập |
 | 3 | Session token | Cookie `tose_token` | Phiên trình duyệt |
 
+::: tip Giới hạn quyền của key
+Key có thể được giới hạn bằng scope và luôn thuộc về một workspace. Xem [API key và scope](/vi/api/api-keys). Mọi thay đổi thực hiện bằng key đều được ghi vào [audit log](/vi/api/audit).
+:::
+
 ## API key
 
 ```bash

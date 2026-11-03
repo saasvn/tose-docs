@@ -44,6 +44,7 @@ export default defineConfig({
               { text: 'tose domain', link: '/commands/domain' },
               { text: 'tose db', link: '/commands/db' },
               { text: 'tose desktop', link: '/commands/desktop' },
+              { text: 'tose template', link: '/commands/template' },
               { text: 'tose disk / volumes / pricing', link: '/commands/disk' },
               { text: 'tose generate', link: '/commands/generate' }
             ]
@@ -69,10 +70,25 @@ export default defineConfig({
             ]
           },
           {
+            text: 'MCP and Agents',
+            items: [
+              { text: 'Protocol, OAuth and scopes', link: '/mcp/oauth' },
+              { text: 'Tasks', link: '/mcp/tasks' },
+              { text: 'Apps', link: '/mcp/apps' },
+              { text: 'Skills', link: '/mcp/skills' },
+              { text: 'Agent access', link: '/mcp/agent-access' },
+              { text: 'Client compatibility', link: '/mcp/clients' }
+            ]
+          },
+          {
             text: 'API Reference',
             items: [
               { text: 'REST API', link: '/api/reference' },
               { text: 'Authentication', link: '/api/authentication' },
+              { text: 'API Keys & Scopes', link: '/api/api-keys' },
+              { text: 'Audit Log', link: '/api/audit' },
+              { text: 'MCP Connector', link: '/mcp' },
+              { text: 'Endpoints', link: '/api/endpoints' },
               { text: 'Errors', link: '/api/errors' },
               { text: 'Desktops', link: '/api/desktops' },
               { text: 'Disks, Volumes & Pricing', link: '/api/disks' }
@@ -117,6 +133,7 @@ export default defineConfig({
               { text: 'tose domain', link: '/vi/commands/domain' },
               { text: 'tose db', link: '/vi/commands/db' },
               { text: 'tose desktop', link: '/commands/desktop' },
+              { text: 'tose template', link: '/vi/commands/template' },
               { text: 'tose disk / volumes / pricing', link: '/vi/commands/disk' },
               { text: 'tose generate', link: '/vi/commands/generate' }
             ]
@@ -141,10 +158,25 @@ export default defineConfig({
             ]
           },
           {
+            text: 'MCP và Agent',
+            items: [
+              { text: 'Giao thức, OAuth và scope', link: '/vi/mcp/oauth' },
+              { text: 'Tasks', link: '/vi/mcp/tasks' },
+              { text: 'Apps', link: '/vi/mcp/apps' },
+              { text: 'Skills', link: '/vi/mcp/skills' },
+              { text: 'Agent access', link: '/vi/mcp/agent-access' },
+              { text: 'Tương thích client', link: '/vi/mcp/clients' }
+            ]
+          },
+          {
             text: 'Tài liệu API',
             items: [
               { text: 'REST API', link: '/vi/api/reference' },
               { text: 'Xác thực', link: '/vi/api/authentication' },
+              { text: 'API key & Scope', link: '/vi/api/api-keys' },
+              { text: 'Audit log', link: '/vi/api/audit' },
+              { text: 'MCP Connector', link: '/vi/mcp' },
+              { text: 'Endpoints', link: '/vi/api/endpoints' },
               { text: 'Mã lỗi', link: '/vi/api/errors' },
               { text: 'Ổ đĩa, Volume & Bảng giá', link: '/vi/api/disks' }
             ]
