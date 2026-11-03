@@ -60,6 +60,7 @@ export default defineConfig({
               { text: 'Dockerfile Examples', link: '/guide/dockerfile' },
               { text: 'Persistent Disks', link: '/guide/persistent-disks' },
               { text: 'Dewee Template Runbook', link: '/guide/dewee-template' },
+              { text: 'Template registry (early access)', link: '/guide/template-registry' },
               { text: 'Pricing', link: '/guide/pricing' },
               { text: 'Self-hosting', link: '/guide/self-hosting' },
               { text: 'Referral program', link: '/guide/referral' },
@@ -108,6 +109,7 @@ export default defineConfig({
               { text: 'Projects', link: '/api/projects' },
               { text: 'GitHub', link: '/api/github' },
               { text: 'Templates', link: '/api/templates' },
+              { text: 'Template registry', link: '/api/template-registry' },
               { text: 'Template deploy and resume', link: '/api/template-deploy' },
               { text: 'Disks, Volumes & Pricing', link: '/api/disks' }
             ]
@@ -167,6 +169,7 @@ export default defineConfig({
               { text: 'Ví dụ Dockerfile', link: '/vi/guide/dockerfile' },
               { text: 'Ổ đĩa bền vững', link: '/vi/guide/persistent-disks' },
               { text: 'Runbook template Dewee', link: '/vi/guide/dewee-template' },
+              { text: 'Template registry (truy cập sớm)', link: '/vi/guide/template-registry' },
               { text: 'Bảng giá', link: '/vi/guide/pricing' },
               { text: 'Tự host', link: '/vi/guide/self-hosting' },
               { text: 'Chương trình giới thiệu', link: '/vi/guide/referral' },
@@ -212,6 +215,7 @@ export default defineConfig({
               { text: 'Dự án', link: '/vi/api/projects' },
               { text: 'GitHub', link: '/vi/api/github' },
               { text: 'Template', link: '/vi/api/templates' },
+              { text: 'Template registry', link: '/vi/api/template-registry' },
               { text: 'Attribution khi đăng ký', link: '/vi/api/signup-attribution' },
               { text: 'Deploy và resume template', link: '/vi/api/template-deploy' },
               { text: 'Ổ đĩa, Volume & Bảng giá', link: '/vi/api/disks' }
