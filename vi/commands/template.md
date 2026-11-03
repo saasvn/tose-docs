@@ -74,6 +74,29 @@ Dùng một trong các cách sau cho API key và các secret khác:
 - Giá trị bạn nhập được che trong thông báo lỗi và trong output `--json`.
 - `tose template env list` không bao giờ in giá trị secret.
 
+### Biến nào là secret {#bien-nao-la-secret}
+
+Cờ `is_secret` bạn gửi chỉ là một đề nghị, không phải bảo đảm. Server là bên quyết định và có thể ép cờ này thành `true`:
+
+- Key chứa `dsn`, `encryption_key` hoặc `connection_string` luôn được lưu là secret, kể cả khi client gửi `is_secret: false`. Việc so khớp không phân biệt hoa thường và coi `-`, `.`, khoảng trắng như `_`, nên `DATABASE_DSN` và `app-encryption-key` đều khớp.
+- Key nằm trong `required_envs` của template trong catalog luôn được lưu là secret.
+- Server che các giá trị này (`***`) khi liệt kê biến. Khi server khởi động với hành vi này, một migration cũng đánh dấu các hàng đã lưu là không-secret từ trước.
+
+Phản hồi của `env list` luôn trả `is_secret` hiệu lực, vì vậy hãy đọc lại thay vì giả định cờ bạn đã gửi.
+
+### Ai đọc được giá trị
+
+| Role trong workspace | Liệt kê (`env list`, `GET .../envs`) | Reveal một giá trị (`GET .../envs/{key}/reveal`) |
+|----------------------|--------------------------------------|--------------------------------------------------|
+| `member` | Chỉ thấy key. Mọi giá trị hiện `***` | Không được phép |
+| `admin`, `owner` | Giá trị không-secret hiện rõ. Giá trị secret hiện `***` | Được phép |
+
+Thay đổi biến (`set`, `rm`) cũng cần `admin` hoặc `owner`.
+
+### Sửa một secret
+
+Trên dashboard, form sửa hiển thị giá trị của secret để trống. Để trống ô và lưu thì giữ nguyên giá trị đã lưu. Nhập giá trị mới thì thay thế. Qua API và CLI không có cách tắt "giữ nguyên": `POST .../envs` với `value` rỗng sẽ lưu giá trị rỗng, vì vậy chỉ gửi những key bạn muốn đổi.
+
 ## tose template deploy
 
 Deploy một instance template.
@@ -91,6 +114,12 @@ tose template deploy <slug> [--mode <mode>] [--wait] [--timeout <duration>]
 | `--mode <mode>` | `image` hoặc `build`. Mặc định: `image` |
 | `--wait` | Thăm dò cho đến khi rollout kết thúc |
 | `--timeout <duration>` | Thời gian tối đa của `--wait`, ví dụ `90s` hoặc `15m`. Mặc định: `15m` |
+
+### Image nào được chạy
+
+`--mode image` chạy image đã lưu trên template. Lệnh không thay custom image bằng image mặc định của catalog, và mọi template có từ trước hành vi này đều được coi là custom, nên không có gì được nâng cấp ngầm. Template tạo từ catalog bắt đầu với image của catalog đã được lưu. Khi catalog có phiên bản khác, API báo trong mảng `warnings`. Nâng cấp và rollback là các tùy chọn tường minh của [API template](/vi/api/templates#deploy-template) (`image_source=catalog`, `rollback_to`, `expected_image`); CLI chưa hỗ trợ chúng.
+
+Rollback image không rollback schema hay dữ liệu của database.
 
 ### Mã thoát khi dùng `--wait`
 
@@ -112,6 +141,8 @@ Template gọi nhà cung cấp AI (Gemini, OpenAI và các nhà cung cấp khác
 
 ## Liên quan
 
+- [API template](/vi/api/templates)
 - [Biến môi trường](/vi/guide/environment)
 - [Bảng giá](/vi/guide/pricing)
 - [Ổ đĩa bền vững](/vi/guide/persistent-disks)
+- [Runbook template Dewee](/vi/guide/dewee-template)

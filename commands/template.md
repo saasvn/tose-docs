@@ -74,6 +74,29 @@ An inline `KEY=VALUE` still works, but only use it for non-secret configuration.
 - Values you enter are masked in error messages and in `--json` output.
 - `tose template env list` never prints secret values.
 
+### Which variables are secret
+
+The `is_secret` flag you send is a request, not a guarantee. The server decides, and it can force the flag to `true`:
+
+- A key that contains `dsn`, `encryption_key` or `connection_string` is always stored as a secret, even if the client sends `is_secret: false`. Matching ignores case and treats `-`, `.` and spaces like `_`, so `DATABASE_DSN` and `app-encryption-key` both match.
+- A key listed in the template's `required_envs` in the catalog is always stored as a secret.
+- The server masks these values (`***`) when it lists variables. When the server started with this behavior, a migration also flagged the rows that were already stored as non-secret.
+
+The response of `env list` always reports the effective `is_secret`, so read it back instead of assuming the flag you sent.
+
+### Who can read values
+
+| Workspace role | Listing (`env list`, `GET .../envs`) | Reveal one value (`GET .../envs/{key}/reveal`) |
+|----------------|--------------------------------------|------------------------------------------------|
+| `member` | Keys only. Every value shows as `***` | Not allowed |
+| `admin`, `owner` | Non-secret values in clear text. Secret values show as `***` | Allowed |
+
+Changing variables (`set`, `rm`) also needs `admin` or `owner`.
+
+### Editing a secret
+
+In the dashboard, the edit form shows a secret's value blank. Leave the field blank and save to keep the stored value. Enter a value to replace it. Through the API and the CLI there is no "keep" shortcut: a `POST .../envs` with an empty `value` stores the empty value, so only send the keys you want to change.
+
 ## tose template deploy
 
 Deploy a template instance.
@@ -91,6 +114,12 @@ tose template deploy <slug> [--mode <mode>] [--wait] [--timeout <duration>]
 | `--mode <mode>` | `image` or `build`. Default: `image` |
 | `--wait` | Poll until the rollout finishes |
 | `--timeout <duration>` | How long `--wait` may take, such as `90s` or `15m`. Default: `15m` |
+
+### Which image runs
+
+`--mode image` runs the image stored on the template. It does not replace a custom image with the catalog default, and every template that existed before this behavior counts as custom, so nothing is upgraded implicitly. A template created from the catalog starts with the catalog image stored. When the catalog has a different version, the API reports it in a `warnings` array. Upgrading and rolling back are explicit options of the [Templates API](/api/templates#deploy-template) (`image_source=catalog`, `rollback_to`, `expected_image`); the CLI does not expose them yet.
+
+Rolling back an image does not roll back the database schema or data.
 
 ### Exit codes with `--wait`
 
@@ -112,6 +141,8 @@ Templates that call an AI provider (Gemini, OpenAI and others) use your own prov
 
 ## Related
 
+- [Templates API](/api/templates)
 - [Environment Variables](/guide/environment)
 - [Pricing](/guide/pricing)
 - [Persistent Disks](/guide/persistent-disks)
+- [Dewee template runbook](/guide/dewee-template)
