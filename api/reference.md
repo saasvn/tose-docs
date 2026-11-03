@@ -1,472 +1,127 @@
 # REST API Reference
 
-Complete REST API reference for TOSE platform.
+The TOSE API is described by one versioned OpenAPI 3.1 contract. The API serves it, and the TOSE
+CLI and the MCP connector validate against the same file. This page does not list
+endpoints by hand, because a hand-written copy drifts from the router. Read the spec instead.
 
-## Base URL
+## The OpenAPI spec
 
 ```
-https://api.tose.sh
+https://api.tose.sh/api/openapi.yaml
 ```
 
-All API requests must include authentication via the `X-API-KEY` header.
+The spec is public, needs no credential and is cached for 5 minutes. It covers workspaces,
+projects, deployments, logs, environment variables, domains, databases and wallets. A contract
+test in the API repository fails when a documented operation is not routed, so every operation in
+the spec exists. The source file is
+[`internal/apispec/openapi.yaml`](https://github.com/saasvn/tose-app/blob/master/internal/apispec/openapi.yaml)
+in `saasvn/tose-app`.
+
+```bash
+curl -sS https://api.tose.sh/api/openapi.yaml -o tose-openapi.yaml
+```
+
+Open the file in any OpenAPI viewer (Swagger UI, Redoc, Scalar, Postman or Insomnia) to browse
+operations, schemas and examples.
+
+## Generate a client
+
+Any OpenAPI 3.1 generator works. Point it at the spec URL or at a downloaded copy.
+
+```bash
+# TypeScript types
+npx openapi-typescript https://api.tose.sh/api/openapi.yaml -o tose-api.d.ts
+
+# A full client in another language
+npx @openapitools/openapi-generator-cli generate \
+  -i https://api.tose.sh/api/openapi.yaml \
+  -g python -o ./tose-client
+```
+
+Pin the spec version your client was generated from (`info.version`) and regenerate when it
+changes. A breaking change to the contract bumps `info.version`.
 
 ## Authentication
 
-```http
-X-API-KEY: ws_your_api_key_here
-```
-
-See [Authentication](/api/authentication) for details.
-
-## API Client
-
-TOSE CLI uses an `ApiClient` class to interact with the API.
-
-### Initialization
-
-```typescript
-import { ApiClient } from '@tosesh/tose/services/api'
-
-const client = new ApiClient({
-  apiKey: 'ws_xxxxx',
-  baseUrl: 'https://api.tose.sh'
-})
-```
-
-## Endpoints
-
-### Workspaces
-
-#### List Workspaces
+Send exactly one credential with every request, in a header or cookie. Credentials are never
+accepted in the URL.
 
 ```http
-GET /api/v1/workspaces
+X-API-Key: tose_sk_your_api_key_here
 ```
 
-**Response:**
+See [Authentication](/api/authentication) for API keys, session tokens and the URL rule.
 
-```json
-{
-  "data": [
-    {
-      "id": "ws_123456",
-      "name": "My Workspace",
-      "slug": "my-workspace",
-      "createdAt": "2025-01-01T00:00:00Z"
-    }
-  ]
-}
-```
+## Errors
 
-**Example:**
+Every JSON error has the same envelope with a stable `code`. Branch on `code`, never on the
+message text. See [Errors](/api/errors) for the full list, including the codes of the MCP tools.
 
-```typescript
-const workspaces = await client.listWorkspaces()
-```
+## Request IDs
 
-### Projects
-
-#### List Projects
-
-```http
-GET /api/v1/projects?workspaceId=ws_123&search=my-app
-```
-
-**Query Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `workspaceId` | string | Filter by workspace |
-| `search` | string | Search by name |
-| `limit` | number | Results per page |
-| `offset` | number | Pagination offset |
-
-**Response:**
-
-```json
-{
-  "data": [
-    {
-      "id": "prj_abc123",
-      "name": "My App",
-      "slug": "my-app",
-      "port": 3000,
-      "workspaceId": "ws_123",
-      "createdAt": "2025-01-01T00:00:00Z",
-      "updatedAt": "2025-01-15T10:00:00Z"
-    }
-  ],
-  "meta": {
-    "total": 1,
-    "limit": 20,
-    "offset": 0
-  }
-}
-```
-
-**Example:**
-
-```typescript
-const projects = await client.listProjects('ws_123', {
-  search: 'my-app',
-  limit: 10
-})
-```
-
-#### Create Project
-
-```http
-POST /api/v1/projects
-```
-
-**Request Body:**
-
-```json
-{
-  "name": "My App",
-  "port": 3000,
-  "workspaceId": "ws_123",
-  "environmentVariables": {
-    "NODE_ENV": "production",
-    "PORT": "3000"
-  },
-  "gitRepositoryId": "repo_xyz"
-}
-```
-
-**Response:**
-
-```json
-{
-  "data": {
-    "id": "prj_abc123",
-    "name": "My App",
-    "slug": "my-app",
-    "port": 3000,
-    "url": "https://my-app.tose.app"
-  }
-}
-```
-
-**Git block and API key scopes:** when the request includes a `git` block, the first deployment is queued only if the caller has `deployments:execute`. With only `projects:write`, the project and Git connection are created with `auto_deploy` off and the response contains `deploy_skipped` instead of `deployment_id` and `build_logs_url`. See [Scopes and automatic deploys](/api/authentication#scopes-and-automatic-deploys).
-
-**Example:**
-
-```typescript
-const project = await client.createProject({
-  name: 'My App',
-  port: 3000,
-  workspaceId: 'ws_123',
-  environmentVariables: {
-    NODE_ENV: 'production'
-  }
-})
-```
-
-#### Update Project
-
-```http
-PATCH /api/v1/projects/:projectId
-```
-
-**Request Body:**
-
-```json
-{
-  "port": 8080,
-  "environmentVariables": {
-    "NODE_ENV": "production",
-    "API_URL": "https://api.example.com"
-  }
-}
-```
-
-### Deployments
-
-#### List Deployments
-
-```http
-GET /api/v1/projects/:projectId/deployments
-```
-
-**Query Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `limit` | number | Results per page (default: 10) |
-| `offset` | number | Pagination offset |
-
-**Response:**
-
-```json
-{
-  "data": [
-    {
-      "id": "dep_xyz789",
-      "projectId": "prj_abc123",
-      "status": "running",
-      "version": "v12",
-      "createdAt": "2025-01-15T10:00:00Z"
-    }
-  ]
-}
-```
-
-#### Get Deployment Status
-
-```http
-GET /api/v1/deployments/:deploymentId/status
-```
-
-**Response:**
-
-```json
-{
-  "data": {
-    "id": "dep_xyz789",
-    "status": "running",
-    "phase": "Running",
-    "version": "v12",
-    "replicas": {
-      "desired": 2,
-      "ready": 2
-    },
-    "health": {
-      "healthy": true,
-      "checks": {
-        "liveness": "passing",
-        "readiness": "passing"
-      }
-    },
-    "createdAt": "2025-01-15T10:00:00Z",
-    "startedAt": "2025-01-15T10:01:00Z"
-  }
-}
-```
-
-**Example:**
-
-```typescript
-const status = await client.getDeploymentStatus('dep_xyz789')
-console.log(status.phase) // "Running"
-```
-
-#### Deploy Project
-
-```http
-POST /api/v1/projects/:projectId/deploy
-```
-
-**Request Body:**
-
-```json
-{
-  "branch": "main",
-  "environmentVariables": {
-    "NODE_ENV": "production"
-  }
-}
-```
-
-**Response:**
-
-```json
-{
-  "data": {
-    "deploymentId": "dep_new123",
-    "status": "pending",
-    "message": "Deployment initiated"
-  }
-}
-```
-
-#### Get Deployment Logs
-
-```http
-GET /api/v1/deployments/:deploymentId/logs?limit=100
-```
-
-**Query Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `limit` | number | Number of log lines (default: 100) |
-| `since` | string | Timestamp to start from |
-| `follow` | boolean | Stream logs (not yet implemented) |
-
-**Response:**
-
-```json
-{
-  "data": {
-    "logs": [
-      {
-        "timestamp": "2025-01-15T10:00:15Z",
-        "level": "info",
-        "message": "Starting deployment..."
-      },
-      {
-        "timestamp": "2025-01-15T10:00:20Z",
-        "level": "info",
-        "message": "Cloning repository..."
-      }
-    ]
-  }
-}
-```
-
-**Example:**
-
-```typescript
-const logs = await client.getDeploymentLogs('dep_xyz789', {
-  limit: 50
-})
-
-logs.forEach(log => {
-  console.log(`[${log.level}] ${log.message}`)
-})
-```
-
-### Git Repositories
-
-#### List Git Repositories
-
-```http
-GET /api/v1/git/repositories?workspaceId=ws_123
-```
-
-**Query Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `workspaceId` | string | Filter by workspace |
-| `all` | boolean | Include all accessible repos |
-
-**Response:**
-
-```json
-{
-  "data": [
-    {
-      "id": "repo_xyz",
-      "name": "my-app",
-      "fullName": "username/my-app",
-      "url": "https://github.com/username/my-app",
-      "provider": "github",
-      "defaultBranch": "main"
-    }
-  ]
-}
-```
-
-## Error Handling
-
-### Error Response Format
-
-```json
-{
-  "error": {
-    "code": "INVALID_API_KEY",
-    "message": "API key is invalid or expired",
-    "statusCode": 401
-  }
-}
-```
-
-### Common Error Codes
-
-| Code | Status | Description |
-|------|--------|-------------|
-| `INVALID_API_KEY` | 401 | API key is invalid |
-| `UNAUTHORIZED` | 403 | Insufficient permissions |
-| `NOT_FOUND` | 404 | Resource not found |
-| `VALIDATION_ERROR` | 400 | Invalid request data |
-| `RATE_LIMIT_EXCEEDED` | 429 | Too many requests |
-| `INTERNAL_ERROR` | 500 | Server error |
-
-### Error Handling Example
-
-```typescript
-try {
-  const project = await client.createProject(data)
-} catch (error) {
-  if (error.statusCode === 401) {
-    console.error('Invalid API key')
-  } else if (error.statusCode === 400) {
-    console.error('Validation error:', error.message)
-  } else {
-    console.error('Unexpected error:', error)
-  }
-}
-```
-
-## Rate Limiting
-
-- **Rate Limit:** 100 requests per minute per API key
-- **Headers:** `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset`
+Every response carries an `X-Request-ID` header. Send your own to have it echoed back. Error
+bodies repeat it in `request_id`. Quote it when you contact support.
 
 ## Pagination
 
-List endpoints support pagination:
+List endpoints that page take `page` (1-based) and `limit`, and the response repeats `page`,
+`limit` and `total`. Out-of-range values fall back to the defaults. Project log queries page with
+a `cursor`. The spec states which endpoints page.
 
-```typescript
-const projects = await client.listProjects('ws_123', {
-  limit: 20,
-  offset: 0
-})
+## Asynchronous work
 
-// Next page
-const nextPage = await client.listProjects('ws_123', {
-  limit: 20,
-  offset: 20
-})
+`POST .../deploy` only queues a build and returns a deployment in status `pending`. Poll the
+deployment until it is `running`, `failed` or `stopped`. No endpoint accepts an idempotency key,
+so retrying a deploy creates another deployment. Check the deployment list before you retry.
+
+## Stop Deployment
+
+```http
+POST /api/workspaces/:slug/projects/:projectSlug/deployments/:id/stop
 ```
 
-## TypeScript Types
+Requires the owner or admin role. Any status other than `pending`, `cloning`, `building`, `pushing`, `deploying` or `running` returns `400`. The response is the deployment with status `stopped`.
 
-### Project
+**Stopping a `running` deployment stops the whole project.** In one locked write, TOSE records `stopped` on:
 
-```typescript
-interface Project {
-  id: string
-  name: string
-  slug: string
-  port: number
-  workspaceId: string
-  environmentVariables?: Record<string, string>
-  gitRepositoryId?: string
-  createdAt: string
-  updatedAt: string
+- every deployment of the project that is `running` or `deploying`, and
+- every deployment of the project that is still before deploy (`pending`, `cloning`, `building` or `pushing`).
+
+The app is scaled to zero replicas and stays there until you deploy again. Only deployments created before the Stop began are affected. A deploy requested after the Stop builds and ships normally. A stopped build gets no deploy, no email, and no success or failure event. A later redeploy never picks the image of a cancelled rollout.
+
+**Stopping a `deploying` deployment finishes asynchronously.** The build pipeline cancels the rollout, then puts back the version that served last, if one exists. Otherwise it scales the workload to zero. If the deployment's own image is still the one serving, the row ends `running` again with the reason in `error_message`. Re-read the deployment with `GET` after a Stop, rather than trusting the status in the response.
+
+**Response:**
+
+```json
+{
+  "id": "dep_xyz789",
+  "status": "stopped"
 }
 ```
 
-### Deployment
+**Errors:**
+
+| Status | Meaning |
+|--------|---------|
+| `400` | The deployment is not in a stoppable status |
+| `503` | Nothing was stopped: the project's workload lock could not be taken within 60 seconds because a deployment step is finishing, or the database is unreachable. The response carries a `Retry-After` header |
+
+A Stop answers within about 100 seconds. On `503`, wait the number of seconds in `Retry-After`, then send the request again. The retry is safe because nothing was stopped.
 
 ```typescript
-interface Deployment {
-  id: string
-  projectId: string
-  status: 'pending' | 'building' | 'deploying' | 'running' | 'failed' | 'stopped'
-  phase: string
-  version: string
-  createdAt: string
-  startedAt?: string
-  completedAt?: string
+const res = await fetch(url, { method: 'POST', headers })
+if (res.status === 503) {
+  const wait = Number(res.headers.get('Retry-After') ?? 5)
+  await new Promise(r => setTimeout(r, wait * 1000))
+  // retry the Stop request
 }
 ```
 
-### Log Entry
+## Related documentation
 
-```typescript
-interface LogEntry {
-  timestamp: string
-  level: 'info' | 'warn' | 'error' | 'debug'
-  message: string
-}
-```
-
-## Related Documentation
-
-- [Authentication](/api/authentication) - API key authentication
-- [Endpoints](/api/endpoints) - Detailed endpoint documentation
-- [TOSE CLI](/guide/introduction) - CLI tool using this API
+- [Authentication](/api/authentication)
+- [Errors](/api/errors)
+- [Cloud Desktops API](/api/desktops)
+- [Disks, Volumes & Pricing API](/api/disks)
+- [Self-hosting](/guide/self-hosting)
