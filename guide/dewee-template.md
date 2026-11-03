@@ -155,6 +155,13 @@ curl -s -o /dev/null -w '%{http_code}\n' https://<your-instance-host>/health
 | `Backend ready after Ns` never appears | The backend did not come up within 90 seconds. Check the database reachability |
 | First sign-in | Open the dashboard link and complete the one-time bootstrap sign-in. The CLI never prints the bootstrap credential |
 | Create refused with HTTP `402` | Unlock fee unpaid or wallet balance too low. See [Pricing](/guide/pricing) |
+| Instance is `suspended` | Top up the wallet, then run `tose template resume my-dewee --wait`. See [Resume a suspended instance](#resume-a-suspended-instance) |
+
+### Resume a suspended instance {#resume-a-suspended-instance}
+
+An instance suspended for an empty wallet refuses `tose template deploy` and `tose template resume` with `402 INSUFFICIENT_BALANCE` (CLI exit code `9`) until the wallet has credit. After you top up, `tose template resume my-dewee --wait` issues a gateway token and resumes it.
+
+After a resume, clients must use the new gateway token and existing sessions end, so update your API clients and sign in again. See [`tose template resume`](/commands/template#tose-template-resume).
 
 ## Versions and upgrades
 

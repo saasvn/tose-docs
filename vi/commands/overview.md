@@ -16,6 +16,7 @@ TOSE CLI cung cấp các lệnh chính sau để quản lý triển khai của b
 | [`tose deployment rollback`](/vi/commands/deployment#tose-deployment-rollback) | Rollback về một triển khai trước (cần `--yes`) | Khôi phục sau bản phát hành lỗi |
 | [`tose db create`](/vi/commands/db#tose-db-create) | Tạo database (`--type`, `--server`) | Postgres, pgvector, MySQL, Redis, MongoDB |
 | [`tose skills`](/vi/commands/skills) | Liệt kê và cài skill cho agent | Dạy agent dùng TOSE an toàn |
+| [`tose feedback`](/vi/commands/feedback) | Báo lỗi hoặc đề xuất tính năng, không cần tài khoản GitHub | Gửi phản hồi cho đội TOSE ngay từ terminal |
 
 ## Cấu trúc lệnh
 

@@ -153,6 +153,8 @@ Client từng so sánh `code` với `payment_required`, `unavailable`, `invalid_
 
 `400`. Project chưa kết nối repository Git nào nên không có gì để build. Hãy kết nối repository rồi deploy lại.
 
+[CLI](/vi/commands/deploy) đọc `NO_GIT_CONNECTION` và `INSUFFICIENT_BALANCE` từ trường `code` ổn định trong body phản hồi, dù nó nằm phẳng hay lồng trong `error`. CLI chỉ quay về khớp theo nội dung message với các server cũ không gửi code, nên đừng dựa vào nội dung message.
+
 ### `NO_SERVER` {#NO_SERVER}
 
 `400`. Project chưa được gán server (cụm Kubernetes). Hãy gán server cho project rồi deploy hoặc rollback lại. Redeploy trả `400 invalid_request` trong trường hợp này.

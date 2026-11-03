@@ -13,6 +13,7 @@ tose template env set demo --env-file provider.env     # file must be chmod 600
 printf 'GEMINI_API_KEY=%s\n' "$KEY" | tose template env set demo --env-stdin
 tose template env set demo GEMINI_API_KEY              # bare key name: masked prompt in a terminal
 tose template deploy demo --wait --json                # waits, then returns the links the API reports
+tose template resume demo --wait --json                # issue a token and resume a suspended Dewee/GoClaw instance
 ```
 
 ## tose template catalog
@@ -172,6 +173,39 @@ tose template deploy demo --rollback <deployment_id> --yes --wait
 - Dashboard, MCP, API and docs links come from the API response. The CLI never builds them from the slug.
 - Generated credentials and the one-time bootstrap secret are never printed. Open the dashboard link and complete the bootstrap sign-in there.
 - A wallet shortage, a missing TLS domain or a failed disk provisioning is reported with the step to take next.
+
+## tose template resume
+
+Issue a gateway token and resume a suspended Dewee/GoClaw instance. Use it when billing resumed the template but left it without a live gateway token.
+
+### Synopsis
+
+```bash
+tose template resume <slug> [--wait] [--timeout <duration>]
+```
+
+- It needs the same workspace role as `tose template deploy`.
+- Templates without a gateway answer `400`. Use [`tose template deploy`](#tose-template-deploy) for them.
+- `--wait` and `--timeout` behave as they do for `deploy`, including the [exit codes](#exit-codes-with-wait).
+
+::: warning Clients must switch to the new token
+After a resume, clients must use the new gateway token, and existing sessions end. The CLI prints this warning, and with `--json` it is also in `warnings`. If an accepted resume fails while waiting, the same warning is in the error details.
+:::
+
+```bash
+tose template resume demo --wait --json
+```
+
+## Suspended templates
+
+A suspended template refuses `deploy` and `resume` while the wallet is empty. These refusals are reported with a stable code:
+
+| Response | CLI result |
+|----------|------------|
+| `402 INSUFFICIENT_BALANCE` | Exit `9`. The billing link is a next action, and the template stays suspended. Top up, then run the command again |
+| `409` that raced a suspension | `retryable`. Nothing was started. The retry command is a next action and keeps your flags |
+| `409` for a deployment already in progress | Not retryable. The next action is [`tose template info`](#tose-template-info) |
+| `409` for a resume of a template that is not suspended | Not retryable. The next action is [`tose template deploy`](#tose-template-deploy) |
 
 ## AI provider usage (BYOK)
 

@@ -116,6 +116,7 @@ production yet.
 
 | Command | Description |
 |---------|-------------|
+| [`tose feedback`](/commands/feedback) | Report a bug or request a feature, no GitHub account needed |
 | [`tose generate`](/commands/generate) | Generate Dockerfile using AI |
 
 ## Quick Start

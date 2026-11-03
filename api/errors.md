@@ -153,6 +153,8 @@ Clients that compared `code` with `payment_required`, `unavailable`, `invalid_re
 
 `400`. The project has no Git repository connected, so there is nothing to build. Connect a repository, then deploy again.
 
+The [CLI](/commands/deploy) reads `NO_GIT_CONNECTION` and `INSUFFICIENT_BALANCE` from the stable `code` field of the response body, whether it is flat or nested under `error`. It falls back to matching the message only for older servers that send no code, so do not rely on the message text.
+
 ### `NO_SERVER` {#NO_SERVER}
 
 `400`. The project has no server (Kubernetes cluster) configured. Assign a server to the project, then deploy or roll back again. Redeploy answers `400 invalid_request` in this case.
