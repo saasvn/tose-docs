@@ -44,12 +44,65 @@ Hourly storage cost for a small disk is a fraction of a cent. TOSE does not roun
 
 There is no snapshot fee. Disk snapshots are not offered yet.
 
-## Running out of balance
+## Cloud Harness
 
-When your wallet runs out, TOSE suspends compute. Persistent disks and their data are **not** deleted, and their storage cost keeps accruing; it is charged after your next top-up. See [Persistent Disks](/guide/persistent-disks#retention).
+A [Cloud Harness](/guide/cloud-harness) instance has no unlock fee. It is billed in three parts, at
+the compute rates and the storage rate above:
+
+| Part | Billed | Size |
+|------|--------|------|
+| Instance | Every hour while the instance runs, like other templates | The size you chose, plus a fixed budget for the containers beside the runner |
+| Docker host | **Per second while awake**; **$0 while cold** | The installation's docker host size |
+| Disks | For as long as the instance exists, even when stopped | The instance's state disk plus the docker host's disk |
+
+- **Instance:** (vCPU + reserved vCPU) × the CPU rate + (GB + reserved GB) × the RAM rate, rounded to
+  whole cents per hour. A stopped instance has no compute charge.
+- **Docker host:** its vCPU × the CPU rate + its GB × the RAM rate, per hour, charged for each second
+  from a confirmed start until a confirmed stop. It wakes when a job needs Docker and suspends when
+  idle. Amounts below one cent carry forward, as described under [Sub-cent amounts](#sub-cent-amounts).
+- **Disks:** both disks' provisioned GiB at the storage rate.
+
+The current prices are computed by the server and returned in the `pricing` block of the
+`cloudharness` entry in the template catalog (`GET /api/workspaces/available-templates`), which the
+dashboard shows on the Cloud Harness card:
+
+| Field | Meaning |
+|-------|---------|
+| `instance.cpu`, `instance.ram` | Default instance size |
+| `instance.reserved_cpu`, `instance.reserved_ram` | Fixed budget of the containers beside the runner |
+| `instance.usd_per_hour` | Instance price per hour while running |
+| `docker_host.cpu`, `docker_host.ram` | Docker host size |
+| `docker_host.usd_per_hour_running` | Docker host price per hour while awake |
+| `docker_host.usd_per_hour_cold` | Always `0` |
+| `storage.state_disk_gib`, `storage.runtime_disk_gib` | Disk sizes |
+| `storage.usd_per_month` | Both disks per month |
+| `compute_tiers` | Instance and docker host prices for each wallet balance tier |
+
+The hourly prices outside `compute_tiers` are for the lowest balance tier.
+
+**Instance limit.** A workspace can hold a limited number of Cloud Harness instances: 5 by default,
+unless your TOSE installation sets another limit. The catalog entry's `max_instances` field shows it.
+An instance being deleted counts until its docker host is gone.
+
+Creating an instance and waking its docker host need a positive wallet balance.
+
+## When the balance is zero {#when-the-balance-is-zero}
+
+TOSE refuses every deploy while your workspace wallet balance is zero or negative. What you see depends on where the deploy started:
+
+| Where | What happens |
+|-------|--------------|
+| Dashboard and API | Deploy, redeploy and rollback return HTTP `402` with the error code `INSUFFICIENT_BALANCE`. No deployment is created. See [Common error messages](/guide/troubleshooting#insufficient-balance). |
+| GitHub push and the first deploy of a project | The deployment is created, then moves to `failed` before the build starts, with the message `insufficient wallet balance`. |
+| An agent over MCP | `deploy_project` and `rollback_deployment` return `INSUFFICIENT_BALANCE` at the plan step, so you are never asked to approve a change that cannot run. See [Tasks](/mcp/tasks#empty-wallet). |
+
+When the wallet runs out, TOSE also suspends compute, as before. Running Cloud Harness instances are stopped and their docker hosts suspended. Persistent disks and their data are **not** deleted, and their storage cost keeps accruing; it is charged after your next top-up. See [Persistent Disks](/guide/persistent-disks#retention). Any compute that could not be paid for is written off, so you do not owe it after a top-up.
+
+**To recover:** top up the wallet from the dashboard billing page, then deploy again. Deploys work normally once the balance is above zero.
 
 ## Related
 
 - [Persistent Disks](/guide/persistent-disks)
+- [Cloud Harness](/guide/cloud-harness)
 - [`tose pricing` / `tose volumes`](/commands/disk)
 - [Disks, Volumes & Pricing API](/api/disks)

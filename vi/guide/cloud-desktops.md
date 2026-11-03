@@ -13,9 +13,10 @@ Các trường hợp sử dụng điển hình:
   khi cần.
 - Một máy phát triển bền vững nhưng không tốn chi phí tính toán khi đang ngủ.
 
-::: info Tính khả dụng
-Cloud Desktop được bật theo từng bản cài đặt TOSE. Nếu các endpoint `desktops` trả về 404 cho
-workspace của bạn, tính năng này chưa được bật.
+::: warning Trạng thái: Coming soon
+Cloud Desktop đã được xây dựng xong và các lệnh `tose desktop` có trong CLI 0.1.3, nhưng tính năng
+này chưa được bật trên production. Tính năng được bật theo từng bản cài đặt TOSE: nếu các endpoint
+`desktops` trả về 404 cho workspace của bạn, tính năng chưa được bật.
 :::
 
 ## Cách hoạt động
@@ -61,7 +62,7 @@ Bằng API:
 
 ```bash
 export TOSE_API=https://api-v2.tose.sh
-export TOSE_API_KEY=ws_your_api_key
+export TOSE_API_KEY=tose_sk_your_api_key
 export WS=my-workspace
 
 curl -X POST "$TOSE_API/api/workspaces/$WS/desktops" \
