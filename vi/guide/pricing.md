@@ -100,7 +100,7 @@ Tạo instance và đánh thức docker host của nó đều cần số dư ví
 GET /api/workspaces/{slug}/wallet/costs?days=30
 ```
 
-Chia chi phí đã đo của `days` ngày gần nhất (mặc định 30) theo dự án, theo tài nguyên và theo ngày UTC, từ sổ usage. Số tiền tính bằng nano-USD (`compute_nano_usd`, `storage_nano_usd`, `total_nano_usd`). Mỗi mục trong `resources` có `type`: `project`, `template`, `database`, `desktop`, `runtime`, `volume` hoặc `other`. [Runtime Cloud Harness](/vi/guide/cloud-harness) được liệt kê là `runtime` với tên của runtime và chi phí compute riêng của nó, còn ổ đĩa của dự án được cộng vào dự án đó. Báo cáo là usage đã đo: compute đo trong giờ bắt đầu với số dư bằng 0 vẫn được liệt kê nhưng chưa từng bị tính phí.
+Chia chi phí đã đo của `days` ngày gần nhất (mặc định 30) theo dự án, theo tài nguyên và theo ngày UTC, từ sổ usage. Số tiền tính bằng nano-USD (`compute_nano_usd`, `storage_nano_usd`, `total_nano_usd`). Mỗi mục trong `resources` có `type`: `project`, `template`, `database`, `desktop`, `runtime`, `volume`, `ci_cache` (cache phụ thuộc của CI) hoặc `other`. [Runtime Cloud Harness](/vi/guide/cloud-harness) được liệt kê là `runtime` với tên của runtime và chi phí compute riêng của nó, còn ổ đĩa của dự án được cộng vào dự án đó. Báo cáo là usage đã đo: compute đo trong giờ bắt đầu với số dư bằng 0 vẫn được liệt kê nhưng chưa từng bị tính phí.
 
 ## Khi số dư bằng 0 {#when-the-balance-is-zero}
 

@@ -1,19 +1,19 @@
 # Hộp thư thông báo
 
-Hộp thư thông báo liệt kê các ops event của workspace cho từng thành viên đã đăng nhập: uptime lỗi, kết quả deployment, sự kiện billing và backup. Đây là chế độ xem chỉ đọc của chính các event nuôi [incident](/vi/api/projects#uptime) và cảnh báo bên ngoài. Mỗi thành viên có trạng thái đã đọc và tùy chọn riêng.
+Hộp thư thông báo liệt kê các ops event của workspace cho từng thành viên đã đăng nhập: uptime lỗi, kết quả deployment, sự kiện billing và backup. Đây là chế độ xem chỉ đọc của chính các event nuôi incident và cảnh báo bên ngoài. Mỗi thành viên có trạng thái đã đọc và tùy chọn riêng.
 
 Mở **Notifications** ở thanh bên của workspace trên dashboard.
 
 ## Hộp thư hiển thị gì
 
 - Event được liệt kê mới nhất trước. Các event lặp lại của cùng một incident hiện thành một dòng, với event mới nhất.
-- Mỗi dòng có event (`source`, `kind`, `severity`, `subject`, `summary`, `evidence` đã che thông tin nhạy cảm) cùng `read_at` và `acknowledged_at` của riêng bạn.
+- Mỗi dòng có đối tượng `event` (`source`, `kind`, `severity`, `subject`, `summary`, `evidence` đã che thông tin nhạy cảm), `read_at` và `acknowledged_at` của riêng bạn (không có cho đến khi được đặt) và `deliveries`.
 - `deliveries` cho biết trạng thái hiện tại của cảnh báo bên ngoài với event đang hiển thị: `channel` (`email`, `discord`, `webhook` hoặc `other`), `status` (`pending`, `sending`, `sent` hoặc `failed`), `attempts` và `updated_at`. Không bao giờ có người nhận, id sink nội bộ hay nội dung lỗi của nhà cung cấp.
 - Trạng thái đã đọc và đã xác nhận là theo từng thành viên. Bạn không thấy trạng thái của người khác, và bản thân event không bị thay đổi.
 
 ## Đánh dấu đã đọc hoặc đã xác nhận
 
-Đánh dấu đã đọc hoặc đã xác nhận là idempotent: gọi lại vẫn giữ thời điểm ban đầu.
+Đánh dấu đã đọc hoặc đã xác nhận là idempotent: gọi lại vẫn giữ thời điểm ban đầu. Xác nhận một event cũng đánh dấu nó đã đọc nếu trước đó chưa đọc.
 
 ## Tùy chọn
 
@@ -33,7 +33,7 @@ Mọi route nằm dưới `/api/workspaces/{slug}` và cần phiên đăng nhậ
 
 | Method và đường dẫn | Mô tả |
 |---------------------|-------|
-| `GET /notifications?limit=&cursor=` | Liệt kê hộp thư. `limit` từ 1-100. Phản hồi `{ "notifications": [...], "next_cursor": "..." }`; `next_cursor` là `null` ở trang cuối |
+| `GET /notifications?limit=&cursor=` | Liệt kê hộp thư. `limit` mặc định và tối đa là 100. Phản hồi `{ "notifications": [...], "next_cursor": "..." }`; `next_cursor` là `null` ở trang cuối |
 | `POST /notifications/{event_id}/read` | Đánh dấu một event đã đọc. `204` |
 | `POST /notifications/{event_id}/ack` | Xác nhận một event. `204` |
 | `GET /notifications/preferences` | Đọc tùy chọn của bạn |

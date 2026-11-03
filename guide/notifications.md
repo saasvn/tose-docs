@@ -1,19 +1,19 @@
 # Notifications inbox
 
-The notifications inbox lists the operations events of a workspace for each signed-in member: uptime failures, deployment outcomes, billing and backup events. It is a read-only view of the same events that feed [incidents](/api/projects#uptime) and external alerts. Each member keeps their own read state and preferences.
+The notifications inbox lists the operations events of a workspace for each signed-in member: uptime failures, deployment outcomes, billing and backup events. It is a read-only view of the same events that feed incidents and external alerts. Each member keeps their own read state and preferences.
 
 Open **Notifications** in the workspace sidebar of the dashboard.
 
 ## What the inbox shows
 
 - Events are listed newest first. Repeated events of one incident are shown as one row, with the latest event.
-- Each row carries the event (`source`, `kind`, `severity`, `subject`, `summary`, redacted `evidence`) and the member's own `read_at` and `acknowledged_at`.
+- Each row has an `event` object (`source`, `kind`, `severity`, `subject`, `summary`, redacted `evidence`), the member's own `read_at` and `acknowledged_at` (left out until set) and `deliveries`.
 - `deliveries` shows the current state of external alerts for the displayed event: `channel` (`email`, `discord`, `webhook` or `other`), `status` (`pending`, `sending`, `sent` or `failed`), `attempts` and `updated_at`. The recipient, internal sink id and provider error text are never included.
 - Read and acknowledge state is per member. You never see another member's state, and the event itself is not changed.
 
 ## Mark events read or acknowledged
 
-Marking an event read or acknowledged is idempotent: repeating the call keeps the original time.
+Marking an event read or acknowledged is idempotent: repeating the call keeps the original time. Acknowledging an event also marks it read if it was not.
 
 ## Preferences
 
@@ -33,7 +33,7 @@ All routes are under `/api/workspaces/{slug}` and need a signed-in session with 
 
 | Method and path | Description |
 |-----------------|-------------|
-| `GET /notifications?limit=&cursor=` | List the inbox. `limit` is 1-100. The response is `{ "notifications": [...], "next_cursor": "..." }`; `next_cursor` is `null` on the last page |
+| `GET /notifications?limit=&cursor=` | List the inbox. `limit` defaults to and is at most 100. The response is `{ "notifications": [...], "next_cursor": "..." }`; `next_cursor` is `null` on the last page |
 | `POST /notifications/{event_id}/read` | Mark one event read. `204` |
 | `POST /notifications/{event_id}/ack` | Acknowledge one event. `204` |
 | `GET /notifications/preferences` | Read your preferences |

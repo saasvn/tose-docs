@@ -77,13 +77,13 @@ GET /api/workspaces/{slug}/projects/{project_slug}/status
 
 Unlike the rest of this page, reading is open to any workspace member.
 
-- **The server endpoint is empty.** The `server` object in project detail has `endpoint: ""`, so the Kubernetes control-plane URL is never disclosed. Use `server.id` and `server.name`.
+- **The server endpoint is empty.** The `server` object in project detail has `endpoint: ""`, so project detail does not include the Kubernetes control-plane URL. Use `server.id` and `server.name`.
 - **`latest_deployment`.** The status response carries the most recent deployment as `latest_deployment` (`id`, `status`, `created_at`, optional `service_url`), and leaves it out when the project was never deployed. The older camelCase `latestDeployment` is still sent with the same value; read `latest_deployment` in new code.
-- **Registry credentials.** A project's `registry` object has `id`, `name`, `provider`, `namespace`, `url` and `status`. The registry username and password are never part of any response.
+- **Registry credentials.** A project's `registry` object has `id`, `name`, `provider`, `namespace`, `url`, `status`, `created_at` and `updated_at`. The registry username and password are never part of any response.
 
 ## Post-deploy health gate {#health-gate}
 
-By default a deployment is `running` as soon as the rollout succeeds. An operator can turn on an optional readiness check with `POST_DEPLOY_HEALTH_GATE_ENABLED=true` (see [Self-hosting](/guide/self-hosting#optional-operator-settings)); it is off unless set. The gate watches the deployed image's Kubernetes readiness for 10 seconds after the rollout and records the result on the deployment:
+By default a deployment is `running` as soon as the rollout succeeds. An operator can turn on an optional readiness check with `POST_DEPLOY_HEALTH_GATE_ENABLED=true` (see [Self-hosting](/guide/self-hosting#optional-operator-settings)); it is off unless set. The gate watches the deployed image's Kubernetes readiness for 10 seconds after a successful build-and-deploy rollout (rollbacks and template deploys are not gated) and records the result on the deployment:
 
 | Field | Description |
 |-------|-------------|
@@ -91,7 +91,7 @@ By default a deployment is `running` as soon as the rollout succeeds. An operato
 | `health_gate_reason` | A short, safe explanation. It never contains Kubernetes errors or secrets |
 | `health_gate_checked_at` | When the result was recorded (ISO 8601) |
 
-The gate only observes the workload; it does not send an HTTP request to your app. A `failed` result does **not** change the deployment status, so it stays `running` and billed, and TOSE never rolls back by itself. The build log ends with `Post-deploy health gate: failed (...)`, and a `deployment.health_gate_failed` operations event (severity `warning`) suggests a rollback for a person to approve. Check the build log and the event, then [roll back](/commands/deployment) or redeploy yourself.
+The gate only observes the workload; it does not send an HTTP request to your app. A `failed` result does **not** change the deployment status, so it stays `running` and billed, and TOSE never rolls back by itself. The build log contains `Post-deploy health gate: failed (...)`, and a `deployment.health_gate_failed` operations event (severity `warning`) suggests a rollback for a person to approve. Check the build log and the event, then [roll back](/commands/deployment) or redeploy yourself.
 
 ## Log streams {#log-streams}
 
@@ -116,9 +116,10 @@ On `PUT`, `discord_webhook_url` has three behaviours:
 |---------|--------|
 | Omit `discord_webhook_url` | The saved webhook is kept |
 | Send a Discord webhook URL (`https://discord.com/api/webhooks/...`) | It replaces the saved webhook. Any other URL returns `400` |
+| Send an empty string `""` | The saved webhook is **removed**, the same as `clear_discord_webhook` |
 | Send `"clear_discord_webhook": true` | The saved webhook is removed |
 
-Sending a replacement URL and `clear_discord_webhook: true` together returns `400`. With `enabled: true`, at least one of the saved or new Discord webhook and `notify_email` must remain, otherwise `400`.
+`GET` always returns `discord_webhook_url` as an empty string, so do not send a `GET` body back in a `PUT`: it would delete the saved webhook. `PUT` replaces the other settings as a whole (`enabled`, `check_interval_sec`, `notify_email`), so send them all; an omitted `notify_email` is cleared and `check_interval_sec` is limited to 60-3600 seconds. Sending a replacement URL and `clear_discord_webhook: true` together returns `400`. With `enabled: true`, at least one of the saved or new Discord webhook and `notify_email` must remain, otherwise `400`.
 
 ## Git connection
 

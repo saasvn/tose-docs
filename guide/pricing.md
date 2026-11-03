@@ -98,7 +98,7 @@ Waking a desktop needs a positive wallet balance. See [Cloud desktops](/guide/cl
 GET /api/workspaces/{slug}/wallet/costs?days=30
 ```
 
-Splits the metered cost of the last `days` days (default 30) by project, by resource and by UTC day, from the usage ledger. Amounts are in nano-USD (`compute_nano_usd`, `storage_nano_usd`, `total_nano_usd`). Each entry in `resources` has a `type`: `project`, `template`, `database`, `desktop`, `runtime`, `volume` or `other`. [Cloud Harness runtimes](/guide/cloud-harness) are listed as `runtime` with the runtime's name and their own compute cost, and a project's disks count towards that project. The report is metered usage: compute metered in an hour that began with a zero balance is listed but was never charged.
+Splits the metered cost of the last `days` days (default 30) by project, by resource and by UTC day, from the usage ledger. Amounts are in nano-USD (`compute_nano_usd`, `storage_nano_usd`, `total_nano_usd`). Each entry in `resources` has a `type`: `project`, `template`, `database`, `desktop`, `runtime`, `volume`, `ci_cache` (the CI dependency cache) or `other`. [Cloud Harness runtimes](/guide/cloud-harness) are listed as `runtime` with the runtime's name and their own compute cost, and a project's disks count towards that project. The report is metered usage: compute metered in an hour that began with a zero balance is listed but was never charged.
 
 ## When the balance is zero {#when-the-balance-is-zero}
 
