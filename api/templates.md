@@ -264,8 +264,12 @@ GET /api/workspaces/{slug}/templates/{template_slug}/deployments/{id}
 | `trigger_type` | string | `manual`, or `image_only` for an image deploy |
 | `triggered_by` | string \| null | ID of the user who requested it |
 | `error_message` | string \| null | Why the deployment failed, if it did |
+| `health_state` | string | `healthy`, `unhealthy` or `unverified`: the last check of the deployed workload. Empty when no check ran, for example probes are off, a `custom` image or another template |
+| `health_message` | string \| null | Why the deployment is not `healthy` |
 | `created_at` / `updated_at` | string (RFC 3339) | Timestamps |
 
 These four receipt fields are recorded for image deploys only; build deploys leave them out. Together, `image_source`, `image_digest`, `previous_image`, `config_fingerprint` and `triggered_by` are the deploy receipt: what ran, what it replaced, and who asked.
+
+A Dewee deployment is recorded `running` only after the rollout, the ingress step and a public `/health` check on the default domain succeed. If that check fails, the deployment gets `health_state=unhealthy` with the reason in `health_message`, an ops event is recorded, and the template itself stays `running`. Nothing is rolled back automatically. See [Deployment health state](/guide/dewee-template#health-state).
 
 A tag can move. To know exactly which build ran, pin your custom image to a digest (`repository:tag@sha256:…`) so `image_digest` is recorded.

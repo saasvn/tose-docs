@@ -135,8 +135,28 @@ Xử lý sự cố:
 
 Ý nghĩa của các trạng thái:
 
-- `running` nghĩa là pod đã sẵn sàng theo cách Kubernetes tính. Container template chưa có startup, readiness hay liveness probe, và script khởi động chờ tối đa 90 giây để backend trả lời `/health`, sau đó vẫn chạy nginx dù backend chưa lên. Vì vậy `running` **không** chứng minh API đang phản hồi ([tose-app#274](https://github.com/saasvn/tose-app/issues/274)).
-- Image có `HEALTHCHECK` Docker riêng gọi `http://127.0.0.1:18790/health`. Nó kiểm tra backend, không kiểm tra route công khai qua nginx.
+- `running` với template Dewee nghĩa là pod đã qua readiness của Kubernetes **và** qua bước kiểm tra `/health` công khai trên domain mặc định. Một deployment chỉ được ghi `running` sau khi rollout, bước ingress và kiểm tra đó thành công ([tose-app#290](https://github.com/saasvn/tose-app/pull/290)).
+- **Probe.** Với deployment Dewee từ image build hoặc image catalog, Kubernetes chạy startup và readiness probe trên `/health` và liveness probe trên `/livez`, qua cổng proxy `3000`. Ngân sách startup là 30 phút, nên migration database chậm không gây vòng lặp restart. Image đặt là `custom` và các template khác (ví dụ GoClaw) không có probe, vì TOSE không biết cấu trúc của image custom.
+- **Container.** Script khởi động thoát với mã khác 0 nếu backend không bao giờ khỏe hoặc chết về sau, không bao giờ để Nginx chạy mà không có backend, và dừng cả hai gọn gàng khi nhận `SIGTERM`. Vì vậy backend hỏng sẽ làm pod restart thay vì trả `502`.
+- Image cũng có `HEALTHCHECK` Docker riêng gọi `http://127.0.0.1:18790/health`. Nó kiểm tra backend, không kiểm tra route công khai qua Nginx.
+
+### Trạng thái health của deployment {#health-state}
+
+Khi kiểm tra công khai thất bại, deployment không bị rollback và template vẫn là `running`, nên tính phí, tạm ngưng và log trực tiếp vẫn hoạt động. Bản ghi deployment có hai trường (xem [Deployment](/vi/api/templates#deployment)):
+
+| `health_state` | Ý nghĩa |
+|----------------|---------|
+| `healthy` | Kiểm tra `/health` công khai trên domain mặc định thành công |
+| `unhealthy` | Kiểm tra thất bại. `health_message` nêu lý do (ví dụ phản hồi không phải 2xx) và một ops event được ghi lại |
+| `unverified` | TOSE không kiểm tra được, ví dụ template không có route công khai |
+
+Nếu một deployment là `unhealthy`:
+
+1. Đọc `health_message` bằng `tose template info my-dewee` hoặc API deployments.
+2. Đọc log trực tiếp (`tose template logs my-dewee -f`) để tìm crash, `GOCLAW_POSTGRES_DSN` sai hoặc migration lỗi.
+3. Sửa nguyên nhân rồi deploy lại. Nếu image trước đó chạy tốt, rollback bằng `tose template deploy --rollback <deployment_id>`. TOSE không bao giờ tự rollback, và rollback không hoàn lại database ([Nâng cấp](#versions-and-upgrades)).
+
+Người vận hành API tự host có thể tắt probe và kiểm tra công khai bằng `TEMPLATE_PROBES_ENABLED=false`. Xem [Tự host](/vi/guide/self-hosting#template-probes).
 
 Tự kiểm tra một instance:
 
@@ -152,7 +172,8 @@ curl -s -o /dev/null -w '%{http_code}\n' https://<host-instance-cua-ban>/health
 | `502` từ host công khai | Backend chưa chạy phía sau nginx. Đọc log trực tiếp để tìm crash, `GOCLAW_POSTGRES_DSN` sai hoặc migration lỗi |
 | `/health` ổn nhưng giao diện web không kết nối được | Proxy phía trước TOSE chặn nâng cấp `/ws`, hoặc token sai |
 | Log kết thúc bằng `Database upgrade failed` | Migration lỗi và container thoát. Xem [Nâng cấp](#versions-and-upgrades) |
-| Không bao giờ thấy `Backend ready after Ns` | Backend không lên trong 90 giây. Kiểm tra kết nối tới database |
+| Không bao giờ thấy `Backend ready after Ns` | Backend không khỏe và container thoát để pod restart. Kiểm tra kết nối tới database |
+| Deployment có `health_state: unhealthy` | Kiểm tra `/health` công khai thất bại. Xem [Trạng thái health của deployment](#health-state) |
 | Đăng nhập lần đầu | Mở liên kết dashboard và hoàn tất đăng nhập bootstrap một lần. CLI không bao giờ in credential bootstrap |
 | Tạo bị từ chối với HTTP `402` | Chưa trả phí mở khóa hoặc số dư ví quá thấp. Xem [Bảng giá](/vi/guide/pricing) |
 

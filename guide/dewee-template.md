@@ -135,8 +135,28 @@ This is the Dewee instance's own MCP server. For the connector to TOSE itself, s
 
 What the statuses mean:
 
-- `running` means the pod is ready as Kubernetes counts readiness. The template container has no startup, readiness or liveness probe yet, and the start script waits up to 90 seconds for the backend `/health`, then starts nginx even if the backend never answered. So `running` does **not** prove that the API responds ([tose-app#274](https://github.com/saasvn/tose-app/issues/274)).
-- The container image has its own Docker `HEALTHCHECK` on `http://127.0.0.1:18790/health`. This checks the backend, not the public route through nginx.
+- `running` on a Dewee template means the pod passed Kubernetes readiness **and** a public `/health` check on the default domain. A deployment is recorded `running` only after the rollout, the ingress step and that check succeed ([tose-app#290](https://github.com/saasvn/tose-app/pull/290)).
+- **Probes.** For Dewee deployments from built or catalog images, Kubernetes runs startup and readiness probes on `/health` and a liveness probe on `/livez`, through the proxy port `3000`. The startup budget is 30 minutes, so a slow database migration does not cause a restart loop. Images set as `custom` and other templates (for example GoClaw) get no probes, because TOSE does not know the layout of a custom image.
+- **Container.** The start script exits nonzero if the backend never becomes healthy or dies later, never leaves Nginx running without the backend, and stops both cleanly on `SIGTERM`. So a broken backend restarts the pod instead of serving `502`.
+- The image also has its own Docker `HEALTHCHECK` on `http://127.0.0.1:18790/health`. This checks the backend, not the public route through Nginx.
+
+### Deployment health state {#health-state}
+
+When the public check fails, the deployment is not rolled back and the template stays `running`, so billing, suspension and live logs keep working. The deployment record carries two fields (see [Deployment](/api/templates#deployment)):
+
+| `health_state` | Meaning |
+|----------------|---------|
+| `healthy` | The public `/health` check on the default domain succeeded |
+| `unhealthy` | The check failed. `health_message` says why (for example a non-2xx answer) and an ops event is recorded |
+| `unverified` | TOSE could not check it, for example the template has no public route |
+
+If a deployment is `unhealthy`:
+
+1. Read `health_message` with `tose template info my-dewee` or the deployments API.
+2. Read the live log (`tose template logs my-dewee -f`) for a crash, a bad `GOCLAW_POSTGRES_DSN` or a failed migration.
+3. Fix the cause and redeploy. If the previous image was fine, roll back with `tose template deploy --rollback <deployment_id>`. TOSE never rolls back by itself, and a rollback does not revert the database ([Upgrades](#versions-and-upgrades)).
+
+Operators of a self-hosted API can turn the probes and the public check off with `TEMPLATE_PROBES_ENABLED=false`. See [Self-hosting](/guide/self-hosting#template-probes).
 
 Check an instance yourself:
 
@@ -152,7 +172,8 @@ curl -s -o /dev/null -w '%{http_code}\n' https://<your-instance-host>/health
 | `502` from the public host | Backend is not up behind nginx. Read the live log for crashes, a bad `GOCLAW_POSTGRES_DSN`, or a failed migration |
 | `/health` fine but the web UI cannot connect | `/ws` upgrade blocked by a proxy in front of TOSE, or a wrong token |
 | Log ends with `Database upgrade failed` | The migration failed and the container exits. See [Upgrades](#versions-and-upgrades) |
-| `Backend ready after Ns` never appears | The backend did not come up within 90 seconds. Check the database reachability |
+| `Backend ready after Ns` never appears | The backend did not become healthy and the container exits so the pod restarts. Check the database reachability |
+| Deployment shows `health_state: unhealthy` | The public `/health` check failed. See [Deployment health state](#health-state) |
 | First sign-in | Open the dashboard link and complete the one-time bootstrap sign-in. The CLI never prints the bootstrap credential |
 | Create refused with HTTP `402` | Unlock fee unpaid or wallet balance too low. See [Pricing](/guide/pricing) |
 

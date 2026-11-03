@@ -48,6 +48,10 @@ string with `400 credentials_in_url`, and its access log records the path withou
 string. If your reverse proxy or load balancer logs full URLs, those logs are outside the API's
 control, so disable query logging there too. See [Authentication](/api/authentication).
 
+## Template health probes {#template-probes}
+
+By default the API adds Kubernetes startup, readiness (`/health`) and liveness (`/livez`) probes to Dewee template deployments and runs a public `/health` check before it records a deployment `running` (up to 3 minutes, on the default domain). Set `TEMPLATE_PROBES_ENABLED=false` on the API to turn both off. The start script's supervision stays active because it ships inside every Dewee image. `custom` images and other templates are never probed. See [Deployment health state](/guide/dewee-template#health-state).
+
 ## Publish the API contract
 
 The API serves its OpenAPI spec at `/api/openapi.yaml`, so a self-hosted instance documents
