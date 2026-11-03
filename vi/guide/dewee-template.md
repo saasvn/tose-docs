@@ -170,7 +170,7 @@ curl -s -o /dev/null -w '%{http_code}\n' https://<host-instance-cua-ban>/health
 
 - **Dừng** (`tose template stop <slug>`) đưa instance về 0 replica và giữ lại ổ đĩa cùng cấu hình. Deploy lại để khởi động.
 - **Xóa** (`tose template delete <slug>`) xóa instance cùng ổ đĩa, biến, domain và lịch sử. Không thể hoàn tác, nên hãy backup theo [Phiên bản và nâng cấp](#versions-and-upgrades) trước.
-- **Build đang chạy sẽ kết thúc.** Dừng và xóa đều kết thúc build đang chạy. Container build và push bị gỡ, deployment được đánh dấu `stopped` và log của nó kết thúc bằng `=== Build Stopped ===`. Vì vậy dừng hoặc xóa là cách an toàn để hủy một build bị kẹt hoặc không cần nữa. Xóa workspace cũng kết thúc các build template.
+- **Build đang chạy sẽ kết thúc.** Dừng và xóa đều kết thúc build đang chạy: container build và push bị gỡ và deployment được đánh dấu `stopped`. Log của build bị dừng thường kết thúc bằng `=== Build Stopped ===`; sau khi xóa thì lịch sử không còn. Hãy dừng build bạn không cần nữa, rồi kiểm tra `tose template info` để chắc template và deployment đã `stopped`.
 
 Xem [`tose template stop / delete`](/vi/commands/template#tose-template-stop-delete) và [API template](/vi/api/templates#lifecycle).
 

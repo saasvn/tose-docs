@@ -170,7 +170,7 @@ curl -s -o /dev/null -w '%{http_code}\n' https://<your-instance-host>/health
 
 - **Stop** (`tose template stop <slug>`) scales the instance to zero and keeps its disk and settings. Deploy again to start it.
 - **Delete** (`tose template delete <slug>`) removes the instance with its disk, variables, domains and history. It cannot be undone, so take the backups from [Versions and upgrades](#versions-and-upgrades) first.
-- **A build in progress ends.** Stop and delete both end a running build. The build and push containers are removed, the deployment is marked `stopped` and its log ends with `=== Build Stopped ===`. Stopping or deleting is therefore a safe way to cancel a build that is stuck or no longer wanted. Deleting a workspace ends its template builds too.
+- **A build in progress ends.** Stop and delete both end a running build: the build and push containers are removed and the deployment is marked `stopped`. The log of a stopped build usually ends with `=== Build Stopped ===`; after a delete the history is gone. Stop a build you no longer want, then check `tose template info` to confirm the template and its deployment are `stopped`.
 
 See [`tose template stop / delete`](/commands/template#tose-template-stop-delete) and the [Templates API](/api/templates#lifecycle).
 

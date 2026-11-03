@@ -185,7 +185,7 @@ Cả hai cần vai trò `owner` hoặc `admin` của workspace và hỏi xác nh
 - **`stop`** đưa instance về 0 replica và đặt trạng thái `stopped`. Ổ đĩa và cấu hình được giữ lại, và `tose template deploy` sẽ khởi động lại nó.
 - **`delete`** xóa instance cùng ổ đĩa, biến môi trường, domain và lịch sử deployment. Không thể hoàn tác.
 
-Cả hai cũng kết thúc build đang chạy. Các deployment của nó được đánh dấu `stopped`, container build và push bị gỡ, và log build kết thúc bằng `=== Build Stopped ===`. Bạn không cần chờ build xong rồi mới dừng hoặc xóa template. Xóa workspace cũng kết thúc các build template theo cách tương tự.
+Cả hai cũng kết thúc build đang chạy (không áp dụng cho instance Cloud Harness). Các deployment của nó được đánh dấu `stopped` và container build, push bị gỡ, và log của build bị dừng thường kết thúc bằng `=== Build Stopped ===`. Bạn không cần chờ build xong rồi mới dừng hoặc xóa template. Lịch sử deployment của template đã xóa, cùng log của nó, không còn nữa.
 
 Instance đang bị xóa từ chối các thay đổi khác với `409` cho tới khi việc xóa hoàn tất. Xem chi tiết phản hồi ở [API template](/vi/api/templates#lifecycle).
 

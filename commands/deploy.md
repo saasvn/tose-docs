@@ -191,9 +191,9 @@ $ tose redeploy --json
 `error.code: "INSUFFICIENT_BALANCE"` and a `next_actions` entry with the top-up `url`. Top up the
 wallet, then run the command again.
 
-### Error: redeploy or rollback failed
+### Error: Redeploy or Rollback Failed
 
-If the cluster refuses the redeploy, the API answers `500` with `Redeploy failed. See the server log for details.`. A failed `tose rollback` answers `ROLLBACK_FAILED` with `Rollback failed. See the server log for details.`. Both messages are generic on purpose: the cluster error can contain infrastructure detail, so it stays in the server log. Run the command again, and quote the `request_id` to support if it keeps failing.
+If the redeploy fails, in the cluster or in a step before it such as reading the server, secrets or disk, the API answers `500` with `Redeploy failed. See the server log for details.`. A failed `tose rollback` answers `ROLLBACK_FAILED` with `Rollback failed. See the server log for details.`. Both messages are generic on purpose: the cluster error can contain infrastructure detail, so it stays in the server log. Run the command again, and quote the `request_id` to support if it keeps failing.
 
 ## deploy vs redeploy
 

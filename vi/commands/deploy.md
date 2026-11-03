@@ -143,7 +143,7 @@ $ tose redeploy
 
 ### Lỗi: redeploy hoặc rollback thất bại
 
-Nếu cụm từ chối redeploy, API trả `500` kèm `Redeploy failed. See the server log for details.`. `tose rollback` thất bại trả `ROLLBACK_FAILED` kèm `Rollback failed. See the server log for details.`. Cả hai message đều chung chung có chủ đích: lỗi của cụm có thể chứa chi tiết hạ tầng nên chỉ nằm trong log của server. Hãy chạy lại lệnh, và gửi `request_id` cho bộ phận hỗ trợ nếu vẫn lỗi.
+Nếu redeploy thất bại, ở cụm hoặc ở một bước trước đó như đọc server, secret hoặc ổ đĩa, API trả `500` kèm `Redeploy failed. See the server log for details.`. `tose rollback` thất bại trả `ROLLBACK_FAILED` kèm `Rollback failed. See the server log for details.`. Cả hai message đều chung chung có chủ đích: lỗi của cụm có thể chứa chi tiết hạ tầng nên chỉ nằm trong log của server. Hãy chạy lại lệnh, và gửi `request_id` cho bộ phận hỗ trợ nếu vẫn lỗi.
 
 ## deploy so với redeploy
 

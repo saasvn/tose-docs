@@ -185,7 +185,7 @@ Both need the workspace `owner` or `admin` role and ask for confirmation. `--yes
 - **`stop`** scales the instance to zero and sets it to `stopped`. Disk and settings are kept, and `tose template deploy` starts it again.
 - **`delete`** removes the instance with its disk, environment variables, domains and deployment history. It cannot be undone.
 
-Both also end a build that is still running. Its deployments are marked `stopped`, its build and push containers are removed, and the build log ends with `=== Build Stopped ===`. You do not need to wait for a build to finish before you stop or delete the template. Deleting a workspace ends its template builds the same way.
+Both also end a build that is still running (not for Cloud Harness instances). Its deployments are marked `stopped` and its build and push containers are removed, and a stopped build's log usually ends with `=== Build Stopped ===`. You do not need to wait for a build to finish before you stop or delete the template. A deleted template's deployment history, and its logs, are gone.
 
 An instance that is being deleted refuses other changes with `409` until the delete finishes. See [Templates API](/api/templates#lifecycle) for the exact responses.
 
