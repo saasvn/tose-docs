@@ -23,7 +23,7 @@ Chỉ tài khoản có email **đã được nhà cung cấp đăng nhập xác 
 | GitHub, với địa chỉ nằm trong danh sách đã xác minh của GitHub | Có |
 | Email và mật khẩu | Không. Các tài khoản này nhận `409 email_not_verified`. |
 
-Việc kiểm tra chạy ở mỗi lần đăng nhập Google hoặc GitHub. Nếu nhà cung cấp không còn báo email của bạn là đã xác minh, thẻ sẽ bị ẩn cho đến khi nó báo lại.
+Việc kiểm tra chạy ở mỗi lần đăng nhập Google hoặc GitHub. Nếu nhà cung cấp không còn báo email của bạn là đã xác minh, thẻ sẽ bị ẩn trên trang Projects và bạn không thể ủy quyền lại cho đến khi nó báo lại. Nếu bạn đã có một ủy quyền, thẻ ở Settings vẫn hiện để bạn rút lại.
 
 ## Dữ liệu nào được chia sẻ
 
@@ -31,9 +31,10 @@ Việc kiểm tra chạy ở mỗi lần đăng nhập Google hoặc GitHub. N�
 |---|---|
 | Mã băm một chiều có khóa của email | Địa chỉ email của bạn |
 | Account id không mang thông tin của bạn | Tên, username hay dữ liệu hồ sơ khác |
-| Phiên bản đồng ý bạn đã chấp nhận | Project, workspace, thanh toán hay mức sử dụng |
+| Phiên bản đồng ý bạn đã chấp nhận và thời điểm bạn đồng ý | Project, workspace, thanh toán hay mức sử dụng |
+| Dấu hiệu cho biết chính bạn đã xác nhận (`user_confirmed`) | |
 
-TOSE không lưu bản sao yêu cầu, thông tin liên hệ hay email của bạn cho tính năng này. TOSE chỉ giữ thời điểm và phiên bản đồng ý làm bằng chứng bạn đã chấp thuận.
+TOSE không lưu bản sao yêu cầu, thông tin liên hệ hay email của bạn cho tính năng này. TOSE giữ thời điểm và phiên bản đồng ý làm bằng chứng bạn đã chấp thuận, cùng mã băm email đã gửi, để việc rút lại có thể gỡ đúng liên kết đó ngay cả khi email tài khoản đã đổi.
 
 ## Liên kết một yêu cầu
 
@@ -51,7 +52,8 @@ tose.sh trả lời giống nhau dù có tìm thấy yêu cầu khớp với mã
 Bấm **Withdraw my authorization** trên thẻ (nút này hiện ở Settings khi còn một ủy quyền).
 
 - Liên kết bị gỡ trên tose.sh và tài khoản này không liên kết thêm gì nữa.
-- Việc rút lại luôn thành công. Nếu không kết nối được tose.sh, thẻ hiện "Authorization withdrawn. The link on tose.sh is being removed." và TOSE thử gỡ lại ở nền (mỗi 5 phút, tối đa 20 lần).
+- Sau khi rút lại, thẻ hiện "Authorization withdrawn. The link on tose.sh is being removed."
+- Việc rút lại vẫn thành công khi không kết nối được tose.sh: TOSE thử gỡ lại ở nền (mỗi 5 phút, tối đa 20 lần).
 - Nếu bạn ủy quyền lại, việc gỡ đang chờ sẽ bị hủy.
 
 ## Xóa chính yêu cầu đó
@@ -76,4 +78,4 @@ Liên kết là tính năng ở cấp tài khoản và chỉ dùng được bằ
 | `502 lead_signal_failed` | Không kết nối được tose.sh. Lần gửi sẽ được thử lại |
 | `503 lead_link_unavailable` | Bản cài đặt này chưa bật tính năng liên kết |
 
-Với người tự vận hành (self-hosting): tính năng này tắt trừ khi cả `LEADS_HASH_SECRET`, `LEADS_LINK_URL` và `LEADS_LINK_TOKEN` đều được đặt, và các giá trị phải khớp với cấu hình của tose-web.
+Với người tự vận hành (self-hosting): tính năng này tắt trừ khi cả `LEADS_HASH_SECRET` (từ 16 ký tự), `LEADS_LINK_URL` (`https`, là URL `/api/leads/link` của tose-web) và `LEADS_LINK_TOKEN` (từ 32 ký tự) đều được đặt. Secret và token phải bằng giá trị cấu hình trong tose-web (`TOSE_LEADS_HASH_SECRET`, `TOSE_LEADS_LINK_TOKEN`). Với `APP_ENV=production`, server từ chối khởi động nếu chỉ đặt một số biến, hoặc giá trị quá ngắn, hoặc URL không phải `https`.
