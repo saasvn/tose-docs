@@ -111,7 +111,7 @@ Commands:
 1. Đăng ký hoặc đăng nhập tại [https://tose.sh](https://tose.sh)
 2. Điều hướng đến **Settings** > **API Keys**
 3. Nhấp **Create New API Key**
-4. Sao chép key (bắt đầu bằng `ws_`)
+4. Sao chép key (bắt đầu bằng `tose_sk_`)
 5. Giữ an toàn - bạn sẽ cần nó cho thiết lập lần đầu
 
 ::: warning Giữ API Key an toàn
@@ -146,7 +146,7 @@ Ví dụ cấu hình:
 
 ```json
 {
-  "apiKey": "ws_xxxxxxxxxxxxx",
+  "apiKey": "tose_sk_xxxxxxxxxxxxx",
   "workspaceId": "ws_123456",
   "baseUrl": "https://api.tose.sh"
 }
