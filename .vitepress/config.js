@@ -102,6 +102,7 @@ export default defineConfig({
               { text: 'Audit Log', link: '/api/audit' },
               { text: 'MCP Connector', link: '/mcp' },
               { text: 'Errors', link: '/api/errors' },
+              { text: 'Sign-up Attribution', link: '/api/signup-attribution' },
               { text: 'Desktops', link: '/api/desktops' },
               { text: 'Runtimes', link: '/api/runtimes' },
               { text: 'Projects', link: '/api/projects' },
@@ -210,6 +211,7 @@ export default defineConfig({
               { text: 'Dự án', link: '/vi/api/projects' },
               { text: 'GitHub', link: '/vi/api/github' },
               { text: 'Template', link: '/vi/api/templates' },
+              { text: 'Attribution khi đăng ký', link: '/vi/api/signup-attribution' },
               { text: 'Ổ đĩa, Volume & Bảng giá', link: '/vi/api/disks' }
             ]
           }
