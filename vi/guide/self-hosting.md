@@ -51,7 +51,7 @@ hãy tắt việc ghi query ở đó. Xem [Xác thực](/vi/api/authentication).
 
 ## Probe health của template {#template-probes}
 
-Theo mặc định, API thêm startup, readiness (`/health`) và liveness (`/livez`) probe của Kubernetes vào deployment template Dewee, và chạy kiểm tra `/health` công khai (tối đa 3 phút, trên domain mặc định) trước khi ghi một deployment là `running`. Đặt `TEMPLATE_PROBES_ENABLED=false` trên API để tắt cả hai. Cơ chế giám sát của script khởi động vẫn hoạt động vì nó nằm trong mọi image Dewee. Image `custom` và các template khác không bao giờ bị probe. Xem [Trạng thái health của deployment](/vi/guide/dewee-template#health-state).
+Theo mặc định, API thêm startup, readiness (`/health`) và liveness (`/livez`) probe của Kubernetes vào deployment template Dewee, và chạy kiểm tra `/health` công khai (tối đa 3 phút, trên domain mặc định) trước khi ghi một deployment có probe là `running`. Đặt `TEMPLATE_PROBES_ENABLED=false` trên API để tắt cả hai. Cơ chế giám sát của script khởi động vẫn hoạt động vì nó nằm trong mọi image Dewee. Image `custom`, deploy rollback và các template khác không bao giờ bị probe. Xem [Trạng thái health của deployment](/vi/guide/dewee-template#health-state).
 
 ## Công bố hợp đồng API
 
