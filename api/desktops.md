@@ -14,7 +14,11 @@ https://api-v2.tose.sh/api/workspaces/{workspace_slug}
 ```
 
 Authenticate every request with your API key in the `X-API-Key` header
-(see [Authentication](/api/authentication)).
+(see [Authentication](/api/authentication)). An API key needs the `desktops:read` scope to read and
+`desktops:write` to change anything.
+
+Cloud Desktop routes are served only when the deployment sets `DESKTOP_ENABLED=true`. Otherwise every
+route on this page returns `404`.
 
 ## Endpoints
 
@@ -185,10 +189,10 @@ Response `201`:
 | Field | Description |
 |-------|-------------|
 | `session` | The session object; use `session.id` as `session_id` in actions |
-| `token` | Short-lived gateway token for this session |
+| `token` | Secret gateway token for this session. Returned **once**, by this response only; the server keeps just its hash, so it cannot be fetched again. Never log it or put it in a URL |
 | `websocket_path` | Gateway path for the screen stream (contains no token) |
 | `websocket_protocols` | WebSocket subprotocols to send when connecting: `binary` and `tose.desktop.token.<token>` |
-| `vnc_password` | Password for the VNC viewer behind the gateway |
+| `vnc_password` | The desktop's own 8-character VNC password. It is not rotated and is returned with **every** new session of this desktop (it is never part of the desktop object). Never log it |
 
 ### List and delete
 

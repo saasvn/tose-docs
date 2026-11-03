@@ -151,7 +151,7 @@ Bỏ `disk` để tạo dự án stateless.
 
 ### Lấy bảng giá {#get-pricing}
 
-Công khai, không cần xác thực.
+Công khai: gửi request không cần API key hay session. Trả về giá CPU và RAM theo giờ theo từng mức số dư ví, mức thấp nhất đứng trước (`min_balance_usd` là số dư từ đó mức giá áp dụng), cùng bảng giá lưu trữ bền vững.
 
 ```http
 GET /api/pricing

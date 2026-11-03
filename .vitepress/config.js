@@ -103,6 +103,8 @@ export default defineConfig({
               { text: 'Errors', link: '/api/errors' },
               { text: 'Desktops', link: '/api/desktops' },
               { text: 'Runtimes', link: '/api/runtimes' },
+              { text: 'Projects', link: '/api/projects' },
+              { text: 'GitHub', link: '/api/github' },
               { text: 'Templates', link: '/api/templates' },
               { text: 'Disks, Volumes & Pricing', link: '/api/disks' }
             ]
@@ -203,6 +205,8 @@ export default defineConfig({
               { text: 'MCP Connector', link: '/vi/mcp' },
               { text: 'Mã lỗi', link: '/vi/api/errors' },
               { text: 'Runtimes', link: '/vi/api/runtimes' },
+              { text: 'Dự án', link: '/vi/api/projects' },
+              { text: 'GitHub', link: '/vi/api/github' },
               { text: 'Template', link: '/vi/api/templates' },
               { text: 'Ổ đĩa, Volume & Bảng giá', link: '/vi/api/disks' }
             ]
