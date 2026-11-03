@@ -329,6 +329,21 @@ export TOSE_API_KEY=$(cat ~/.secrets/tose-key)
 TOSE_API_KEY="ws_123..."  # Đừng làm thế này
 ```
 
+## Mã thoát
+
+| Mã | Tên | Ý nghĩa |
+|----|-----|---------|
+| 0 | `SUCCESS` | Hoàn tất, hoặc đã được chấp nhận và vẫn đang chạy |
+| 1 | `ERROR` | Mọi lỗi khác |
+| 2 | `USAGE` | Cờ, tham số hoặc dữ liệu đầu vào không hợp lệ hoặc thiếu |
+| 3 | `UNAUTHORIZED` | Thiếu API key, hoặc API từ chối key |
+| 4 | `CONFIRMATION_REQUIRED` | Lệnh phá hủy cần `--yes` hoặc `--confirm <name>` |
+| 5 | `CANCELLED` | Bạn từ chối xác nhận, thao tác chờ bị ngắt, hoặc deployment bị hủy |
+| 6 | `NOT_FOUND` | Workspace, dự án hoặc tài nguyên không tồn tại |
+| 7 | `TIMEOUT` | Chờ quá lâu; thao tác có thể vẫn hoàn tất |
+| 8 | `OPERATION_FAILED` | Thao tác deploy, build hoặc desktop kết thúc ở trạng thái thất bại |
+| 9 | `INSUFFICIENT_BALANCE` | Số dư ví của workspace bằng 0 hoặc âm nên deploy, redeploy hoặc rollback bị từ chối. `next_actions` có trang nạp tiền trong trường `url` |
+
 ## Tiếp theo
 
 Khám phá chi tiết mỗi lệnh:

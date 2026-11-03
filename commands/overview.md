@@ -331,6 +331,7 @@ If the API answers `400 credentials_in_url`, something put the key in a query st
 | `6` | `NOT_FOUND` | The workspace, project or resource does not exist |
 | `7` | `TIMEOUT` | Waiting took too long; the operation may still finish |
 | `8` | `OPERATION_FAILED` | A deploy, build or desktop operation ended in a failed state |
+| `9` | `INSUFFICIENT_BALANCE` | The workspace wallet balance is zero or negative, so a deploy, redeploy or rollback was refused. `next_actions` carries the top-up page in `url` |
 
 ## Next Steps
 
