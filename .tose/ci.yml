@@ -1,0 +1,23 @@
+# TOSE CI Harness (https://github.com/saasvn/tose-app/blob/master/docs/ci.md). Runs in shadow
+# next to GitHub Actions: Actions stays the required check and still publishes; this job reports
+# as "tose-ci / build" so the two results can be compared.
+#
+# build mirrors the build job of .github/workflows/deploy.yml. The deploy job stays on Actions.
+version: 1
+on:
+  push:
+    branches: [master]
+  pull_request: {}
+
+jobs:
+  build:
+    node: "22"
+    cpu: "1"
+    memory: 2Gi
+    timeout_minutes: 10
+    egress: [npm]
+    steps:
+      - name: npm ci
+        run: npm ci
+      - name: build docs
+        run: npm run docs:build

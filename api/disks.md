@@ -151,7 +151,7 @@ Omit `disk` to create a stateless project.
 
 ### Get Pricing
 
-Public; no authentication required.
+Public: send the request without an API key or session. It returns the CPU and RAM hourly rates by wallet balance band, lowest band first (`min_balance_usd` is the balance from which a band applies), and the persistent storage tariff.
 
 ```http
 GET /api/pricing

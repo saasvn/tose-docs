@@ -1,0 +1,100 @@
+# Builds the VitePress site on every pull request and push, and publishes master to Cloudflare Pages,
+# which serves docs.tose.sh. Without the Cloudflare credentials the deploy job reports that it
+# skipped and stays green. See README.md, "Preview and deploy".
+name: Deploy
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('build-{0}', github.ref) || 'deploy-production' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run docs:build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: site
+          path: .vitepress/dist
+          retention-days: 7
+
+  deploy:
+    needs: build
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://docs.tose.sh
+    env:
+      PROJECT: ${{ vars.CLOUDFLARE_PAGES_PROJECT }}
+      HAS_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
+      HAS_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID != '' }}
+    steps:
+      - name: Check deploy configuration
+        id: config
+        run: |
+          missing=()
+          [[ -n "$PROJECT" ]] || missing+=("variable CLOUDFLARE_PAGES_PROJECT")
+          [[ "$HAS_TOKEN" == true ]] || missing+=("secret CLOUDFLARE_API_TOKEN")
+          [[ "$HAS_ACCOUNT" == true ]] || missing+=("secret CLOUDFLARE_ACCOUNT_ID")
+          if ((${#missing[@]})); then
+            msg="Deploy skipped: missing ${missing[*]} in the production environment."
+            echo "::warning::$msg"
+            echo "$msg" >> "$GITHUB_STEP_SUMMARY"
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/download-artifact@v4
+        if: steps.config.outputs.ready == 'true'
+        with:
+          name: site
+          path: dist
+
+      - name: Publish to Cloudflare Pages
+        id: pages
+        if: steps.config.outputs.ready == 'true'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: >-
+            pages deploy dist --project-name=${{ env.PROJECT }} --branch=master
+            --commit-hash=${{ github.sha }} --commit-dirty=true
+
+      - name: Verify the deployment and docs.tose.sh
+        if: steps.config.outputs.ready == 'true'
+        env:
+          DEPLOYMENT_URL: ${{ steps.pages.outputs.deployment-url }}
+        run: |
+          # The home page links one hashed app bundle; docs.tose.sh serves this deployment once both match.
+          bundle() { curl -fsS --max-time 10 "$1/" | grep -oE '/assets/app\.[A-Za-z0-9_-]+\.js' | head -n 1; }
+          expected=$(bundle "$DEPLOYMENT_URL")
+          [[ -n "$expected" ]] || { echo "::error::$DEPLOYMENT_URL did not serve the site"; exit 1; }
+          curl -fsS -o /dev/null "$DEPLOYMENT_URL/guide/getting-started"
+          for i in $(seq 1 20); do
+            live=$(bundle https://docs.tose.sh || true)
+            if [[ "$live" == "$expected" ]]; then
+              echo "Published \`$GITHUB_SHA\` to $DEPLOYMENT_URL; docs.tose.sh serves it." >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            sleep 15
+          done
+          echo "::error::docs.tose.sh still serves ${live:-nothing} instead of $expected; check that $PROJECT's production branch is master and the custom domain is attached to it."
+          exit 1
