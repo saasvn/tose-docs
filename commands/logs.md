@@ -109,6 +109,7 @@ Build logs are color-coded for readability:
 
 When using `-f` / `--follow`, logs are streamed via WebSocket:
 
+- The API key is sent in the `X-API-Key` header, never in the URL. The CLI refuses to open a stream whose URL carries a credential
 - Press `Ctrl+C` to stop streaming
 - Connection auto-closes when build finishes (`[END]` message)
 - Errors are displayed in red (`[ERROR]` messages)

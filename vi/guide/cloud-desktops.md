@@ -62,7 +62,7 @@ Bằng API:
 
 ```bash
 export TOSE_API=https://api-v2.tose.sh
-export TOSE_API_KEY=ws_your_api_key
+export TOSE_API_KEY=tose_sk_your_api_key
 export WS=my-workspace
 
 curl -X POST "$TOSE_API/api/workspaces/$WS/desktops" \

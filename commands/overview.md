@@ -42,6 +42,7 @@ These options are available on **all** commands:
 | [`tose redeploy`](/commands/deploy#tose-redeploy) | Redeploy with current config (no rebuild) |
 | [`tose down`](/commands/down) | Stop current deployment |
 | [`tose restart`](/commands/down#tose-restart) | Restart pods without redeploying |
+| [`tose deployment rollback`](/commands/deployment#tose-deployment-rollback) | Roll back to an earlier deployment (needs `--yes`) |
 
 ### Monitoring
 
@@ -103,6 +104,13 @@ production yet.
 | [`tose volumes list`](/commands/disk#tose-volumes-list) | List all disks in the workspace |
 | [`tose volumes resize`](/commands/disk#tose-volumes-resize) | Grow any disk by volume ID |
 | [`tose pricing`](/commands/disk#tose-pricing) | Show compute and storage rates |
+
+### Agent Skills
+
+| Command | Description |
+|---------|-------------|
+| [`tose skills list`](/commands/skills#tose-skills-list) | List skills in the public catalogue |
+| [`tose skills install`](/commands/skills#tose-skills-install) | Install a skill after verifying every file's digest |
 
 ### Utilities
 
@@ -247,7 +255,7 @@ TOSE CLI resolves workspace and project context from multiple sources, in order 
 
 ## JSON Output
 
-All commands support `--json` for machine-readable output:
+All commands support `--json` for machine-readable output. With `--json`, stdout carries exactly one JSON document; progress and warnings go to stderr. `--json` never confirms a destructive operation.
 
 ```bash
 tose status --json
@@ -257,22 +265,52 @@ tose status --json
 
 ```json
 {
+  "schema_version": "1",
+  "status": "ok",
   "success": true,
-  "data": { ... }
+  "data": { ... },
+  "next_actions": []
 }
 ```
+
+`status` is `pending` when the API accepted work that is still running, such as a build after `tose deploy`.
 
 **Error response:**
 
 ```json
 {
+  "schema_version": "1",
+  "status": "error",
   "success": false,
   "error": {
-    "message": "Error description",
-    "code": "ERROR_CODE"
-  }
+    "code": "not_found",
+    "message": "workspace not found",
+    "request_id": "req_123",
+    "retryable": false,
+    "details": null,
+    "doc_url": null
+  },
+  "next_actions": []
 }
 ```
+
+### Error fields
+
+| Field | Meaning |
+|-------|---------|
+| `code` | The `code` of the API error envelope when the API sent one: stable snake_case values such as `not_found`, `forbidden` or `credentials_in_url`. Branch on it, never on `message`. Without an envelope the code comes from the HTTP status (`UNAUTHORIZED`, `NOT_FOUND`, `RATE_LIMITED`, `SERVER_ERROR`, …). A 403 caused by your key is reported as `INSUFFICIENT_SCOPE` (with `details.required_scope`) or `API_KEY_WORKSPACE_SCOPED` instead of the API's code. The CLI raises some codes itself, for example `INPUT_REQUIRED`, `CONFIRMATION_REQUIRED`, `DEPLOY_FAILED` and `SKILL_INTEGRITY` |
+| `request_id` | From the API error body or its `X-Request-Id` header. Quote it when you report a problem |
+| `retryable` | `true` means the same command may succeed if you run it again later |
+| `details` | Extra context from the API, for example `required_scope`, which the CLI sets when `code` is `INSUFFICIENT_SCOPE` |
+| `doc_url` | Link to documentation for this error, or `null` |
+
+`schema_version` changes only when a field is removed or changes meaning. New fields can appear at any time, so ignore the ones you do not know.
+
+## API key handling
+
+The CLI sends your key only in the `X-API-Key` header, never in a URL. That includes the WebSocket behind `tose logs -f`, and the CLI refuses to open a stream whose URL carries a credential parameter such as `api_key`, `x-api-key` or `access_token`.
+
+If the API answers `400 credentials_in_url`, something put the key in a query string, such as an old client, a proxy or a hand-built URL. The CLI says so and tells you to rotate that key. To rotate: create a new key, run `tose login` with it, then revoke the old one. In `--json` mode the error has `code` `credentials_in_url`.
 
 ## Environment Variables
 
@@ -285,10 +323,18 @@ tose status --json
 
 ## Exit Codes
 
-| Code | Meaning |
-|------|---------|
-| 0 | Success |
-| 1 | General error |
+| Code | Name | Meaning |
+|------|------|---------|
+| `0` | `SUCCESS` | Done, or accepted and still running (`status: "pending"`) |
+| `1` | `ERROR` | Any other failure, including API and network errors |
+| `2` | `USAGE` | Invalid or missing flags, arguments or input, or the API rejected the request as invalid (400/422, including `credentials_in_url`) |
+| `3` | `UNAUTHORIZED` | No API key, or the API rejected it (401/403, including a missing key scope) |
+| `4` | `CONFIRMATION_REQUIRED` | A destructive command needs `--yes` or `--confirm <name>` |
+| `5` | `CANCELLED` | You declined the prompt, a wait was interrupted, or the deployment was cancelled |
+| `6` | `NOT_FOUND` | The workspace, project or resource does not exist |
+| `7` | `TIMEOUT` | Waiting took too long; the operation may still finish |
+| `8` | `OPERATION_FAILED` | A deploy, build or desktop operation ended in a failed state |
+| `9` | `INSUFFICIENT_BALANCE` | The workspace wallet balance is zero or negative, so a deploy, redeploy or rollback was refused. `next_actions` carries the top-up page in `url` |
 
 ## Next Steps
 
