@@ -1,5 +1,11 @@
 # tose desktop
 
+::: warning Coming soon
+Cloud Desktops are built, and the `tose desktop` commands ship in CLI 0.1.3, but the feature is
+not switched on in production yet. Until it is, the `desktops` endpoints return 404 and the
+commands fail. Everything below is reference for when it launches.
+:::
+
 Manage [Cloud Desktops](/guide/cloud-desktops): persistent Ubuntu desktops that sleep to save
 compute and keep their disk.
 

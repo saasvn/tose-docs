@@ -78,7 +78,10 @@ These options are available on **all** commands:
 | [`tose db create`](/commands/db#tose-db-create) | Create a new database |
 | [`tose db info`](/commands/db#tose-db-info) | Show database connection info |
 
-### Cloud Desktops
+### Cloud Desktops (Coming soon)
+
+Status: **Coming soon**. The commands ship in CLI 0.1.3, but Cloud Desktops are not switched on in
+production yet.
 
 | Command | Description |
 |---------|-------------|

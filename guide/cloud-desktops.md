@@ -11,9 +11,10 @@ Typical uses:
 - A shared workspace where an agent works and a human checks in or takes over when needed.
 - A disposable-feeling but persistent dev box that costs nothing in compute while asleep.
 
-::: info Availability
-Cloud Desktops are enabled per TOSE installation. If the `desktops` endpoints return
-404 for your workspace, the feature is not enabled yet.
+::: warning Status: Coming soon
+Cloud Desktops are built, and the `tose desktop` commands ship in CLI 0.1.3, but the feature is
+not switched on in production yet. It is enabled per TOSE installation: if the `desktops`
+endpoints return 404 for your workspace, the feature is not enabled.
 :::
 
 ## How it works
