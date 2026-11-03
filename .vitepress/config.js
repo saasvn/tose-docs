@@ -44,6 +44,7 @@ export default defineConfig({
               { text: 'tose domain', link: '/commands/domain' },
               { text: 'tose db', link: '/commands/db' },
               { text: 'tose desktop', link: '/commands/desktop' },
+              { text: 'tose template', link: '/commands/template' },
               { text: 'tose disk / volumes / pricing', link: '/commands/disk' },
               { text: 'tose generate', link: '/commands/generate' }
             ]
@@ -65,6 +66,17 @@ export default defineConfig({
               { text: 'Cloud Desktops Guide', link: '/guide/cloud-desktops' },
               { text: 'tose desktop', link: '/commands/desktop' },
               { text: 'Desktops API', link: '/api/desktops' }
+            ]
+          },
+          {
+            text: 'MCP and Agents',
+            items: [
+              { text: 'Protocol, OAuth and scopes', link: '/mcp/oauth' },
+              { text: 'Tasks', link: '/mcp/tasks' },
+              { text: 'Apps', link: '/mcp/apps' },
+              { text: 'Skills', link: '/mcp/skills' },
+              { text: 'Agent access', link: '/mcp/agent-access' },
+              { text: 'Client compatibility', link: '/mcp/clients' }
             ]
           },
           {
@@ -119,6 +131,7 @@ export default defineConfig({
               { text: 'tose domain', link: '/vi/commands/domain' },
               { text: 'tose db', link: '/vi/commands/db' },
               { text: 'tose desktop', link: '/commands/desktop' },
+              { text: 'tose template', link: '/vi/commands/template' },
               { text: 'tose disk / volumes / pricing', link: '/vi/commands/disk' },
               { text: 'tose generate', link: '/vi/commands/generate' }
             ]
@@ -139,6 +152,17 @@ export default defineConfig({
             items: [
               { text: 'Hướng dẫn Cloud Desktop', link: '/vi/guide/cloud-desktops' },
               { text: 'API Desktops (tiếng Anh)', link: '/api/desktops' }
+            ]
+          },
+          {
+            text: 'MCP và Agent',
+            items: [
+              { text: 'Giao thức, OAuth và scope', link: '/vi/mcp/oauth' },
+              { text: 'Tasks', link: '/vi/mcp/tasks' },
+              { text: 'Apps', link: '/vi/mcp/apps' },
+              { text: 'Skills', link: '/vi/mcp/skills' },
+              { text: 'Agent access', link: '/vi/mcp/agent-access' },
+              { text: 'Tương thích client', link: '/vi/mcp/clients' }
             ]
           },
           {
