@@ -26,7 +26,7 @@ Khi template chưa lưu image nào, deploy bằng image chạy image mặc đị
 GET /api/workspaces/available-templates
 ```
 
-Mọi người dùng đã xác thực đều đọc được. `available-templates` là route cố định, không phải slug workspace. Mỗi mục có `name`, `key`, `description`, `source`, `branch`, `default_port`, `default_cpu`, `default_ram`, `default_image`, `required_envs` và `unlock_fee_vnd`, cùng các trường dưới đây lấy từ manifest đã được kiểm tra của template. Một số mục khác: mục Cloud Harness không có `default_image` và thêm `release`, `max_instances`, `pricing`. Hãy đọc danh sách trường đầy đủ từ phản hồi hoặc spec OpenAPI. Dùng `key` làm `template_name` khi tạo template.
+Mọi người dùng đã xác thực đều đọc được. `available-templates` là route cố định, không phải slug workspace. Mỗi mục có `name`, `key`, `description`, `source`, `branch`, `default_port`, `default_cpu`, `default_ram`, `default_image`, `required_envs` và `unlock_fee_vnd` (chỉ có khi phí lớn hơn 0), cùng các trường dưới đây lấy từ manifest đã được kiểm tra của template. Mục Cloud Harness không lấy từ manifest: không có `source`, `branch`, `default_image` hay các trường manifest trong bảng dưới, và thêm `release`, `max_instances`, `pricing`. Hãy đọc danh sách trường đầy đủ từ phản hồi hoặc spec OpenAPI. Dùng `key` làm `template_name` khi tạo template.
 
 | Trường | Ý nghĩa với bạn |
 |--------|-----------------|
@@ -44,11 +44,11 @@ Mọi người dùng đã xác thực đều đọc được. `available-templat
 |--------|-------------|
 | `required` | Bạn, trong biểu mẫu thiết lập. Cũng có trong `required_envs`. |
 | `optional` | Bạn, hoặc để trống. Cũng có trong `required_envs`. |
-| `generated` | TOSE tạo một lần khi instance được tạo và lưu dạng mã hóa. Giá trị không bao giờ hiển thị, không được catalog trả về và không bị thay về sau, vì dữ liệu của instance có thể đã được mã hóa bằng nó. Không nằm trong `required_envs`. |
+| `generated` | TOSE tạo một lần khi instance được tạo và lưu dạng mã hóa. TOSE không bao giờ tạo lại giá trị này. Nó bị che trong danh sách biến môi trường và catalog không trả giá trị; owner hoặc admin vẫn xem, ghi đè hoặc xóa được như biến khác, nhưng dữ liệu của instance có thể đã được mã hóa bằng nó nên đừng đổi. Không nằm trong `required_envs`. |
 
 `sensitive` đánh dấu giá trị mà dashboard ẩn đi. Catalog không bao giờ trả giá trị secret, chỉ trả các khai báo này.
 
-Tạo template hoặc đổi cấu hình xuống dưới `min_cpu` hay `min_ram` bị từ chối với `400` và cùng thông báo như trước: `<name> needs at least <n> vCPU` hoặc `<name> needs at least <n> GB RAM`. Template chỉ cho phép kích thước cố định trả `<name> supports up to <n> vCPU` hoặc `<name> supports <a> GB or <b> GB RAM`.
+Tạo template hoặc đổi cấu hình xuống dưới `min_cpu` hay `min_ram` bị từ chối với `400` và thông báo `<name> needs at least <n> vCPU` hoặc `<name> needs at least <n> GB RAM`. Template chỉ cho phép kích thước cố định giữ thông báo hiện có, `<name> supports up to <n> vCPU` và `<name> supports <a> GB or <b> GB RAM`. Hiện chưa template nào trong catalog đặt mức tối thiểu, nên `min_cpu` và `min_ram` đang rỗng.
 
 Manifest không chứa container image. Image, quy trình nâng cấp và rollback vẫn như mô tả trong [Template chọn image như thế nào](#how-a-template-picks-its-image), [Deploy Template](#deploy-template) và [hướng dẫn Dewee](/vi/guide/dewee-template#versions-and-upgrades).
 
