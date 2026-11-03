@@ -44,7 +44,7 @@ TOSE CLI sẽ hướng dẫn bạn qua quy trình thiết lập tương tác.
 Nếu đây là lần đầu, bạn sẽ được nhắc nhập API key:
 
 ```
-? Nhập TOSE API key: ws_xxxxxxxxxxxxx
+? Nhập TOSE API key: tose_sk_xxxxxxxxxxxxx
 ```
 
 API key của bạn sẽ được lưu an toàn vào `~/.tose/config.json` để sử dụng sau.
@@ -326,7 +326,7 @@ Nếu phát hiện Git thất bại:
 
 Nếu API key không hoạt động:
 
-1. Xác minh nó bắt đầu bằng `ws_`
+1. Xác minh nó bắt đầu bằng `tose_sk_`
 2. Kiểm tra nó chưa hết hạn trong dashboard
 3. Thử tạo key mới
 

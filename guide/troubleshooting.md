@@ -39,7 +39,7 @@ source ~/.bashrc
 **Symptoms:** "Invalid API key" error
 
 **Solutions:**
-1. Verify key starts with `ws_`
+1. Verify key starts with `tose_sk_`
 2. Check key in dashboard hasn't expired
 3. Remove cached config and try again:
    ```bash

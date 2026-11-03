@@ -113,7 +113,7 @@ Local configuration storage at `~/.tose/config.json`:
 
 ```json
 {
-  "apiKey": "ws_xxxxx...",
+  "apiKey": "tose_sk_xxxxx...",
   "workspaceId": "ws_123...",
   "baseUrl": "https://api.tose.sh"
 }
