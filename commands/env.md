@@ -271,6 +271,38 @@ PORT=3000
 }
 ```
 
+## Masked values for workspace members
+
+Only workspace `admin` and `owner` can read environment values. For a `member`, the API returns the placeholder `********` instead of each value in the project env listing (and `***` in the template env listing). The CLI recognises these placeholders and never treats them as real values:
+
+| Command | Behavior when values are masked |
+|---------|---------------------------------|
+| `tose env list` | Shows the placeholders as the API returns them |
+| `tose env pull` | Skips masked keys and lists them in `skipped_masked` with `--json`. A value the local file already holds for a masked key is kept. If every value is masked, it fails without writing the file (`FORBIDDEN`, exit `1`) |
+| `tose env push`, `tose env set`, `tose up` (with an env file), `tose template env set` | Refuse a value that is a masked placeholder and send nothing (`VALIDATION_ERROR`, exit `2`) |
+
+The refusal protects you from overwriting a real value with a placeholder, for example after copying a listing into an env file. Replace the placeholders with the real values, or ask a workspace `admin` or `owner` to run the command.
+
+```bash
+$ tose env pull
+✓ Fetching environment variables...
+Pulled 6 variables to .env
+Skipped 2 masked variable(s) (API_KEY, JWT_SECRET): workspace members cannot read env values.
+```
+
+```json
+{
+  "success": true,
+  "data": {
+    "pulled": 6,
+    "file": ".env",
+    "skipped_masked": ["API_KEY", "JWT_SECRET"]
+  }
+}
+```
+
+---
+
 ## Workflow Examples
 
 ### Sync Variables Between Environments

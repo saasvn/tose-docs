@@ -93,6 +93,8 @@ The response of `env list` always reports the effective `is_secret`, so read it 
 
 Changing variables (`set`, `rm`) also needs `admin` or `owner`.
 
+`tose template env set` refuses a value that is the masked placeholder (`***` or `********`) and sends nothing (`VALIDATION_ERROR`, exit `2`), so a copied listing cannot overwrite a real value. See [Masked values for workspace members](/commands/env#masked-values-for-workspace-members).
+
 ### Editing a secret
 
 In the dashboard, the edit form shows a secret's value blank. Leave the field blank and save to keep the stored value. Enter a value to replace it. Through the API and the CLI there is no "keep" shortcut: a `POST .../envs` with an empty `value` stores the empty value, so only send the keys you want to change.

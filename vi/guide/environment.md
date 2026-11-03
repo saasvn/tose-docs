@@ -119,6 +119,22 @@ JWT_SECRET=****** (đã che)
 API_KEY=****** (đã che)
 ```
 
+### Giá trị bị che với member của workspace
+
+`member` của workspace không nhận được giá trị biến môi trường: API trả `********` (danh sách env của project) hoặc `***` (danh sách env của template) thay cho giá trị. Chỉ `admin` và `owner` mới thấy giá trị. CLI không bao giờ ghi hoặc gửi các placeholder này như một giá trị thật:
+
+- `tose env pull` bỏ qua các key bị che (hiện trong `skipped_masked` khi dùng `--json`), giữ nguyên giá trị mà file local đã có cho các key đó, và thất bại mà không ghi file khi mọi giá trị đều bị che (`FORBIDDEN`, mã `1`).
+- `tose up` (với file env), `tose env push`, `tose env set` và `tose template env set` từ chối giá trị là placeholder đã che và không gửi gì (`VALIDATION_ERROR`, mã `2`).
+
+Việc từ chối này tránh ghi đè giá trị thật bằng placeholder, ví dụ khi sao chép danh sách vào file env. Hãy thay placeholder bằng giá trị thật, hoặc nhờ `admin` hay `owner` của workspace chạy lệnh.
+
+```bash
+$ tose env pull
+✓ Fetching environment variables...
+Pulled 6 variables to .env
+Skipped 2 masked variable(s) (API_KEY, JWT_SECRET): workspace members cannot read env values.
+```
+
 ## Best Practices
 
 ### 1. Tổ chức file
