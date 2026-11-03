@@ -260,7 +260,7 @@ GET /api/workspaces/{slug}/templates/{template_slug}/deployments/{id}
 | `status` | string | `pending`, `building`, `deploying`, `running`, `failed` hoặc `stopped` |
 | `docker_image` | string | Image mà deployment này đã chạy |
 | `image_source` | string | `catalog`, `custom` hoặc `rollback` |
-| `image_digest` | string | Digest `algorithm:hex` (thường là `sha256:…`) khi tham chiếu được ghim theo digest. Bỏ qua với tham chiếu chỉ có tag |
+| `image_digest` | string | Digest đã chạy, dạng `algorithm:hex` (thường là `sha256:…`). Lấy từ tham chiếu khi nó được ghim bằng `@sha256:…`; nếu không thì là digest registry trả về cho tag lúc deploy chạy. Bỏ qua khi tra cứu thất bại. Là bản ghi, không phải ghim: xem bên dưới |
 | `previous_image` | string | Image template đã lưu trước deployment này |
 | `config_fingerprint` | string | Hash `sha256:…` của image, cổng, CPU, RAM và số replica mà deployment đã áp dụng. Hai deployment cùng fingerprint đã chạy cùng một cấu hình |
 | `trigger_type` | string | `manual`, hoặc `image_only` với deploy bằng image |
@@ -270,4 +270,8 @@ GET /api/workspaces/{slug}/templates/{template_slug}/deployments/{id}
 
 Bốn trường biên nhận này chỉ được ghi với deploy bằng image; deploy kiểu build bỏ qua chúng. `image_source`, `image_digest`, `previous_image`, `config_fingerprint` và `triggered_by` hợp lại là biên nhận deploy: cái gì đã chạy, nó thay thế cái gì và ai yêu cầu.
 
-Tag có thể bị đổi trỏ. Để biết chính xác bản build nào đã chạy, hãy ghim custom image theo digest (`repository:tag@sha256:…`) để `image_digest` được ghi lại.
+### Digest image trong biên nhận {#image-digest-in-the-receipt}
+
+- Tham chiếu được ghim bằng `@sha256:…` giữ nguyên digest đó. Tag được tra từ registry khi deploy chạy.
+- Digest là bản ghi về cái đã chạy, không phải ghim. Deploy vẫn chạy tag, và rollback chạy lại tag của deployment trước, nên tag đã bị đổi trỏ có thể chạy bản build khác với digest đã ghi. Để chạy đúng một bản build, hãy ghim tham chiếu theo digest (`repository:tag@sha256:…`).
+- Nếu tra cứu thất bại (image private không có credential, không tìm thấy image hoặc tag, hoặc không kết nối được registry), deploy vẫn tiếp tục. Biên nhận không có `image_digest` và log deploy ghi `WARNING: image digest not recorded` kèm lý do. Khi thành công, log ghi `Image digest: …`.

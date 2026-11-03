@@ -258,7 +258,7 @@ GET /api/workspaces/{slug}/templates/{template_slug}/deployments/{id}
 | `status` | string | `pending`, `building`, `deploying`, `running`, `failed` or `stopped` |
 | `docker_image` | string | The image this deployment ran |
 | `image_source` | string | `catalog`, `custom` or `rollback` |
-| `image_digest` | string | The `algorithm:hex` digest (usually `sha256:…`) when the reference is pinned to one. Omitted for tag-only references |
+| `image_digest` | string | The digest that ran, as `algorithm:hex` (usually `sha256:…`). Taken from the reference when it is pinned with `@sha256:…`; otherwise the digest the registry served for the tag when the deploy ran. Omitted when the lookup failed. A record, not a pin: see below |
 | `previous_image` | string | The image the template had stored before this deployment |
 | `config_fingerprint` | string | `sha256:…` hash of the image, port, CPU, RAM and replicas that the deployment applied. Two deployments with the same fingerprint ran the same configuration |
 | `trigger_type` | string | `manual`, or `image_only` for an image deploy |
@@ -268,4 +268,8 @@ GET /api/workspaces/{slug}/templates/{template_slug}/deployments/{id}
 
 These four receipt fields are recorded for image deploys only; build deploys leave them out. Together, `image_source`, `image_digest`, `previous_image`, `config_fingerprint` and `triggered_by` are the deploy receipt: what ran, what it replaced, and who asked.
 
-A tag can move. To know exactly which build ran, pin your custom image to a digest (`repository:tag@sha256:…`) so `image_digest` is recorded.
+### Image digest in the receipt {#image-digest-in-the-receipt}
+
+- A reference pinned with `@sha256:…` keeps that digest. A tag is resolved from the registry when the deploy runs.
+- The digest is a record of what ran, not a pin. The deploy still runs the tag, and a rollback re-runs the tag of the earlier deployment, so a tag that was moved since can run a different build than the recorded digest. To run exactly one build, pin the reference to a digest (`repository:tag@sha256:…`).
+- If the lookup fails (a private image without credentials, an image or tag that is not found, or a registry that cannot be reached), the deploy continues. The receipt has no `image_digest` and the deploy log shows `WARNING: image digest not recorded` with the reason. On success the log shows `Image digest: …`.
