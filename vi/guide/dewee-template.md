@@ -72,7 +72,9 @@ Ba biến bắt buộc:
 
 Các tên `DEWEE_*` (ví dụ `DEWEE_GATEWAY_TOKEN`) được chấp nhận làm alias và được sao chép sang tên `GOCLAW_*` khi khởi động, nếu tên `GOCLAW_*` đang trống. Chỉ đặt một cách viết, không đặt cả hai.
 
-`tose template env list` che các giá trị mà nó nhận ra là credential (tên chứa `token`, `secret`, `password`, `api_key` và tương tự), trong đó có `GOCLAW_GATEWAY_TOKEN`. Lệnh này **không** che `GOCLAW_POSTGRES_DSN` và `GOCLAW_ENCRYPTION_KEY` khi bạn đặt chúng từ file hoặc stdin, nên hai giá trị này có thể bị in ra dạng văn bản thường. Hãy đặt chúng bằng prompt ẩn (`tose template env set my-dewee GOCLAW_ENCRYPTION_KEY`) và tránh chạy `env list` trên màn hình dùng chung hoặc trong log CI. Bản sửa được theo dõi tại [tose-cli#40](https://github.com/saasvn/tose-cli/issues/40). Xem [`tose template`](/vi/commands/template) để biết đầy đủ các lệnh.
+`tose template env set` gửi `GOCLAW_POSTGRES_DSN`, `GOCLAW_ENCRYPTION_KEY` và `GOCLAW_GATEWAY_TOKEN` dưới dạng secret, và `tose template env list` che giá trị của chúng (`********`). Cột `SECRET` hiển thị `yes` cho các biến này. Tên chứa `token`, `secret`, `password`, `api_key`, `dsn`, `encryption_key` hoặc `connection_string` cũng được xử lý tương tự.
+
+Các giá trị đã lưu bằng CLI cũ có thể vẫn được lưu là không phải secret. Chúng hiển thị `SECRET no` kèm giá trị đã che. Hãy đặt lại để lưu chúng là secret, bằng `--env-file` hoặc `--env-stdin` (hoặc prompt ẩn, ví dụ `tose template env set my-dewee GOCLAW_ENCRYPTION_KEY`), rồi kiểm tra `env list` hiển thị `SECRET yes`. Dù vậy, vẫn nên tránh chạy `env list` trên màn hình dùng chung hoặc trong log CI. Xem [`tose template`](/vi/commands/template) để biết đầy đủ các lệnh.
 
 ## Cam kết bảo mật {#security-contract}
 
