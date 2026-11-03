@@ -115,6 +115,12 @@ tose template deploy <slug> [--mode <mode>] [--wait] [--timeout <duration>]
 | `--wait` | Thăm dò cho đến khi rollout kết thúc |
 | `--timeout <duration>` | Thời gian tối đa của `--wait`, ví dụ `90s` hoặc `15m`. Mặc định: `15m` |
 
+### Image nào được chạy
+
+`--mode image` chạy image đã lưu trên template. Lệnh không thay custom image bằng image mặc định của catalog, và mọi template có từ trước hành vi này đều được coi là custom, nên không có gì được nâng cấp ngầm. Template tạo từ catalog bắt đầu với image của catalog đã được lưu. Khi catalog có phiên bản khác, API báo trong mảng `warnings`. Nâng cấp và rollback là các tùy chọn tường minh của [API template](/vi/api/templates#deploy-template) (`image_source=catalog`, `rollback_to`, `expected_image`); CLI chưa hỗ trợ chúng.
+
+Rollback image không rollback schema hay dữ liệu của database.
+
 ### Mã thoát khi dùng `--wait`
 
 | Mã | Ý nghĩa |
@@ -135,6 +141,8 @@ Template gọi nhà cung cấp AI (Gemini, OpenAI và các nhà cung cấp khác
 
 ## Liên quan
 
+- [API template](/vi/api/templates)
 - [Biến môi trường](/vi/guide/environment)
 - [Bảng giá](/vi/guide/pricing)
 - [Ổ đĩa bền vững](/vi/guide/persistent-disks)
+- [Runbook template Dewee](/vi/guide/dewee-template)

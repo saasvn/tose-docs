@@ -1,5 +1,11 @@
 # Desktops API
 
+::: warning Coming soon
+Cloud Desktops are built, and the `tose desktop` commands ship in CLI 0.1.3, but the feature is
+not switched on in production yet. Until it is, the `desktops` endpoints return 404 and the
+commands fail. Everything below is reference for when it launches.
+:::
+
 REST endpoints for [Cloud Desktops](/guide/cloud-desktops). All paths are relative to the
 workspace:
 
@@ -8,7 +14,11 @@ https://api-v2.tose.sh/api/workspaces/{workspace_slug}
 ```
 
 Authenticate every request with your API key in the `X-API-Key` header
-(see [Authentication](/api/authentication)).
+(see [Authentication](/api/authentication)). An API key needs the `desktops:read` scope to read and
+`desktops:write` to change anything.
+
+Cloud Desktop routes are served only when the deployment sets `DESKTOP_ENABLED=true`. Otherwise every
+route on this page returns `404`.
 
 ## Endpoints
 
@@ -31,7 +41,7 @@ The examples below assume:
 
 ```bash
 export TOSE_API=https://api-v2.tose.sh
-export TOSE_API_KEY=ws_your_api_key
+export TOSE_API_KEY=tose_sk_your_api_key
 export WS=my-workspace
 export DESKTOP_ID=<desktop-id>
 ```
@@ -179,10 +189,10 @@ Response `201`:
 | Field | Description |
 |-------|-------------|
 | `session` | The session object; use `session.id` as `session_id` in actions |
-| `token` | Short-lived gateway token for this session |
+| `token` | Secret gateway token for this session. Returned **once**, by this response only; the server keeps just its hash, so it cannot be fetched again. Never log it or put it in a URL |
 | `websocket_path` | Gateway path for the screen stream (contains no token) |
 | `websocket_protocols` | WebSocket subprotocols to send when connecting: `binary` and `tose.desktop.token.<token>` |
-| `vnc_password` | Password for the VNC viewer behind the gateway |
+| `vnc_password` | The desktop's own 8-character VNC password. It is not rotated and is returned with **every** new session of this desktop (it is never part of the desktop object). Never log it |
 
 ### List and delete
 
@@ -205,8 +215,8 @@ A WebSocket endpoint that carries the desktop screen (RFB). Pass `websocket_prot
 session response as the subprotocols, so the token never appears in a URL or a log. The `Origin`
 must be the dashboard's. It is the only way to reach a desktop's display: desktops accept no
 network connections, and the platform reaches VNC inside the pod through the Kubernetes API.
-The stream closes within 5 seconds of the session losing the lease. For older clients a
-`?token={token}` query parameter is still accepted.
+The stream closes within 5 seconds of the session losing the lease. The `?token={token}` query parameter is a legacy path kept only for older clients. It puts the
+token in a URL, so do not use it in new code.
 
 ## Actions
 

@@ -15,6 +15,10 @@ A client that supports the MCP tasks extension (`io.modelcontextprotocol/tasks`)
 
 The agent cannot approve its own task. You open the approval page, signed in as yourself, and approve or decline the plan. Only then does the client tell the task to continue. If you have not approved yet, the task stays in `input_required`.
 
+## When the wallet is empty {#empty-wallet}
+
+While the workspace wallet balance is zero or negative, `deploy_project` and `rollback_deployment` return `INSUFFICIENT_BALANCE` at the plan step. No plan, task or approval link is created, so you are never asked to approve a change that cannot run. If the wallet empties after you approve, the deployment itself is refused the same way. Top up the wallet in the dashboard billing page and ask the agent again. See [When the balance is zero](/guide/pricing#when-the-balance-is-zero) and [`MCP-CONNECTOR.md`](https://github.com/saasvn/tose-app/blob/master/MCP-CONNECTOR.md) for the maintainer-level detail.
+
 ## Polling and expiry
 
 - **Polling:** the client calls `tasks/get` about every 5 seconds. The server does not send task status notifications, so a client must poll.
