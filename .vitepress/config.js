@@ -89,6 +89,7 @@ export default defineConfig({
               { text: 'Apps', link: '/mcp/apps' },
               { text: 'Skills', link: '/mcp/skills' },
               { text: 'Agent access', link: '/mcp/agent-access' },
+              { text: 'Dewee template routes', link: '/mcp/dewee-template' },
               { text: 'Client compatibility', link: '/mcp/clients' }
             ]
           },
@@ -192,6 +193,7 @@ export default defineConfig({
               { text: 'Apps', link: '/vi/mcp/apps' },
               { text: 'Skills', link: '/vi/mcp/skills' },
               { text: 'Agent access', link: '/vi/mcp/agent-access' },
+              { text: 'Route của template Dewee', link: '/vi/mcp/dewee-template' },
               { text: 'Tương thích client', link: '/vi/mcp/clients' }
             ]
           },
