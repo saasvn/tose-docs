@@ -8,6 +8,10 @@ Every request to the TOSE API carries exactly one credential. The API checks the
 | 2 | Session token | `Authorization: Bearer <token>` header | Apps acting for a signed-in user |
 | 3 | Session token | `tose_token` cookie | Browser sessions |
 
+::: tip Limit what a key can do
+A key can be limited with scopes, and always belongs to one workspace. See [API Keys and Scopes](/api/api-keys). Every change made with a key is recorded in the [audit log](/api/audit).
+:::
+
 ## API keys
 
 ```bash
