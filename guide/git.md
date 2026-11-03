@@ -148,6 +148,10 @@ Once linked, pushes to the selected branch trigger automatic deployments.
 4. Authorize TOSE to access your Git provider
 5. Select repository
 
+### Connecting Git with an API key
+
+An API key needs `deployments:execute` as well as `projects:write` for Git to deploy automatically. Without it, connecting Git still succeeds but no first deploy is queued and `auto_deploy` stays off. Turning `auto_deploy` on, or moving the branch of an auto-deploying connection, returns `403 insufficient_scope` with `required_scope: deployments:execute`. See [Scopes and automatic deploys](/api/authentication#scopes-and-automatic-deploys).
+
 ### Step 2: Configure Webhook
 
 TOSE automatically creates a webhook on your repository to listen for push events.

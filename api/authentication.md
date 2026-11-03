@@ -77,6 +77,20 @@ that was sent that way.
 The API's access log records the request path and not the query string, so short-lived tokens
 that some flows still carry in a URL do not reach the logs.
 
+## Scopes and automatic deploys {#scopes-and-automatic-deploys}
+
+A workspace API key may carry scopes. A key without scopes, and every session, keeps full access to its workspace. Connecting Git to a project, and creating a project with a `git` block, are `projects:write` operations that can also queue a first deployment. The API starts that deployment only when the caller also has `deployments:execute`. Each automatic first deploy writes a `deployment.execute` audit event with the deployment ID.
+
+For a key with `projects:write` but not `deployments:execute`:
+
+| Action | Result |
+|---|---|
+| Connect Git to a project | Succeeds. No first deploy is queued and the connection is created with `auto_deploy` off. |
+| Create a project with a `git` block | Succeeds and returns `deploy_skipped` instead of `deployment_id` and `build_logs_url`. |
+| Turn `auto_deploy` on, or move the branch of an auto-deploying connection | Fails with `403 insufficient_scope` and `required_scope: deployments:execute`. |
+
+Add `deployments:execute` to the key, or use a session, when Git pushes should deploy automatically.
+
 ## WebSockets
 
 WebSocket endpoints authenticate on the HTTP upgrade request with the same header or cookie.

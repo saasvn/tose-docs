@@ -76,6 +76,20 @@ mọi key đã bị gửi theo cách này.
 Access log của API ghi đường dẫn request chứ không ghi query string, nên các token ngắn hạn mà một
 số luồng vẫn mang trong URL không xuất hiện trong log.
 
+## Scope và tự động triển khai {#scopes-and-automatic-deploys}
+
+API key của workspace có thể mang scope. Key không có scope, và mọi phiên đăng nhập, giữ toàn quyền trong workspace. Kết nối Git với dự án, và tạo dự án có khối `git`, là thao tác `projects:write` nhưng có thể xếp hàng một lần triển khai đầu tiên. API chỉ bắt đầu lần triển khai đó khi người gọi cũng có `deployments:execute`. Mỗi lần triển khai đầu tiên tự động ghi một sự kiện kiểm toán `deployment.execute` kèm ID triển khai.
+
+Với key có `projects:write` nhưng không có `deployments:execute`:
+
+| Thao tác | Kết quả |
+|---|---|
+| Kết nối Git với dự án | Thành công. Không có lần triển khai đầu nào được xếp hàng và kết nối được tạo với `auto_deploy` tắt. |
+| Tạo dự án có khối `git` | Thành công và trả `deploy_skipped` thay cho `deployment_id` và `build_logs_url`. |
+| Bật `auto_deploy`, hoặc đổi nhánh của kết nối đang tự động triển khai | Thất bại với `403 insufficient_scope` và `required_scope: deployments:execute`. |
+
+Hãy thêm `deployments:execute` vào key, hoặc dùng phiên đăng nhập, khi muốn mỗi lần push Git tự động triển khai.
+
 ## WebSocket
 
 Các endpoint WebSocket xác thực ngay trên request HTTP upgrade, bằng cùng header hoặc cookie.

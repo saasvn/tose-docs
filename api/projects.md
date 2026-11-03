@@ -108,7 +108,7 @@ curl -X POST "https://api.tose.sh/api/workspaces/$WS/projects/web/git" \
 }
 ```
 
-The call creates a push webhook. If the webhook cannot be created, the connection is still saved and `webhook_id` is `null`. When the project has a server, a first deployment is queued in the background.
+The call creates a push webhook. If the webhook cannot be created, the connection is still saved and `webhook_id` is `null`. When the project has a server, a first deployment is queued in the background, but only if the caller has `deployments:execute`. With only `projects:write`, the connection is created with `auto_deploy` off and no deployment is queued. See [Scopes and automatic deploys](/api/authentication#scopes-and-automatic-deploys).
 
 | Status | Meaning |
 |--------|---------|

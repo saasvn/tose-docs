@@ -112,6 +112,10 @@ Git repository được tự động liên kết khi bạn:
 4. Ủy quyền TOSE truy cập nhà cung cấp Git
 5. Chọn repository
 
+### Kết nối Git bằng API key
+
+API key cần cả `projects:write` lẫn `deployments:execute` để Git tự động triển khai. Nếu thiếu `deployments:execute`, việc kết nối Git vẫn thành công nhưng không có lần triển khai đầu nào được xếp hàng và `auto_deploy` vẫn tắt. Bật `auto_deploy`, hoặc đổi nhánh của kết nối đang tự động triển khai, trả `403 insufficient_scope` kèm `required_scope: deployments:execute`. Xem [Scope và tự động triển khai](/vi/api/authentication#scopes-and-automatic-deploys).
+
 ### Bước 2: Push để triển khai
 
 ```bash
