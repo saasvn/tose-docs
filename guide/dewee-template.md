@@ -166,6 +166,24 @@ curl -s -o /dev/null -w '%{http_code}\n' https://<your-instance-host>/health
 - **Downtime.** The template runs one replica on a disk that one pod can mount, and redeploys replace the pod. Expect an interruption during a deploy. TOSE does not promise zero downtime for this template.
 - **Opt-in.** Upgrade only when you choose to (`--upgrade`), from a backup, outside peak use. A catalog change does not upgrade you.
 
+### Upgrade and roll back from the dashboard {#dashboard-upgrade-and-rollback}
+
+The template page in the dashboard has an **Image** section with the same controls as the CLI. It shows three images: **Last deployment** (what runs now), **Configured** (the image stored on the template, used by the next plain deploy) and **Available** (the catalog version). An **Update available** badge appears when the catalog version differs from what you run, and **Up to date** when it does not.
+
+Three separate actions never do each other's job:
+
+| Action | What it sends | Result |
+|--------|---------------|--------|
+| **Deploy** | `image_source=custom` | Redeploys the stored image. It does not upgrade. With no stored image yet, it deploys the catalog version and stores it |
+| **Upgrade to available version** | `image_source=catalog` | Deploys the catalog version and replaces the stored image |
+| **Roll back to an earlier version** | `rollback_to=<deployment id>` | Runs the image of an earlier deployment and stores it |
+
+The dialog for each action names the image it will run. Every request also sends `expected_image` (the **Configured** image you were looking at) whenever an image is stored. If someone changed the image since you opened the page, the request is refused with `409`; reload the page and decide again. While another deployment is in progress the actions are disabled.
+
+Rolling back shows a warning before you confirm: **rolling back the image does not roll back the database schema or data.** If the newer version migrated them, the older image may fail or misread them, so restore a database backup first. See [Back up first](#versions-and-upgrades).
+
+The rollback list offers only earlier deployments that ran successfully (status `running` or `stopped`, and finished), newest first, one entry per image, up to eight, and without the image you run now. A failed build is never offered because its image was never pushed. The API applies the same rule and returns `404` for any other deployment ID. See [Template deploy API](/api/templates#rollback).
+
 ## Release gate and compatibility
 
 TOSE publishes a Dewee version as verified only after an end-to-end run passes against a staging cluster: create, authenticate over the public domain, WebSocket, MCP, persisted data after restart, redeploy and rollback, plus the negative cases above ([tose-app#276](https://github.com/saasvn/tose-app/issues/276)).
