@@ -120,7 +120,8 @@ Long values (>50 chars) are also truncated with `...`.
 Workspace `member`s do not receive environment values: the API returns `********` (project env listing) or `***` (template env listing) instead. Only `admin` and `owner` see them. The CLI never writes or sends these placeholders as values:
 
 - `tose env pull` skips masked keys (`skipped_masked` with `--json`), keeps any value the local file already holds for them, and fails without writing when every value is masked.
-- `tose up` (with an env file), `tose env push`, `tose env set` and `tose template env set` refuse a value that is a masked placeholder and send nothing.
+- `tose env push`, `tose env set` and `tose template env set` refuse a value that is a masked placeholder and send nothing.
+- `tose up`, when you choose to push an env file at its prompt, stops before sending any value if the file holds a masked placeholder.
 
 See [`tose env`](/commands/env#masked-values-for-workspace-members) for details.
 

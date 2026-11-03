@@ -123,14 +123,14 @@ API_KEY=****** (đã che)
 
 `member` của workspace không nhận được giá trị biến môi trường: API trả `********` (danh sách env của project) hoặc `***` (danh sách env của template) thay cho giá trị. Chỉ `admin` và `owner` mới thấy giá trị. CLI không bao giờ ghi hoặc gửi các placeholder này như một giá trị thật:
 
-- `tose env pull` bỏ qua các key bị che (hiện trong `skipped_masked` khi dùng `--json`), giữ nguyên giá trị mà file local đã có cho các key đó, và thất bại mà không ghi file khi mọi giá trị đều bị che (`FORBIDDEN`, mã `1`).
-- `tose up` (với file env), `tose env push`, `tose env set` và `tose template env set` từ chối giá trị là placeholder đã che và không gửi gì (`VALIDATION_ERROR`, mã `2`).
+- `tose env pull` bỏ qua các key bị che (hiện trong `skipped_masked` khi dùng `--json`), giữ nguyên giá trị mà file local đã có cho các key đó, và thất bại mà không ghi file khi mọi giá trị đều bị che (`FORBIDDEN`, mã thoát `1`).
+- `tose env push`, `tose env set` và `tose template env set` từ chối giá trị là placeholder đã che và không gửi gì (`VALIDATION_ERROR`, mã thoát `2`).
+- `tose up`, khi bạn chọn đẩy file env ở prompt, dừng trước khi gửi bất kỳ giá trị nào nếu file chứa placeholder đã che (`VALIDATION_ERROR`, mã thoát `2`). Không có terminal thì `tose up` không đẩy file env.
 
 Việc từ chối này tránh ghi đè giá trị thật bằng placeholder, ví dụ khi sao chép danh sách vào file env. Hãy thay placeholder bằng giá trị thật, hoặc nhờ `admin` hay `owner` của workspace chạy lệnh.
 
 ```bash
 $ tose env pull
-✓ Fetching environment variables...
 Pulled 6 variables to .env
 Skipped 2 masked variable(s) (API_KEY, JWT_SECRET): workspace members cannot read env values.
 ```

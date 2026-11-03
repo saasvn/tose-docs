@@ -93,7 +93,7 @@ Phản hồi của `env list` luôn trả `is_secret` hiệu lực, vì vậy h�
 
 Thay đổi biến (`set`, `rm`) cũng cần `admin` hoặc `owner`.
 
-`tose template env set` từ chối giá trị là placeholder đã che (`***` hoặc `********`) và không gửi gì (`VALIDATION_ERROR`, mã `2`), nên danh sách đã sao chép không thể ghi đè giá trị thật. Xem thêm [Giá trị bị che với member của workspace](/vi/guide/environment).
+`tose template env set` từ chối giá trị là placeholder đã che (`***` hoặc `********`) và không gửi gì (`VALIDATION_ERROR`, mã thoát `2`), nên danh sách đã sao chép không thể ghi đè giá trị thật. Xem thêm [Giá trị bị che với member của workspace](/vi/guide/environment#gia-tri-bi-che-voi-member-cua-workspace).
 
 ### Sửa một secret
 
