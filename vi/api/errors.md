@@ -135,6 +135,33 @@ thử lại.
 
 Mọi status lỗi khác dùng mã `http_<status>`.
 
+## Mã lỗi GitHub
+
+Khi một lời gọi GitHub thất bại, response mang một trong các mã này cùng một thông báo cố định, không bao giờ chứa nội dung lỗi gốc của GitHub. Chúng do `GET /api/github/repos` (khi có `installation_id`) và `GET /api/github/repos/{owner}/{repo}/branches` trả về; xem [API GitHub](/vi/api/github#github-errors). Bước kiểm tra repository khi kết nối Git hoặc tạo dự án báo cùng các mã này, luôn với `retryable: false`, và vẫn trả `400` hoặc `422` như trước.
+
+### `github_not_found` {#github_not_found}
+
+`404`. Không retry được. `details.reason` cho biết cách sửa:
+
+- `installation_not_found`: GitHub App installation không còn tồn tại. Cài lại GitHub App của TOSE và gắn lại vào workspace.
+- `repository_not_found`: repository không tồn tại, hoặc App chưa được cấp quyền vào nó. Cấp quyền cho App vào repository trên GitHub.
+
+### `github_forbidden` {#github_forbidden}
+
+`403`. Không retry được. GitHub App của TOSE thiếu quyền mà thao tác cần, hoặc GitHub từ chối request. Kiểm tra quyền của App. Khác với [`forbidden`](#forbidden), nghĩa là credential TOSE của bạn không được làm thao tác này.
+
+### `github_rate_limited` {#github_rate_limited}
+
+`429`. Retry được. GitHub đang giới hạn tốc độ của TOSE. Chờ số giây trong header `Retry-After` rồi thử lại.
+
+### `github_unavailable` {#github_unavailable}
+
+`503`. Retry được. GitHub không phản hồi. Thử lại với backoff.
+
+### `github_app_misconfigured` {#github_app_misconfigured}
+
+`500`. Không retry được. GitHub từ chối credential App của chính TOSE. Đây là lỗi phía máy chủ, không phải của bạn. Gửi `request_id` cho bộ phận hỗ trợ.
+
 ## Mã lỗi của hành động deploy
 
 `POST .../deploy` và `POST .../deployments/{id}/rollback` trả mã riêng của hành động theo dạng UPPER_SNAKE_CASE, không phải mã suy ra từ HTTP status. `POST .../redeploy` chỉ làm vậy với `INSUFFICIENT_BALANCE`; các lỗi khác của redeploy giữ mã snake_case ở trên. Lỗi quyền truy cập ở cả ba route (`not_found`, `forbidden`) cũng là snake_case. Tool MCP `deploy_project` và `rollback_deployment` báo cùng các mã này. Envelope không đổi, nên `doc_url` của mỗi lỗi kết thúc bằng anchor bên dưới, ví dụ `https://docs.tose.sh/api/errors#INSUFFICIENT_BALANCE`.

@@ -135,6 +135,33 @@ Retryable.
 
 Any other error status uses the code `http_<status>`.
 
+## GitHub codes
+
+When a call to GitHub fails, the response carries one of these codes and a fixed message. It never includes GitHub's own error text. They are returned by `GET /api/github/repos` (when `installation_id` is given) and `GET /api/github/repos/{owner}/{repo}/branches`; see [GitHub API](/api/github#github-errors). Repository validation when you connect a Git repository or create a project reports the same codes, always with `retryable: false`, and still answers `400` or `422` as before.
+
+### `github_not_found` {#github_not_found}
+
+`404`. Not retryable. `details.reason` tells the two fixes apart:
+
+- `installation_not_found`: the GitHub App installation no longer exists. Reinstall the TOSE GitHub App and attach it to the workspace again.
+- `repository_not_found`: the repository does not exist, or the App has not been granted access to it. Grant the App access to the repository on GitHub.
+
+### `github_forbidden` {#github_forbidden}
+
+`403`. Not retryable. The TOSE GitHub App lacks a permission the action needs, or GitHub refused the request. Check the App's permissions. This is separate from [`forbidden`](#forbidden), which means your TOSE credential may not do the action.
+
+### `github_rate_limited` {#github_rate_limited}
+
+`429`. Retryable. GitHub is rate limiting TOSE. Wait the number of seconds in the `Retry-After` header, then retry.
+
+### `github_unavailable` {#github_unavailable}
+
+`503`. Retryable. GitHub did not answer. Retry with backoff.
+
+### `github_app_misconfigured` {#github_app_misconfigured}
+
+`500`. Not retryable. GitHub rejected TOSE's own App credentials. This is a server problem, not yours. Quote `request_id` to support.
+
 ## Deploy action codes
 
 `POST .../deploy` and `POST .../deployments/{id}/rollback` report their own code in UPPER_SNAKE_CASE, not a code derived from the HTTP status. `POST .../redeploy` does so only for `INSUFFICIENT_BALANCE`; its other errors keep the snake_case codes above. Access errors on all three routes (`not_found`, `forbidden`) are snake_case too. The MCP tools `deploy_project` and `rollback_deployment` report the same codes. The envelope is unchanged, so the `doc_url` of each error ends in the anchor below, for example `https://docs.tose.sh/api/errors#INSUFFICIENT_BALANCE`.

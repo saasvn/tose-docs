@@ -16,11 +16,11 @@ Khác với đa số endpoint, các endpoint này nằm dưới `/api/github`, k
 | `POST /api/github/workspace-installations` | có | bị từ chối `403` |
 | `DELETE /api/github/workspace-installations/{installation_id}` | có | bị từ chối `403` |
 
-API key nêu workspace khác workspace của chính nó trong `workspace_slug` nhận `403`. API key bỏ tham số này sẽ dùng các installation gắn với tài khoản của người tạo key. Ba endpoint ghi thay đổi tài khoản của người dùng hoặc mức tin cậy của workspace, nên chỉ dùng được với user session đã đăng nhập, không dùng với API key hay connected app. Xem [Xác thực](/vi/api/authentication).
+API key luôn chỉ đọc workspace của chính nó. Nếu bỏ `workspace_slug`, workspace của key được dùng (không còn quay về tài khoản của người tạo key). Nếu nêu workspace khác, hoặc một `installation_id` mà workspace của nó không dùng được, key nhận `403`. Ba endpoint ghi thay đổi tài khoản của người dùng hoặc mức tin cậy của workspace, nên chỉ dùng được với user session đã đăng nhập, không dùng với API key hay connected app. Xem [Xác thực](/vi/api/authentication).
 
 ## Endpoint đọc
 
-Tất cả trả mảng JSON thuần, có thể rỗng, trừ `GET /api/github/repos` trả `400` khi không có GitHub App installation nào truy cập được. `503` nghĩa là GitHub App chưa được cấu hình trên hệ thống này.
+Tất cả trả mảng JSON thuần, có thể rỗng, trừ `GET /api/github/repos` trả `400` khi không có GitHub App installation nào truy cập được. `503` nghĩa là GitHub App chưa được cấu hình trên hệ thống này. Khi chính GitHub lỗi ở `repos` (kèm `installation_id`) hoặc `branches`, response mang một [mã `github_*`](#github-errors).
 
 ### Liệt kê repository {#repos}
 
@@ -28,7 +28,7 @@ Tất cả trả mảng JSON thuần, có thể rỗng, trừ `GET /api/github/r
 GET /api/github/repos?workspace_slug={slug}
 ```
 
-Các repository mà GitHub App của TOSE đọc được, loại trùng theo `full_name`. Với `workspace_slug`, chỉ tìm trong các installation đã gắn vào workspace đó và bạn phải là thành viên. Thêm `installation_id` để liệt kê một installation; khi đó lỗi trả `500`. Nếu không có, installation nào tải lỗi sẽ bị bỏ qua.
+Các repository mà GitHub App của TOSE đọc được, loại trùng theo `full_name`. Với `workspace_slug`, chỉ tìm trong các installation đã gắn vào workspace đó và bạn phải là thành viên. Thêm `installation_id` để liệt kê một installation; khi đó lỗi GitHub trả [lỗi `github_*`](#github-errors). Nếu không có, installation nào tải lỗi sẽ bị bỏ qua. `installation_id` mà người gọi không dùng được trả `403`.
 
 | Trường | Kiểu | Mô tả |
 |-------|------|-------------|
@@ -45,7 +45,7 @@ Các repository mà GitHub App của TOSE đọc được, loại trùng theo `f
 GET /api/github/repos/{owner}/{repo}/branches?workspace_slug={slug}
 ```
 
-Các branch của repository, đọc qua một installation: `installation_id` nếu có; nếu không, với `workspace_slug` thì dùng installation duy nhất đã gắn vào workspace (`400` khi workspace không có hoặc có nhiều); nếu không nữa thì dùng installation mặc định của tài khoản. Kết quả có thể lấy từ cache ngắn hạn. Mỗi mục có `name`, `protected` và object `commit`.
+Các branch của repository, đọc qua một installation: `installation_id` nếu có; nếu không, với `workspace_slug` thì dùng installation duy nhất đã gắn vào workspace (`400` khi workspace không có hoặc có nhiều); nếu không nữa thì dùng installation mặc định của tài khoản. Kết quả có thể lấy từ cache ngắn hạn. Mỗi mục có `name`, `protected` và object `commit`. Lỗi GitHub trả [lỗi `github_*`](#github-errors).
 
 ### Liệt kê installation {#installations}
 
@@ -53,7 +53,7 @@ Các branch của repository, đọc qua một installation: `installation_id` n
 GET /api/github/installations?workspace_slug={slug}
 ```
 
-Các installation đã gắn vào workspace hoặc đang được dự án của nó dùng. Mỗi mục có `id`, `account_name`, `avatar_url` và `type` (`User` hoặc `Organization`). Không có `workspace_slug`, bạn thấy các installation gắn với tài khoản của mình.
+Các installation đã gắn vào workspace hoặc đang được dự án của nó dùng. Mỗi mục có `id`, `account_name`, `avatar_url` và `type` (`User` hoặc `Organization`). Không có `workspace_slug`, user session thấy các installation gắn với tài khoản của mình; API key thấy các installation của workspace của nó.
 
 ### Liệt kê installation có thể gắn {#available-installations}
 
@@ -61,7 +61,19 @@ Các installation đã gắn vào workspace hoặc đang được dự án của
 GET /api/github/available-installations?workspace_slug={slug}
 ```
 
-Các installation của workspace cùng các installation gắn với tài khoản của bạn, mỗi mục có cờ `attached`. Dùng để chọn `installation_id` cần gắn.
+Các installation của workspace cùng các installation gắn với tài khoản của bạn, mỗi mục có cờ `attached`. Dùng để chọn `installation_id` cần gắn. API key chỉ nhận các installation đã gắn vào workspace của nó, không bao giờ nhận các installation gắn với tài khoản của người tạo key.
+
+### Lỗi GitHub {#github-errors}
+
+Khi một lời gọi GitHub thất bại, response không bao giờ chứa nội dung lỗi gốc của GitHub, nên không lộ ID installation hay URL GitHub. Hãy xử lý theo `code` (và `details.reason`), không theo `message`. Mỗi mã có một mục trong [Mã lỗi](/vi/api/errors#github_not_found).
+
+| Mã | Status | Retry được | Ý nghĩa |
+|----|--------|-----------|---------|
+| [`github_not_found`](/vi/api/errors#github_not_found) | `404` | không | `details.reason` là `installation_not_found` hoặc `repository_not_found` |
+| [`github_forbidden`](/vi/api/errors#github_forbidden) | `403` | không | App thiếu quyền, hoặc GitHub từ chối request |
+| [`github_rate_limited`](/vi/api/errors#github_rate_limited) | `429` | có | Chờ số giây trong `Retry-After` |
+| [`github_unavailable`](/vi/api/errors#github_unavailable) | `503` | có | GitHub không phản hồi |
+| [`github_app_misconfigured`](/vi/api/errors#github_app_misconfigured) | `500` | không | Credential GitHub App của chính TOSE bị từ chối. Liên hệ hỗ trợ |
 
 ## Cài đặt và gắn (chỉ user session)
 
