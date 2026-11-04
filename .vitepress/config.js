@@ -4,6 +4,18 @@ export default defineConfig({
   title: 'TOSE CLI Documentation',
   description: 'Complete documentation for TOSE CLI - Deploy and manage your applications from the command line',
 
+  // Dark is the brand default; visitors can still switch to light.
+  appearance: 'dark',
+
+  head: [
+    ['link', { rel: 'preconnect', href: 'https://fonts.googleapis.com' }],
+    ['link', { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' }],
+    ['link', {
+      rel: 'stylesheet',
+      href: 'https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Unbounded:wght@500;600;700&display=swap&subset=vietnamese'
+    }]
+  ],
+
   // Maintainer files, not site pages.
   srcExclude: ['README.md', 'AGENTS.md'],
 
