@@ -151,7 +151,7 @@ Bỏ `disk` để tạo dự án stateless.
 
 ### Lấy bảng giá {#get-pricing}
 
-Công khai: gửi request không cần API key hay session. Trả về giá CPU và RAM theo giờ theo từng mức số dư ví, mức thấp nhất đứng trước (`min_balance_usd` là số dư từ đó mức giá áp dụng), cùng bảng giá lưu trữ bền vững.
+Công khai: gửi request không cần API key hay session. Trả về giá CPU và RAM theo giờ ở mức tiêu chuẩn, các mức [thưởng khi nạp tiền](#get-top-up-bonus) và bảng giá lưu trữ bền vững.
 
 ```http
 GET /api/pricing
@@ -162,11 +162,21 @@ GET /api/pricing
 ```json
 {
   "compute": {
+    "cpu_usd_per_hour": 0.02,
+    "ram_gb_usd_per_hour": 0.01,
     "tiers": [
-      { "min_balance_usd": 0, "cpu_usd_per_hour": 0.02, "ram_gb_usd_per_hour": 0.01 },
-      { "min_balance_usd": 100, "cpu_usd_per_hour": 0.014, "ram_gb_usd_per_hour": 0.007 },
-      { "min_balance_usd": 200, "cpu_usd_per_hour": 0.012, "ram_gb_usd_per_hour": 0.006 }
+      { "min_balance_usd": 0, "cpu_usd_per_hour": 0.02, "ram_gb_usd_per_hour": 0.01 }
     ]
+  },
+  "topup_bonus": {
+    "currency": "USD",
+    "bands": [
+      { "min_amount_usd": 100, "bonus_percent": 10, "most_popular": false },
+      { "min_amount_usd": 250, "bonus_percent": 15, "most_popular": false },
+      { "min_amount_usd": 500, "bonus_percent": 20, "most_popular": true },
+      { "min_amount_usd": 1000, "bonus_percent": 25, "most_popular": false }
+    ],
+    "note": "..."
   },
   "storage": {
     "usd_per_gib_month": 0.15,
@@ -178,6 +188,45 @@ GET /api/pricing
   }
 }
 ```
+
+| Trường | Mô tả |
+|--------|-------|
+| `compute.cpu_usd_per_hour` | Giá một vCPU-giờ. Mức tiêu chuẩn cho mọi workspace |
+| `compute.ram_gb_usd_per_hour` | Giá một GB RAM mỗi giờ. Mức tiêu chuẩn cho mọi workspace |
+| `compute.tiers` | **Đã deprecated.** Giữ lại cho client cũ. Luôn chỉ có một phần tử (`min_balance_usd: 0`) với mức giá tiêu chuẩn. Hãy đọc `cpu_usd_per_hour` và `ram_gb_usd_per_hour`. Trường này sẽ bị gỡ ở bản sau |
+| `topup_bonus` | Cùng bảng với [`GET /api/billing/topup-bonus`](#get-top-up-bonus) |
+| `storage` | Bảng giá lưu trữ bền vững |
+
+### Lấy bảng thưởng khi nạp tiền {#get-top-up-bonus}
+
+Công khai: gửi request không cần API key hay session. Trả về credit thưởng mà một lần nạp ví nhận được. Xem [Thưởng khi nạp tiền](/vi/guide/pricing#top-up-bonus) để biết các quy tắc.
+
+```http
+GET /api/billing/topup-bonus
+```
+
+**Phản hồi:**
+
+```json
+{
+  "currency": "USD",
+  "bands": [
+    { "min_amount_usd": 100, "bonus_percent": 10, "most_popular": false },
+    { "min_amount_usd": 250, "bonus_percent": 15, "most_popular": false },
+    { "min_amount_usd": 500, "bonus_percent": 20, "most_popular": true },
+    { "min_amount_usd": 1000, "bonus_percent": 25, "most_popular": false }
+  ],
+  "note": "The bonus applies to one payment and is added as separate, non-expiring credit. Admin and promotional credit earn no bonus. A refund takes back the bonus in proportion."
+}
+```
+
+| Trường | Mô tả |
+|--------|-------|
+| `bands[].min_amount_usd` | Một lần nạp nhỏ nhất đạt mức này |
+| `bands[].bonus_percent` | Credit thưởng, tính theo phần trăm của lần nạp đó |
+| `bands[].most_popular` | `true` cho mức được màn hình nạp tiền làm nổi bật |
+
+Các mức được liệt kê từ thấp đến cao. Lần nạp dưới mức đầu tiên không có thưởng. Thanh toán có mã khuyến mãi không được thưởng, và hoàn tiền sẽ thu hồi thưởng theo tỷ lệ. Phần thưởng hiện trong lịch sử ví dưới dạng giao dịch `topup_bonus` (và `topup_bonus_clawback` khi bị thu hồi). Trường `note` là văn bản tiếng Anh do máy chủ trả về.
 
 ## Bản ghi sử dụng {#usage-records}
 

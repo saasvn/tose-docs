@@ -48,7 +48,7 @@ You need:
 In the dashboard:
 
 1. Open **Templates** in your workspace and select **New Template**.
-2. Choose **Cloud Harness**. The card shows the instance's costs at your wallet balance tier and how
+2. Choose **Cloud Harness**. The card shows the instance's costs and how
    many instances the workspace already has.
 3. Enter a name and pick a size: 1 or 2 vCPU, 2 GB or 4 GB RAM. These are the only sizes Cloud
    Harness accepts.
@@ -77,7 +77,7 @@ An instance is pay-as-you-go, with no unlock fee:
 - **Both disks** are billed at the storage rate for as long as the instance exists, even while it
   is stopped.
 
-The exact prices depend on your wallet balance tier. The template catalog computes them for you, and
+The prices use the standard compute rate. The template catalog computes them for you, and
 the dashboard shows them on the Cloud Harness card and, for the docker host, on the instance page.
 See [Pricing](/guide/pricing#cloud-harness) for how each part is computed.
 
