@@ -16,7 +16,7 @@ Compute được tính theo giờ cho CPU và RAM cấp cho workload đang chạ
 | CPU | $0.02 mỗi vCPU-giờ |
 | RAM | $0.01 mỗi GB-giờ |
 
-Giá không đổi khi số dư ví tăng hay giảm. Thay vào đó, các lần nạp tiền lớn trong một thanh toán được tặng [credit thưởng](#top-up-bonus). Giá ổ đĩa không đổi (xem [Lưu trữ](#storage)).
+Giá không đổi khi số dư ví tăng hay giảm. Thay vào đó, các lần nạp tiền lớn trong một thanh toán được tặng [credit thưởng](#top-up-bonus). Giá ổ đĩa xem ở mục [Lưu trữ](#storage).
 
 Compute **chỉ tính phí khi workload đang chạy**. Dừng dự án (`tose down`), ngủ hoặc bị tạm ngưng sẽ dừng tính phí compute.
 
@@ -38,7 +38,7 @@ Quy tắc:
 - **Chỉ áp dụng khi nạp ví.** Không tặng thưởng cho credit do quản trị viên cộng, credit khuyến mãi hoặc thanh toán mở khóa tính năng.
 - **Không cộng dồn với mã khuyến mãi.** Thanh toán có áp mã khuyến mãi sẽ không nhận thưởng nạp tiền. Với thanh toán đó, hãy chọn mã hoặc mức thưởng.
 - **Hoàn tiền thu hồi thưởng theo tỷ lệ.** Hoàn một phần thanh toán sẽ thu hồi cùng tỷ lệ của phần thưởng (làm tròn lên, nên hoàn toàn bộ sẽ thu hồi hết). Khoản trừ không bao giờ đưa số dư xuống dưới 0, nên phần thưởng đã tiêu không bị thu hồi.
-- **Không thưởng hồi tố.** Số dư hiện có giữ nguyên giá trị. Chỉ các thanh toán hoàn tất sau thay đổi mới được thưởng.
+- **Không thưởng hồi tố.** Số dư hiện có giữ nguyên giá trị. Phần thưởng được cộng khi một thanh toán hoàn tất; không bao giờ áp dụng cho thanh toán cũ hay số dư hiện có.
 
 Các mức thưởng có tại endpoint công khai [`GET /api/billing/topup-bonus`](/vi/api/disks#get-top-up-bonus) và trong khối `topup_bonus` của [`GET /api/pricing`](/vi/api/disks#get-pricing). Nếu trang này và API khác nhau, API là nguồn chuẩn.
 
@@ -101,7 +101,7 @@ Harness:
 | `storage.state_disk_gib`, `storage.runtime_disk_gib` | Dung lượng các ổ đĩa |
 | `storage.usd_per_month` | Giá cả hai ổ đĩa mỗi tháng |
 
-Giá dùng mức compute tiêu chuẩn, nên danh mục không còn liệt kê giá theo từng bậc số dư ví.
+Giá dùng mức compute tiêu chuẩn, nên danh mục chỉ liệt kê một giá cho mỗi mục, không theo số dư ví.
 
 **Giới hạn số instance.** Mỗi workspace chỉ chứa được một số lượng instance Cloud Harness giới hạn:
 mặc định là 5, trừ khi bản cài đặt TOSE của bạn đặt giới hạn khác. Trường `max_instances` trong danh

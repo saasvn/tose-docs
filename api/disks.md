@@ -193,7 +193,7 @@ GET /api/pricing
 |-------|-------------|
 | `compute.cpu_usd_per_hour` | Price of one vCPU-hour. The standard rate for every workspace |
 | `compute.ram_gb_usd_per_hour` | Price of one GB of RAM per hour. The standard rate for every workspace |
-| `compute.tiers` | **Deprecated.** Kept for older clients. It always holds one entry (`min_balance_usd: 0`) with the standard rate. Read `cpu_usd_per_hour` and `ram_gb_usd_per_hour` instead. It will be removed in a later release |
+| `compute.tiers` | **Deprecated.** Kept for older clients. It always holds one entry (`min_balance_usd: 0`) with the standard rate. Read `cpu_usd_per_hour` and `ram_gb_usd_per_hour` instead. It may be removed in a later release |
 | `topup_bonus` | The same table as [`GET /api/billing/topup-bonus`](#get-top-up-bonus) |
 | `storage` | The persistent storage tariff |
 

@@ -193,7 +193,7 @@ GET /api/pricing
 |--------|-------|
 | `compute.cpu_usd_per_hour` | Giá một vCPU-giờ. Mức tiêu chuẩn cho mọi workspace |
 | `compute.ram_gb_usd_per_hour` | Giá một GB RAM mỗi giờ. Mức tiêu chuẩn cho mọi workspace |
-| `compute.tiers` | **Đã deprecated.** Giữ lại cho client cũ. Luôn chỉ có một phần tử (`min_balance_usd: 0`) với mức giá tiêu chuẩn. Hãy đọc `cpu_usd_per_hour` và `ram_gb_usd_per_hour`. Trường này sẽ bị gỡ ở bản sau |
+| `compute.tiers` | **Đã deprecated.** Giữ lại cho client cũ. Luôn chỉ có một phần tử (`min_balance_usd: 0`) với mức giá tiêu chuẩn. Hãy đọc `cpu_usd_per_hour` và `ram_gb_usd_per_hour`. Trường này có thể bị gỡ ở bản sau |
 | `topup_bonus` | Cùng bảng với [`GET /api/billing/topup-bonus`](#get-top-up-bonus) |
 | `storage` | Bảng giá lưu trữ bền vững |
 

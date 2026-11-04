@@ -16,7 +16,7 @@ Compute is billed per hour for the CPU and RAM allocated to running workloads. E
 | CPU | $0.02 per vCPU-hour |
 | RAM | $0.01 per GB-hour |
 
-The price never changes as your balance goes up or down. Larger single top-ups earn [bonus credit](#top-up-bonus) instead. Disk pricing is unchanged (see [Storage](#storage)).
+The price never changes as your balance goes up or down. Larger single top-ups earn [bonus credit](#top-up-bonus) instead. Disk pricing is described under [Storage](#storage).
 
 Compute is billed **only while the workload is running**. Stopping a project (`tose down`), sleeping, or suspension stops compute billing.
 
@@ -38,7 +38,7 @@ Rules:
 - **Wallet top-ups only.** The bonus is not granted on credit added by an administrator, on promotional credit, or on payments for a feature unlock.
 - **No stacking with promo codes.** A payment that has a promo code applied earns no top-up bonus. Choose the code or the bonus band for that payment.
 - **Refunds take the bonus back in proportion.** Refunding part of a payment takes back the same share of its bonus (rounded up, so a full refund takes back all of it). The debit never takes the balance below zero, so bonus you already spent is not recovered.
-- **No retroactive bonus.** Existing balances keep their value. Only payments completed after the change earn the bonus.
+- **No retroactive bonus.** Existing balances keep their value. The bonus is granted when a payment completes; it is never applied to earlier payments or existing balances.
 
 The bands are served by the public [`GET /api/billing/topup-bonus`](/api/disks#get-top-up-bonus) endpoint and by the `topup_bonus` block of [`GET /api/pricing`](/api/disks#get-pricing). Those are the source of truth if this page and the API ever disagree.
 
@@ -100,7 +100,7 @@ dashboard shows on the Cloud Harness card:
 | `storage.state_disk_gib`, `storage.runtime_disk_gib` | Disk sizes |
 | `storage.usd_per_month` | Both disks per month |
 
-Prices use the standard compute rate, so the catalog no longer lists prices per wallet balance tier.
+Prices use the standard compute rate, so the catalog lists one price per item, not one per wallet balance.
 
 **Instance limit.** A workspace can hold a limited number of Cloud Harness instances: 5 by default,
 unless your TOSE installation sets another limit. The catalog entry's `max_instances` field shows it.
