@@ -6,14 +6,14 @@ Mã khuyến mãi giảm số tiền nạp ví hoặc cộng credit thưởng v�
 
 `POST /api/workspaces/{slug}/wallet/promo/preview`
 
-Kiểm tra mã với một số tiền và cho biết bạn sẽ trả và nhận bao nhiêu. Endpoint không giữ chỗ gì nên gọi bao nhiêu lần cũng được. Cần quyền truy cập workspace.
+Kiểm tra mã với một số tiền và cho biết bạn sẽ trả và nhận bao nhiêu. Endpoint không giữ chỗ gì nên gọi bao nhiêu lần cũng được. Cần quyền truy cập workspace. API key cần scope `billing:write` (giống các endpoint nạp tiền), nếu không sẽ nhận `403 insufficient_scope`.
 
 | Trường | Kiểu | Mô tả |
 |--------|------|-------|
 | `code` | string | Bắt buộc. Không phân biệt hoa thường. |
 | `amount` | integer | Bắt buộc. Cent USD, hoặc VND khi `currency` là `VND`. |
 | `currency` | string | `USD` (mặc định) hoặc `VND`. |
-| `purpose` | string | `wallet_topup` (mặc định), hoặc một mục đích mở khóa template. |
+| `purpose` | string | `wallet_topup` (mặc định). Giá trị khác được coi là mở khóa template. Bước xem trước dùng `amount` bạn gửi, còn endpoint thanh toán thay bằng phí mở khóa của template, nên hãy xem trước với đúng phí đó. |
 
 ```bash
 curl -X POST https://<api-host>/api/workspaces/acme/wallet/promo/preview \
@@ -41,7 +41,8 @@ curl -X POST https://<api-host>/api/workspaces/acme/wallet/promo/preview \
 | `original_amount`, `charged_amount` | Số tiền trước khi áp mã và số bạn sẽ trả, theo loại tiền của yêu cầu (VND hoặc cent USD). |
 | `discount_usd_cents` | Số tiền giảm, tính bằng cent USD. `0` với mã bonus. |
 | `bonus_cents` | Credit khuyến mãi được cộng sau khi thanh toán. `0` nếu loại mã không phải `bonus`. |
-| `credit_usd_cents` | Credit đã nạp mà ví nhận được. Luôn là toàn bộ số tiền. |
+| `credit_usd_cents` | Credit đã nạp mà ví nhận được cho khoản này: toàn bộ số tiền. Nếu mã bị từ chối khi thanh toán hoàn tất, ví nhận số tiền bạn thực trả. |
+| `description` | Mô tả của mã, nếu có. |
 | `credit_valid_days` | Số ngày credit thưởng được dùng. Chỉ có với mã bonus có hạn. |
 
 Mã bị từ chối trả `400` kèm `{"error": "...", "code": "PROMO_..."}`. Các giá trị `code` được liệt kê trong [Vì sao mã bị từ chối](/vi/guide/promo-codes#why-a-code-can-be-refused). Workspace bạn không có quyền truy cập trả `404`.
@@ -81,8 +82,8 @@ Mọi số tiền tính bằng cent USD. Mã được lưu ở dạng chữ hoa.
 
 | Trường | Mô tả |
 |--------|-------|
-| `code` | Mã đặt tên sẵn, 3 đến 40 chữ cái, chữ số, `-` hoặc `_`. Đưa trường này **hoặc** `prefix` kèm `count`. |
-| `prefix`, `count` | Sinh `count` (2 đến 1000) mã tên `PREFIX-XXXX-XXXX`. Mỗi mã dùng một lần (`max_redemptions` 1, `max_per_user` 1). Bảng ký tự bỏ `0`, `O`, `1` và `I`. |
+| `code` | Mã đặt tên sẵn, 3 đến 40 chữ cái, chữ số, `-` hoặc `_`, bắt đầu bằng chữ cái hoặc chữ số. Đưa trường này **hoặc** `prefix` kèm `count`. |
+| `prefix`, `count` | Tiền tố 3 đến 20 ký tự (cùng bảng ký tự). Sinh `count` (2 đến 1000) mã tên `PREFIX-XXXX-XXXX`. Mỗi mã dùng một lần (`max_redemptions` 1, `max_per_user` 1). Bảng ký tự bỏ `0`, `O`, `1` và `I`. |
 | `kind` | `percent`, `fixed` hoặc `bonus`. |
 | `percent_off` | 1 đến 100, chỉ cho `percent`. |
 | `amount_cents` | 1 đến 1,000,000, cho `fixed` (số giảm) và `bonus` (số credit). |
@@ -96,7 +97,7 @@ Mọi số tiền tính bằng cent USD. Mã được lưu ở dạng chữ hoa.
 | `campaign` | Gom các mã thành một chương trình: mỗi người và mỗi workspace chỉ dùng tối đa một mã của mỗi chiến dịch. Tối đa 64 ký tự. |
 | `description` | Tối đa 500 ký tự. |
 
-Điều khoản tiền của mã (`kind`, số tiền, `applies_to`) và tên mã không đổi được sau khi tạo. Hãy tạo mã mới.
+Sau khi tạo, chỉ đổi được `description`, `max_redemptions`, `max_per_user`, `starts_at`, `expires_at` và `status`. Tên mã, `kind`, số tiền, `applies_to`, `min_amount_cents`, `first_topup_only`, `credit_valid_days` và `campaign` là cố định. Hãy tạo mã mới.
 
 ### REST {#admin-rest}
 
@@ -105,8 +106,8 @@ Các route thuộc API của admin console và dùng phiên đăng nhập admin 
 | Route | Tác dụng |
 |-------|----------|
 | `POST /admin/api/promo-codes` | Tạo một mã hoặc một lô. Trả `201` với `codes` và `count`. |
-| `GET /admin/api/promo-codes` | Liệt kê, mới nhất trước. Query: `campaign`, `status` (`active` hoặc `disabled`), `q` (chuỗi con của mã), `limit` (1 đến 200, mặc định 50), `offset`. |
-| `GET /admin/api/promo-codes/{id}` | Một mã (theo ID) cùng `stats` của sổ cái. |
+| `GET /admin/api/promo-codes` | Liệt kê, mới nhất trước. Query: `campaign`, `status` (`active` hoặc `disabled`), `q` (chuỗi con của mã), `limit` (1 đến 200; giá trị lớn hơn quay về 50, mặc định 50), `offset`. |
+| `GET /admin/api/promo-codes/{id}` | Một mã (theo ID hoặc mã) cùng `stats` của sổ cái. |
 | `PATCH /admin/api/promo-codes/{id}` | Đổi `description`, `max_redemptions`, `max_per_user`, `starts_at`, `expires_at` hoặc `status`. |
 | `POST /admin/api/promo-codes/{id}/disable` | Ngừng áp dụng mã cho các khoản thanh toán mới. |
 | `GET /admin/api/promo-codes/{id}/redemptions` | Sổ cái các lượt dùng của mã. |
@@ -116,7 +117,7 @@ Các route thuộc API của admin console và dùng phiên đăng nhập admin 
 
 Vô hiệu hóa mã, hoặc để mã hết hạn, không hủy khoản thanh toán đã giữ chỗ mã đó: khoản đó giữ nguyên giá.
 
-Lỗi trả `{"error", "code"}`: `INVALID` (`400`), `NOT_FOUND` (`404`) và `CONFLICT` (`409`, đã có mã trùng tên).
+Lỗi trả `{"error", "code"}`: `INVALID` (`400`), `NOT_FOUND` (`404`) và `CONFLICT` (`409`, đã có mã trùng tên). Body sai định dạng trả `400` và lỗi bất ngờ trả `500`, cả hai không có `code`.
 
 ### Công cụ MCP {#admin-mcp}
 

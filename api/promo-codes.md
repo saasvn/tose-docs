@@ -6,14 +6,14 @@ Promo codes lower a wallet top-up or add bonus credit to it. For what the kinds 
 
 `POST /api/workspaces/{slug}/wallet/promo/preview`
 
-Checks a code against an amount and shows what you would pay and receive. It reserves nothing, so it can be called as often as needed. It needs access to the workspace.
+Checks a code against an amount and shows what you would pay and receive. It reserves nothing, so it can be called as often as needed. It needs access to the workspace. An API key needs the `billing:write` scope (the same as the top-up endpoints), otherwise it gets `403 insufficient_scope`.
 
 | Field | Type | Description |
 |-------|------|-------------|
 | `code` | string | Required. Not case sensitive. |
 | `amount` | integer | Required. USD cents, or VND when `currency` is `VND`. |
 | `currency` | string | `USD` (default) or `VND`. |
-| `purpose` | string | `wallet_topup` (default), or a template unlock purpose. |
+| `purpose` | string | `wallet_topup` (default). Any other value is treated as a template unlock. The preview uses the `amount` you send, while the payment endpoints replace it with the template's unlock fee, so preview a template unlock with that fee. |
 
 ```bash
 curl -X POST https://<api-host>/api/workspaces/acme/wallet/promo/preview \
@@ -41,7 +41,8 @@ curl -X POST https://<api-host>/api/workspaces/acme/wallet/promo/preview \
 | `original_amount`, `charged_amount` | The amount before the code and what you would pay, in the request's currency (VND or USD cents). |
 | `discount_usd_cents` | The discount in USD cents. `0` for a bonus code. |
 | `bonus_cents` | Promotional credit added after payment. `0` unless the kind is `bonus`. |
-| `credit_usd_cents` | Paid credit the wallet receives. Always the full amount. |
+| `credit_usd_cents` | Paid credit the wallet receives for this payment: the full amount. If the code is rejected when the payment completes, the wallet receives what you paid instead. |
+| `description` | The code's description, when it has one. |
 | `credit_valid_days` | Days the bonus credit can be spent. Only set for bonus codes with an expiry. |
 
 A refused code answers `400` with `{"error": "...", "code": "PROMO_..."}`. The `code` values are listed in [Why a code can be refused](/guide/promo-codes#why-a-code-can-be-refused). A workspace you cannot access answers `404`.
@@ -81,8 +82,8 @@ All amounts are USD cents. Codes are stored upper-case.
 
 | Field | Description |
 |-------|-------------|
-| `code` | A named code, 3 to 40 letters, digits, `-` or `_`. Give this **or** `prefix` with `count`. |
-| `prefix`, `count` | Generate `count` (2 to 1000) codes named `PREFIX-XXXX-XXXX`. Each is single use (`max_redemptions` 1, `max_per_user` 1). The alphabet leaves out `0`, `O`, `1` and `I`. |
+| `code` | A named code, 3 to 40 letters, digits, `-` or `_`, starting with a letter or digit. Give this **or** `prefix` with `count`. |
+| `prefix`, `count` | A prefix of 3 to 20 characters (same alphabet). Generate `count` (2 to 1000) codes named `PREFIX-XXXX-XXXX`. Each is single use (`max_redemptions` 1, `max_per_user` 1). The alphabet leaves out `0`, `O`, `1` and `I`. |
 | `kind` | `percent`, `fixed` or `bonus`. |
 | `percent_off` | 1 to 100, for `percent` only. |
 | `amount_cents` | 1 to 1,000,000, for `fixed` (the discount) and `bonus` (the credit). |
@@ -96,7 +97,7 @@ All amounts are USD cents. Codes are stored upper-case.
 | `campaign` | Groups codes into one promotion: a person and a workspace redeem at most one code per campaign. Up to 64 characters. |
 | `description` | Up to 500 characters. |
 
-A code's money terms (`kind`, amounts, `applies_to`) and its name cannot be changed after creation. Create a new code instead.
+Only `description`, `max_redemptions`, `max_per_user`, `starts_at`, `expires_at` and `status` can be changed after creation. The name, `kind`, amounts, `applies_to`, `min_amount_cents`, `first_topup_only`, `credit_valid_days` and `campaign` are fixed. Create a new code instead.
 
 ### REST
 
@@ -105,8 +106,8 @@ The routes belong to the admin console API and use the admin console sign-in, no
 | Route | Does |
 |-------|------|
 | `POST /admin/api/promo-codes` | Create a code or a batch. Answers `201` with `codes` and `count`. |
-| `GET /admin/api/promo-codes` | List, newest first. Query: `campaign`, `status` (`active` or `disabled`), `q` (substring of the code), `limit` (1 to 200, default 50), `offset`. |
-| `GET /admin/api/promo-codes/{id}` | One code (by ID) with its ledger `stats`. |
+| `GET /admin/api/promo-codes` | List, newest first. Query: `campaign`, `status` (`active` or `disabled`), `q` (substring of the code), `limit` (1 to 200; a larger value falls back to 50, default 50), `offset`. |
+| `GET /admin/api/promo-codes/{id}` | One code (by ID or code) with its ledger `stats`. |
 | `PATCH /admin/api/promo-codes/{id}` | Change `description`, `max_redemptions`, `max_per_user`, `starts_at`, `expires_at` or `status`. |
 | `POST /admin/api/promo-codes/{id}/disable` | Stop the code from being applied to new payments. |
 | `GET /admin/api/promo-codes/{id}/redemptions` | The code's redemption ledger. |
@@ -116,7 +117,7 @@ The routes belong to the admin console API and use the admin console sign-in, no
 
 Disabling a code, or letting it expire, does not cancel a payment that already reserved it: that payment keeps its price.
 
-Errors carry `{"error", "code"}`: `INVALID` (`400`), `NOT_FOUND` (`404`) and `CONFLICT` (`409`, a code with that name already exists).
+Errors carry `{"error", "code"}`: `INVALID` (`400`), `NOT_FOUND` (`404`) and `CONFLICT` (`409`, a code with that name already exists). A malformed body answers `400` and an unexpected failure `500`, both without a `code`.
 
 ### MCP tools
 

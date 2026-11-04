@@ -10,13 +10,13 @@ Mã khuyến mãi giảm số tiền bạn trả khi nạp ví, hoặc cộng th
 | `fixed` | Số tiền trừ đi một khoản cố định bằng USD | **Toàn bộ** số tiền bạn chọn |
 | `bonus` | Toàn bộ số tiền | Toàn bộ số tiền, cộng thêm credit khuyến mãi |
 
-Giảm giá không làm giảm số credit ví nhận được: nạp $50 với mã `percent` giảm 20% thì bạn trả $40 và nhận $50. Khoản thanh toán sau giảm không được thấp hơn mức tối thiểu của cổng thanh toán ($1.00 với Polar, 10,000 VND với SePay); mã nào đẩy khoản thanh toán xuống dưới mức này sẽ bị từ chối.
+Giảm giá không làm giảm số credit ví nhận được (trừ một ngoại lệ, xem [Quy tắc](#rules)): nạp $50 với mã `percent` giảm 20% thì bạn trả $40 và nhận $50. Khoản thanh toán sau giảm không được thấp hơn mức tối thiểu của cổng thanh toán ($1.00 với Polar, 10,000 VND với SePay); mã nào đẩy khoản thanh toán xuống dưới mức này sẽ bị từ chối.
 
 ## Dùng mã {#use-a-code}
 
 1. Mở trang **Billing** của workspace và chọn **Top up**.
 2. Chọn loại tiền (USD qua Polar, VND qua SePay) và số tiền.
-3. Gõ mã vào ô **Promo code (optional)** rồi chọn **Apply**. Trang hiện số tiền bạn sẽ trả và số bạn sẽ nhận. Bước Apply chỉ xem trước, chưa giữ chỗ mã.
+3. Gõ mã vào ô **Promo code (optional)** rồi chọn **Apply**. Trang hiện số tiền bạn sẽ trả. Với mã bonus, trang còn hiện số credit thưởng và số ngày có hiệu lực. Bước Apply chỉ xem trước, chưa giữ chỗ mã.
 4. Tiếp tục thanh toán. Mã được kiểm tra lại và giữ chỗ khi khoản thanh toán được tạo.
 
 Mã không phân biệt hoa thường. Mỗi khoản thanh toán dùng một mã.
@@ -46,23 +46,24 @@ Mã bị từ chối không làm thay đổi khoản thanh toán. Thông báo ch
 ## Quy tắc {#rules}
 
 - **Giới hạn.** Mã có thể có mức tối thiểu, quy tắc chỉ cho lần nạp đầu, ngày bắt đầu và ngày hết hạn, tổng số lượt dùng và số lượt dùng cho mỗi người. Các mã thuộc cùng một **chiến dịch** (campaign) chỉ được dùng một lần cho mỗi người và một lần cho mỗi workspace, tính chung.
-- **Một mã cho mỗi khoản thanh toán, không cộng dồn.** Khoản thanh toán dùng mã không tạo [hoa hồng giới thiệu](/vi/guide/referral) và không nhận thêm thưởng nạp tiền nào khác.
+- **Một mã cho mỗi khoản thanh toán, không cộng dồn.** Khoản thanh toán dùng mã không tạo [hoa hồng giới thiệu](/vi/guide/referral). Nếu mã bị từ chối khi thanh toán hoàn tất (xem bên dưới), khoản đó vẫn tạo hoa hồng như bình thường.
 - **Mặc định chỉ áp dụng cho nạp ví.** Mã chỉ áp dụng cho việc mở khóa template (Dewee, GoClaw) khi nhà vận hành cho phép. Credit thưởng không bao giờ áp dụng cho việc mở khóa template.
-- **Thanh toán bỏ dở.** Nếu bạn bắt đầu thanh toán với một mã nhưng không hoàn tất, khoản thanh toán tiếp theo dùng cùng mã (hoặc mã cùng chiến dịch) sẽ thay thế khoản cũ. Thanh toán bỏ dở không khóa mã dùng một lần. Nếu khoản bỏ dở sau đó vẫn được hoàn tất mà mã không còn hợp lệ, ví được cộng đúng số tiền bạn thực trả.
-- **Lần nạp đầu.** "Đầu" nghĩa là workspace chưa có lần nạp nào hoàn tất trước đó.
+- **Thanh toán bỏ dở.** Nếu bạn bắt đầu thanh toán với một mã nhưng không hoàn tất, khoản thanh toán tiếp theo dùng cùng mã (hoặc mã cùng chiến dịch) sẽ thay thế khoản cũ. Thanh toán bỏ dở của chính bạn không khóa mã dùng một lần đối với bạn. Thanh toán chưa hoàn tất của người khác dùng cùng mã, kể cả đồng đội trong workspace với mã của một chiến dịch, vẫn tính vào giới hạn của mã cho đến khi hoàn tất hoặc bị thay thế.
+- **Mã có thể bị từ chối khi thanh toán hoàn tất.** Các quy tắc được kiểm tra lại lúc hoàn tất. Nếu mã không còn hợp lệ (ví dụ một lần nạp khác đã hoàn tất trước với mã chỉ cho lần nạp đầu, hoặc một khoản bỏ dở được hoàn tất muộn), phần giảm giá bị bỏ và ví được cộng đúng số tiền bạn thực trả.
+- **Lần nạp đầu.** "Đầu" nghĩa là workspace chưa có lần nạp nào đã hoàn tất hoặc đã hoàn tiền trước đó. Workspace có lần nạp đầu đã được hoàn tiền không còn dùng được mã chỉ cho lần nạp đầu.
 
 ## Credit thưởng {#bonus-credit}
 
 Mã `bonus` cộng credit khuyến mãi vào ví **sau khi** thanh toán hoàn tất. Lịch sử ví hiện khoản này là giao dịch `promo_credit` kèm ngày hết hạn.
 
-- **Dùng trước.** Phí sử dụng được trừ vào credit khuyến mãi trước, rồi mới đến credit đã nạp, khoản sắp hết hạn trước được dùng trước.
+- **Dùng trước.** Phí sử dụng compute và lưu trữ tính theo giờ được trừ vào credit khuyến mãi trước, rồi mới đến credit đã nạp, khoản sắp hết hạn trước được dùng trước.
 - **Không tính vào bậc giá.** Credit thưởng chưa dùng bị loại khỏi số dư quyết định [giá compute](/vi/guide/pricing#compute) của bạn, nên không thể đưa bạn sang bậc giá rẻ hơn.
-- **Có hạn dùng.** Khi credit qua ngày hết hạn (`credit_valid_days` của mã, tính từ lúc thanh toán hoàn tất), phần còn lại bị thu hồi bằng giao dịch `promo_expired`. Phần bạn đã dùng thì giữ nguyên. Ví không bao giờ xuống dưới 0 vì việc này.
+- **Có hạn dùng.** Khi credit qua ngày hết hạn (`credit_valid_days` của mã, tính từ lúc thanh toán hoàn tất), phần còn lại bị thu hồi bằng giao dịch `promo_expired`. Phần đã dùng cho phí sử dụng theo giờ thì giữ nguyên. Ví không bao giờ xuống dưới 0 vì việc này.
 - **Hoàn tiền.** Hoàn tiền toàn bộ khoản thanh toán sẽ giải phóng mã và thu hồi credit thưởng chưa dùng (giao dịch `promo_revoked`). Hoàn tiền một phần giữ nguyên mã và credit.
 - **Không phải tiền mặt.** Credit thưởng chỉ dùng để trả phí sử dụng TOSE và không thể rút.
 
 ::: warning Hoàn tiền SePay
-SePay không gửi thông báo hoàn tiền, nên khoản thanh toán SePay được hoàn sẽ do nhân viên vận hành TOSE giải phóng thủ công cho đến khi việc này được tự động hóa. Hoàn tiền Polar được xử lý tự động.
+SePay không gửi thông báo hoàn tiền, nên khoản thanh toán SePay được hoàn không được giải phóng tự động: mã và credit thưởng giữ nguyên cho đến khi TOSE xử lý khoản hoàn. Hoàn tiền Polar được xử lý tự động.
 :::
 
 ## Ra mắt AgentKit × TOSE {#agentkit-launch}
@@ -73,7 +74,7 @@ Trong đợt ra mắt AgentKit, mỗi khách hàng nhận một mã riêng dạn
 |------------|---------|
 | Loại mã | `bonus` |
 | Nạp tối thiểu | $20 |
-| Áp dụng cho | Lần nạp đầu tiên của workspace |
+| Áp dụng cho | Lần nạp đầu tiên của workspace (lần nạp đã hoàn tiền vẫn tính là đã nạp) |
 | Số lượt dùng | Một lượt cho mỗi mã, một lượt cho mỗi người |
 | Hạn dùng credit | 90 ngày kể từ lúc thanh toán |
 
