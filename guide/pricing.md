@@ -113,9 +113,14 @@ To bring it back, open the instance and choose **Issue token and resume** (or re
 
 The same action is available as `POST /api/workspaces/{slug}/templates/{template_slug}/resume`; see the [API](/api/template-deploy#resume) and the [`GATEWAY_TOKEN_*` codes](/api/template-deploy#gateway-token-codes).
 
+## Promo codes
+
+A promo code lowers a wallet top-up or adds bonus credit. Unspent bonus credit is spent first and is left out of the balance that picks your compute rate. See [Promo codes and bonus credit](/guide/promo-codes).
+
 ## Related
 
 - [Persistent Disks](/guide/persistent-disks)
+- [Promo codes and bonus credit](/guide/promo-codes)
 - [Cloud Harness](/guide/cloud-harness)
 - [`tose pricing` / `tose volumes`](/commands/disk)
 - [Disks, Volumes & Pricing API](/api/disks)

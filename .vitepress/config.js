@@ -63,6 +63,7 @@ export default defineConfig({
               { text: 'Pricing', link: '/guide/pricing' },
               { text: 'Self-hosting', link: '/guide/self-hosting' },
               { text: 'Referral program', link: '/guide/referral' },
+              { text: 'Promo codes', link: '/guide/promo-codes' },
               { text: 'Link an earlier enquiry', link: '/guide/link-enquiry' },
               { text: 'Blog and editorial MCP (planned)', link: '/guide/blog-and-editorial-mcp' }
             ]
@@ -101,6 +102,7 @@ export default defineConfig({
               { text: 'Authentication', link: '/api/authentication' },
               { text: 'API Keys & Scopes', link: '/api/api-keys' },
               { text: 'Audit Log', link: '/api/audit' },
+              { text: 'Promo codes', link: '/api/promo-codes' },
               { text: 'MCP Connector', link: '/mcp' },
               { text: 'Errors', link: '/api/errors' },
               { text: 'Sign-up Attribution', link: '/api/signup-attribution' },
@@ -171,6 +173,7 @@ export default defineConfig({
               { text: 'Bảng giá', link: '/vi/guide/pricing' },
               { text: 'Tự host', link: '/vi/guide/self-hosting' },
               { text: 'Chương trình giới thiệu', link: '/vi/guide/referral' },
+              { text: 'Mã khuyến mãi', link: '/vi/guide/promo-codes' },
               { text: 'Liên kết yêu cầu trước đó', link: '/vi/guide/link-enquiry' },
               { text: 'Blog và MCP biên tập (dự kiến)', link: '/vi/guide/blog-and-editorial-mcp' }
             ]
@@ -208,6 +211,7 @@ export default defineConfig({
               { text: 'Xác thực', link: '/vi/api/authentication' },
               { text: 'API key & Scope', link: '/vi/api/api-keys' },
               { text: 'Audit log', link: '/vi/api/audit' },
+              { text: 'Mã khuyến mãi', link: '/vi/api/promo-codes' },
               { text: 'MCP Connector', link: '/vi/mcp' },
               { text: 'Mã lỗi', link: '/vi/api/errors' },
               { text: 'Runtimes', link: '/vi/api/runtimes' },

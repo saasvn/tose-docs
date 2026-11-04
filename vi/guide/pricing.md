@@ -115,9 +115,14 @@ Instance Dewee hoặc GoClaw chỉ tự khôi phục sau khi nạp tiền khi c�
 
 Thao tác tương tự có ở `POST /api/workspaces/{slug}/templates/{template_slug}/resume`; xem [API](/vi/api/template-deploy#resume) và [mã `GATEWAY_TOKEN_*`](/vi/api/template-deploy#gateway-token-codes).
 
+## Mã khuyến mãi {#promo-codes}
+
+Mã khuyến mãi giảm số tiền nạp ví hoặc cộng credit thưởng. Credit thưởng chưa dùng được trừ trước và bị loại khỏi số dư quyết định mức giá compute của bạn. Xem [Mã khuyến mãi và credit thưởng](/vi/guide/promo-codes).
+
 ## Liên quan {#related}
 
 - [Ổ đĩa bền vững](/vi/guide/persistent-disks)
+- [Mã khuyến mãi và credit thưởng](/vi/guide/promo-codes)
 - [Cloud Harness](/vi/guide/cloud-harness)
 - [`tose pricing` / `tose volumes`](/vi/commands/disk)
 - [API ổ đĩa, volume & bảng giá](/vi/api/disks)
