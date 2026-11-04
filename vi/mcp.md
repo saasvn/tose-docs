@@ -2,7 +2,7 @@
 
 TOSE MCP connector cho phép một MCP client như Claude kiểm tra deployment và đọc log trong một workspace TOSE. Khi bạn phê duyệt rõ ràng, client còn có thể deploy hoặc rollback project.
 
-- **Server URL:** `https://<API host của TOSE>/mcp` (Streamable HTTP)
+- **Server URL:** `https://app.tose.sh/mcp` (Streamable HTTP). OAuth issuer là `https://app.tose.sh`. Nếu bạn tự vận hành instance TOSE, hãy dùng origin của chính bạn, xem [Instance tự vận hành](/vi/mcp/oauth#instance-tu-van-hanh).
 - **Xác thực:** OAuth 2.1 bằng tài khoản TOSE. Client tự tìm mọi thông tin từ server URL nên bạn không cần dán API key.
 - **Bật/tắt:** đơn vị vận hành bật connector bằng `MCP_ENABLED=true`. Nếu `/mcp` trả về 404 thì instance TOSE đó chưa bật connector.
 

@@ -1,6 +1,6 @@
 # Client compatibility
 
-The connector works with any client that supports remote MCP over Streamable HTTP with OAuth, because it depends on none of the optional features below. The full, maintained table is [`docs/mcp-client-matrix.md`](https://github.com/saasvn/tose-app/blob/master/docs/mcp-client-matrix.md) in tose-app.
+Add the hosted server URL `https://app.tose.sh/mcp` to your client; self-hosted instances use their own origin. The connector works with any client that supports remote MCP over Streamable HTTP with OAuth, because it depends on none of the optional features below. The full, maintained table is [`docs/mcp-client-matrix.md`](https://github.com/saasvn/tose-app/blob/master/docs/mcp-client-matrix.md) in tose-app.
 
 ## Verified against real clients
 
