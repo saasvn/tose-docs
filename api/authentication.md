@@ -9,7 +9,7 @@ Every request to the TOSE API carries exactly one credential. The API checks the
 | 3 | Session token | `tose_token` cookie | Browser sessions |
 
 ::: tip Limit what a key can do
-A key can be limited with scopes, and always belongs to one workspace. See [API Keys and Scopes](/api/api-keys). Every change made with a key is recorded in the [audit log](/api/audit).
+A key can be limited with scopes, and always belongs to one workspace. See [API Keys and Scopes](/api/api-keys). Every change made with a key is recorded in the [audit log](/api/audit). The support assistant in the dashboard uses a separate 5-minute [support token](/api/support-assistant) instead of a key.
 :::
 
 ## API keys

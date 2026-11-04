@@ -9,7 +9,7 @@ Mỗi request tới TOSE API mang đúng một credential. API kiểm tra theo t
 | 3 | Session token | Cookie `tose_token` | Phiên trình duyệt |
 
 ::: tip Giới hạn quyền của key
-Key có thể được giới hạn bằng scope và luôn thuộc về một workspace. Xem [API key và scope](/vi/api/api-keys). Mọi thay đổi thực hiện bằng key đều được ghi vào [audit log](/vi/api/audit).
+Key có thể được giới hạn bằng scope và luôn thuộc về một workspace. Xem [API key và scope](/vi/api/api-keys). Mọi thay đổi thực hiện bằng key đều được ghi vào [audit log](/vi/api/audit). Trợ lý hỗ trợ trong dashboard dùng [support token](/vi/api/support-assistant) riêng sống 5 phút thay cho key.
 :::
 
 ## API key
