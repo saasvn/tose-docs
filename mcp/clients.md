@@ -8,6 +8,10 @@ The connector works with any client that supports remote MCP over Streamable HTT
 
 A result is recorded in the matrix by a TOSE maintainer, with the date and client version.
 
+## ChatGPT
+
+ChatGPT connects through a Client ID Metadata Document (`https://chatgpt.com/oauth/client.json`) and authenticates at the token endpoint with `private_key_jwt` (RS256, keys from the document's `jwks_uri`). It needs no registration. TOSE lists `private_key_jwt` in `token_endpoint_auth_methods_supported`. ChatGPT is not yet marked verified: that needs a recorded connection date and client version.
+
 ## What the server offers
 
 These are checked by TOSE's automated tests against the server, not against a client:

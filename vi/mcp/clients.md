@@ -8,6 +8,10 @@ Connector hoạt động với mọi client hỗ trợ MCP từ xa qua Streamabl
 
 Kết quả được maintainer của TOSE ghi vào ma trận, kèm ngày và phiên bản client.
 
+## ChatGPT
+
+ChatGPT kết nối qua Client ID Metadata Document (`https://chatgpt.com/oauth/client.json`) và xác thực tại token endpoint bằng `private_key_jwt` (RS256, khóa lấy từ `jwks_uri` của document). Không cần đăng ký. TOSE liệt kê `private_key_jwt` trong `token_endpoint_auth_methods_supported`. ChatGPT chưa được đánh dấu là đã kiểm chứng: cần ghi lại ngày kết nối và phiên bản client.
+
 ## Server cung cấp gì
 
 Những mục này được kiểm thử tự động trên server, không phải trên client:

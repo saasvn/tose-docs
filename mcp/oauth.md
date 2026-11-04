@@ -20,7 +20,7 @@ A client can identify itself in either of two ways. TOSE accepts both:
 - **Client ID Metadata Document (CIMD), preferred.** The client uses an `https` URL as its `client_id`, and TOSE fetches the JSON document at that URL. The consent page names the domain that published it.
 - **Dynamic client registration.** Clients without a metadata document register with `POST /oauth/register`. The consent page shows these clients as unverified.
 
-Both flows use the authorization code grant with PKCE (S256 only). Clients that use a metadata document authenticate with `none`. Dynamically registered clients use `none` or a client secret (`client_secret_post` or `client_secret_basic`). Key-based client authentication such as `private_key_jwt` is not supported.
+Both flows use the authorization code grant with PKCE (S256 only). Clients that use a metadata document authenticate with `none` or `private_key_jwt` (RFC 7523, with the public keys published through the document's `jwks_uri`). Dynamically registered clients use `none` or a client secret (`client_secret_post` or `client_secret_basic`). The authorization server metadata lists `private_key_jwt` in `token_endpoint_auth_methods_supported`.
 
 ## Scopes
 
