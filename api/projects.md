@@ -2,7 +2,7 @@
 
 Endpoints to change, restart and delete a project, and to manage its Git connection. Creating and listing projects, deploying and reading logs are in the [OpenAPI spec](https://api.tose.sh/api/openapi.yaml), served at `GET /api/openapi.yaml`; this page covers the workflows around them.
 
-All paths are under `/api/workspaces/{slug}/projects/{project_slug}` and use the same authentication as the rest of the API; see [Authentication](/api/authentication). Every endpoint on this page requires the workspace `admin` or `owner` role.
+All paths are under `/api/workspaces/{slug}/projects/{project_slug}` and use the same authentication as the rest of the API; see [Authentication](/api/authentication). Every endpoint on this page requires the workspace `admin` or `owner` role, except [Export a project](#export), which any workspace member can call.
 
 ## Update a project
 
@@ -133,8 +133,70 @@ DELETE /api/workspaces/{slug}/projects/{project_slug}/git
 
 Removes the connection and deletes its GitHub webhook, unless another project still uses that webhook. Existing deployments keep running. **Response:** `200` with `{ "message": "..." }`.
 
+## Export a project {#export}
+
+```http
+GET /api/workspaces/{slug}/projects/{project_slug}/export
+```
+
+Returns a read-only inventory of the project, schema `tose.dev/project-export/v1`, to help you plan a move to another platform. It is not a backup, it does not change anything, and it is not proof that a migration worked.
+
+**Access.** A signed-in workspace member (any role) can call it. A workspace API key needs the separate `projects:export` scope; `projects:read` or `projects:write` are not enough. Allowed and denied requests are both written to the [audit log](/api/audit). A project that does not exist and a project in another workspace both return `404`, so the response does not reveal which slugs exist.
+
+**What it contains**
+
+| Field | Content |
+|-------|---------|
+| `schema_version`, `generated_at` | `tose.dev/project-export/v1` and the time of the export |
+| `source` | `workspace_id`, `project_id`, `name`, `slug`. These identify the source; do not reuse the IDs at the target |
+| `artifact` | `deployment_id` and `commit_sha` of the latest running deployment, and `image_digest` **only** when that image is pinned by an OCI digest (`name@sha256:...`). A tag such as `:latest` is omitted |
+| `resources` | The effective `port`, `replicas`, `cpu` and `ram` |
+| `env_keys` | Environment variable **names** only, sorted |
+| `domains` | Custom domains with `name`, `dns_status` and `ssl_status`. The default TOSE domain is not listed |
+| `volumes` | Metadata of the project's persistent volumes: `id`, `size_gib`, `mount_path`, `status` |
+| `blockers` | What is still unverified, see below |
+| `rollback` | A notice about what a TOSE rollback does and does not restore |
+
+**What it never contains:** environment variable values, API keys, registry credentials, kubeconfig, build logs or database passwords.
+
+```json
+{
+  "schema_version": "tose.dev/project-export/v1",
+  "generated_at": "2026-11-03T08:00:00Z",
+  "source": { "workspace_id": "ws_...", "project_id": "prj_...", "name": "Shop", "slug": "shop" },
+  "artifact": { "deployment_id": "dep_...", "image_digest": "registry.example/shop@sha256:<64 hex characters>", "commit_sha": "<commit>" },
+  "resources": { "port": 3000, "replicas": 1, "cpu": "500m", "ram": "512Mi" },
+  "env_keys": ["DATABASE_URL", "SESSION_SECRET"],
+  "domains": [{ "name": "shop.example.com", "dns_status": "verified", "ssl_status": "active" }],
+  "volumes": [{ "id": "vol_...", "size_gib": 10, "mount_path": "/data", "status": "bound" }],
+  "blockers": ["volume_backup_and_restore_unverified", "database_dependencies_unresolved", "target_capabilities_unverified", "dns_cutover_requires_approval"],
+  "rollback": { "artifact": "...", "config": "...", "schema": "...", "data": "..." }
+}
+```
+
+The values above are examples only. `artifact` is empty when the project has no running deployment.
+
+### Blockers
+
+`blockers` lists conditions the export cannot prove. Treat every entry as work to do before a cutover.
+
+| Blocker | Meaning |
+|---------|---------|
+| `immutable_oci_digest_unavailable` | There is no running image pinned by digest, so the artifact cannot be reproduced exactly. Build or resolve a digest first |
+| `volume_backup_and_restore_unverified` | The project has a volume. TOSE does not back it up through this endpoint; make a snapshot or consistent archive and test a restore |
+| `database_dependencies_unresolved` | The API cannot tell which workspace database the project uses. Identify it and back it up (for PostgreSQL, `pg_dump --format=custom`) |
+| `target_capabilities_unverified` | Check that the target supports the CPU, memory, port, volumes and health behavior |
+| `dns_cutover_requires_approval` | Changing DNS needs an explicit approval by a person, after the target is healthy |
+
+The last three are always present.
+
+### Rollback is not a restore
+
+The `rollback` object states what a TOSE rollback covers. It reapplies an earlier image to the **current** project. It reuses the current environment variables and configuration, and it does not roll back the database schema, database data or volume data. Plan artifact, configuration, schema and data rollback separately, from verified backups.
+
 ## Related
 
 - [Git Integration](/guide/git)
 - [GitHub API](/api/github)
 - [Persistent Disks](/guide/persistent-disks)
+- [API keys and scopes](/api/api-keys)
