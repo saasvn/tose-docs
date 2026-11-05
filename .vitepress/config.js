@@ -64,6 +64,7 @@ export default defineConfig({
               { text: 'Self-hosting', link: '/guide/self-hosting' },
               { text: 'Referral program', link: '/guide/referral' },
               { text: 'Link an earlier enquiry', link: '/guide/link-enquiry' },
+              { text: 'CI artifacts, reports and issue drafts', link: '/guide/ci-artifacts' },
               { text: 'Blog and editorial MCP (planned)', link: '/guide/blog-and-editorial-mcp' }
             ]
           },
@@ -110,6 +111,7 @@ export default defineConfig({
               { text: 'GitHub', link: '/api/github' },
               { text: 'Templates', link: '/api/templates' },
               { text: 'Template deploy and resume', link: '/api/template-deploy' },
+              { text: 'CI artifacts and reports', link: '/api/ci-artifacts' },
               { text: 'Disks, Volumes & Pricing', link: '/api/disks' }
             ]
           }
@@ -172,6 +174,7 @@ export default defineConfig({
               { text: 'Tự host', link: '/vi/guide/self-hosting' },
               { text: 'Chương trình giới thiệu', link: '/vi/guide/referral' },
               { text: 'Liên kết yêu cầu trước đó', link: '/vi/guide/link-enquiry' },
+              { text: 'Artifact CI, báo cáo và bản nháp issue', link: '/vi/guide/ci-artifacts' },
               { text: 'Blog và MCP biên tập (dự kiến)', link: '/vi/guide/blog-and-editorial-mcp' }
             ]
           },
@@ -216,6 +219,7 @@ export default defineConfig({
               { text: 'Template', link: '/vi/api/templates' },
               { text: 'Attribution khi đăng ký', link: '/vi/api/signup-attribution' },
               { text: 'Deploy và resume template', link: '/vi/api/template-deploy' },
+              { text: 'Artifact và báo cáo CI', link: '/vi/api/ci-artifacts' },
               { text: 'Ổ đĩa, Volume & Bảng giá', link: '/vi/api/disks' }
             ]
           }
