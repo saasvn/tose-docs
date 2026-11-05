@@ -98,6 +98,7 @@ production yet.
 
 | Command | Description |
 |---------|-------------|
+| [`tose export`](/commands/export) | Print a read-only project inventory with backup references and the migration plan |
 | [`tose disk get`](/commands/disk) | Show the project's persistent disk |
 | [`tose disk set`](/commands/disk#tose-disk-set) | Add, grow, or move a project disk |
 | [`tose disk delete`](/commands/disk#tose-disk-delete) | Delete a project disk and its data |
