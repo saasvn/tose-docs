@@ -34,7 +34,7 @@ Cả hai luồng đều dùng authorization code kèm PKCE (chỉ S256). Client 
 | `deployments:execute` | `deploy_project` | Có |
 | `deployments:rollback` | `rollback_deployment` | Có |
 
-- Mọi scope khác, gồm thành viên, thanh toán, biến môi trường, database và hạ tầng, đều bị từ chối với `invalid_scope`.
+- Mọi scope khác, gồm thành viên, thanh toán, biến môi trường, database và hạ tầng, đều bị từ chối với `invalid_scope`. Ngoại lệ duy nhất là `blog:write`, chỉ quản trị viên nền tảng mới cấp được (xem [Đăng blog qua MCP](/vi/guide/blog-and-editorial-mcp)).
 - Scope ghi chỉ được cấp khi owner hoặc admin của workspace tick chọn trên trang consent. Scope này bị gỡ ở lần refresh kế tiếp nếu người đó bị hạ vai trò.
 - Refresh chỉ được thu hẹp scope, không bao giờ mở rộng.
 - `tools/list` chỉ hiển thị tool mà scope cho phép: kết nối chỉ đọc thấy bốn tool đọc, có scope ghi thì thêm deploy và rollback.

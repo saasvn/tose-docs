@@ -34,7 +34,7 @@ Both flows use the authorization code grant with PKCE (S256 only). Clients that 
 | `deployments:execute` | `deploy_project` | Yes |
 | `deployments:rollback` | `rollback_deployment` | Yes |
 
-- Any other scope, including members, billing, environment variables, databases and infrastructure, is refused with `invalid_scope`.
+- Any other scope, including members, billing, environment variables, databases and infrastructure, is refused with `invalid_scope`. The one exception is `blog:write`, which only platform administrators can grant (see [Blog publishing through MCP](/guide/blog-and-editorial-mcp)).
 - A write scope is granted only when a workspace owner or admin ticks it on the consent page. It is removed on the next refresh if that person is demoted.
 - A refresh can narrow the scopes but never widen them.
 - `tools/list` shows only the tools your scopes allow: four read tools for a read-only connection, plus deploy and rollback with write scope.
