@@ -170,6 +170,8 @@ curl -s -o /dev/null -w '%{http_code}\n' https://<host-instance-cua-ban>/health
 
 TOSE chỉ công bố một phiên bản Dewee là đã xác minh sau khi một lần chạy end-to-end đạt trên cụm staging: tạo, xác thực qua domain công khai, WebSocket, MCP, dữ liệu còn sau khi khởi động lại, deploy lại và rollback, cùng các tình huống tiêu cực ở trên ([tose-app#276](https://github.com/saasvn/tose-app/issues/276)).
 
+Release gate này chỉ áp dụng cho template Dewee được tuyển chọn. Việc cài template từ registry có security gate fail-closed riêng, vẫn đang bị chặn cho đến khi kiểm tra trên host đã hardening và cluster thật hoàn tất ([tose-app#142](https://github.com/saasvn/tose-app/issues/142)); xem [Security gate khi cài đặt](/vi/guide/template-registry#install-security-gate-gated).
+
 | Trường | Giá trị hiện tại |
 |--------|------------------|
 | Nguồn Dewee | `https://github.com/nextlevelbuilder/dewee`, nhánh `dev` |

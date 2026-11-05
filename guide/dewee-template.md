@@ -170,6 +170,8 @@ curl -s -o /dev/null -w '%{http_code}\n' https://<your-instance-host>/health
 
 TOSE publishes a Dewee version as verified only after an end-to-end run passes against a staging cluster: create, authenticate over the public domain, WebSocket, MCP, persisted data after restart, redeploy and rollback, plus the negative cases above ([tose-app#276](https://github.com/saasvn/tose-app/issues/276)).
 
+This gate covers the curated Dewee template only. Installing from the registry has its own fail-closed security gate, which stays gated until the live hardened-host and real-cluster checks finish ([tose-app#142](https://github.com/saasvn/tose-app/issues/142)); see [Install security gate](/guide/template-registry#install-security-gate-gated).
+
 | Field | Current value |
 |-------|---------------|
 | Dewee source | `https://github.com/nextlevelbuilder/dewee`, branch `dev` |

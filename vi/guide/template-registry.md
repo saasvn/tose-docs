@@ -16,6 +16,7 @@ Mới chỉ có phần nền tảng được phát hành (tose-app [#388](https:
 | Xuất bản công khai, review để public, deprecate và revoke | Chưa có. Chế độ public giữ tắt cho đến khi security gate đạt |
 | Thư mục template (tìm kiếm, lọc, sắp xếp) | Chưa có |
 | Plan deploy, chi phí và blocker cho template trong registry | Chưa có |
+| Cài từ registry (build và chạy) | Bị chặn (gated). [Security gate](#install-security-gate-gated) fail-closed; tắt trừ khi operator bật community template (mặc định tắt) |
 | CLI `tose templates ...` | Chưa có |
 | Công cụ MCP cho registry | Chưa có |
 
@@ -110,10 +111,38 @@ Chi tiết, scope và ví dụ nằm ở [tham chiếu API registry](/vi/api/tem
 ## Bảo mật và độ tin cậy
 
 - Definition là **riêng tư** với workspace tạo ra nó. Workspace khác không liệt kê hay đọc được.
+- Các kiểm tra khi cài đặt (credential push có phạm vi hẹp, quét digest kèm SBOM, source được ghim và pod đã hardening) được mô tả ở [Security gate khi cài đặt](#install-security-gate-gated).
 - Validate chỉ kiểm tra cú pháp manifest và định dạng ghim. Nó không quét hay build mã nguồn. Phản hồi luôn ghi `security_gate: pending` kể cả khi manifest hợp lệ, và manifest không đáng tin sẽ không được đưa cho builder cho đến khi có và đạt một security gate riêng.
 - Ghim vào commit hoặc digest bảo vệ người dùng khỏi nguồn bị đổi sau khi review. Nó không chứng minh mã nguồn an toàn.
 - Không đặt giá trị bí mật trong manifest. Hãy khai báo tên biến với `secret: true`; người deploy sẽ cung cấp giá trị.
 - Publisher đã xác minh, template version đã xác minh, chính sách review công khai, báo cáo và gỡ bỏ sẽ được tài liệu hóa khi xuất bản công khai ra mắt.
+
+## Security gate khi cài đặt (đang bị chặn) {#install-security-gate-gated}
+
+Việc cài template từ registry đang ở trạng thái **gated**. Nền tảng từ chối build hoặc chạy một version registry trừ khi mọi kiểm tra dưới đây đều đạt, và một thiết lập còn thiếu được tính là kiểm tra không đạt, không bao giờ là bỏ qua. Cờ bật community template (`COMMUNITY_TEMPLATES_ENABLED`) mặc định là `false`, nên trên nền tảng mà operator chưa bật thì không có lượt cài registry nào chạy, bất kể manifest ghi gì. Các kiểm tra này đã được phát hành trong tose-app [#484](https://github.com/saasvn/tose-app/pull/484). Các kiểm tra phát hành trực tiếp trên host đã hardening và cluster thật vẫn còn mở ở [#142](https://github.com/saasvn/tose-app/issues/142), vì vậy tính năng vẫn bị chặn.
+
+Một lượt cài phải vượt qua:
+
+- **Build từ source (`source.git`).** Build chạy trong sandbox đã hardening và chỉ push image bằng credential ngắn hạn được cấp riêng cho đúng lần push đó. Credential registry của nền tảng không bao giờ được dùng cho build không đáng tin. Commit được ghim phải nằm trên default branch của repository hoặc trên một tag của nó, nên commit chỉ tồn tại trong một fork sẽ bị từ chối.
+- **Mọi lượt cài từ registry, dù build hay ghim (`source.oci`).** Image được ghim bằng digest và được quét tại digest đó trước khi workload được áp dụng. SBOM của scanner và một provenance statement được lưu kèm mỗi lần quét, dù bị từ chối hay được chấp nhận. Một phát hiện có mức nghiêm trọng bằng hoặc cao hơn mức đã cấu hình (mặc định `HIGH`) sẽ từ chối deploy.
+- **Pod khi chạy.** Pod chạy bằng user không phải root (uid 1000) với root filesystem chỉ đọc, bỏ mọi capability, không leo thang đặc quyền, dùng seccomp profile mặc định và không có service account token. Pod chỉ ghi được vào storage bạn đã khai báo và `/tmp`, vì vậy hãy xuất bản image không ghi ở nơi nào khác. Pod yếu hơn mức này bị từ chối khi tạo và ở mọi lần redeploy.
+
+### Lỗi fail-closed
+
+Khi một kiểm tra không đạt, lượt cài bị từ chối và lý do hiển thị dưới dạng blocker trong plan deploy và trong build log. Không có gì được deploy.
+
+| Mã | Ý nghĩa | Cần làm |
+|----|---------|---------|
+| `COMMUNITY_TEMPLATES_DISABLED` | Template registry đang tắt trên nền tảng này. | Bạn không làm gì được. Chỉ operator mới bật được. |
+| `IMAGE_SCANNER_NOT_CONFIGURED` | Chưa cấu hình image scanner nên không quét được image. | Thiết lập của operator. Deploy vẫn bị từ chối cho đến khi có scanner. |
+| `BUILD_SANDBOX_NOT_HARDENED` | Build host chưa có sandbox đã hardening nên build từ source bị từ chối. | Thiết lập của operator. Image `source.oci` đã ghim không được build nên không cần sandbox. |
+| `PUSH_CREDENTIALS_NOT_SCOPED` | Chưa cấu hình bên cấp credential push ngắn hạn. | Thiết lập của operator. Build từ source vẫn bị từ chối cho đến khi có. |
+| `SOURCE_REFUSED` | Source không chấp nhận được: URL không phải dạng `https://github.com/<owner>/<repo>` thuần, commit không phải SHA đầy đủ, hoặc image không được ghim dạng `name@sha256:<digest>`. | Sửa manifest và tạo version mới. |
+| `NETWORK_POLICY_NOT_ENFORCED` | Một installation có network mode cần network policy mà cluster không thực thi được. | Thiết lập của operator. |
+
+Các lần từ chối khác không có mã và hiện thành một câu ngắn trong build log, ví dụ: quét image thấy lỗ hổng bằng hoặc vượt ngưỡng, scanner bị lỗi hoặc không tạo được SBOM, không cấp được credential push hoặc credential sống lâu hơn mức cho phép, hoặc commit được ghim không nằm trên default branch hay tag của repository. Khi GitHub không truy cập được hoặc giới hạn tốc độ việc kiểm tra commit, build cũng bị từ chối; hãy thử lại sau.
+
+Operator cấu hình sandbox, bên cấp credential, scanner và ngưỡng mức nghiêm trọng trong [runbook bảo mật template](https://github.com/saasvn/tose-app/blob/master/docs/template-security-gate.md) của app. Trang đó là tài liệu tham chiếu cho các thiết lập chính xác; trang này không lặp lại chúng.
 
 ## Giá
 

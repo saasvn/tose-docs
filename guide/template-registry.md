@@ -16,6 +16,7 @@ Only the foundation has shipped (tose-app [#388](https://github.com/saasvn/tose-
 | Public publishing, review for public listing, deprecate and revoke | Not available. Public visibility stays off until the security gate passes |
 | Template directory (search, filter, sort) | Not available |
 | Deploy plan, cost and blockers for a registry template | Not available |
+| Registry installs (build and run) | Gated. Fail-closed [security gate](#install-security-gate-gated); off unless the operator enables community templates (default off) |
 | `tose templates ...` CLI | Not available |
 | Registry MCP tools | Not available |
 
@@ -108,10 +109,38 @@ Details, scopes and examples are in the [registry API reference](/api/template-r
 ## Security and trust
 
 - A definition is **private** to the workspace that created it. Other workspaces cannot list or read it.
+- The install-time checks (scoped push credential, digest scan with SBOM, pinned source and hardened pod) are described in [Install security gate](#install-security-gate-gated).
 - Validation only checks the manifest syntax and the pin format. It does not scan or build your source. The response says `security_gate: pending` even for a valid manifest, and an untrusted manifest is never given to a builder until a separate security gate exists and passes.
 - Pinning to a commit or digest protects users from a source that changes after review. It does not prove the code is safe.
 - Do not put secret values in a manifest. Declare the variable name with `secret: true`; the person who deploys supplies the value.
 - Verified publisher, verified template version, public review policy, reporting and takedown will be documented when public publishing ships.
+
+## Install security gate (gated)
+
+Installing a registry template is **gated**. The platform refuses to build or run a registry version unless every check below passes, and a missing setting counts as a failed check, never as a skipped one. The flag that turns community templates on (`COMMUNITY_TEMPLATES_ENABLED`) defaults to `false`, so on a platform where an operator has not enabled it, no registry install runs, whatever the manifest says. The checks shipped in tose-app [#484](https://github.com/saasvn/tose-app/pull/484). The live hardened-host and real-cluster release checks are still open in [#142](https://github.com/saasvn/tose-app/issues/142), so the feature stays gated.
+
+What an install must pass:
+
+- **Source builds (`source.git`).** The build runs in a hardened sandbox and pushes the image only with a short-lived credential issued for that one push. The platform's own registry credential is never used for an untrusted build. The pinned commit must be on the repository's default branch or on one of its tags, so a commit that exists only in a fork is refused.
+- **Every registry install, built or pinned (`source.oci`).** The image is pinned by digest and scanned at that digest before its workload is applied. The scanner's SBOM and a provenance statement are kept with each scan, refused or admitted. A finding at or above the configured severity (default `HIGH`) refuses the deploy.
+- **Pod at runtime.** The pod runs as a non-root user (uid 1000) with a read-only root filesystem, all capabilities dropped, no privilege escalation, the default seccomp profile and no service account token. It can write only to the storage you declared and `/tmp`, so publish an image that writes nowhere else. A pod weaker than this is refused on create and on every redeploy.
+
+### Fail-closed errors
+
+When a check fails, the install is refused and the reason is shown as a blocker in the deploy plan and in the build log. Nothing is deployed.
+
+| Code | Meaning | What to do |
+|------|---------|------------|
+| `COMMUNITY_TEMPLATES_DISABLED` | Registry templates are switched off on this platform. | Nothing on your side. Only the operator can enable them. |
+| `IMAGE_SCANNER_NOT_CONFIGURED` | No image scanner is configured, so an image cannot be scanned. | Operator setting. Deploys stay refused until a scanner is set. |
+| `BUILD_SANDBOX_NOT_HARDENED` | The build host has no hardened sandbox, so a source build is refused. | Operator setting. A pinned `source.oci` image is not built, so it does not need the sandbox. |
+| `PUSH_CREDENTIALS_NOT_SCOPED` | No issuer of short-lived push credentials is configured. | Operator setting. Source builds stay refused until one is set. |
+| `SOURCE_REFUSED` | The source is not acceptable: a URL that is not a plain `https://github.com/<owner>/<repo>`, a commit that is not a full SHA, or an image that is not pinned as `name@sha256:<digest>`. | Fix the manifest and create a new version. |
+| `NETWORK_POLICY_NOT_ENFORCED` | An installation with a network mode needs network policies that the cluster cannot enforce. | Operator setting. |
+
+Other refusals carry no code and read as a short sentence in the build log, for example: the image scan found a vulnerability at or above the limit, the scanner failed or produced no SBOM, the push credential could not be issued or lives longer than allowed, or the pinned commit is not on the repository's default branch or a tag. GitHub being unreachable or rate-limiting the commit check also refuses the build; try again later.
+
+Operators configure the sandbox, the credential issuer, the scanner and its severity limit in the app's [template security runbook](https://github.com/saasvn/tose-app/blob/master/docs/template-security-gate.md). That page is the reference for the exact settings; this page does not repeat them.
 
 ## Pricing
 
