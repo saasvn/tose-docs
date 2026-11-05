@@ -32,7 +32,7 @@ on:
 - An input has a `type` (`string`, the default, `boolean`, `number` or `choice` with `options`) and optional `required`, `default` and `description`.
 - At most 10 inputs. Names use lowercase letters, digits and `_`. A string is at most 1024 bytes.
 - Each value reaches the job only as the environment variable `TOSE_INPUT_<NAME>`, never inside the shell program, so a value cannot inject commands.
-- A job can select this event with `when: [workflow_dispatch]`. `TOSE_CI_EVENT` is `workflow_dispatch`.
+- A job can select this event with `when: {events: [workflow_dispatch]}`. `TOSE_CI_EVENT` is `workflow_dispatch`.
 
 Start a run with the API:
 
@@ -55,10 +55,9 @@ POST /pipelines/{pipeline_id}/dispatch
 - A commit whose configuration is unread, invalid or does not declare `on.workflow_dispatch` is `422 dispatch_not_available`.
 - The same `idempotency_key` (body or `Idempotency-Key` header) from the same user returns the first run with `200` and `Idempotent-Replay: true`. Reusing a key for different inputs, a different branch or a different commit is `409 idempotency_conflict`.
 - At most 10 manual and dispatch runs of a workspace may be unfinished at once (`429`, `Retry-After: 60`).
-- `402 INSUFFICIENT_BALANCE` and `402 CI_BUDGET_CAP_REACHED` apply as for any run.
-- The MCP tool `ci_run` starts runs from a connected app.
+- `402 INSUFFICIENT_BALANCE` and `402 CI_BUDGET_CAP_REACHED` apply as for a manual run (`ci_run` starts manual runs only; it takes no `ref` or `inputs`).
 
-A rerun (`manual`) keeps the event and the inputs of a dispatch run.
+A rerun of a `workflow_dispatch` run keeps its event and inputs. Reruns are an operator action (`POST /admin/api/ci/runs/:id/rerun`); a rerun of a fork run needs a new approval.
 
 ## Scheduler states and event history
 
@@ -114,7 +113,7 @@ A pull request from a fork is untrusted code. The server-side `fork_pull_request
 
 | Policy | Result |
 |--------|--------|
-| `disabled` (default) | The run is `skipped`. A neutral `tose-ci` check explains why, but only when the base branch configuration runs CI for that pull request. |
+| `disabled` (default) | The run is `skipped`. A neutral `tose-ci` check explains why, but only when the base branch configuration runs CI for that pull request. With `require_approval`, a run is blocked only under the same condition. |
 | `require_approval` | The run is `blocked` with a `tose-ci` check "Waiting for approval". |
 
 Approving or rejecting a blocked run:
@@ -129,8 +128,8 @@ POST /runs/{run_id}/reject
 ```
 
 - **Only a workspace member signed in as a person can approve.** An API key or connected app is always refused with `403`, whatever its scopes, so an agent can never approve the code it waits on. A run that is not waiting is `409 not_blocked`.
-- An approved run is planned from the **base commit's** configuration. The fork's own `.tose/ci.yml` is never read, so a fork cannot widen what the job may do.
-- **Approved fork jobs receive no secrets.** There is no checkout token (the commit is fetched anonymously, so only public repositories work), no artifact upload URL and no cache upload URL, and the job runtime refuses any secret.
+- An approved run is planned from the **base commit's** configuration. The fork's own `.tose/ci.yml` is never read, so a fork cannot widen its egress or change which jobs and steps run.
+- **Approved fork jobs receive no secrets.** There is no checkout token (the commit is fetched anonymously, so only public repositories work), no artifact upload URL and no cache upload URL (caches may still be restored), and the job runtime refuses any secret.
 - A rejected run ends `cancelled` without running anything.
 - Every run needs its own approval, including a rerun and every new commit of the pull request. A new commit replaces the waiting run.
 - Turning the policy off skips fork runs before their first job starts, even approved ones.

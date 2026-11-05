@@ -32,7 +32,7 @@ on:
 - Mỗi input có `type` (`string` là mặc định, `boolean`, `number` hoặc `choice` kèm `options`) và tùy chọn `required`, `default`, `description`.
 - Tối đa 10 input. Tên dùng chữ thường, chữ số và `_`. Một chuỗi tối đa 1024 byte.
 - Mỗi giá trị tới job chỉ qua biến môi trường `TOSE_INPUT_<NAME>`, không bao giờ nằm trong chương trình shell, nên giá trị không thể chèn lệnh.
-- Job có thể chọn sự kiện này bằng `when: [workflow_dispatch]`. `TOSE_CI_EVENT` là `workflow_dispatch`.
+- Job có thể chọn sự kiện này bằng `when: {events: [workflow_dispatch]}`. `TOSE_CI_EVENT` là `workflow_dispatch`.
 
 Bắt đầu run bằng API:
 
@@ -55,10 +55,9 @@ POST /pipelines/{pipeline_id}/dispatch
 - Commit có cấu hình chưa được đọc, không hợp lệ hoặc không khai báo `on.workflow_dispatch` trả `422 dispatch_not_available`.
 - Cùng `idempotency_key` (trong body hoặc header `Idempotency-Key`) từ cùng người dùng trả lại run đầu tiên với `200` và `Idempotent-Replay: true`. Dùng lại key cho input, nhánh hoặc commit khác trả `409 idempotency_conflict`.
 - Một workspace có tối đa 10 run manual và dispatch chưa kết thúc cùng lúc (`429`, `Retry-After: 60`).
-- `402 INSUFFICIENT_BALANCE` và `402 CI_BUDGET_CAP_REACHED` áp dụng như mọi run.
-- Công cụ MCP `ci_run` bắt đầu run từ ứng dụng kết nối.
+- `402 INSUFFICIENT_BALANCE` và `402 CI_BUDGET_CAP_REACHED` áp dụng như run manual (`ci_run` chỉ bắt đầu run manual; không nhận `ref` hay `inputs`).
 
-Chạy lại (`manual`) giữ nguyên sự kiện và input của run dispatch.
+Chạy lại một run `workflow_dispatch` giữ nguyên sự kiện và input. Chạy lại là thao tác của operator (`POST /admin/api/ci/runs/:id/rerun`); chạy lại run fork cần được duyệt lại.
 
 ## Trạng thái scheduler và lịch sử sự kiện
 
@@ -114,7 +113,7 @@ Pull request từ fork là code không đáng tin. Policy `fork_pull_requests` p
 
 | Policy | Kết quả |
 |--------|---------|
-| `disabled` (mặc định) | Run bị `skipped`. Check `tose-ci` trung tính giải thích lý do, nhưng chỉ khi cấu hình ở nhánh đích chạy CI cho pull request đó. |
+| `disabled` (mặc định) | Run bị `skipped`. Check `tose-ci` trung tính giải thích lý do, nhưng chỉ khi cấu hình ở nhánh đích chạy CI cho pull request đó. Với `require_approval`, run chỉ bị chặn trong cùng điều kiện đó. |
 | `require_approval` | Run bị `blocked` với check `tose-ci` "Waiting for approval". |
 
 Duyệt hoặc từ chối run đang bị chặn:
@@ -129,8 +128,8 @@ POST /runs/{run_id}/reject
 ```
 
 - **Chỉ thành viên workspace đăng nhập bằng session của một người mới duyệt được.** API key hoặc ứng dụng kết nối luôn bị từ chối với `403`, bất kể scope, nên một agent không bao giờ tự duyệt code mà nó đang chờ. Run không ở trạng thái chờ trả `409 not_blocked`.
-- Run được duyệt được lên kế hoạch từ cấu hình của **commit nền (base)**. `.tose/ci.yml` của fork không bao giờ được đọc, nên fork không thể mở rộng quyền của job.
-- **Job fork đã duyệt không nhận secret nào.** Không có checkout token (commit được tải ẩn danh nên chỉ repository công khai hoạt động), không có URL upload artifact và cache, và runtime của job từ chối mọi secret.
+- Run được duyệt được lên kế hoạch từ cấu hình của **commit nền (base)**. `.tose/ci.yml` của fork không bao giờ được đọc, nên fork không thể mở rộng egress hay thay đổi job và bước nào được chạy.
+- **Job fork đã duyệt không nhận secret nào.** Không có checkout token (commit được tải ẩn danh nên chỉ repository công khai hoạt động), không có URL upload artifact và cache (cache vẫn có thể được khôi phục), và runtime của job từ chối mọi secret.
 - Run bị từ chối kết thúc `cancelled` mà không chạy gì.
 - Mỗi run cần được duyệt riêng, kể cả chạy lại và mỗi commit mới của pull request. Commit mới thay thế run đang chờ.
 - Tắt policy sẽ bỏ qua run fork trước khi job đầu tiên bắt đầu, kể cả run đã duyệt.
