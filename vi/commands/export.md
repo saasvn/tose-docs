@@ -57,6 +57,10 @@ Thiếu scope, lệnh thoát với `INSUFFICIENT_SCOPE` (mã thoát `3`) và `er
 
 Giá trị biến môi trường, API key, thông tin đăng nhập registry, kubeconfig, build log và mật khẩu database. CLI còn kiểm tra phản hồi theo contract và chỉ in các trường trong bảng trên, nên một trường lạ từ server không đến được terminal hay log của bạn. Nếu một API key xuất hiện trong trường được định nghĩa, nó bị che.
 
+## Những gì CLI không in {#not-printed}
+
+Export từ API còn trả `env_refs`, `databases` cùng tham chiếu backup và checksum SHA-256, hợp đồng `migration` và header `X-Tose-Export-Sha256`. `tose export` chỉ in các trường trong bảng trên nên không hiển thị những mục này. Để xem tham chiếu backup, kiểm tra checksum hoặc ghi lại checksum của export, hãy gọi API trực tiếp. Xem [Tham chiếu backup](/vi/api/projects#backup-references) và [Bằng chứng chuyển dữ liệu](/vi/api/projects#migration-evidence). Chỉ admin được tải backup database, và TOSE không backup volume.
+
 ## Blockers và rollback
 
 `blockers` là danh sách mã. Danh sách rỗng không có nghĩa là việc chuyển an toàn. API báo các mã sau:
@@ -69,7 +73,9 @@ Giá trị biến môi trường, API key, thông tin đăng nhập registry, ku
 | `target_capabilities_unverified` | Chưa có kiểm tra nào xác nhận nơi đích hỗ trợ CPU, bộ nhớ, port, volume và health |
 | `dns_cutover_requires_approval` | Mọi thay đổi DNS cần một người phê duyệt |
 
-`rollback` cho biết rollback trong TOSE chạy lại **image** cũ với cấu hình **hiện tại**. Rollback không khôi phục biến môi trường, cấu hình ứng dụng, schema hay dữ liệu database. Hãy lập kế hoạch và backup riêng cho từng phần.
+API còn có thể báo `env_values_unrecoverable`, `env_values_recoverability_unverified`, `volume_backup_unavailable`, `database_backup_unavailable`, `database_backup_checksum_unavailable` và `database_restore_unverified`. CLI chuyển tiếp `blockers` đúng như API trả về. Xem [Blockers](/vi/api/projects#blockers) để biết ý nghĩa từng mã.
+
+`rollback` cho biết rollback trong TOSE chạy lại **image** cũ với cấu hình **hiện tại**. Rollback không khôi phục biến môi trường, cấu hình ứng dụng, schema hay dữ liệu database. Hãy lập kế hoạch và backup riêng cho từng phần. Rollback thường trả về một biên nhận liệt kê các lớp này; xem [Biên nhận rollback](/vi/api/projects#rollback-receipts).
 
 ## Sử dụng
 
@@ -94,14 +100,17 @@ Volumes:
   - /data 5 GiB (bound, vol_1)
 
 Blockers (resolve before any migration):
+  - volume_backup_and_restore_unverified
+  - volume_backup_unavailable
   - database_dependencies_unresolved
+  - target_capabilities_unverified
   - dns_cutover_requires_approval
 
 Rollback:
-  artifact: image only
-  config:   not restored
-  schema:   not restored
-  data:     not restored
+  artifact: TOSE rollback reapplies a previous image to the current project.
+  config:   Current environment variables and configuration are reused, not restored.
+  schema:   Database schema is not rolled back.
+  data:     Database and volume data are not rolled back; restore separately from verified backups.
 ```
 
 **Một tài liệu JSON cho script và agent:**
@@ -128,4 +137,5 @@ Với `schema_version` không được hỗ trợ, thông báo yêu cầu cập 
 
 - [API keys](/vi/api/api-keys) về scope
 - [Hướng dẫn chuyển nền tảng](https://github.com/saasvn/tose-app/blob/master/docs/portable-project-export.md) trong `saasvn/tose-app`: backup PostgreSQL và volume, khôi phục sang đích, chuyển DNS và rollback
+- [Bằng chứng chuyển dữ liệu](/vi/api/projects#migration-evidence) và [Tham chiếu backup](/vi/api/projects#backup-references) trong API Projects
 - [`tose deployment rollback`](/vi/commands/deployment#tose-deployment-rollback)
