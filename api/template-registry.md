@@ -114,7 +114,7 @@ The curated Pi, Claude Code and Codex templates are hidden: no reviewed image pi
 | `GET /api/workspaces/{slug}/curated-templates` | `member` or higher | `deployments:read` |
 | `GET /api/workspaces/{slug}/curated-templates/{key}` | `member` or higher | `deployments:read` |
 | `POST /api/workspaces/{slug}/template-deployment-plans` with `curated_template` | `member` or higher | `deployments:read` |
-| Approve a plan | `admin` or `owner`, signed in or key | `deployments:execute` |
+| `POST /api/workspaces/{slug}/template-deployment-plans/{plan_id}/approve` | `admin` or `owner`, signed in or key | `deployments:execute` |
 
 The list returns the inputs of the guided form (provider and key name, `AGENT_MODEL`, allowed cores and GiB, `network_mode`, required `max_hourly_cost_cents`), `hidden`, `releases`, the runtime port and storage, and the blockers that do not depend on the workspace. It never holds a secret value. Hidden templates are listed only with `include_hidden=true`; a read by key returns a hidden one. An unknown key is `404 CURATED_TEMPLATE_NOT_FOUND`.
 
@@ -133,7 +133,7 @@ Plan request (send `curated_template` or `definition_slug`, not both):
 ```
 
 - `max_hourly_cost_cents` is required for a curated template.
-- A provider key in `variables` is `422 SECRET_VALUE_IN_PLAN`; the response does not echo it, and it is never stored in the plan.
+- A provider key in `variables` is `422 PLAN_INPUT_INVALID` with an `errors[]` entry `SECRET_VALUE_IN_PLAN` at `variables.<KEY>`; the response does not echo it, and it is never stored in the plan.
 - Unknown fields such as a startup command, a hook or `privileged` are `400`.
 - The plan has an extra hashed `curated` section: provider, `auth: byok`, network mode with its destinations, setup kind and `human_control` (who may act and the stop, key removal and delete routes). The agent holds no TOSE API credential.
 - Approving a plan with blockers returns `PLAN_BLOCKED` (`409`, or `402` when the wallet is empty) and creates nothing; a connected MCP app gets `403 APPROVAL_REQUIRES_PERSON`; the install call refuses curated plans too (`CURATED_INSTALL_UNAVAILABLE`).
@@ -142,7 +142,7 @@ The [OpenAPI spec](https://api.tose.sh/api/openapi.yaml) (`CuratedTemplate`, `li
 
 ## Not covered yet
 
-There is no idempotency key, plan, `next_actions` or plan expiry for these endpoints, because they only manage drafts. Those parts will be documented when the planner and deploy flow ship. Check the [OpenAPI spec](https://api.tose.sh/api/openapi.yaml) for the current contract.
+There is no idempotency key, plan, `next_actions` or plan expiry for the draft endpoints above, because they only manage drafts. The deployment planner has shipped in the backend, but only its curated-template use is documented here; the registry plan, install and expiry behavior will be documented separately. Check the [OpenAPI spec](https://api.tose.sh/api/openapi.yaml) for the current contract.
 
 ## See also
 

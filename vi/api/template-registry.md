@@ -114,7 +114,7 @@ Các mẫu Pi, Claude Code và Codex tuyển chọn đang bị ẩn: chưa có i
 | `GET /api/workspaces/{slug}/curated-templates` | `member` trở lên | `deployments:read` |
 | `GET /api/workspaces/{slug}/curated-templates/{key}` | `member` trở lên | `deployments:read` |
 | `POST /api/workspaces/{slug}/template-deployment-plans` với `curated_template` | `member` trở lên | `deployments:read` |
-| Phê duyệt plan | `admin` hoặc `owner`, đăng nhập hoặc dùng key | `deployments:execute` |
+| `POST /api/workspaces/{slug}/template-deployment-plans/{plan_id}/approve` | `admin` hoặc `owner`, đăng nhập hoặc dùng key | `deployments:execute` |
 
 Danh sách trả về các trường nhập của biểu mẫu (nhà cung cấp và tên khóa, `AGENT_MODEL`, số nhân và GiB cho phép, `network_mode`, `max_hourly_cost_cents` bắt buộc), `hidden`, `releases`, cổng và storage của runtime, cùng các blocker không phụ thuộc workspace. Danh sách không bao giờ chứa giá trị bí mật. Mẫu ẩn chỉ hiện khi có `include_hidden=true`; đọc theo key vẫn trả về mẫu ẩn. Key không tồn tại trả `404 CURATED_TEMPLATE_NOT_FOUND`.
 
@@ -133,7 +133,7 @@ Yêu cầu lập plan (gửi `curated_template` hoặc `definition_slug`, không
 ```
 
 - Mẫu tuyển chọn bắt buộc có `max_hourly_cost_cents`.
-- Khóa nhà cung cấp trong `variables` trả `422 SECRET_VALUE_IN_PLAN`; phản hồi không lặp lại khóa và khóa không bao giờ được lưu trong plan.
+- Khóa nhà cung cấp trong `variables` trả `422 PLAN_INPUT_INVALID` kèm một mục `errors[]` là `SECRET_VALUE_IN_PLAN` tại `variables.<KEY>`; phản hồi không lặp lại khóa và khóa không bao giờ được lưu trong plan.
 - Trường lạ như lệnh khởi động, hook hay `privileged` trả `400`.
 - Plan có thêm mục `curated` được băm: nhà cung cấp, `auth: byok`, chế độ mạng cùng các đích, kiểu thiết lập và `human_control` (ai được thao tác và các route dừng, gỡ khóa, xóa). Agent không giữ thông tin xác thực API TOSE.
 - Phê duyệt plan có blocker trả `PLAN_BLOCKED` (`409`, hoặc `402` khi ví trống) và không tạo gì; ứng dụng MCP đã kết nối nhận `403 APPROVAL_REQUIRES_PERSON`; lệnh cài cũng từ chối plan tuyển chọn (`CURATED_INSTALL_UNAVAILABLE`).
@@ -142,7 +142,7 @@ Yêu cầu lập plan (gửi `curated_template` hoặc `definition_slug`, không
 
 ## Chưa có
 
-Các endpoint này chưa có idempotency key, plan, `next_actions` hay thời hạn plan, vì chúng chỉ quản lý bản nháp. Những phần đó sẽ được tài liệu hóa khi planner và luồng deploy ra mắt. Xem [spec OpenAPI](https://api.tose.sh/api/openapi.yaml) để biết contract hiện hành.
+Các endpoint bản nháp ở trên chưa có idempotency key, plan, `next_actions` hay thời hạn plan, vì chúng chỉ quản lý bản nháp. Planner triển khai đã ra mắt ở backend, nhưng ở đây mới tài liệu hóa phần dùng cho mẫu tuyển chọn; plan, cài đặt và thời hạn của template registry sẽ được tài liệu hóa riêng. Xem [spec OpenAPI](https://api.tose.sh/api/openapi.yaml) để biết contract hiện hành.
 
 ## Xem thêm
 
