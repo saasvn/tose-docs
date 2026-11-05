@@ -72,7 +72,7 @@ Triển khai đích đã thất bại hoặc đang chạy dở bị từ chối 
 
 Khi thành công, CLI in biên nhận `tose.dev/rollback-receipt/v1` do API trả về (`--json`: `data.rollback_receipt`) và nêu rõ các lớp nó bao phủ. **Chỉ image (`artifact`) được quay lại.** `config`, `schema` và `data` được hiển thị là không được rollback; hãy khôi phục riêng từ bản sao lưu đã kiểm tra. Trường `rollback_of_deployment_id` của triển khai mới cho biết triển khai nào có image được chạy lại.
 
-Nếu server không trả biên nhận (server cũ) hoặc không đọc được biên nhận, rollback vẫn thành công và cùng thông báo phạm vi được in ra. CLI không bao giờ chuyển tiếp biên nhận tuyên bố có lớp nào khác `artifact` được khôi phục.
+`--json` thêm `data.rollback_receipt_status` (`included`, `absent` hoặc `unreadable`). Nếu server không trả biên nhận (server cũ, hoặc không đọc lại được nguồn) hoặc không đọc được biên nhận, rollback vẫn thành công, thông báo phạm vi vẫn được in, và thông báo chỉ tới `GET .../deployments/{id}/rollback-receipt` để lấy sau. CLI không bao giờ chuyển tiếp biên nhận tuyên bố có lớp nào khác `artifact` được khôi phục.
 
 ::: tip Agent
 Rollback cũng có qua connector MCP, nơi nó cần bạn duyệt trong trình duyệt. Xem [Agent access](/vi/mcp/agent-access).

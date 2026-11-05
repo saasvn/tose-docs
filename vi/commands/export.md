@@ -36,7 +36,7 @@ API gửi `X-Tose-Export-Sha256`, là SHA-256 của nội dung phản hồi. V�
 | `absent` | Server không gửi header. Hash chỉ tính cục bộ, **chưa** được server xác nhận. |
 | `malformed_header` | Header không phải SHA-256. Coi như chưa xác nhận. |
 
-Không khớp là lỗi (thoát mã `1`) và không in nội dung export.
+`sha256` bao phủ đúng các byte server đã gửi, không phải `data` đã lọc mà CLI in ra. Muốn lưu tệp có hash khớp, hãy tải export trực tiếp từ API. Không khớp là lỗi (thoát mã `1`) và không in nội dung export.
 
 ## Liên quan
 

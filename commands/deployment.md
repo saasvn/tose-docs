@@ -75,7 +75,7 @@ A failed or in-progress target is refused with exit code `1` (`CONFLICT`), and a
 
 On success the CLI prints the `tose.dev/rollback-receipt/v1` receipt the API returns (`--json`: `data.rollback_receipt`) and names the layers it covers. **Only the image (`artifact`) is rolled back.** `config`, `schema` and `data` are shown as not rolled back; restore them separately from a verified backup. The new deployment's `rollback_of_deployment_id` names the deployment whose image was reapplied.
 
-If the server returns no receipt (an older server) or it cannot be read, the rollback still succeeded and the same scope notice is printed. The CLI never relays a receipt that claims anything but `artifact` was restored.
+`--json` adds `data.rollback_receipt_status` (`included`, `absent` or `unreadable`). If the server returns no receipt (an older server, or it could not read the source back) or it cannot be read, the rollback still succeeded, the same scope notice is printed, and the message points to `GET .../deployments/{id}/rollback-receipt` to fetch it later. The CLI never relays a receipt that claims anything but `artifact` was restored.
 
 ::: tip Agents
 Rollback is also available through the MCP connector, where it needs your approval in the browser. See [Agent access](/mcp/agent-access).

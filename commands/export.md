@@ -36,7 +36,7 @@ The API sends `X-Tose-Export-Sha256`, the SHA-256 of the response body. With `--
 | `absent` | The server sent no header. The hash is computed locally only and is **not** server-verified. |
 | `malformed_header` | The header is not a SHA-256. Treat as unverified. |
 
-A mismatch is an error (exit `1`) and prints no export content.
+`sha256` covers the exact bytes the server sent, not the filtered `data` the CLI prints. To keep a file that hashes to it, download the export from the API directly. A mismatch is an error (exit `1`) and prints no export content.
 
 ## Related
 
