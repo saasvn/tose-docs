@@ -64,6 +64,7 @@ export default defineConfig({
               { text: 'Self-hosting', link: '/guide/self-hosting' },
               { text: 'Referral program', link: '/guide/referral' },
               { text: 'Link an earlier enquiry', link: '/guide/link-enquiry' },
+              { text: 'CI triggers and fork approval', link: '/guide/ci-triggers-and-forks' },
               { text: 'Blog and editorial MCP (planned)', link: '/guide/blog-and-editorial-mcp' }
             ]
           },
@@ -172,6 +173,7 @@ export default defineConfig({
               { text: 'Tự host', link: '/vi/guide/self-hosting' },
               { text: 'Chương trình giới thiệu', link: '/vi/guide/referral' },
               { text: 'Liên kết yêu cầu trước đó', link: '/vi/guide/link-enquiry' },
+              { text: 'Trigger CI và duyệt fork', link: '/vi/guide/ci-triggers-and-forks' },
               { text: 'Blog và MCP biên tập (dự kiến)', link: '/vi/guide/blog-and-editorial-mcp' }
             ]
           },
