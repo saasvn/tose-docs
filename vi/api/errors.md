@@ -135,6 +135,24 @@ thử lại.
 
 Mọi status lỗi khác dùng mã `http_<status>`.
 
+### Mã xác minh email {#email-verification-codes}
+
+Do `POST /auth/email/verification` (gửi link, chỉ phiên đã đăng nhập) và
+`POST /auth/email/verify` (dùng link, công khai) trả về.
+
+| Mã | Status | Ý nghĩa |
+|----|--------|---------|
+| `rate_limited` | `429` | Link vừa được gửi chưa tới một phút, hoặc hôm nay đã gửi năm lần. Hãy theo `Retry-After`. |
+| `email_unavailable` | `503` | Bản cài đặt chưa cấu hình nhà cung cấp email. |
+| `email_send_failed` | `503` | Không gửi được email. Không có link nào được giữ lại. Hãy thử lại sau. |
+| `provider_verified` | `409` | Tài khoản Google hoặc GitHub: nhà cung cấp đã bảo chứng địa chỉ. |
+| `invalid_token` | `400` | Link không hợp lệ. |
+| `token_used` | `410` | Link đã được sử dụng. |
+| `token_expired` | `410` | Link cũ hơn 24 giờ hoặc đã bị link mới thay thế. Hãy gửi link mới. |
+| `email_changed` | `409` | Link được gửi tới địa chỉ mà tài khoản không còn dùng, hoặc tài khoản không còn mật khẩu. |
+
+Xem [Xác nhận email](/vi/guide/installation#confirm-your-email).
+
 ## Mã lỗi của hành động deploy
 
 `POST .../deploy` và `POST .../deployments/{id}/rollback` trả mã riêng của hành động theo dạng UPPER_SNAKE_CASE, không phải mã suy ra từ HTTP status. `POST .../redeploy` chỉ làm vậy với `INSUFFICIENT_BALANCE`; các lỗi khác của redeploy giữ mã snake_case ở trên. Lỗi quyền truy cập ở cả ba route (`not_found`, `forbidden`) cũng là snake_case. Tool MCP `deploy_project` và `rollback_deployment` báo cùng các mã này. Envelope không đổi, nên `doc_url` của mỗi lỗi kết thúc bằng anchor bên dưới, ví dụ `https://docs.tose.sh/api/errors#INSUFFICIENT_BALANCE`.

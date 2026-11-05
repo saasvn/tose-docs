@@ -135,6 +135,24 @@ Retryable.
 
 Any other error status uses the code `http_<status>`.
 
+### Email verification codes {#email-verification-codes}
+
+Returned by `POST /auth/email/verification` (send a link, signed-in sessions only) and
+`POST /auth/email/verify` (spend a link, public).
+
+| Code | Status | Meaning |
+|------|--------|---------|
+| `rate_limited` | `429` | A link was sent less than a minute ago, or five were sent today. Honor `Retry-After`. |
+| `email_unavailable` | `503` | The installation has no email provider configured. |
+| `email_send_failed` | `503` | The email could not be sent. No link was kept. Retry later. |
+| `provider_verified` | `409` | A Google or GitHub account: the provider already vouches for the address. |
+| `invalid_token` | `400` | The link is not valid. |
+| `token_used` | `410` | The link was already used. |
+| `token_expired` | `410` | The link is older than 24 hours or a newer link replaced it. Send a new one. |
+| `email_changed` | `409` | The link was sent to an address the account no longer uses, or the account no longer has a password. |
+
+See [Confirm your email](/guide/installation#confirm-your-email).
+
 ## Deploy action codes
 
 `POST .../deploy` and `POST .../deployments/{id}/rollback` report their own code in UPPER_SNAKE_CASE, not a code derived from the HTTP status. `POST .../redeploy` does so only for `INSUFFICIENT_BALANCE`; its other errors keep the snake_case codes above. Access errors on all three routes (`not_found`, `forbidden`) are snake_case too. The MCP tools `deploy_project` and `rollback_deployment` report the same codes. The envelope is unchanged, so the `doc_url` of each error ends in the anchor below, for example `https://docs.tose.sh/api/errors#INSUFFICIENT_BALANCE`.

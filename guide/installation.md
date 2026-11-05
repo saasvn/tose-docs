@@ -110,6 +110,30 @@ Or add to `package.json` scripts:
 3. Click **Create New API Key**
 4. Copy the key (starts with `tose_sk_`)
 
+## Confirm Your Email {#confirm-your-email}
+
+When you sign up with an email and password, TOSE emails a confirmation link to that address. You can use the account right away; only features that need a verified email, such as [linking an earlier tose.sh enquiry](/guide/link-enquiry), wait until you confirm.
+
+1. Open the email from TOSE and select the confirmation link. It opens `/verify-email/<token>` on the dashboard.
+2. Press **Confirm email address**. The link is only used when you press the button, so mail scanners that preview links cannot spend it.
+3. When you see "Your email is verified", close the page. The link confirms the address but does not sign you in.
+
+**Before you confirm**, **Settings** shows a "Confirm your email" card with a **Send confirmation email** button. **After you confirm**, the card disappears.
+
+### Missing or expired link
+
+- A link works once and expires after 24 hours. Sending a new one expires the older ones.
+- Open **Settings** and press **Send confirmation email** to get a new link. You can request one a minute and five a day. Inside that limit you see "A confirmation email was sent recently"; check your inbox and spam folder, or try again later.
+- If the page says the link was already used, expired or invalid, request a new one the same way.
+- If the page says the link was sent to an address the account no longer uses (`email_changed`), request a new link for the current address.
+- If the email provider is not set up on a self-hosted installation, the request fails with `503 email_unavailable`. Sign-up still succeeds.
+
+### Accounts that skip this step
+
+Accounts created with Google or GitHub need no link: the provider vouches for the address, and the card does not appear. Asking for a link anyway returns `409 provider_verified`. Signing in with the provider again refreshes the address. If you already confirmed, the request returns `200` with `email_verified: true`.
+
+`GET /auth/me` reports `email_verified`. See [API errors](/api/errors#email-verification-codes) for the codes.
+
 ## First-Time Setup
 
 ```bash
