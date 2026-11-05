@@ -124,12 +124,12 @@ Việc cài template từ registry đang ở trạng thái **gated**. Nền tả
 Một lượt cài phải vượt qua:
 
 - **Build từ source (`source.git`).** Build chạy trong sandbox đã hardening và chỉ push image bằng credential ngắn hạn được cấp riêng cho đúng lần push đó. Credential registry của nền tảng không bao giờ được dùng cho build không đáng tin. Commit được ghim phải nằm trên default branch của repository hoặc trên một tag của nó, nên commit chỉ tồn tại trong một fork sẽ bị từ chối.
-- **Mọi lượt cài từ registry, dù build hay ghim (`source.oci`).** Image được ghim bằng digest và được quét tại digest đó trước khi workload được áp dụng. SBOM của scanner và một provenance statement được lưu kèm mỗi lần quét, dù bị từ chối hay được chấp nhận. Một phát hiện có mức nghiêm trọng bằng hoặc cao hơn mức đã cấu hình (mặc định `HIGH`) sẽ từ chối deploy.
+- **Mọi lượt cài từ registry, dù build hay ghim (`source.oci`).** Image được ghim bằng digest và được quét tại digest đó trước khi workload được áp dụng. Mỗi lần quét, dù bị từ chối hay được chấp nhận, đều được ghi lại; khi scanner tạo ra SBOM, SBOM được lưu kèm một provenance statement. Một phát hiện có mức nghiêm trọng bằng hoặc cao hơn mức đã cấu hình (mặc định `HIGH`) sẽ từ chối deploy.
 - **Pod khi chạy.** Pod chạy bằng user không phải root (uid 1000) với root filesystem chỉ đọc, bỏ mọi capability, không leo thang đặc quyền, dùng seccomp profile mặc định và không có service account token. Pod chỉ ghi được vào storage bạn đã khai báo và `/tmp`, vì vậy hãy xuất bản image không ghi ở nơi nào khác. Pod yếu hơn mức này bị từ chối khi tạo và ở mọi lần redeploy.
 
 ### Lỗi fail-closed
 
-Khi một kiểm tra không đạt, lượt cài bị từ chối và lý do hiển thị dưới dạng blocker trong plan deploy và trong build log. Không có gì được deploy.
+Khi một kiểm tra không đạt, lượt cài bị từ chối và không có gì được deploy. Plan deploy hiển thị lý do dưới dạng blocker kèm mã. Khi build hoặc deploy bị từ chối lúc chạy, build log ghi lý do bằng lời thường ở dòng `ERROR: template security gate refused the build`.
 
 | Mã | Ý nghĩa | Cần làm |
 |----|---------|---------|
@@ -139,8 +139,9 @@ Khi một kiểm tra không đạt, lượt cài bị từ chối và lý do hi�
 | `PUSH_CREDENTIALS_NOT_SCOPED` | Chưa cấu hình bên cấp credential push ngắn hạn. | Thiết lập của operator. Build từ source vẫn bị từ chối cho đến khi có. |
 | `SOURCE_REFUSED` | Source không chấp nhận được: URL không phải dạng `https://github.com/<owner>/<repo>` thuần, commit không phải SHA đầy đủ, hoặc image không được ghim dạng `name@sha256:<digest>`. | Sửa manifest và tạo version mới. |
 | `NETWORK_POLICY_NOT_ENFORCED` | Một installation có network mode cần network policy mà cluster không thực thi được. | Thiết lập của operator. |
+| `INGRESS_MODE_NOT_ENFORCED` | Không gỡ được ingress công khai còn sót lại của một installation riêng tư. | Thiết lập của operator. |
 
-Các lần từ chối khác không có mã và hiện thành một câu ngắn trong build log, ví dụ: quét image thấy lỗ hổng bằng hoặc vượt ngưỡng, scanner bị lỗi hoặc không tạo được SBOM, không cấp được credential push hoặc credential sống lâu hơn mức cho phép, hoặc commit được ghim không nằm trên default branch hay tag của repository. Khi GitHub không truy cập được hoặc giới hạn tốc độ việc kiểm tra commit, build cũng bị từ chối; hãy thử lại sau.
+Phần lớn các lần từ chối khác không có mã và hiện thành một câu ngắn trong build log, ví dụ: quét image thấy lỗ hổng bằng hoặc vượt ngưỡng, scanner bị lỗi hoặc không tạo được SBOM, không cấp được credential push hoặc credential sống lâu hơn mức cho phép, hoặc commit được ghim không nằm trên default branch hay tag của repository. Khi GitHub không truy cập được hoặc giới hạn tốc độ việc kiểm tra commit, build cũng bị từ chối; hãy thử lại sau.
 
 Operator cấu hình sandbox, bên cấp credential, scanner và ngưỡng mức nghiêm trọng trong [runbook bảo mật template](https://github.com/saasvn/tose-app/blob/master/docs/template-security-gate.md) của app. Trang đó là tài liệu tham chiếu cho các thiết lập chính xác; trang này không lặp lại chúng.
 

@@ -122,12 +122,12 @@ Installing a registry template is **gated**. The platform refuses to build or ru
 What an install must pass:
 
 - **Source builds (`source.git`).** The build runs in a hardened sandbox and pushes the image only with a short-lived credential issued for that one push. The platform's own registry credential is never used for an untrusted build. The pinned commit must be on the repository's default branch or on one of its tags, so a commit that exists only in a fork is refused.
-- **Every registry install, built or pinned (`source.oci`).** The image is pinned by digest and scanned at that digest before its workload is applied. The scanner's SBOM and a provenance statement are kept with each scan, refused or admitted. A finding at or above the configured severity (default `HIGH`) refuses the deploy.
+- **Every registry install, built or pinned (`source.oci`).** The image is pinned by digest and scanned at that digest before its workload is applied. Each scan, refused or admitted, is recorded; when the scanner produces an SBOM, it is kept with a provenance statement. A finding at or above the configured severity (default `HIGH`) refuses the deploy.
 - **Pod at runtime.** The pod runs as a non-root user (uid 1000) with a read-only root filesystem, all capabilities dropped, no privilege escalation, the default seccomp profile and no service account token. It can write only to the storage you declared and `/tmp`, so publish an image that writes nowhere else. A pod weaker than this is refused on create and on every redeploy.
 
 ### Fail-closed errors
 
-When a check fails, the install is refused and the reason is shown as a blocker in the deploy plan and in the build log. Nothing is deployed.
+When a check fails, the install is refused and nothing is deployed. The deploy plan shows the reason as a blocker with its code. When a build or deploy is refused at run time, the build log gives the reason as an `ERROR: template security gate refused the build` line in plain words.
 
 | Code | Meaning | What to do |
 |------|---------|------------|
@@ -137,8 +137,9 @@ When a check fails, the install is refused and the reason is shown as a blocker 
 | `PUSH_CREDENTIALS_NOT_SCOPED` | No issuer of short-lived push credentials is configured. | Operator setting. Source builds stay refused until one is set. |
 | `SOURCE_REFUSED` | The source is not acceptable: a URL that is not a plain `https://github.com/<owner>/<repo>`, a commit that is not a full SHA, or an image that is not pinned as `name@sha256:<digest>`. | Fix the manifest and create a new version. |
 | `NETWORK_POLICY_NOT_ENFORCED` | An installation with a network mode needs network policies that the cluster cannot enforce. | Operator setting. |
+| `INGRESS_MODE_NOT_ENFORCED` | A private installation's leftover public ingress could not be removed. | Operator setting. |
 
-Other refusals carry no code and read as a short sentence in the build log, for example: the image scan found a vulnerability at or above the limit, the scanner failed or produced no SBOM, the push credential could not be issued or lives longer than allowed, or the pinned commit is not on the repository's default branch or a tag. GitHub being unreachable or rate-limiting the commit check also refuses the build; try again later.
+Most other refusals carry no code and read as a short sentence in the build log, for example: the image scan found a vulnerability at or above the limit, the scanner failed or produced no SBOM, the push credential could not be issued or lives longer than allowed, or the pinned commit is not on the repository's default branch or a tag. GitHub being unreachable or rate-limiting the commit check also refuses the build; try again later.
 
 Operators configure the sandbox, the credential issuer, the scanner and its severity limit in the app's [template security runbook](https://github.com/saasvn/tose-app/blob/master/docs/template-security-gate.md). That page is the reference for the exact settings; this page does not repeat them.
 
