@@ -45,16 +45,16 @@ The call returns `200` for every recorded run. Read `execution.status`:
 | `completed` | TOSE observed the planned state in the cluster. |
 | `pending_verification` | The change was applied but the cluster has not reached the planned state yet. See [Pending verification](#pending-verification). |
 | `started` | The change was requested and its outcome is not observed yet. |
-| `failed` | See `execution.detail` for the reason. |
+| `failed` | See `execution.detail` for the reason. For example `WORKLOAD_UPDATE_REFUSED` means Kubernetes refused the update. The plan is spent: make a new plan. Retrying with the same key returns the same failed run, and another key gets `PLAN_ALREADY_EXECUTED`. |
 
-The plan's own `status` moves one way: `pending`, then `approved` or `rejected`, then `executed`.
+The plan's own `status` only moves forward: `pending` to `approved` or `rejected`, and `approved` to `executed` or `rejected`.
 
 ## Plans that expire or go stale
 
 - **Expired plan.** A plan lives for 30 minutes. If it is not approved and run before `expires_at`, approving or executing returns `PLAN_EXPIRED`. Nothing changed. Make a new plan.
 - **Stale plan.** When you execute, TOSE compares the live target with the plan: Deployment identity and generation, image, desired replicas, the live deployment record, and the disk claims and their mounts. If any of them changed since planning, for example a deploy landed while the plan waited, the run is refused with `PLAN_STALE` and nothing changes. Make a new plan and approve it again. Replica health may change while a plan waits and does not make it stale.
 - **Hash mismatch.** Approving with a `plan_hash` that does not match the stored plan returns `PLAN_HASH_MISMATCH`. Reload the plan and review it again.
-- **Closed plan.** A plan that was rejected, or already ran, answers `PLAN_REJECTED` or `PLAN_CLOSED`. A plan that is not approved yet answers `APPROVAL_REQUIRED`.
+- **Closed plan.** A plan that was rejected, or already ran, answers `PLAN_REJECTED` or `PLAN_CLOSED`. A plan that is not approved yet answers `APPROVAL_REQUIRED` over REST and `APPROVAL_PENDING` over MCP, with the approval URL in the message.
 
 ## Insufficient balance for a rollback
 
@@ -74,7 +74,7 @@ Poll `GET .../runbooks/{plan_id}` (or call `get_runbook`). Every read checks the
 
 ## Receipt after a verified rollout
 
-When a rollback is verified, `execution.result_deployment_id` names the deployment record that carries the rollback receipt. It is empty before verification and for a restart, so read the receipt only after `execution.status` is `completed`. The deployment can then be inspected like any other, for example with `inspect_deployment`.
+When a rollback is verified, `execution.result_deployment_id` names the deployment record that carries the rollback receipt. It is set as soon as the rollback is applied, and is always empty for a restart. Until the run is `completed` the deployment record it points to is still `pending_verification`, so read the receipt only after `execution.status` is `completed`. The deployment can then be inspected like any other, for example with `inspect_deployment`.
 
 ## Permissions
 
@@ -95,8 +95,9 @@ Every request, including refusals, is written to the [audit log](/api/audit). Th
 | 400 | `INVALID_IDEMPOTENCY_KEY` | The `Idempotency-Key` is missing or not 8 to 128 characters from `A-Za-z0-9._:-`. |
 | 400 | `NO_IMAGE` | The rollback target has no built image. |
 | 402 | `INSUFFICIENT_BALANCE` | The wallet is empty; a rollback is refused. |
-| 403 | `HUMAN_APPROVAL_REQUIRED` | An API key or connected app tried to approve or reject. |
-| 403 | `FORBIDDEN`, `INSUFFICIENT_SCOPE` | Wrong role, missing scope, or another credential than the one that planned the run. |
+| 403 | `forbidden` | An API key or connected app tried to approve or reject. |
+| 403 | `insufficient_scope` | The credential lacks the scope; the body names `required_scope`. |
+| 403 | `FORBIDDEN` | The member is not an owner or admin, or another credential than the one that planned the run tried to run it. |
 | 404 | `NOT_FOUND` | Unknown project, deployment or plan. |
 | 409 | `NO_WORKLOAD`, `NOT_RUNNING` | The project has no live workload, or is scaled to zero. Deploy or start it first. |
 | 409 | `DEPLOY_IN_PROGRESS` | A deployment is still running. Wait for it. |
@@ -104,7 +105,7 @@ Every request, including refusals, is written to the [audit log](/api/audit). Th
 | 409 | `VOLUME_MISSING` | A recorded disk claim is missing or unavailable. |
 | 409 | `PLAN_HASH_MISMATCH`, `PLAN_EXPIRED`, `PLAN_CLOSED`, `PLAN_REJECTED`, `APPROVAL_REQUIRED`, `PLAN_STALE` | See [Plans that expire or go stale](#plans-that-expire-or-go-stale). |
 | 409 | `PLAN_ALREADY_EXECUTED`, `IDEMPOTENCY_KEY_REUSED` | See [Execute](#_3-execute). |
-| 409 | `CONFLICT`, `WORKLOAD_UPDATE_REFUSED` | Another operation holds the project, or Kubernetes refused the update. Try again. |
+| 409 | `CONFLICT` | Another operation holds the project. Try again shortly. |
 | 503 | `UNAVAILABLE` | The cluster or lock could not be reached. Nothing changed. |
 
 ## What is not covered

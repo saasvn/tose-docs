@@ -45,20 +45,20 @@ Lệnh trả `200` cho mọi lần chạy đã ghi nhận. Hãy đọc `executio
 | `completed` | TOSE đã quan sát thấy trạng thái đã lập kế hoạch trong cluster. |
 | `pending_verification` | Thay đổi đã áp dụng nhưng cluster chưa đạt trạng thái dự kiến. Xem [Đang chờ xác minh](#dang-cho-xac-minh). |
 | `started` | Thay đổi đã được yêu cầu, chưa quan sát được kết quả. |
-| `failed` | Xem `execution.detail` để biết lý do. |
+| `failed` | Xem `execution.detail` để biết lý do. Ví dụ `WORKLOAD_UPDATE_REFUSED` nghĩa là Kubernetes từ chối cập nhật. Kế hoạch đã dùng hết: hãy lập kế hoạch mới. Thử lại với cùng khóa trả về cùng lần chạy thất bại, còn khóa khác nhận `PLAN_ALREADY_EXECUTED`. |
 
-`status` của chính kế hoạch chỉ đi một chiều: `pending`, rồi `approved` hoặc `rejected`, rồi `executed`.
+`status` của chính kế hoạch chỉ tiến lên: `pending` sang `approved` hoặc `rejected`, và `approved` sang `executed` hoặc `rejected`.
 
 ## Kế hoạch hết hạn hoặc lỗi thời {#ke-hoach-het-han-hoac-loi-thoi}
 
 - **Hết hạn.** Kế hoạch sống 30 phút. Nếu chưa được duyệt và chạy trước `expires_at`, duyệt hoặc thực thi trả về `PLAN_EXPIRED`. Không có gì thay đổi. Hãy lập kế hoạch mới.
 - **Lỗi thời.** Khi thực thi, TOSE so sánh đích đang chạy với kế hoạch: danh tính và generation của Deployment, image, số replica mong muốn, bản ghi deployment đang chạy, các disk claim và điểm mount. Nếu bất kỳ thứ nào đổi từ lúc lập kế hoạch, ví dụ có một lần deploy xen vào khi kế hoạch đang chờ, lần chạy bị từ chối với `PLAN_STALE` và không có gì thay đổi. Hãy lập kế hoạch mới và duyệt lại. Sức khỏe replica có thể thay đổi trong lúc chờ mà không làm kế hoạch lỗi thời.
 - **Sai hash.** Duyệt với `plan_hash` không khớp kế hoạch đã lưu trả về `PLAN_HASH_MISMATCH`. Hãy tải lại kế hoạch và xem lại.
-- **Kế hoạch đã đóng.** Kế hoạch đã bị từ chối hoặc đã chạy trả về `PLAN_REJECTED` hoặc `PLAN_CLOSED`. Kế hoạch chưa được duyệt trả về `APPROVAL_REQUIRED`.
+- **Kế hoạch đã đóng.** Kế hoạch đã bị từ chối hoặc đã chạy trả về `PLAN_REJECTED` hoặc `PLAN_CLOSED`. Kế hoạch chưa được duyệt trả về `APPROVAL_REQUIRED` qua REST và `APPROVAL_PENDING` qua MCP, kèm URL phê duyệt trong thông báo.
 
 ## Không đủ số dư khi rollback
 
-Rollback cần ví còn tiền. Khi số dư workspace bằng 0 hoặc âm, lập kế hoạch rollback trả về `402 INSUFFICIENT_BALANCE`, nên bạn không bao giờ phải duyệt một kế hoạch không thể chạy; thực thi một rollback đã duyệt cũng bị từ chối tương tự. Hãy nạp tiền ở trang thanh toán trên dashboard rồi lập kế hoạch lại. Restart không bị kiểm tra theo số dư ví. Xem [Khi số dư bằng 0](/vi/guide/pricing).
+Rollback cần ví còn tiền. Khi số dư workspace bằng 0 hoặc âm, lập kế hoạch rollback trả về `402 INSUFFICIENT_BALANCE`, nên bạn không bao giờ phải duyệt một kế hoạch không thể chạy; thực thi một rollback đã duyệt cũng bị từ chối tương tự. Hãy nạp tiền ở trang thanh toán trên dashboard rồi lập kế hoạch lại. Restart không bị kiểm tra theo số dư ví. Xem [Khi số dư bằng 0](/vi/guide/pricing#when-the-balance-is-zero).
 
 ## Dữ liệu của bạn được giữ nguyên
 
@@ -74,7 +74,7 @@ Hãy poll `GET .../runbooks/{plan_id}` (hoặc gọi `get_runbook`). Mỗi lần
 
 ## Biên nhận sau rollout đã xác minh
 
-Khi rollback được xác minh, `execution.result_deployment_id` chỉ ra bản ghi deployment mang biên nhận rollback. Trường này trống trước khi xác minh và với restart, nên chỉ đọc biên nhận khi `execution.status` là `completed`. Sau đó có thể xem deployment như mọi deployment khác, ví dụ bằng `inspect_deployment`.
+Khi rollback được xác minh, `execution.result_deployment_id` chỉ ra bản ghi deployment mang biên nhận rollback. Trường này được gán ngay khi rollback được áp dụng và luôn trống với restart. Cho tới khi lần chạy `completed`, bản ghi deployment nó trỏ tới vẫn ở `pending_verification`, nên chỉ đọc biên nhận khi `execution.status` là `completed`. Sau đó có thể xem deployment như mọi deployment khác, ví dụ bằng `inspect_deployment`.
 
 ## Quyền hạn
 
@@ -95,8 +95,9 @@ Mọi request, kể cả bị từ chối, đều được ghi vào [audit log](
 | 400 | `INVALID_IDEMPOTENCY_KEY` | `Idempotency-Key` thiếu hoặc không phải 8 đến 128 ký tự trong `A-Za-z0-9._:-`. |
 | 400 | `NO_IMAGE` | Đích rollback không có image đã build. |
 | 402 | `INSUFFICIENT_BALANCE` | Ví hết tiền; rollback bị từ chối. |
-| 403 | `HUMAN_APPROVAL_REQUIRED` | API key hoặc ứng dụng đã kết nối cố duyệt hoặc từ chối. |
-| 403 | `FORBIDDEN`, `INSUFFICIENT_SCOPE` | Sai vai trò, thiếu scope, hoặc credential khác với credential đã lập kế hoạch. |
+| 403 | `forbidden` | API key hoặc ứng dụng đã kết nối cố duyệt hoặc từ chối. |
+| 403 | `insufficient_scope` | Credential thiếu scope; body nêu `required_scope`. |
+| 403 | `FORBIDDEN` | Thành viên không phải owner hoặc admin, hoặc credential khác với credential đã lập kế hoạch cố chạy nó. |
 | 404 | `NOT_FOUND` | Không có project, deployment hoặc kế hoạch này. |
 | 409 | `NO_WORKLOAD`, `NOT_RUNNING` | Project chưa có workload đang chạy, hoặc đã scale về 0. Hãy deploy hoặc khởi động trước. |
 | 409 | `DEPLOY_IN_PROGRESS` | Một deployment vẫn đang chạy. Hãy chờ nó xong. |
@@ -104,7 +105,7 @@ Mọi request, kể cả bị từ chối, đều được ghi vào [audit log](
 | 409 | `VOLUME_MISSING` | Một disk claim đã ghi nhận bị thiếu hoặc không khả dụng. |
 | 409 | `PLAN_HASH_MISMATCH`, `PLAN_EXPIRED`, `PLAN_CLOSED`, `PLAN_REJECTED`, `APPROVAL_REQUIRED`, `PLAN_STALE` | Xem [Kế hoạch hết hạn hoặc lỗi thời](#ke-hoach-het-han-hoac-loi-thoi). |
 | 409 | `PLAN_ALREADY_EXECUTED`, `IDEMPOTENCY_KEY_REUSED` | Xem [Thực thi](#thuc-thi). |
-| 409 | `CONFLICT`, `WORKLOAD_UPDATE_REFUSED` | Một thao tác khác đang giữ project, hoặc Kubernetes từ chối cập nhật. Hãy thử lại. |
+| 409 | `CONFLICT` | Một thao tác khác đang giữ project. Hãy thử lại sau ít phút. |
 | 503 | `UNAVAILABLE` | Không kết nối được cluster hoặc khóa. Không có gì thay đổi. |
 
 ## Chưa bao gồm {#chua-bao-gom}
