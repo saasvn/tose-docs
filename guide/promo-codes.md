@@ -56,14 +56,17 @@ A refused code never changes the payment. The message tells you why:
 
 A `bonus` code adds promotional credit to the wallet **after** the payment completes. It shows in the wallet history as a `promo_credit` transaction with its expiry date.
 
-- **Spent first.** Hourly compute and storage usage is charged to promotional credit before paid credit, soonest-expiring first.
+- **Spent first.** Every wallet debit spends promotional credit before paid credit, soonest-expiring grant first. That covers the hourly compute and storage billing, CI job charges, and the storage backlog collected when you top up. Referral reversals and negative `admin_adjust` entries deliberately do not spend bonus credit.
 - **Not part of your price tier.** Unspent bonus credit is left out of the balance that decides your [compute price](/guide/pricing#compute), so it cannot move you to a cheaper band.
-- **It expires.** When the credit passes its expiry date (`credit_valid_days` of the code, counted from when the payment completes), what is left of it is taken back with a `promo_expired` transaction. Credit spent on hourly usage is yours. The wallet never goes below zero because of this.
+- **It expires.** When the credit passes its expiry date (`credit_valid_days` of the code, counted from when the payment completes), what is left of it is taken back with a `promo_expired` transaction. Credit you already spent on usage is yours. The wallet never goes below zero because of this.
 - **Refunds.** A full refund of the payment releases the code and takes back the unspent bonus credit (a `promo_revoked` transaction). A partial refund keeps the code and the credit.
+- **It follows the balance.** When a workspace is deleted or its balance is carried over to another wallet, the active bonus grants move with the balance. They still expire, and are still taken back on a full refund, in the receiving wallet.
 - **Not cash.** Bonus credit pays for TOSE usage only and cannot be withdrawn.
 
 ::: warning SePay refunds
 SePay sends no refund notification, so a refunded SePay payment is not released automatically: its code and bonus credit stay as they are until TOSE handles the refund. Polar refunds are handled automatically.
+
+Platform operators can release a SePay redemption by hand, see [Operate discount codes](/api/promo-codes#admin-release).
 :::
 
 ## AgentKit × TOSE launch

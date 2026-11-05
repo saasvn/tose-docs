@@ -56,14 +56,17 @@ Mã bị từ chối không làm thay đổi khoản thanh toán. Thông báo ch
 
 Mã `bonus` cộng credit khuyến mãi vào ví **sau khi** thanh toán hoàn tất. Lịch sử ví hiện khoản này là giao dịch `promo_credit` kèm ngày hết hạn.
 
-- **Dùng trước.** Phí sử dụng compute và lưu trữ tính theo giờ được trừ vào credit khuyến mãi trước, rồi mới đến credit đã nạp, khoản sắp hết hạn trước được dùng trước.
+- **Dùng trước.** Mọi khoản trừ ví đều tiêu credit khuyến mãi trước, rồi mới đến credit đã nạp; khoản (grant) sắp hết hạn nhất được dùng trước. Gồm phí compute và lưu trữ tính theo giờ, phí CI job và khoản lưu trữ tồn đọng được thu khi bạn nạp tiền. Referral reversal và `admin_adjust` âm cố ý không tiêu credit thưởng.
 - **Không tính vào bậc giá.** Credit thưởng chưa dùng bị loại khỏi số dư quyết định [giá compute](/vi/guide/pricing#compute) của bạn, nên không thể đưa bạn sang bậc giá rẻ hơn.
-- **Có hạn dùng.** Khi credit qua ngày hết hạn (`credit_valid_days` của mã, tính từ lúc thanh toán hoàn tất), phần còn lại bị thu hồi bằng giao dịch `promo_expired`. Phần đã dùng cho phí sử dụng theo giờ thì giữ nguyên. Ví không bao giờ xuống dưới 0 vì việc này.
+- **Có hạn dùng.** Khi credit qua ngày hết hạn (`credit_valid_days` của mã, tính từ lúc thanh toán hoàn tất), phần còn lại bị thu hồi bằng giao dịch `promo_expired`. Phần đã dùng cho phí sử dụng thì giữ nguyên. Ví không bao giờ xuống dưới 0 vì việc này.
+- **Đi theo số dư.** Khi xoá workspace hoặc chuyển số dư sang ví khác, các credit thưởng đang hoạt động đi theo số dư sang ví nhận. Chúng vẫn hết hạn, và vẫn bị thu hồi khi hoàn tiền toàn bộ, ngay trong ví nhận.
 - **Hoàn tiền.** Hoàn tiền toàn bộ khoản thanh toán sẽ giải phóng mã và thu hồi credit thưởng chưa dùng (giao dịch `promo_revoked`). Hoàn tiền một phần giữ nguyên mã và credit.
 - **Không phải tiền mặt.** Credit thưởng chỉ dùng để trả phí sử dụng TOSE và không thể rút.
 
 ::: warning Hoàn tiền SePay
 SePay không gửi thông báo hoàn tiền, nên khoản thanh toán SePay được hoàn không được giải phóng tự động: mã và credit thưởng giữ nguyên cho đến khi TOSE xử lý khoản hoàn. Hoàn tiền Polar được xử lý tự động.
+
+Operator nền tảng có thể giải phóng thủ công một lượt dùng SePay, xem [Vận hành mã giảm giá](/vi/api/promo-codes#admin-release).
 :::
 
 ## Ra mắt AgentKit × TOSE {#agentkit-launch}

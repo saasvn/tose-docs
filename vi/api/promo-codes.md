@@ -111,6 +111,7 @@ Các route thuộc API của admin console và dùng phiên đăng nhập admin 
 | `PATCH /admin/api/promo-codes/{id}` | Đổi `description`, `max_redemptions`, `max_per_user`, `starts_at`, `expires_at` hoặc `status`. |
 | `POST /admin/api/promo-codes/{id}/disable` | Ngừng áp dụng mã cho các khoản thanh toán mới. |
 | `GET /admin/api/promo-codes/{id}/redemptions` | Sổ cái các lượt dùng của mã. |
+| `POST /admin/api/promo-codes/redemptions/{id}/release` | Giải phóng một lượt dùng. Body `{"reason"}` (tùy chọn, được lưu cùng lượt dùng). Xem [Giải phóng một lượt dùng](#admin-release). |
 | `GET /admin/api/promo-codes/campaigns/{campaign}` | Số mã và `stats` sổ cái của một chiến dịch. |
 
 `stats` gồm `reserved`, `redeemed`, `released`, `rejected`, `discount_cents`, `bonus_granted_cents` và `bonus_unspent_cents`.
@@ -121,7 +122,7 @@ Lỗi trả `{"error", "code"}`: `INVALID` (`400`), `NOT_FOUND` (`404`) và `CON
 
 ### Công cụ MCP {#admin-mcp}
 
-Trên [MCP connector](/vi/mcp), có thêm sáu công cụ dành cho admin nền tảng. Chúng cần scope `admin:discounts` **và** người dùng hiện đang là admin nền tảng. Với mọi người khác, chúng bị ẩn khỏi `tools/list` và bị từ chối khi gọi, và việc kiểm tra thất bại theo hướng từ chối nếu tra cứu admin lỗi. Scope bị loại bỏ khi người không phải admin đồng ý cấp quyền, và ở mỗi lần refresh sau khi người dùng không còn là admin.
+Trên [MCP connector](/vi/mcp), có thêm bảy công cụ dành cho admin nền tảng. Chúng cần scope `admin:discounts` **và** người dùng hiện đang là admin nền tảng. Với mọi người khác, chúng bị ẩn khỏi `tools/list` và bị từ chối khi gọi, và việc kiểm tra thất bại theo hướng từ chối nếu tra cứu admin lỗi. Scope bị loại bỏ khi người không phải admin đồng ý cấp quyền, và ở mỗi lần refresh sau khi người dùng không còn là admin.
 
 | Công cụ | Tác dụng | Có thay đổi dữ liệu? |
 |---------|----------|----------------------|
@@ -131,8 +132,13 @@ Trên [MCP connector](/vi/mcp), có thêm sáu công cụ dành cho admin nền 
 | `update_discount_code` | Đổi `description`, giới hạn, khoảng hiệu lực hoặc `status`. | Có |
 | `disable_discount_code` | Ngừng áp dụng mã cho các khoản thanh toán mới. | Có |
 | `list_discount_redemptions` | Sổ cái của một `code` hoặc một `campaign`, mới nhất trước. | Không |
+| `release_discount_redemption` | Giải phóng một lượt dùng theo ID, kèm `reason`. | Có |
 
-Mọi thao tác tạo, cập nhật và vô hiệu hóa đều được ghi vào [audit log](/vi/api/audit) với mức rủi ro cao, từ cả REST lẫn MCP.
+### Giải phóng một lượt dùng {#admin-release}
+
+Một lượt dùng không còn cần giữ, ví dụ sau khi hoàn tiền SePay (SePay không gửi webhook hoàn tiền nên lượt dùng không bao giờ tự được giải phóng), có thể được operator giải phóng. Gọi công cụ MCP `release_discount_redemption` hoặc `POST /admin/api/promo-codes/redemptions/{id}/release` với body `{"reason": "..."}`. Lượt dùng còn ở trạng thái `reserved` (khoản thanh toán chưa hoàn tất) bị từ chối với `CONFLICT` (`409`). Giải phóng một lượt dùng đã hoàn tất sẽ mở lại lượt dùng của mã và thu hồi credit thưởng chưa dùng, giống một lần hoàn tiền toàn bộ khoản Polar. Giải phóng hai lần không gây hại, và ID không tồn tại trả `NOT_FOUND` (`404`).
+
+Mọi thao tác tạo, cập nhật, vô hiệu hóa và giải phóng đều được ghi vào [audit log](/vi/api/audit) với mức rủi ro cao, từ cả REST lẫn MCP.
 
 ### Ví dụ: mã của đợt ra mắt AgentKit {#agentkit-example}
 
