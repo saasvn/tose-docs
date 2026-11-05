@@ -192,6 +192,7 @@ Khi có một lần chạy đã xác minh, bảng này sẽ có thêm digest, co
 ## Liên quan
 
 - [`tose template`](/vi/commands/template)
+- [Template registry: probe, nâng cấp và rollback](/vi/guide/template-registry)
 - [Biến môi trường](/vi/guide/environment)
 - [Ổ đĩa bền vững](/vi/guide/persistent-disks)
 - [Bảng giá](/vi/guide/pricing)

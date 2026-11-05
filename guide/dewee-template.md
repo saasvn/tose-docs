@@ -192,6 +192,7 @@ When a verified run exists, this table gains the digest, commit, TOSE revision, 
 ## Related
 
 - [`tose template`](/commands/template)
+- [Registry templates: probes, upgrade and rollback](/guide/template-registry)
 - [Environment Variables](/guide/environment)
 - [Persistent Disks](/guide/persistent-disks)
 - [Pricing](/guide/pricing)
