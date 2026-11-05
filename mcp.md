@@ -26,6 +26,9 @@ To connect another workspace, add the connector again and pick the other workspa
 | `read_logs` | `source=build` reads a deployment's build log. `source=runtime` reads recent application logs (up to 24 hours back, optional `level`). Returns at most 500 lines and 64 KB. | No |
 | `deploy_project` | Builds and deploys the head commit of the project's connected branch, as shown in the plan. | **Yes**, needs approval |
 | `rollback_deployment` | Puts the image of an earlier deployment live again. | **Yes**, needs approval |
+| `plan_runbook` | Makes a read-only restart or rollback plan and returns an `approval_url`. | No |
+| `execute_runbook` | Runs a plan you approved, once per `idempotency_key`. | **Yes**, needs a signed-in approval |
+| `get_runbook` | Reads a plan, its approval and its verified result. | No |
 
 There is no generic API tool. The connector cannot read or change environment variables, domains, databases, billing or members.
 

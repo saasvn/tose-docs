@@ -26,6 +26,9 @@ Muốn kết nối workspace khác thì thêm connector lần nữa và chọn w
 | `read_logs` | `source=build` đọc build log của một deployment. `source=runtime` đọc log ứng dụng gần đây (tối đa 24 giờ, có thể lọc theo `level`). Trả về tối đa 500 dòng và 64 KB. | Không |
 | `deploy_project` | Build và deploy commit đầu của branch đã kết nối, đúng commit hiển thị trong kế hoạch. | **Có**, cần phê duyệt |
 | `rollback_deployment` | Đưa image của một deployment cũ lên chạy lại. | **Có**, cần phê duyệt |
+| `plan_runbook` | Lập kế hoạch restart hoặc rollback chỉ-đọc và trả về `approval_url`. | Không |
+| `execute_runbook` | Chạy kế hoạch bạn đã duyệt, một lần cho mỗi `idempotency_key`. | **Có**, cần phê duyệt khi đã đăng nhập |
+| `get_runbook` | Đọc kế hoạch, trạng thái phê duyệt và kết quả đã xác minh. | Không |
 
 Connector không có tool gọi API tùy ý. Nó không đọc hay sửa được biến môi trường, domain, database, thanh toán hay thành viên.
 
