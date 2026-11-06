@@ -13,7 +13,7 @@ Có bốn runbook:
 
 Xem [Scale](#scale) và [Khôi phục database](#khoi-phuc-database) cho các quy tắc riêng của chúng, và [Chưa bao gồm](#chua-bao-gom) cho những gì còn thiếu.
 
-Các route cũ `POST .../restart` và `POST .../deployments/{id}/rollback`, cùng tool MCP `rollback_deployment` (xem [MCP connector](/vi/mcp)), vẫn hoạt động và không đi qua runbook.
+Các route cũ `POST .../restart` và `POST .../deployments/{id}/rollback`, cùng tool MCP `rollback_deployment` (xem [MCP connector](/vi/mcp)), vẫn hoạt động và nay chạy qua runbook. Rollback qua chúng cần cùng lần đăng nhập gần đây, và lệnh gọi bằng API key chỉ được lập kế hoạch và trả `409 APPROVAL_REQUIRED` cho đến khi một người duyệt.
 
 ## Luồng xử lý
 
@@ -57,12 +57,12 @@ Lệnh trả `200` cho mọi lần chạy đã ghi nhận. Hãy đọc `executio
 
 | `execution.status` | Ý nghĩa |
 |--------------------|---------|
-| `completed` | TOSE đã quan sát thấy trạng thái đã lập kế hoạch trong cluster. Với restore database, nghĩa là restore đã xong và được xác minh; xem [Khôi phục database](#khoi-phuc-database). |
+| `completed` | TOSE đã quan sát thấy trạng thái đã lập kế hoạch trong cluster. Với restore database, nghĩa là PostgreSQL và pgvector đã được xác minh qua Service, còn với MySQL và MongoDB là lệnh restore đã chạy xong không lỗi; xem [Khôi phục database](#khoi-phuc-database). |
 | `pending_verification` | Thay đổi đã áp dụng nhưng cluster chưa đạt trạng thái dự kiến. Xem [Đang chờ xác minh](#dang-cho-xac-minh). |
 | `started` | Thay đổi đã được yêu cầu, chưa quan sát được kết quả. Restore database ở trạng thái này trong lúc worker chạy. |
 | `failed` | Xem `execution.detail` để biết lý do. Ví dụ `WORKLOAD_UPDATE_REFUSED` nghĩa là Kubernetes từ chối cập nhật. Kế hoạch đã dùng hết: hãy lập kế hoạch mới. Thử lại với cùng khóa trả về cùng lần chạy thất bại, còn khóa khác nhận `PLAN_ALREADY_EXECUTED`. |
 
-Với restore, lần chạy còn ghi `execution.pre_restore_backup_id`. Xem [Đọc trạng thái thực thi](#doc-trang-thai) để biết cần làm gì ở từng trạng thái.
+Với rollback, kế hoạch dùng hết ngay khi chạy. Với restore, lần chạy còn ghi `execution.pre_restore_backup_id`. Xem [Đọc trạng thái thực thi](#doc-trang-thai) để biết cần làm gì ở từng trạng thái.
 
 `status` của chính kế hoạch chỉ tiến lên: `pending` sang `approved` hoặc `rejected`, và `approved` sang `executed` hoặc `rejected`.
 
@@ -114,7 +114,7 @@ curl -X POST "$TOSE_API_URL/api/workspaces/$WORKSPACE/projects/$PROJECT/runbooks
   -d '{"database_id": "<database_id>", "backup_id": "<backup_id>"}'
 ```
 
-Lấy `backup_id` từ `GET .../databases/{db_id}/backups`; đó phải là bản sao lưu đã hoàn tất của đúng database này.
+Lấy `backup_id` từ `GET /api/workspaces/{slug}/databases/{db_id}/backups`; đó phải là bản sao lưu đã hoàn tất của đúng database này.
 
 ### Sao lưu dữ liệu hiện tại trước
 
@@ -128,8 +128,15 @@ Thực thi restore trước hết tạo một bản sao lưu mới của dữ li
 | `DATABASE_NOT_ACTIVE` | Database không ở trạng thái active. |
 | `UNSUPPORTED` | Engine không có lệnh restore. Hỗ trợ PostgreSQL, pgvector, MySQL và MongoDB; Redis thì không. |
 | `BACKUP_NOT_READY`, `NOT_FOUND` | Bản sao lưu chưa hoàn tất, hoặc không phải của database đó. |
-| `CHECKSUM_MISMATCH` | Bản sao lưu không khớp SHA-256 đã ghi. Bị từ chối trước khi áp dụng bất cứ gì. |
 | `RESTORE_IN_PROGRESS` | Một restore khác của cùng database đang chạy. Khóa database từ chối restore thứ hai. |
+
+### Các lý do một lần restore thất bại
+
+Lệnh thực thi trả `200` với `execution.status: started` và công việc tiếp tục ở nền, nên các lý do này hiện ra là lần chạy `failed` với mã trong `execution.detail`, không phải lỗi HTTP:
+
+- `PRE_RESTORE_BACKUP_FAILED`: không lưu được bản sao lưu dữ liệu hiện tại. Database không đổi.
+- `CHECKSUM_MISMATCH`: bản sao lưu không khớp SHA-256 đã ghi. Được kiểm tra khi đọc bản sao lưu trong lúc chạy, và bản sao lưu không được áp dụng.
+- `RESTORE_FAILED`: việc áp dụng bản sao lưu chưa xong. Với MySQL và MongoDB, database có thể được khôi phục dở dang; bản sao lưu trước restore là đường quay lui.
 
 ### PostgreSQL và pgvector
 
@@ -147,14 +154,14 @@ Lệnh thực thi trả `started` trong khi worker chuẩn bị restore. Nếu T
 
 ### MySQL và MongoDB
 
-Các engine này tự áp dụng dump, không dùng replay cô lập và bước chuyển như PostgreSQL.
+Các engine này tự áp dụng dump, không dùng replay cô lập và bước chuyển như PostgreSQL. Lần chạy thành `completed` khi lệnh restore chạy xong không lỗi; TOSE không kiểm tra thêm dữ liệu.
 
 - **MySQL.** Dump xóa và tạo lại mọi bảng có trong nó, thay thế các dòng ghi từ sau bản sao lưu.
 - **MongoDB.** `mongorestore` bỏ qua các document có `_id` đã tồn tại, nên document đã đổi từ sau bản sao lưu không bị ghi đè bởi bản cũ hơn.
 - **Dữ liệu dở dang.** Lỗi trong lúc áp dụng có thể để lại dữ liệu dở dang. Bản sao lưu trước restore nêu trong lần chạy là đường quay lui.
 - **Bị gián đoạn.** Lần chạy bị gián đoạn mà chưa có kết quả sẽ thành `pending_verification` sau 45 phút và cần kế hoạch mới để thử lại.
 
-Route trực tiếp cũ `POST .../databases/{db_id}/backups/{backup_id}/restore` vẫn khởi động restore bất đồng bộ. Nó cũng lưu một bản sao lưu trước và dùng chung khóa database với runbook. Hãy dùng runbook restore để có phê duyệt và kết quả được theo dõi.
+Route trực tiếp cũ `POST /api/workspaces/{slug}/databases/{db_id}/backups/{backup_id}/restore` vẫn khởi động restore bất đồng bộ. Nó cũng lưu một bản sao lưu trước và dùng chung khóa database với runbook. Hãy dùng runbook restore để có phê duyệt và kết quả được theo dõi.
 
 ## Dữ liệu của bạn được giữ nguyên
 
@@ -179,7 +186,7 @@ Dashboard hiển thị cùng các trạng thái này là Started, Waiting for th
 
 `completed` chỉ được báo sau khi TOSE thấy controller đã quan sát rollout, mọi replica mong muốn đều ready và available, và các disk giữ nguyên danh tính và điểm mount. Nếu phản hồi của cluster không rõ ràng, hoặc dấu thực thi chưa thấy sau hai phút, lần chạy ở trạng thái `pending_verification`.
 
-Hãy poll `GET .../runbooks/v2/plans/{plan_id}` (hoặc gọi `get_runbook`). Mỗi lần đọc đều kiểm tra lại cluster nên trạng thái tự chuyển sang `completed` hoặc `failed`. Đừng thực thi lại: thử lại với cùng khóa trả về cùng lần chạy và không áp dụng kế hoạch lần nữa.
+Hãy poll `GET .../runbooks/v2/plans/{plan_id}` (hoặc gọi `get_runbook`). Với restart, rollback và scale, mỗi lần đọc đều kiểm tra lại cluster (restore do worker của nó chốt kết quả) nên trạng thái tự chuyển sang `completed` hoặc `failed`. Đừng thực thi lại: thử lại với cùng khóa trả về cùng lần chạy và không áp dụng kế hoạch lần nữa.
 
 ## Biên nhận sau rollout đã xác minh
 
@@ -202,8 +209,7 @@ Mọi request, kể cả bị từ chối, đều được ghi vào [audit log](
 
 | HTTP | Mã | Ý nghĩa |
 |------|----|---------|
-| 400 | `INVALID_ARGUMENT` | Thiếu `deployment_id` cho rollback, hoặc gửi `deployment_id` cho restart. |
-| 400 | `NO_CHANGE` | Scale yêu cầu đúng số replica project đang có. |
+| 400 | `INVALID_ARGUMENT` | Thiếu, thừa hoặc ngoài phạm vi tham số: `deployment_id` cho rollback hoặc gửi cho loại khác, `replicas` ngoài 1 đến 10, hoặc `database_id` và `backup_id` cho restore. |
 | 400 | `INVALID_IDEMPOTENCY_KEY` | `Idempotency-Key` thiếu hoặc không phải 8 đến 128 ký tự trong `A-Za-z0-9._:-`. |
 | 400 | `NO_IMAGE` | Đích rollback không có image đã build. |
 | 402 | `INSUFFICIENT_BALANCE` | Ví hết tiền nên rollback bị từ chối; với scale up, ví không đủ trả một giờ ở quy mô mới. |
@@ -216,9 +222,9 @@ Mọi request, kể cả bị từ chối, đều được ghi vào [audit log](
 | 409 | `DEPLOY_IN_PROGRESS` | Một deployment vẫn đang chạy. Hãy chờ nó xong. |
 | 409 | `ALREADY_LIVE` | Image của đích rollback đang chạy sẵn. |
 | 409 | `VOLUME_MISSING` | Một disk claim đã ghi nhận bị thiếu hoặc không khả dụng. |
+| 409 | `NO_CHANGE` | Scale yêu cầu đúng số replica project đang có. |
 | 409 | `REPLICA_LIMIT` | Project có disk bền vững chỉ chạy một replica; scale xin nhiều hơn. |
-| 409 | `DATABASE_NOT_ACTIVE`, `BACKUP_NOT_READY`, `CHECKSUM_MISMATCH`, `UNSUPPORTED`, `RESTORE_IN_PROGRESS` | Xem [Khôi phục database](#khoi-phuc-database). |
-| 409 | `PRE_RESTORE_BACKUP_FAILED` | Không lưu được bản sao lưu dữ liệu hiện tại nên restore chưa bắt đầu. Database không đổi. |
+| 409 | `DATABASE_NOT_ACTIVE`, `BACKUP_NOT_READY`, `UNSUPPORTED`, `RESTORE_IN_PROGRESS` | Xem [Khôi phục database](#khoi-phuc-database). |
 | 409 | `PLAN_HASH_MISMATCH`, `PLAN_EXPIRED`, `PLAN_CLOSED`, `PLAN_REJECTED`, `APPROVAL_REQUIRED`, `PLAN_STALE` | Xem [Kế hoạch hết hạn hoặc lỗi thời](#ke-hoach-het-han-hoac-loi-thoi). |
 | 409 | `PLAN_ALREADY_EXECUTED`, `IDEMPOTENCY_KEY_REUSED` | Xem [Thực thi](#thuc-thi). |
 | 409 | `CONFLICT` | Một thao tác khác đang giữ project. Hãy thử lại sau ít phút. |

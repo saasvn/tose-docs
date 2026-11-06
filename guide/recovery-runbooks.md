@@ -13,7 +13,7 @@ Four runbooks exist:
 
 See [Scale](#scale) and [Restore a database](#restore-a-database) for the rules that are specific to them, and [What is not covered](#what-is-not-covered) for what is still missing.
 
-The older routes `POST .../restart` and `POST .../deployments/{id}/rollback`, and the MCP tool `rollback_deployment` (see the [MCP connector](/mcp)), keep working and do not go through runbooks.
+The older routes `POST .../restart` and `POST .../deployments/{id}/rollback`, and the MCP tool `rollback_deployment` (see the [MCP connector](/mcp)), keep working and now run through a runbook. A rollback through them needs the same recent sign-in, and an API key's call is planned and answers `409 APPROVAL_REQUIRED` until a person approves.
 
 ## The flow
 
@@ -57,7 +57,7 @@ The call returns `200` for every recorded run. Read `execution.status`:
 
 | `execution.status` | Meaning |
 |--------------------|---------|
-| `completed` | TOSE observed the planned state in the cluster. For a database restore it means the restore finished and was verified; see [Restore a database](#restore-a-database). |
+| `completed` | TOSE observed the planned state in the cluster. For a database restore it means PostgreSQL and pgvector were verified through the Service, or, for MySQL and MongoDB, that the restore command finished without an error; see [Restore a database](#restore-a-database). |
 | `pending_verification` | The change was applied but the cluster has not reached the planned state yet. See [Pending verification](#pending-verification). |
 | `started` | The change was requested and its outcome is not observed yet. A database restore stays here while its worker runs. |
 | `failed` | See `execution.detail` for the reason. For example `WORKLOAD_UPDATE_REFUSED` means Kubernetes refused the update. The plan is spent: make a new plan. Retrying with the same key returns the same failed run, and another key gets `PLAN_ALREADY_EXECUTED`. |
@@ -114,7 +114,7 @@ curl -X POST "$TOSE_API_URL/api/workspaces/$WORKSPACE/projects/$PROJECT/runbooks
   -d '{"database_id": "<database_id>", "backup_id": "<backup_id>"}'
 ```
 
-Take `backup_id` from `GET .../databases/{db_id}/backups`; it must be a completed backup of that same database.
+Take `backup_id` from `GET /api/workspaces/{slug}/databases/{db_id}/backups`; it must be a completed backup of that same database.
 
 ### A backup of the current data is taken first
 
@@ -128,8 +128,15 @@ Executing a restore first takes a new backup of the database's current data (dum
 | `DATABASE_NOT_ACTIVE` | The database is not active. |
 | `UNSUPPORTED` | The engine has no restore command. PostgreSQL, pgvector, MySQL and MongoDB are supported; Redis is not. |
 | `BACKUP_NOT_READY`, `NOT_FOUND` | The backup is not completed, or is not a backup of that database. |
-| `CHECKSUM_MISMATCH` | The backup does not match its recorded SHA-256. Refused before anything is applied. |
 | `RESTORE_IN_PROGRESS` | Another restore of the same database is running. A database lock refuses a second one. |
+
+### Reasons a restore run fails
+
+The execute call answers `200` with `execution.status: started` and the work continues in the background, so these show up as a `failed` run with the code in `execution.detail`, not as an HTTP error:
+
+- `PRE_RESTORE_BACKUP_FAILED`: the backup of the current data could not be stored. The database is unchanged.
+- `CHECKSUM_MISMATCH`: the backup does not match its recorded SHA-256. It is checked when the backup is read during the run, and the backup is not applied.
+- `RESTORE_FAILED`: applying the backup did not finish. For MySQL and MongoDB the database may be partly restored; the pre-restore backup is the way back.
 
 ### PostgreSQL and pgvector
 
@@ -147,14 +154,14 @@ The execute call returns `started` while the worker prepares the restore. If TOS
 
 ### MySQL and MongoDB
 
-These engines apply the dump itself, not the isolated replay and cutover that PostgreSQL uses.
+These engines apply the dump itself, not the isolated replay and cutover that PostgreSQL uses. The run becomes `completed` when the restore command finishes without an error; TOSE does not run a further check of the data.
 
 - **MySQL.** The dump drops and recreates every table it contains, replacing rows written since the backup.
 - **MongoDB.** `mongorestore` skips documents whose `_id` already exists, so documents changed since the backup are not overwritten by older ones.
 - **Partial data.** A failure during apply can leave partial data. The pre-restore backup named in the run is the way back.
 - **Interruption.** A run that was interrupted without an outcome becomes `pending_verification` after 45 minutes and needs a fresh plan for another attempt.
 
-The older direct route `POST .../databases/{db_id}/backups/{backup_id}/restore` still starts an asynchronous restore. It also stores a backup first and shares the runbook's database lock. Use the restore runbook to get approval and a tracked result.
+The older direct route `POST /api/workspaces/{slug}/databases/{db_id}/backups/{backup_id}/restore` still starts an asynchronous restore. It also stores a backup first and shares the runbook's database lock. Use the restore runbook to get approval and a tracked result.
 
 ## Your data stays where it is
 
@@ -179,7 +186,7 @@ The dashboard shows the same states as Started, Waiting for the cluster to confi
 
 `completed` is reported only after TOSE sees the controller observe the rollout, every desired replica ready and available, and the same disk identities and mounts. If the cluster's answer was ambiguous, or the execution marker is not visible after two minutes, the run stays `pending_verification`.
 
-Poll `GET .../runbooks/v2/plans/{plan_id}` (or call `get_runbook`). Every read checks the cluster again, so the status moves to `completed` or `failed` by itself. Do not execute again: a retry with the same key returns the same run and never reapplies the plan.
+Poll `GET .../runbooks/v2/plans/{plan_id}` (or call `get_runbook`). For restart, rollback and scale every read checks the cluster again (a restore is settled by its worker), so the status moves to `completed` or `failed` by itself. Do not execute again: a retry with the same key returns the same run and never reapplies the plan.
 
 ## Receipt after a verified rollout
 
@@ -202,8 +209,7 @@ Every request, including refusals, is written to the [audit log](/api/audit). Th
 
 | HTTP | Code | Meaning |
 |------|------|---------|
-| 400 | `INVALID_ARGUMENT` | `deployment_id` is missing for a rollback, or was sent for a restart. |
-| 400 | `NO_CHANGE` | The scale asks for the replica count the project already has. |
+| 400 | `INVALID_ARGUMENT` | An argument is missing, extra or out of range: `deployment_id` for a rollback or sent for another kind, `replicas` outside 1 to 10, or `database_id` and `backup_id` for a restore. |
 | 400 | `INVALID_IDEMPOTENCY_KEY` | The `Idempotency-Key` is missing or not 8 to 128 characters from `A-Za-z0-9._:-`. |
 | 400 | `NO_IMAGE` | The rollback target has no built image. |
 | 402 | `INSUFFICIENT_BALANCE` | The wallet is empty, so a rollback is refused; for a scale up, it does not cover one hour at the new size. |
@@ -216,9 +222,9 @@ Every request, including refusals, is written to the [audit log](/api/audit). Th
 | 409 | `DEPLOY_IN_PROGRESS` | A deployment is still running. Wait for it. |
 | 409 | `ALREADY_LIVE` | The rollback target's image is already live. |
 | 409 | `VOLUME_MISSING` | A recorded disk claim is missing or unavailable. |
+| 409 | `NO_CHANGE` | The scale asks for the replica count the project already has. |
 | 409 | `REPLICA_LIMIT` | A project with a persistent disk runs one replica; the scale asks for more. |
-| 409 | `DATABASE_NOT_ACTIVE`, `BACKUP_NOT_READY`, `CHECKSUM_MISMATCH`, `UNSUPPORTED`, `RESTORE_IN_PROGRESS` | See [Restore a database](#restore-a-database). |
-| 409 | `PRE_RESTORE_BACKUP_FAILED` | The backup of the current data could not be stored, so the restore did not start. The database is unchanged. |
+| 409 | `DATABASE_NOT_ACTIVE`, `BACKUP_NOT_READY`, `UNSUPPORTED`, `RESTORE_IN_PROGRESS` | See [Restore a database](#restore-a-database). |
 | 409 | `PLAN_HASH_MISMATCH`, `PLAN_EXPIRED`, `PLAN_CLOSED`, `PLAN_REJECTED`, `APPROVAL_REQUIRED`, `PLAN_STALE` | See [Plans that expire or go stale](#plans-that-expire-or-go-stale). |
 | 409 | `PLAN_ALREADY_EXECUTED`, `IDEMPOTENCY_KEY_REUSED` | See [Execute](#_3-execute). |
 | 409 | `CONFLICT` | Another operation holds the project. Try again shortly. |
