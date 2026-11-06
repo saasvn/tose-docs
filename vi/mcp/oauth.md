@@ -33,13 +33,24 @@ Cả hai luồng đều dùng authorization code kèm PKCE (chỉ S256). Client 
 | `logs:read` | `read_logs` | Không |
 | `deployments:execute` | `deploy_project` | Có |
 | `deployments:rollback` | `rollback_deployment` | Có |
+| `env:read` | `list_project_env_keys`, `inspect_project_env`: tên biến và trạng thái đã đặt hay chưa. Không bao giờ trả giá trị. Mặc định tắt, xem [Metadata biến môi trường](#metadata-bien-moi-truong-env-read). | Không |
 
-- Mọi scope khác, gồm thành viên, thanh toán, biến môi trường, database và hạ tầng, đều bị từ chối với `invalid_scope`.
+- Mọi scope khác, gồm thành viên, thanh toán, `env:write`, database và hạ tầng, đều bị từ chối với `invalid_scope`. `env:read` là scope duy nhất liên quan đến biến môi trường.
 - Scope ghi chỉ được cấp khi owner hoặc admin của workspace tick chọn trên trang consent. Scope này bị gỡ ở lần refresh kế tiếp nếu người đó bị hạ vai trò.
 - Refresh chỉ được thu hẹp scope, không bao giờ mở rộng.
-- `tools/list` chỉ hiển thị tool mà scope cho phép: kết nối chỉ đọc thấy bốn tool đọc, có scope ghi thì thêm deploy và rollback.
+- `tools/list` chỉ hiển thị tool mà scope cho phép: kết nối chỉ đọc thấy bốn tool đọc, có scope ghi thì thêm deploy và rollback. Hai tool env chỉ hiện khi có `env:read`.
 
 Kể cả khi có scope ghi, mỗi lần deploy và rollback vẫn chờ bạn duyệt plan trong trình duyệt.
+
+### Metadata biến môi trường (`env:read`)
+
+`env:read` cho phép client phân biệt một cấu hình bị thiếu với một cấu hình bị sai mà không bao giờ thấy giá trị.
+
+- Mặc định tắt. Trang consent hiển thị scope này với ô chọn riêng, và kết nối chỉ có scope khi bạn tick ô đó. Không tick thì kết nối không có quyền truy cập env.
+- Scope không nằm trong `deployments:read` hay `deployments:write`, nên quyền deploy không kèm theo nó và các kết nối hiện có không tự có thêm.
+- Refresh chỉ có thể thu hẹp, không bao giờ thêm scope này. Muốn thêm sau, hãy kết nối lại và tick ô.
+- Bất kỳ thành viên workspace nào cũng tự cấp được cho kết nối của mình. Owner và admin thấy trạng thái thật của từng biến; thành viên thấy `unknown` (xem [Tool metadata env](/vi/mcp#tool-metadata-env)).
+- Vai trò thành viên được kiểm tra ở mỗi lần gọi, nên mất tư cách thành viên workspace thì kết nối dừng ngay ở lần gọi kế tiếp.
 
 ## Step-up `insufficient_scope`
 
