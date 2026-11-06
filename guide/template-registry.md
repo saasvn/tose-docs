@@ -3,7 +3,7 @@
 The template registry stores versioned deployment templates that are described by a `tose.yaml` manifest. This page explains the manifest format, what you can do with it today, and what is not available yet.
 
 ::: warning Early access: private drafts only
-The registry foundation has shipped (tose-app [#388](https://github.com/saasvn/tose-app/pull/388), issue [#143](https://github.com/saasvn/tose-app/issues/143)). You can create, edit and validate **private draft** templates in your own workspace through the [registry API](/api/template-registry). Public publishing, the directory, the CLI and MCP are not enabled, and this page does not describe them as if they were. The [curated agent templates](#curated-agent-templates) are defined but hidden and blocked.
+The registry foundation has shipped (tose-app [#388](https://github.com/saasvn/tose-app/pull/388), issue [#143](https://github.com/saasvn/tose-app/issues/143)). You can create, edit and validate **private draft** templates in your own workspace through the [registry API](/api/template-registry). Public publishing, the directory, the CLI and MCP are not enabled, and this page does not describe them as if they were. The [curated agent templates](#curated-agent-templates) stay hidden until TOSE publishes a reviewed release.
 :::
 
 ## Availability
@@ -16,7 +16,7 @@ The registry foundation has shipped (tose-app [#388](https://github.com/saasvn/t
 | Public publishing, review for public listing, deprecate and revoke | Not available. Public visibility stays off until the security gate passes |
 | Template directory (search, filter, sort) | Not available |
 | Deploy plan, cost and blockers for a registry template | Shipped in the backend, not documented here yet except for the curated templates below |
-| Curated Pi, Claude Code and Codex templates: definitions and plan contract | Defined, hidden and blocked. No reviewed image is pinned, so every plan is blocked |
+| Curated Pi, Claude Code and Codex templates: plan, install and private console | Built, but hidden. TOSE has not published a reviewed, digest-pinned release, so every plan is blocked until one exists |
 | `tose templates ...` CLI | Not available |
 | Registry MCP tools | Not available |
 
@@ -114,12 +114,12 @@ Details, scopes and examples are in the [registry API reference](/api/template-r
 - Do not put secret values in a manifest. Declare the variable name with `secret: true`; the person who deploys supplies the value.
 - Verified publisher, verified template version, public review policy, reporting and takedown will be documented when public publishing ships.
 
-## Curated agent templates (hidden and blocked) {#curated-agent-templates}
+## Curated agent templates {#curated-agent-templates}
 
-TOSE defines three curated coding-agent templates itself: **Pi**, **Claude Code** and **Codex** (tose-app [#461](https://github.com/saasvn/tose-app/pull/461), issue [#405](https://github.com/saasvn/tose-app/issues/405)). They are planned through the same deployment planner as registry versions, not through the legacy [catalog](/guide/dewee-template).
+TOSE defines three curated coding-agent templates itself: **Pi**, **Claude Code** and **Codex** (tose-app [#461](https://github.com/saasvn/tose-app/pull/461) and [#502](https://github.com/saasvn/tose-app/pull/502), issue [#405](https://github.com/saasvn/tose-app/issues/405)). They are planned through the same deployment planner as registry versions, not through the legacy [catalog](/guide/dewee-template).
 
-::: warning Hidden and not installable today
-All three definitions are **hidden**. TOSE has not yet built and reviewed an image pinned by digest for any of them, so no release is listed and every plan is stored as `blocked`. Public listing, publisher identity, enforced egress, private ingress and agent pod hardening (no service account token, non-root, read-only root filesystem) are still pending. Nothing on this page means you can run an agent today.
+::: warning Hidden until TOSE publishes a reviewed release
+A curated agent stays **hidden** and cannot be installed until TOSE publishes a reviewed release: an image pinned by `sha256` digest, with its upstream version, date and validation evidence. #502 added the install flow and the console but **did not publish a Pi, Codex or Claude Code release**, so every plan is still blocked with `CURATED_RELEASE_MISSING`. This page describes the flow you get once a release exists. Which agents you can deploy at any moment is decided by the live registry (the dashboard list and `GET /curated-templates`), not by this page.
 :::
 
 ### What a definition fixes
@@ -130,9 +130,43 @@ All three definitions are **hidden**. TOSE has not yet built and reviewed an ima
 | Model | Optional `AGENT_MODEL`, the provider's model name. Empty uses the agent's default. |
 | Size | Whole cores and GiB from the allowed list: Claude Code and Codex 1, 2 or 4 cores and 2, 4 or 8 GiB; Pi 1 or 2 cores and 1, 2 or 4 GiB. |
 | Storage | A persistent disk with `/workspace` (5 GiB) and `/home/agent` (1 GiB), billed while the disk exists, also when stopped. |
-| Network | Egress `approved` (only the provider's API host, the default; not enforced yet) or `internet`. `none` is not offered, because an agent cannot reach its provider without egress. Ingress must be `private`, so the agent's console is never meant to be public (not enforced yet: see the blockers). |
+| Network | Egress `approved` (only the provider's API host, the default) or `internet`. `none` is not offered, because an agent cannot reach its provider without egress. Ingress is always `private`: the agent's console is never public. |
 | Setup | `image_entrypoint` only: the release image's own reviewed entrypoint. No build steps, startup commands, hooks, Kubernetes objects or `privileged`; unknown fields are refused. |
 | Release | Each release pins an OCI image by `sha256` digest and records the upstream version, the date and an https link to its evidence. The publisher (TOSE) is set once on the definition. It renders to a normal `tose.dev/v1` manifest checked by the rules above. |
+
+### Why an agent stays hidden
+
+A definition without a release is hidden: the dashboard shows why it cannot be deployed instead of a **Deploy** link, and the API lists it only with `include_hidden=true`. Adding a release is a reviewed change to the definition, compiled into the TOSE server. When the server starts it stores each release as a **published, immutable registry version** under the platform publisher `tose-curated` (shown as "TOSE"). That step is idempotent, never changes a stored version, and needs no admin action. A definition without a release publishes nothing.
+
+### Deploy from the dashboard (once a release is available)
+
+Open **Templates** in the workspace sidebar, then **My templates**. Curated agents are listed under "Agent templates by TOSE". Choose **Deploy** on an available one; a hidden one shows its blockers instead.
+
+1. **Configure.** Pick the **release**, and for Pi the **provider**, then optionally the **model**. Choose the CPU and memory from the offered sizes, and the network access: **Approved hosts only** (the provider's API on port 443) or **Internet**. Enter the required **cost limit per hour**: the plan is blocked if the workload could cost more. The provider API key is not asked here and is never part of the plan.
+2. **Review and approve.** The review shows the pinned release, the cost, the network destinations and the "People stay in control" section. A workspace owner or admin approves the plan hash. A blocked plan cannot be approved.
+3. **Install.** Enter your provider API key in the password field. It is sent only with the install request, stored encrypted and never shown again, and the field is cleared once the install succeeds. Installing creates the app and queues its first deployment of the **pinned registry version**: the exact digest that was approved.
+4. **Status.** The page refreshes until the first deployment finishes. You can leave it; the app keeps deploying.
+
+The same flow works through the API: `POST /template-deployment-plans` with `curated_template`, a person approves the plan hash, then `POST /template-installations` with an `Idempotency-Key`. A replay of the same key and plan returns the same installation. See the [API reference](/api/template-registry#curated-agent-templates).
+
+### The private console
+
+An installed agent has no public address, no domain and a default-deny network policy. You open its console through TOSE:
+
+- **Who.** Only a workspace **owner or admin who is signed in** to the dashboard or CLI. API keys and connected apps (MCP) are refused whatever their scopes: the console is an interactive shell that holds your provider key, so only a person opens it. This is a written exception to "agents are first-class users".
+- **How.** On the installed app's page, choose **Open console**. It opens in a new tab (allow pop-ups if the browser blocks it). The app must be running; otherwise the button explains that the console is not available and asks you to start the app. The request is audited.
+- **Session.** The console address carries a signed token, valid for 8 hours. It is the only credential in the address, so do not share the URL. TOSE proxies HTTP and WebSocket to the agent's port 8080, so the pod is never exposed.
+- **Revoking access closes the console.** Every request, and every open WebSocket every five seconds, checks again that your sign-in is active, that you are still an owner or admin of the workspace and that the app is running. Signing out, losing the role, being removed from the workspace or stopping the app refuses the next request and closes the open socket. Rotating the server's signing secret ends every open console. Each WebSocket start is audited.
+- **The page is untrusted.** The agent controls the console page and can run any code, so TOSE serves it in a CSP sandbox (an opaque origin that cannot use your TOSE sign-in), strips your cookies and credentials from requests to the agent, drops cookies the console sets, sends no referrer and redacts the token from access logs.
+
+### Revoked versions and suspended publishers
+
+Platform admins can revoke a release version or suspend the `tose-curated` publisher. This affects what happens next, not what you see in the form:
+
+- A **revoked version** blocks later plans with `VERSION_REVOKED`, and its later deploys.
+- A **suspended publisher** blocks every curated plan (`CURATED_INSTALL_UNAVAILABLE`).
+- A release that is not published yet, or is stored with a different manifest under the same version number, is also `CURATED_INSTALL_UNAVAILABLE`: TOSE never overwrites a stored version.
+- Upgrading a curated installation in place is refused (`409 CURATED_UPGRADE_UNAVAILABLE`). Install the new release as a new installation and stop the old one.
 
 ### Plan a curated template
 
@@ -144,18 +178,16 @@ All three definitions are **hidden**. TOSE has not yet built and reviewed an ima
 
 ### Blockers
 
-Today every curated plan carries `CURATED_RELEASE_MISSING`, `INGRESS_MODE_NOT_ENFORCED` and `CURATED_INSTALL_UNAVAILABLE`, plus `NETWORK_POLICY_NOT_ENFORCED` with `approved` egress (`internet` mode gets an `INTERNET_EGRESS` warning instead) and the security gate code that the server's configuration produces. `CURATED_TEMPLATE_HIDDEN` appears only once a release exists. The workspace's own blockers (no cluster, name taken, cost ceiling, balance) also apply.
-
 | Code | Meaning | Lifted by |
 |------|---------|-----------|
 | `CURATED_RELEASE_MISSING` | No reviewed release image pinned by digest. | A reviewed release in the definition. |
-| `CURATED_TEMPLATE_HIDDEN` | Only once a release exists: its rollout is held. | Removing the hold. |
-| `COMMUNITY_TEMPLATES_DISABLED` (or `SECURITY_GATE_UNAVAILABLE`, depending on configuration) | The security gate refuses registry workloads in this configuration. | Enabling the gate. |
-| `NETWORK_POLICY_NOT_ENFORCED` | `approved` egress cannot be enforced: template workloads only get the workspace policy, which allows the public internet. | A per-installation egress policy. |
-| `INGRESS_MODE_NOT_ENFORCED` | The pipeline publishes every installation on a public domain, and agents need private ingress. | Private ingress for template installations. |
-| `CURATED_INSTALL_UNAVAILABLE` | Installing needs a platform publisher in the registry, which does not exist yet. The install call also refuses curated plans. | A platform publisher. |
+| `CURATED_TEMPLATE_HIDDEN` | A release exists, but its rollout is held. | Removing the hold. |
+| `CURATED_INSTALL_UNAVAILABLE` | The release cannot be installed from the registry: not published yet, stored with another manifest, or the publisher is suspended. | TOSE publishing the release, or lifting the suspension. |
+| `VERSION_REVOKED` | A platform admin revoked this version. | A new release. |
+| `COMMUNITY_TEMPLATES_DISABLED` (or `SECURITY_GATE_UNAVAILABLE`, `IMAGE_SCANNER_NOT_CONFIGURED`, depending on configuration) | The security gate refuses registry workloads in this configuration. | The operator enabling the gate and an image scanner. |
+| `NETWORK_POLICY_NOT_ENFORCED`, `INGRESS_MODE_NOT_ENFORCED` | The target cluster cannot enforce the installation's own network policy, so the egress limit and the private console could not be guaranteed. Nothing is created or billed. | A cluster that enforces the policy. |
 
-A blocked plan cannot be approved: approval returns `PLAN_BLOCKED` (`409`, or `402` when the wallet is empty) and nothing is created. While a curated template has no release, `template.version_status` is `draft`.
+The workspace's own blockers (no cluster, name taken, cost ceiling, balance) also apply. A blocked plan cannot be approved: approval returns `PLAN_BLOCKED` (`409`, or `402` when the wallet is empty) and nothing is created. The image is scanned before it runs, and a deploy is refused when it has a high or critical vulnerability.
 
 ### People stay in control
 
