@@ -55,13 +55,13 @@ Connector không có tool gọi API tùy ý. Nó không đọc được giá tr�
 `plan_project_env_update` và `apply_project_env_update` cho phép agent đổi biến môi trường mà không bao giờ chạm vào giá trị. Agent nói biến nào cần đổi, bạn nhập giá trị trong TOSE và duyệt, rồi agent áp dụng kế hoạch đã duyệt.
 
 - **Scope:** cả hai tool cần `env:write`. Owner hoặc admin bật bằng ô riêng trên trang consent. Scope này không cấp `env:read`, nên kết nối cần liệt kê biến thì phải có cả hai. Không có scope thì `tools/list` không hiển thị hai tool. Xem [Scope](/vi/mcp/oauth#cap-nhat-bien-moi-truong-env-write).
-- **Thao tác:** `set` tạo hoặc thay biến, `rotate` thay một secret đã có, `delete` xóa biến. `rotate` và `delete` phải nêu biến đã tồn tại, nếu không kế hoạch trả `NOT_FOUND`. Một kế hoạch có 1 đến 20 mục, mỗi mục gồm `op` và `key` (chữ, số và dấu gạch dưới), mỗi tên một mục.
+- **Thao tác:** `set` tạo hoặc thay biến, `rotate` thay một biến đã có bằng giá trị mới không rỗng, `delete` xóa biến. `rotate` và `delete` phải nêu biến đã tồn tại, nếu không kế hoạch trả `NOT_FOUND`. Một kế hoạch có 1 đến 20 mục, mỗi mục gồm `op` và `key` (chữ, số và dấu gạch dưới, không bắt đầu bằng chữ số), mỗi tên một mục. Mỗi giá trị tối đa 8 KiB.
 
-1. **Lập kế hoạch.** Gọi `plan_project_env_update` với slug project và các mục `{op, key}`. Chỉ gửi tên và thao tác: request chứa giá trị bị từ chối với `INVALID_ARGUMENT`. Lệnh gọi không thay đổi gì. Nó trả về kế hoạch, `approval_url` và `approval_token` dùng một lần. `idempotency_key` tùy chọn (1 đến 255 ký tự ASCII in được) giúp client lấy lại kết quả của kế hoạch đã áp dụng. Cùng key với thay đổi khác trả `IDEMPOTENCY_CONFLICT`.
-2. **Duyệt trong TOSE.** Mở `approval_url` khi đã đăng nhập bằng owner hoặc admin đã yêu cầu kế hoạch. Nhập giá trị mới cho từng `set` và `rotate` ngay trên trang đó, rồi duyệt. Giá trị đi từ trình duyệt của bạn tới TOSE và không qua client. Biến đã có giữ nguyên cờ secret, biến mới được lưu dưới dạng secret. TOSE mã hóa giá trị nhận được và xóa giá trị đang chờ khi kế hoạch được áp dụng, rút lại hoặc hết hạn.
+1. **Lập kế hoạch.** Gọi `plan_project_env_update` với slug project và các mục `{op, key}`. Chỉ gửi tên và thao tác: request có chứa giá trị sẽ bị từ chối và không có gì được lập. Lệnh gọi không thay đổi gì. Nó trả về kế hoạch, `approval_url` và `approval_token` dùng một lần. `idempotency_key` tùy chọn (1 đến 255 ký tự ASCII in được) giúp client lấy lại, trong 24 giờ, kết quả của kế hoạch đã áp dụng. Cùng key với thay đổi khác trả `IDEMPOTENCY_CONFLICT`.
+2. **Duyệt trong TOSE.** Mở `approval_url` khi đã đăng nhập bằng tài khoản owner hoặc admin đã yêu cầu kế hoạch. Nhập giá trị mới cho từng `set` và `rotate` ngay trên trang đó, rồi duyệt. Giá trị đi từ trình duyệt của bạn tới TOSE và không qua client. Biến đã có giữ nguyên cờ secret, biến mới được lưu dưới dạng secret. TOSE mã hóa giá trị nhận được và xóa giá trị đang chờ khi kế hoạch được áp dụng, rút lại hoặc hết hạn.
 3. **Áp dụng.** Bảo client tiếp tục. Client gọi `apply_project_env_update` với project và `approval_token`, và chỉ khi đó TOSE mới lưu thay đổi. Kết quả cho biết đã áp dụng gì và, khi có biên nhận deployment, deployment đang chạy có khác không (`redeploy_required`).
 
-- **Kế hoạch cũ cần duyệt lại.** Nếu các biến đã lưu thay đổi sau khi bạn duyệt, lệnh áp dụng trả `APPROVAL_STALE`. Hãy bảo agent lập kế hoạch mới rồi duyệt lại. Phê duyệt đang chờ, hết hạn, bị từ chối hoặc đã dùng trả `APPROVAL_PENDING`, `APPROVAL_EXPIRED` hoặc `APPROVAL_USED`.
+- **Kế hoạch cũ cần duyệt lại.** Nếu các biến đã lưu thay đổi sau khi kế hoạch được lập, lệnh áp dụng trả `APPROVAL_STALE`. Hãy bảo agent lập kế hoạch mới bằng `plan_project_env_update` rồi duyệt lại. Phê duyệt đang chờ, hết hạn, bị từ chối hoặc đã rút lại trả `APPROVAL_PENDING`, `APPROVAL_EXPIRED` hoặc `APPROVAL_USED`. Gọi lại lệnh áp dụng với token đã áp dụng sẽ trả kết quả trước đó kèm `replayed: true`.
 - **Thay đổi có hiệu lực sau một lần redeploy riêng.** Áp dụng chỉ lưu cấu hình. Ứng dụng đang chạy giữ môi trường hiện tại cho đến khi bạn redeploy, ví dụ bằng `deploy_project`.
 - **Giá trị không bao giờ đi qua MCP.** Không tool nào nhận hay trả giá trị, và không có tool nào để hiện hoặc kéo giá trị. Lịch sử audit chỉ ghi tên thao tác và tên biến.
 - **Gõ "ok" trong chat không duyệt được gì.** Việc duyệt chỉ diễn ra trên trang TOSE, như mô tả ở [Cơ chế phê duyệt](#co-che-phe-duyet).
@@ -95,10 +95,11 @@ Khi tool lỗi, nội dung trả về bắt đầu bằng một mã cố định
 | `NOT_FOUND` | Project hoặc deployment không nằm trong workspace đã kết nối. |
 | `INVALID_ARGUMENT` | Thiếu tham số hoặc tham số ngoài phạm vi. |
 | `INSUFFICIENT_SCOPE` | Kết nối thiếu scope mà tool này cần, ví dụ kết nối chỉ-đọc gọi tool ghi. Hãy kết nối lại và cho phép deploy. |
-| `FORBIDDEN` | Vai trò của bạn không được deploy hay rollback. |
+| `FORBIDDEN` | Vai trò của bạn không được deploy hay rollback, hoặc, với tool cập nhật env, bạn không phải owner hay admin. |
 | `APPROVAL_PENDING` | Bạn chưa phê duyệt kế hoạch. Mở `approval_url`, phê duyệt, rồi bảo client tiếp tục. |
-| `APPROVAL_STALE` | Branch có commit mới sau khi bạn phê duyệt. Chưa có gì được deploy. Yêu cầu kế hoạch mới và xem commit mới. |
-| `APPROVAL_INVALID`, `APPROVAL_EXPIRED`, `APPROVAL_USED` | Phê duyệt sai, hết hạn, đã bị từ chối, đã rút lại hoặc đã dùng. Gọi tool không kèm `approval_token` để lấy kế hoạch mới. |
+| `APPROVAL_STALE` | Branch có commit mới sau khi bạn phê duyệt. Chưa có gì được deploy. Yêu cầu kế hoạch mới và xem commit mới. Với cập nhật env, các biến của project đã thay đổi sau khi kế hoạch được lập và chưa có gì được lưu. Hãy lập kế hoạch lại. |
+| `APPROVAL_INVALID`, `APPROVAL_EXPIRED`, `APPROVAL_USED` | Phê duyệt sai, hết hạn, đã bị từ chối, đã rút lại hoặc đã dùng. Gọi tool không kèm `approval_token` để lấy kế hoạch mới; với cập nhật env, gọi lại `plan_project_env_update`. |
+| `INVALID_IDEMPOTENCY_KEY`, `IDEMPOTENCY_CONFLICT` | `idempotency_key` của cập nhật env không phải 1 đến 255 ký tự ASCII in được, hoặc đã được dùng cho thay đổi khác. |
 | `DEPLOY_IN_PROGRESS` | Theo dõi deployment đang chạy bằng `get_deployment_status`. |
 | `NO_GIT_CONNECTION`, `NO_SERVER`, `NO_IMAGE` | Project chưa sẵn sàng cho thao tác này. Sửa trong dashboard. |
 | `CONFLICT` | Project đang bị khóa, ví dụ khi chuyển môi trường. |
@@ -123,7 +124,8 @@ Khi tool lỗi, nội dung trả về bắt đầu bằng một mã cố định
   - Hash của token. Access token có hạn 1 giờ, refresh token có hạn 30 ngày.
   - Một bản ghi audit cho mỗi lần gọi tool, gồm user, client, workspace, project, deployment, tool, kết quả và mã lỗi. Deploy và rollback được ghi lại trước khi chạy.
   - Với mỗi kế hoạch deploy hoặc rollback: nội dung kế hoạch hiển thị trên trang phê duyệt và việc bạn có phê duyệt hay không.
-  - Tham số và kết quả của tool không được lưu.
+  - Với mỗi kế hoạch cập nhật env: thao tác và tên biến (đã mã hóa), cùng giá trị bạn nhập (đã mã hóa) cho đến khi kế hoạch được áp dụng, rút lại hoặc hết hạn. Bản ghi audit chỉ có tên thao tác và tên biến.
+  - Tham số và kết quả của các tool khác không được lưu.
 
 ## Thu hồi quyền
 
@@ -132,7 +134,7 @@ Refresh token có hạn 30 ngày, vì vậy hãy thu hồi kết nối bạn kh�
 - Trong dashboard, mở **Settings** của workspace, rồi chọn **Agent access**. Trang này liệt kê các kết nối của bạn, kết nối của workspace này ở đầu và các kết nối khác được gắn tên workspace của chúng. Bấm **Revoke** cạnh kết nối cần thu hồi: client bị đăng xuất ngay và phải kết nối lại. Bạn chỉ thấy và thu hồi được kết nối của chính mình.
 - Gỡ connector trong MCP client. Client nào hỗ trợ thu hồi OAuth token sẽ thu hồi ngay.
 - Từ phiên dashboard đã đăng nhập, gọi `DELETE /api/mcp/connections/{family_id}`. Dùng `GET /api/mcp/connections` để xem danh sách kết nối. API key không gọi được hai route này; xem [API key và scope](/vi/api/api-keys#route-tu-choi-api-key).
-- Khi bạn mất quyền thành viên workspace, kết nối bị cắt ngay. Nếu bạn bị hạ xuống member, quyền deploy bị gỡ ngay.
+- Khi bạn mất quyền thành viên workspace, kết nối bị cắt ngay. Nếu bạn bị hạ xuống member, quyền deploy và cập nhật env bị gỡ ngay.
 
 ## Hỗ trợ
 

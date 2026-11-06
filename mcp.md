@@ -55,13 +55,13 @@ There is no generic API tool. The connector cannot read the value of an environm
 `plan_project_env_update` and `apply_project_env_update` let an agent change environment variables without ever handling a value. The agent says which variables to change, you enter the values in TOSE and approve, and the agent then applies the approved plan.
 
 - **Scope:** both tools need `env:write`. An owner or admin opts in with its own checkbox on the consent page. It does not grant `env:read`, so a connection that should also list variables needs both. Without the scope, `tools/list` does not show the tools. See [Scopes](/mcp/oauth#env-updates-env-write).
-- **Operations:** `set` creates or replaces a variable, `rotate` replaces an existing secret, and `delete` removes one. `rotate` and `delete` name a variable that already exists, otherwise the plan answers `NOT_FOUND`. One plan holds 1 to 20 entries, each with an `op` and a `key` (letters, digits and underscores), and one entry per name.
+- **Operations:** `set` creates or replaces a variable, `rotate` replaces an existing variable with a new, non-empty value, and `delete` removes one. `rotate` and `delete` name a variable that already exists, otherwise the plan answers `NOT_FOUND`. One plan holds 1 to 20 entries, each with an `op` and a `key` (letters, digits and underscores, not starting with a digit), and one entry per name. Each value is at most 8 KiB.
 
-1. **Plan.** Call `plan_project_env_update` with the project slug and the `{op, key}` entries. Send names and operations only: a value in the request is refused with `INVALID_ARGUMENT`. The call changes nothing. It returns the plan, an `approval_url` and a one-time `approval_token`. An optional `idempotency_key` (1 to 255 printable ASCII characters) lets the client recover the result of a plan that was already applied. The same key with other changes answers `IDEMPOTENCY_CONFLICT`.
+1. **Plan.** Call `plan_project_env_update` with the project slug and the `{op, key}` entries. Send names and operations only: a request that includes a value is rejected and nothing is planned. The call changes nothing. It returns the plan, an `approval_url` and a one-time `approval_token`. An optional `idempotency_key` (1 to 255 printable ASCII characters) lets the client recover, for 24 hours, the result of a plan that was already applied. The same key with other changes answers `IDEMPOTENCY_CONFLICT`.
 2. **Approve in TOSE.** Open the `approval_url` while signed in as the owner or admin who requested the plan. Enter the new value for each `set` and `rotate` on that page, then approve. The values go from your browser to TOSE and never pass through the client. Existing variables keep their secret flag, and new variables are saved as secrets. TOSE encrypts the values it receives and deletes the pending values when the plan is applied, withdrawn or expires.
 3. **Apply.** Tell the client to continue. It calls `apply_project_env_update` with the project and the `approval_token`, and only then does TOSE save the change. It reports what was applied and, when a deployment receipt is available, whether the running deployment differs (`redeploy_required`).
 
-- **A stale plan needs a new approval.** If the saved variables changed after you approved, the apply answers `APPROVAL_STALE`. Ask the agent to plan again and approve the new plan. An approval that is still pending, expired, declined or already used answers `APPROVAL_PENDING`, `APPROVAL_EXPIRED` or `APPROVAL_USED`.
+- **A stale plan needs a new approval.** If the saved variables changed after the plan was made, the apply answers `APPROVAL_STALE`. Ask the agent to plan again with `plan_project_env_update` and approve the new plan. An approval that is still pending, expired, or declined or withdrawn answers `APPROVAL_PENDING`, `APPROVAL_EXPIRED` or `APPROVAL_USED`. Calling apply again with a token that was already applied returns the earlier result with `replayed: true`.
 - **The change takes effect after a separate redeploy.** Applying saves the configuration only. The running app keeps its current environment until you redeploy, for example with `deploy_project`.
 - **Values never travel over MCP.** No tool accepts or returns a value, and there is no tool that reveals or pulls one. The audit history records operation names and variable names only.
 - **Typing "ok" in the chat does not approve anything.** Approval happens only on the TOSE page, as described in [How approval works](#how-approval-works).
@@ -95,10 +95,11 @@ Failed tool calls return text that starts with a stable code:
 | `NOT_FOUND` | The project or deployment is not in the connected workspace. |
 | `INVALID_ARGUMENT` | A parameter is missing or out of range. |
 | `INSUFFICIENT_SCOPE` | The connection lacks the scope this tool needs, for example a read-only connection calling a write tool. Reconnect and allow deploying. |
-| `FORBIDDEN` | Your role cannot deploy or roll back. |
+| `FORBIDDEN` | Your role cannot deploy or roll back, or, for the env update tools, you are not an owner or admin. |
 | `APPROVAL_PENDING` | You have not approved the plan yet. Open its `approval_url`, approve it, then ask the client to continue. |
-| `APPROVAL_STALE` | The branch has a new commit since you approved. Nothing was deployed. Request a new plan and review the new commit. |
-| `APPROVAL_INVALID`, `APPROVAL_EXPIRED`, `APPROVAL_USED` | The approval is wrong, expired, declined, withdrawn or used. Request a new plan by calling the tool without `approval_token`. |
+| `APPROVAL_STALE` | The branch has a new commit since you approved. Nothing was deployed. Request a new plan and review the new commit. For an env update, the project's variables changed after the plan was made and nothing was saved. Plan again. |
+| `APPROVAL_INVALID`, `APPROVAL_EXPIRED`, `APPROVAL_USED` | The approval is wrong, expired, declined, withdrawn or used. Request a new plan by calling the tool without `approval_token`; for an env update, call `plan_project_env_update` again. |
+| `INVALID_IDEMPOTENCY_KEY`, `IDEMPOTENCY_CONFLICT` | An env update `idempotency_key` is not 1 to 255 printable ASCII characters, or was already used for different changes. |
 | `DEPLOY_IN_PROGRESS` | Wait for the running deployment with `get_deployment_status`. |
 | `NO_GIT_CONNECTION`, `NO_SERVER`, `NO_IMAGE` | The project is not ready for this action. Fix it in the dashboard. |
 | `CONFLICT` | The project is locked, for example during an environment move. |
@@ -121,7 +122,8 @@ Failed tool calls return text that starts with a stable code:
   - Hashes of the issued tokens. Access tokens last 1 hour and refresh tokens 30 days.
   - An audit record for every tool call: user, client, workspace, project, deployment, tool, outcome and error code. Deploys and rollbacks are recorded before they run.
   - For each deploy or rollback plan: the plan shown on the approval page and whether you approved it.
-  - Tool arguments and results are not stored.
+  - For each env update plan: the operations and variable names, encrypted, and the values you enter, encrypted, until the plan is applied, withdrawn or expires. The audit record holds operation names and variable names only.
+  - Other tool arguments and results are not stored.
 - **Logs:** runtime logs older than the live window are archived and are only available from the dashboard.
 
 ## Revoke access
@@ -131,7 +133,7 @@ Refresh tokens last 30 days, so revoke a connection you no longer trust instead 
 - In the dashboard, open your workspace **Settings**, then **Agent access**. The page lists your connections, with this workspace's first and the others labelled with their workspace. Click **Revoke** next to one: the client is signed out at once and has to connect again. You only see and revoke your own connections.
 - Remove the connector in your MCP client. Clients that support OAuth token revocation revoke its tokens right away.
 - Call `DELETE /api/mcp/connections/{family_id}` from a signed-in dashboard session. `GET /api/mcp/connections` lists your connections. API keys cannot call these two routes; see [API keys and scopes](/api/api-keys#routes-that-reject-api-keys).
-- Losing your membership of the workspace cuts the connection off immediately. Being demoted to member removes deploy access immediately.
+- Losing your membership of the workspace cuts the connection off immediately. Being demoted to member removes deploy and env update access immediately.
 
 ## Support
 

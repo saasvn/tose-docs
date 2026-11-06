@@ -57,8 +57,8 @@ Even with a write scope, every deploy and rollback still waits for you to approv
 
 `env:write` lets a client change environment variables while you stay in control of every value.
 
-- It is off by default. The consent page shows it with its own checkbox, and only a workspace owner or admin can tick it. Leave the box unticked and the connection cannot plan or apply env changes.
-- It is separate from `env:read`. It does not let the client list or inspect variables, so tick both boxes when the client needs both. It is also not part of `deployments:write`, so a deploy grant never carries it.
+- It is off by default. The consent page shows it with its own checkbox, but only a workspace owner or admin can grant it: if a member ticks it, the consent fails and no connection is made. Leave the box unticked and the connection cannot plan or apply env changes.
+- It is separate from `env:read`. Unlike an API key's `env:write`, it does not include `env:read` and does not let the client list or inspect variables, so tick both boxes when the client needs both. It is also not part of `deployments:write`, so a deploy grant never carries it.
 - A refresh can narrow it but never add it. To add it later, connect again and tick the box.
 - The client sends operations and variable names. You supply any values in the signed-in TOSE form and approve there; the approval token alone does nothing. See [Env update tools](/mcp#env-update-tools).
 - The role is checked again when the plan is applied. If you were demoted, or the connection no longer holds the scope, the apply is refused.

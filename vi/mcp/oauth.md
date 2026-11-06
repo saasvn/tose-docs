@@ -57,8 +57,8 @@ Kể cả khi có scope ghi, mỗi lần deploy và rollback vẫn chờ bạn d
 
 `env:write` cho phép client đổi biến môi trường trong khi bạn vẫn kiểm soát mọi giá trị.
 
-- Mặc định tắt. Trang consent hiển thị scope này với ô chọn riêng, và chỉ owner hoặc admin của workspace mới tick được. Không tick thì kết nối không thể lập hay áp dụng thay đổi env.
-- Scope tách biệt với `env:read`. Nó không cho client liệt kê hay xem biến, nên hãy tick cả hai ô khi client cần cả hai. Nó cũng không nằm trong `deployments:write`, nên quyền deploy không kèm theo nó.
+- Mặc định tắt. Trang consent hiển thị scope này với ô chọn riêng, nhưng chỉ owner hoặc admin của workspace mới cấp được: thành viên tick ô này thì consent thất bại và không có kết nối nào được tạo. Không tick thì kết nối không thể lập hay áp dụng thay đổi env.
+- Scope tách biệt với `env:read`. Khác với `env:write` của API key, nó không bao gồm `env:read` và không cho client liệt kê hay xem biến, nên hãy tick cả hai ô khi client cần cả hai. Nó cũng không nằm trong `deployments:write`, nên quyền deploy không kèm theo nó.
 - Refresh chỉ có thể thu hẹp, không bao giờ thêm scope này. Muốn thêm sau, hãy kết nối lại và tick ô.
 - Client gửi thao tác và tên biến. Bạn nhập giá trị trong form TOSE đã đăng nhập và duyệt tại đó; riêng approval token không làm được gì. Xem [Tool cập nhật env](/vi/mcp#tool-cap-nhat-env).
 - Vai trò được kiểm tra lại khi áp dụng kế hoạch. Nếu bạn bị hạ vai trò, hoặc kết nối không còn scope, lệnh áp dụng bị từ chối.
