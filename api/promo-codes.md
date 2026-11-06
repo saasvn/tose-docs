@@ -44,9 +44,9 @@ curl -X POST https://<api-host>/api/workspaces/acme/wallet/promo/preview \
 | `credit_usd_cents` | Paid credit the wallet receives for this payment: the full amount. If the code is rejected when the payment completes, the wallet receives what you paid instead. |
 | `total_credit_cents` | Paid plus bonus credit the wallet receives, in USD cents (`credit_usd_cents` + `bonus_cents`). |
 | `description` | The code's description, when it has one. |
-| `credit_valid_days` | Days the bonus credit can be spent. Only set for bonus codes with an expiry. |
+| `credit_valid_days` | Days the bonus credit can be spent. Only set for bonus or match codes with an expiry. |
 
-For a `match_percent` code, `bonus_cents` is the top-up times `percent_off`, capped at the code's `amount_cents`. A VND amount is valued at a reference exchange rate of the day to apply that cap, and the rate is not part of the response. The reference rate only decides the bonus, never the balance credited for the VND you pay, which uses the wallet's rate. If the rate source fails, TOSE uses its last stored rate, or the wallet's fixed rate when it has none. Example for a $60 top-up with a 100% code capped at $100:
+For a `match_percent` code, `bonus_cents` is the top-up times `percent_off`, capped at the code's `amount_cents`. A VND amount is converted to dollars at a reference exchange rate of the day before the percentage and the cap are applied, and the rate is not part of the response. The reference rate only decides the bonus, never the balance credited for the VND you pay, which uses the wallet's rate. If the rate source fails, TOSE uses the last rate it fetched, or the wallet's fixed rate when it has fetched none (the stored rate is kept in memory, so it is lost when the service restarts). Example for a $60 top-up with a 100% code capped at $100:
 
 ```json
 {
@@ -105,7 +105,7 @@ All amounts are USD cents. Codes are stored upper-case.
 | `kind` | `percent`, `fixed`, `bonus` or `match_percent`. |
 | `percent_off` | 1 to 100: the percentage off for `percent`, the percentage of the top-up matched for `match_percent`. |
 | `amount_cents` | 1 to 1,000,000, for `fixed` (the discount), `bonus` (the credit) and `match_percent` (the cap on the bonus). |
-| `emails` | A list of addresses, with `prefix`, instead of `count`. Creates one single-use code per address and records the address on it. Addresses are lower-cased and de-duplicated, an invalid address refuses the whole request, and giving both `emails` and `count` is refused. The address is a record for the operator, not a restriction: the code works for whoever redeems it first. |
+| `emails` | A list of addresses, with `prefix`, instead of `count`. Creates one single-use code per address and records the address on it. Addresses are lower-cased and de-duplicated, an invalid address refuses the whole request, and giving both `emails` and a `count` above 1 is refused. The number of addresses counts against the batch limit of 5000. The address is returned as `assigned_email` on each code. The address is a record for the operator, not a restriction: the code works for whoever redeems it first. |
 | `applies_to` | `wallet_topup` and/or `template_unlock`. Default `wallet_topup`. A bonus or match code cannot include `template_unlock`. |
 | `min_amount_cents` | Smallest payment, before the discount, the code accepts. |
 | `first_topup_only` | The workspace must have no earlier completed top-up. |
@@ -158,11 +158,11 @@ On the [MCP connector](/mcp), eight more tools exist for platform admins. They n
 
 ### Campaign limits {#admin-campaign}
 
-A campaign can cap how many payments all of its codes together may be applied to, first come, first served. Set it with `PUT /admin/api/promo-codes/campaigns/{campaign}` or the MCP tool `set_discount_campaign`, with `max_redemptions` (`0` removes the limit). The campaign name is 1 to 64 characters and a negative number is refused with `INVALID`. A campaign without a limit has no cap. When the limit is reached, applying a code of the campaign answers `PROMO_CAMPAIGN_EXHAUSTED`.
+A campaign can cap how many payments all of its codes together may be applied to, first come, first served. Set it with `PUT /admin/api/promo-codes/campaigns/{campaign}` or the MCP tool `set_discount_campaign`, with `max_redemptions` (`0` removes the limit). The campaign name is 1 to 64 characters and a negative number is refused with `INVALID`. A body without `max_redemptions` answers `400` with `{"error"}` only, without a `code`. A campaign without a limit has no cap. When the limit is reached, applying a code of the campaign answers `PROMO_CAMPAIGN_EXHAUSTED`.
 
 ```json
 {
-  "campaign": {"name": "agentkit-tose", "max_redemptions": 300},
+  "campaign": {"name": "agentkit-tose", "max_redemptions": 300, "created_at": "...", "updated_at": "..."},
   "usage": {"campaign": "agentkit-tose", "max_redemptions": 300, "used": 212, "remaining": 88}
 }
 ```
@@ -176,7 +176,7 @@ A campaign can cap how many payments all of its codes together may be applied to
 
 A redemption that is no longer wanted, for example after a SePay refund (SePay sends no refund webhook, so it is never released automatically), can be released by an operator. Call the MCP tool `release_discount_redemption` or `POST /admin/api/promo-codes/redemptions/{id}/release` with the body `{"reason": "..."}`. A redemption that is still `reserved` (its payment has not completed) is refused with `CONFLICT` (`409`). Releasing a completed redemption frees the code's use and takes back the unspent bonus credit, like a full refund of a Polar payment. Releasing twice is harmless, and an unknown ID answers `NOT_FOUND` (`404`).
 
-Every create, update, disable, release, campaign limit change and CSV export is written to the [audit log](/api/audit) with high risk, from both REST and MCP.
+Every create, update, disable, release and campaign limit change is written to the [audit log](/api/audit) with high risk, from both REST and MCP. A CSV export (REST only) is written the same way.
 
 ### Example: the AgentKit launch codes
 

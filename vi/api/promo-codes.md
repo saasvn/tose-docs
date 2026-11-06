@@ -1,6 +1,6 @@
 # API mã khuyến mãi
 
-Mã khuyến mãi giảm số tiền nạp ví hoặc cộng credit thưởng vào lần nạp. Ý nghĩa của từng loại mã và các quy tắc nằm ở [Mã khuyến mãi và credit thưởng](/vi/guide/promo-codes). Trang này liệt kê các endpoint.
+Mã khuyến mãi giảm số tiền nạp ví hoặc cộng credit thưởng vào lần nạp, dưới dạng một khoản cố định hoặc một tỷ lệ phần trăm của số tiền nạp (`match_percent`). Ý nghĩa của từng loại mã và các quy tắc nằm ở [Mã khuyến mãi và credit thưởng](/vi/guide/promo-codes). Trang này liệt kê các endpoint.
 
 ## Xem trước một mã {#preview}
 
@@ -41,12 +41,12 @@ curl -X POST https://<api-host>/api/workspaces/acme/wallet/promo/preview \
 | `original_amount`, `charged_amount` | Số tiền trước khi áp mã và số bạn sẽ trả, theo loại tiền của yêu cầu (VND hoặc cent USD). |
 | `discount_usd_cents` | Số tiền giảm, tính bằng cent USD. `0` với mã bonus hoặc match. |
 | `bonus_cents` | Credit khuyến mãi được cộng sau khi thanh toán, tính bằng cent USD. `0` nếu loại mã không phải `bonus` hoặc `match_percent`. |
-| `total_credit_cents` | Tổng credit đã nạp cộng credit thưởng mà ví nhận được, tính bằng cent USD (`credit_usd_cents` + `bonus_cents`). |
 | `credit_usd_cents` | Credit đã nạp mà ví nhận được cho khoản này: toàn bộ số tiền. Nếu mã bị từ chối khi thanh toán hoàn tất, ví nhận số tiền bạn thực trả. |
+| `total_credit_cents` | Tổng credit đã nạp cộng credit thưởng mà ví nhận được, tính bằng cent USD (`credit_usd_cents` + `bonus_cents`). |
 | `description` | Mô tả của mã, nếu có. |
-| `credit_valid_days` | Số ngày credit thưởng được dùng. Chỉ có với mã bonus có hạn. |
+| `credit_valid_days` | Số ngày credit thưởng được dùng. Chỉ có với mã bonus hoặc match có hạn. |
 
-Với mã `match_percent`, `bonus_cents` bằng số tiền nạp nhân `percent_off`, tối đa bằng `amount_cents` của mã. Số tiền VND được quy đổi theo tỷ giá tham chiếu trong ngày để áp mức trần đó, và tỷ giá không nằm trong phản hồi. Tỷ giá tham chiếu chỉ quyết định phần thưởng, không bao giờ quyết định số dư được cộng cho số VND bạn trả; số dư đó dùng tỷ giá của ví. Khi nguồn tỷ giá gặp sự cố, TOSE dùng tỷ giá đã lưu gần nhất, hoặc tỷ giá cố định của ví nếu chưa có. Ví dụ cho lần nạp $60 với mã 100% có trần $100:
+Với mã `match_percent`, `bonus_cents` bằng số tiền nạp nhân `percent_off`, tối đa bằng `amount_cents` của mã. Số tiền VND được quy đổi sang đô la theo tỷ giá tham chiếu trong ngày trước khi áp tỷ lệ phần trăm và mức trần, và tỷ giá không nằm trong phản hồi. Tỷ giá tham chiếu chỉ quyết định phần thưởng, không bao giờ quyết định số dư được cộng cho số VND bạn trả; số dư đó dùng tỷ giá của ví. Khi nguồn tỷ giá gặp sự cố, TOSE dùng tỷ giá lấy được gần nhất, hoặc tỷ giá cố định của ví nếu chưa lấy được tỷ giá nào (tỷ giá đã lưu nằm trong bộ nhớ nên mất khi dịch vụ khởi động lại). Ví dụ cho lần nạp $60 với mã 100% có trần $100:
 
 ```json
 {
@@ -105,7 +105,7 @@ Mọi số tiền tính bằng cent USD. Mã được lưu ở dạng chữ hoa.
 | `kind` | `percent`, `fixed`, `bonus` hoặc `match_percent`. |
 | `percent_off` | 1 đến 100: tỷ lệ giảm với `percent`, tỷ lệ của số tiền nạp được tặng với `match_percent`. |
 | `amount_cents` | 1 đến 1,000,000, cho `fixed` (số giảm), `bonus` (số credit) và `match_percent` (mức trần của phần thưởng). |
-| `emails` | Danh sách địa chỉ, đi kèm `prefix`, thay cho `count`. Tạo mỗi địa chỉ một mã dùng một lần và ghi địa chỉ đó vào mã. Địa chỉ được chuyển thành chữ thường và loại trùng, một địa chỉ không hợp lệ làm cả yêu cầu bị từ chối, và đưa cả `emails` lẫn `count` cũng bị từ chối. Địa chỉ chỉ là ghi chú cho operator, không phải ràng buộc: mã dùng được cho bất kỳ ai đổi trước. |
+| `emails` | Danh sách địa chỉ, đi kèm `prefix`, thay cho `count`. Tạo mỗi địa chỉ một mã dùng một lần và ghi địa chỉ đó vào mã. Địa chỉ được chuyển thành chữ thường và loại trùng, một địa chỉ không hợp lệ làm cả yêu cầu bị từ chối, và đưa cả `emails` lẫn `count` lớn hơn 1 cũng bị từ chối. Số địa chỉ tính vào giới hạn lô 5000. Địa chỉ được trả về dưới dạng `assigned_email` trên mỗi mã. Địa chỉ chỉ là ghi chú cho operator, không phải ràng buộc: mã dùng được cho bất kỳ ai đổi trước. |
 | `applies_to` | `wallet_topup` và/hoặc `template_unlock`. Mặc định `wallet_topup`. Mã bonus hoặc match không được kèm `template_unlock`. |
 | `min_amount_cents` | Khoản thanh toán nhỏ nhất, trước khi giảm, mà mã chấp nhận. |
 | `first_topup_only` | Workspace phải chưa có lần nạp nào hoàn tất trước đó. |
@@ -154,14 +154,15 @@ Trên [MCP connector](/vi/mcp), có thêm tám công cụ dành cho admin nền 
 | `disable_discount_code` | Ngừng áp dụng mã cho các khoản thanh toán mới. | Có |
 | `list_discount_redemptions` | Sổ cái của một `code` hoặc một `campaign`, mới nhất trước. | Không |
 | `release_discount_redemption` | Giải phóng một lượt dùng theo ID, kèm `reason`. | Có |
+| `set_discount_campaign` | Đặt giới hạn suất chung của một `campaign` (`max_redemptions`, `0` = không giới hạn) và trả số suất đã dùng và còn lại. Gọi lặp lại an toàn. | Có |
 
 ### Giới hạn suất theo chiến dịch {#admin-campaign}
 
-Một chiến dịch có thể giới hạn tổng số khoản thanh toán mà mọi mã của nó được áp dụng, theo thứ tự đến trước được trước. Đặt bằng `PUT /admin/api/promo-codes/campaigns/{campaign}` hoặc công cụ MCP `set_discount_campaign`, với `max_redemptions` (`0` là bỏ giới hạn). Tên chiến dịch dài 1 đến 64 ký tự và số âm bị từ chối với `INVALID`. Chiến dịch không có giới hạn thì không bị chặn. Khi chạm giới hạn, áp mã của chiến dịch trả `PROMO_CAMPAIGN_EXHAUSTED`.
+Một chiến dịch có thể giới hạn tổng số khoản thanh toán mà mọi mã của nó được áp dụng, theo thứ tự đến trước được trước. Đặt bằng `PUT /admin/api/promo-codes/campaigns/{campaign}` hoặc công cụ MCP `set_discount_campaign`, với `max_redemptions` (`0` là bỏ giới hạn). Tên chiến dịch dài 1 đến 64 ký tự và số âm bị từ chối với `INVALID`. Body thiếu `max_redemptions` trả `400` chỉ với `{"error"}`, không có `code`. Chiến dịch không có giới hạn thì không bị chặn. Khi chạm giới hạn, áp mã của chiến dịch trả `PROMO_CAMPAIGN_EXHAUSTED`.
 
 ```json
 {
-  "campaign": {"name": "agentkit-tose", "max_redemptions": 300},
+  "campaign": {"name": "agentkit-tose", "max_redemptions": 300, "created_at": "...", "updated_at": "..."},
   "usage": {"campaign": "agentkit-tose", "max_redemptions": 300, "used": 212, "remaining": 88}
 }
 ```
@@ -175,7 +176,7 @@ Một chiến dịch có thể giới hạn tổng số khoản thanh toán mà 
 
 Một lượt dùng không còn cần giữ, ví dụ sau khi hoàn tiền SePay (SePay không gửi webhook hoàn tiền nên lượt dùng không bao giờ tự được giải phóng), có thể được operator giải phóng. Gọi công cụ MCP `release_discount_redemption` hoặc `POST /admin/api/promo-codes/redemptions/{id}/release` với body `{"reason": "..."}`. Lượt dùng còn ở trạng thái `reserved` (khoản thanh toán chưa hoàn tất) bị từ chối với `CONFLICT` (`409`). Giải phóng một lượt dùng đã hoàn tất sẽ mở lại lượt dùng của mã và thu hồi credit thưởng chưa dùng, giống một lần hoàn tiền toàn bộ khoản Polar. Giải phóng hai lần không gây hại, và ID không tồn tại trả `NOT_FOUND` (`404`).
 
-Mọi thao tác tạo, cập nhật, vô hiệu hóa, giải phóng, đổi giới hạn chiến dịch và xuất CSV đều được ghi vào [audit log](/vi/api/audit) với mức rủi ro cao, từ cả REST lẫn MCP.
+Mọi thao tác tạo, cập nhật, vô hiệu hóa, giải phóng và đổi giới hạn chiến dịch đều được ghi vào [audit log](/vi/api/audit) với mức rủi ro cao, từ cả REST lẫn MCP. Xuất CSV (chỉ có qua REST) cũng được ghi như vậy.
 
 ### Ví dụ: mã của đợt ra mắt AgentKit {#agentkit-example}
 
