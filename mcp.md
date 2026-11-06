@@ -26,10 +26,12 @@ To connect another workspace, add the connector again and pick the other workspa
 | `read_logs` | `source=build` reads a deployment's build log. `source=runtime` reads recent application logs (up to 24 hours back, optional `level`). Returns at most 500 lines and 64 KB. | No |
 | `list_project_env_keys` | Lists the names of a project's environment variables and whether each is set. Needs the `env:read` scope. Never returns a value. | No |
 | `inspect_project_env` | The same metadata for one variable name. Needs the `env:read` scope. Never returns a value. | No |
+| `plan_project_env_update` | Plans a `set`, `rotate` or `delete` for up to 20 variables. Takes names and operations only. Needs the `env:write` scope. | No, returns a plan and an approval link |
+| `apply_project_env_update` | Saves the changes you approved in TOSE. Takes the project and the approval token only. Needs the `env:write` scope. | **Yes**, needs approval |
 | `deploy_project` | Builds and deploys the head commit of the project's connected branch, as shown in the plan. | **Yes**, needs approval |
 | `rollback_deployment` | Puts the image of an earlier deployment live again. | **Yes**, needs approval |
 
-There is no generic API tool. The connector cannot read or change the value of an environment variable, and it cannot reach domains, databases, billing or members. Changing environment variables over MCP (a plan, your approval in the browser, then apply) is not available yet.
+There is no generic API tool. The connector cannot read the value of an environment variable, and it cannot reach domains, databases, billing or members. It can change variables only through the approval-gated [env update tools](#env-update-tools), where you type every value in TOSE, never in the chat.
 
 ### Env metadata tools
 
@@ -47,6 +49,22 @@ There is no generic API tool. The connector cannot read or change the value of a
 - **Names that look like values:** if a stored name looks like a pasted value, for example it contains `=` or `://`, the list shows `[withheld]` instead of the name. `inspect_project_env` refuses such a name, an empty one and an over-long one with `INVALID_ARGUMENT`.
 - **Other workspaces:** a project in another workspace answers `NOT_FOUND`, the same as a missing project.
 - **Redeploy:** changing a variable never deploys by itself. A variable changed after the running deployment needs a redeploy.
+
+### Env update tools
+
+`plan_project_env_update` and `apply_project_env_update` let an agent change environment variables without ever handling a value. The agent says which variables to change, you enter the values in TOSE and approve, and the agent then applies the approved plan.
+
+- **Scope:** both tools need `env:write`. An owner or admin opts in with its own checkbox on the consent page. It does not grant `env:read`, so a connection that should also list variables needs both. Without the scope, `tools/list` does not show the tools. See [Scopes](/mcp/oauth#env-updates-env-write).
+- **Operations:** `set` creates or replaces a variable, `rotate` replaces an existing secret, and `delete` removes one. `rotate` and `delete` name a variable that already exists, otherwise the plan answers `NOT_FOUND`. One plan holds 1 to 20 entries, each with an `op` and a `key` (letters, digits and underscores), and one entry per name.
+
+1. **Plan.** Call `plan_project_env_update` with the project slug and the `{op, key}` entries. Send names and operations only: a value in the request is refused with `INVALID_ARGUMENT`. The call changes nothing. It returns the plan, an `approval_url` and a one-time `approval_token`. An optional `idempotency_key` (1 to 255 printable ASCII characters) lets the client recover the result of a plan that was already applied. The same key with other changes answers `IDEMPOTENCY_CONFLICT`.
+2. **Approve in TOSE.** Open the `approval_url` while signed in as the owner or admin who requested the plan. Enter the new value for each `set` and `rotate` on that page, then approve. The values go from your browser to TOSE and never pass through the client. Existing variables keep their secret flag, and new variables are saved as secrets. TOSE encrypts the values it receives and deletes the pending values when the plan is applied, withdrawn or expires.
+3. **Apply.** Tell the client to continue. It calls `apply_project_env_update` with the project and the `approval_token`, and only then does TOSE save the change. It reports what was applied and, when a deployment receipt is available, whether the running deployment differs (`redeploy_required`).
+
+- **A stale plan needs a new approval.** If the saved variables changed after you approved, the apply answers `APPROVAL_STALE`. Ask the agent to plan again and approve the new plan. An approval that is still pending, expired, declined or already used answers `APPROVAL_PENDING`, `APPROVAL_EXPIRED` or `APPROVAL_USED`.
+- **The change takes effect after a separate redeploy.** Applying saves the configuration only. The running app keeps its current environment until you redeploy, for example with `deploy_project`.
+- **Values never travel over MCP.** No tool accepts or returns a value, and there is no tool that reveals or pulls one. The audit history records operation names and variable names only.
+- **Typing "ok" in the chat does not approve anything.** Approval happens only on the TOSE page, as described in [How approval works](#how-approval-works).
 
 ### How approval works
 
@@ -96,7 +114,7 @@ Failed tool calls return text that starts with a stable code:
 
 ## Data and privacy
 
-- **What the connector reads:** projects, deployments, build logs and runtime logs of the workspace you picked. With `env:read`, also the names and set state of a project's environment variables, never a value.
+- **What the connector reads:** projects, deployments, build logs and runtime logs of the workspace you picked. With `env:read`, also the names and set state of a project's environment variables, never a value. With `env:write`, it can plan and apply a variable change that you approve in TOSE, but it still never receives a value.
 - **What it never returns:** environment variable values, database credentials, registry or cluster credentials, and API keys. Before logs, commit messages and error messages are returned, TOSE removes the project's environment variable values and common credential patterns (URLs with passwords, bearer tokens, private keys, cloud and GitHub tokens, JWTs). Redaction is best effort. Do not print secrets in application logs.
 - **What TOSE stores:**
   - The registered client: name and redirect URIs.

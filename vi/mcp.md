@@ -26,10 +26,12 @@ Muốn kết nối workspace khác thì thêm connector lần nữa và chọn w
 | `read_logs` | `source=build` đọc build log của một deployment. `source=runtime` đọc log ứng dụng gần đây (tối đa 24 giờ, có thể lọc theo `level`). Trả về tối đa 500 dòng và 64 KB. | Không |
 | `list_project_env_keys` | Liệt kê tên các biến môi trường của project và trạng thái đã đặt hay chưa. Cần scope `env:read`. Không bao giờ trả giá trị. | Không |
 | `inspect_project_env` | Cùng metadata cho một tên biến. Cần scope `env:read`. Không bao giờ trả giá trị. | Không |
+| `plan_project_env_update` | Lập kế hoạch `set`, `rotate` hoặc `delete` cho tối đa 20 biến. Chỉ nhận tên và thao tác. Cần scope `env:write`. | Không, trả về kế hoạch và link phê duyệt |
+| `apply_project_env_update` | Lưu các thay đổi bạn đã duyệt trong TOSE. Chỉ nhận project và approval token. Cần scope `env:write`. | **Có**, cần phê duyệt |
 | `deploy_project` | Build và deploy commit đầu của branch đã kết nối, đúng commit hiển thị trong kế hoạch. | **Có**, cần phê duyệt |
 | `rollback_deployment` | Đưa image của một deployment cũ lên chạy lại. | **Có**, cần phê duyệt |
 
-Connector không có tool gọi API tùy ý. Nó không đọc hay sửa được giá trị của biến môi trường, và không truy cập được domain, database, thanh toán hay thành viên. Việc thay đổi biến môi trường qua MCP (kế hoạch, bạn duyệt trong trình duyệt, rồi áp dụng) chưa khả dụng.
+Connector không có tool gọi API tùy ý. Nó không đọc được giá trị của biến môi trường, và không truy cập được domain, database, thanh toán hay thành viên. Nó chỉ thay đổi được biến qua [tool cập nhật env](#tool-cap-nhat-env) có cổng phê duyệt, nơi bạn tự nhập mọi giá trị trong TOSE, không bao giờ nhập trong chat.
 
 ### Tool metadata env
 
@@ -47,6 +49,22 @@ Connector không có tool gọi API tùy ý. Nó không đọc hay sửa đượ
 - **Tên trông như giá trị:** nếu một tên đã lưu trông như giá trị bị dán nhầm, ví dụ chứa `=` hoặc `://`, danh sách hiển thị `[withheld]` thay cho tên. `inspect_project_env` từ chối tên như vậy, tên rỗng và tên quá dài bằng `INVALID_ARGUMENT`.
 - **Workspace khác:** project của workspace khác trả `NOT_FOUND`, giống như project không tồn tại.
 - **Redeploy:** đổi biến không bao giờ tự deploy. Biến đổi sau deployment đang chạy cần redeploy.
+
+### Tool cập nhật env
+
+`plan_project_env_update` và `apply_project_env_update` cho phép agent đổi biến môi trường mà không bao giờ chạm vào giá trị. Agent nói biến nào cần đổi, bạn nhập giá trị trong TOSE và duyệt, rồi agent áp dụng kế hoạch đã duyệt.
+
+- **Scope:** cả hai tool cần `env:write`. Owner hoặc admin bật bằng ô riêng trên trang consent. Scope này không cấp `env:read`, nên kết nối cần liệt kê biến thì phải có cả hai. Không có scope thì `tools/list` không hiển thị hai tool. Xem [Scope](/vi/mcp/oauth#cap-nhat-bien-moi-truong-env-write).
+- **Thao tác:** `set` tạo hoặc thay biến, `rotate` thay một secret đã có, `delete` xóa biến. `rotate` và `delete` phải nêu biến đã tồn tại, nếu không kế hoạch trả `NOT_FOUND`. Một kế hoạch có 1 đến 20 mục, mỗi mục gồm `op` và `key` (chữ, số và dấu gạch dưới), mỗi tên một mục.
+
+1. **Lập kế hoạch.** Gọi `plan_project_env_update` với slug project và các mục `{op, key}`. Chỉ gửi tên và thao tác: request chứa giá trị bị từ chối với `INVALID_ARGUMENT`. Lệnh gọi không thay đổi gì. Nó trả về kế hoạch, `approval_url` và `approval_token` dùng một lần. `idempotency_key` tùy chọn (1 đến 255 ký tự ASCII in được) giúp client lấy lại kết quả của kế hoạch đã áp dụng. Cùng key với thay đổi khác trả `IDEMPOTENCY_CONFLICT`.
+2. **Duyệt trong TOSE.** Mở `approval_url` khi đã đăng nhập bằng owner hoặc admin đã yêu cầu kế hoạch. Nhập giá trị mới cho từng `set` và `rotate` ngay trên trang đó, rồi duyệt. Giá trị đi từ trình duyệt của bạn tới TOSE và không qua client. Biến đã có giữ nguyên cờ secret, biến mới được lưu dưới dạng secret. TOSE mã hóa giá trị nhận được và xóa giá trị đang chờ khi kế hoạch được áp dụng, rút lại hoặc hết hạn.
+3. **Áp dụng.** Bảo client tiếp tục. Client gọi `apply_project_env_update` với project và `approval_token`, và chỉ khi đó TOSE mới lưu thay đổi. Kết quả cho biết đã áp dụng gì và, khi có biên nhận deployment, deployment đang chạy có khác không (`redeploy_required`).
+
+- **Kế hoạch cũ cần duyệt lại.** Nếu các biến đã lưu thay đổi sau khi bạn duyệt, lệnh áp dụng trả `APPROVAL_STALE`. Hãy bảo agent lập kế hoạch mới rồi duyệt lại. Phê duyệt đang chờ, hết hạn, bị từ chối hoặc đã dùng trả `APPROVAL_PENDING`, `APPROVAL_EXPIRED` hoặc `APPROVAL_USED`.
+- **Thay đổi có hiệu lực sau một lần redeploy riêng.** Áp dụng chỉ lưu cấu hình. Ứng dụng đang chạy giữ môi trường hiện tại cho đến khi bạn redeploy, ví dụ bằng `deploy_project`.
+- **Giá trị không bao giờ đi qua MCP.** Không tool nào nhận hay trả giá trị, và không có tool nào để hiện hoặc kéo giá trị. Lịch sử audit chỉ ghi tên thao tác và tên biến.
+- **Gõ "ok" trong chat không duyệt được gì.** Việc duyệt chỉ diễn ra trên trang TOSE, như mô tả ở [Cơ chế phê duyệt](#co-che-phe-duyet).
 
 ### Cơ chế phê duyệt
 
@@ -96,7 +114,7 @@ Khi tool lỗi, nội dung trả về bắt đầu bằng một mã cố định
 
 ## Dữ liệu và quyền riêng tư
 
-- **Connector đọc gì:** project, deployment, build log và runtime log của workspace bạn đã chọn. Với `env:read`, còn đọc tên và trạng thái đã đặt của biến môi trường trong project, không bao giờ đọc giá trị.
+- **Connector đọc gì:** project, deployment, build log và runtime log của workspace bạn đã chọn. Với `env:read`, còn đọc tên và trạng thái đã đặt của biến môi trường trong project, không bao giờ đọc giá trị. Với `env:write`, còn lập và áp dụng thay đổi biến mà bạn duyệt trong TOSE, nhưng vẫn không bao giờ nhận giá trị.
 - **Không bao giờ trả về:** giá trị biến môi trường, thông tin đăng nhập database, registry hay cluster, và API key.
   - Trước khi trả log, commit message và thông báo lỗi, TOSE xóa giá trị biến môi trường của project và các dạng credential phổ biến: URL có mật khẩu, bearer token, private key, token cloud và GitHub, JWT.
   - Việc xóa này chỉ là best effort, vì vậy đừng in secret ra log ứng dụng.
