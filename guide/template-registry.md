@@ -13,7 +13,7 @@ The registry foundation has shipped (tose-app [#388](https://github.com/saasvn/t
 | Manifest format `tose.dev/v1` and strict validation | Available |
 | Private draft definitions and versions in your workspace (REST) | Available |
 | Validation runs recorded per version | Available. A valid manifest still reports `security_gate: pending` |
-| Public publishing, review for public listing, deprecate and revoke | Not available. Public visibility stays off until the security gate passes |
+| Public publishing, review for public listing, deprecate and revoke by authors | Not available (only platform admins revoke a curated release). Public visibility stays off until the security gate passes |
 | Template directory (search, filter, sort) | Not available |
 | Deploy plan, cost and blockers for a registry template | Shipped in the backend, not documented here yet except for the curated templates below |
 | Curated Pi, Claude Code and Codex templates: plan, install and private console | Built, but hidden. TOSE has not published a reviewed, digest-pinned release, so every plan is blocked until one exists |
@@ -81,7 +81,7 @@ The parser rejects unknown keys, YAML aliases and more than one YAML document. P
 
 Each `(definition, version)` pair is unique. A **draft** can be replaced while its `metadata.name` and `metadata.version` stay the same. A version that has left `draft` cannot be edited: publish a new version number instead. Because `source` is pinned to a commit or digest, every version describes exactly one build input.
 
-Version status values stored by the registry are `draft`, `validating`, `review`, `published`, `deprecated` and `revoked`. Today the API creates versions only as `draft`; the other states are reserved for the publishing flow that is not available yet.
+Version status values stored by the registry are `draft`, `validating`, `review`, `published`, `deprecated` and `revoked`. Today the API creates versions only as `draft`; the other states are reserved for the publishing flow that is not available yet, except the releases of the [curated agent templates](#curated-agent-templates), which the TOSE server publishes itself.
 
 ### Validation errors
 
@@ -119,7 +119,7 @@ Details, scopes and examples are in the [registry API reference](/api/template-r
 TOSE defines three curated coding-agent templates itself: **Pi**, **Claude Code** and **Codex** (tose-app [#461](https://github.com/saasvn/tose-app/pull/461) and [#502](https://github.com/saasvn/tose-app/pull/502), issue [#405](https://github.com/saasvn/tose-app/issues/405)). They are planned through the same deployment planner as registry versions, not through the legacy [catalog](/guide/dewee-template).
 
 ::: warning Hidden until TOSE publishes a reviewed release
-A curated agent stays **hidden** and cannot be installed until TOSE publishes a reviewed release: an image pinned by `sha256` digest, with its upstream version, date and validation evidence. #502 added the install flow and the console but **did not publish a Pi, Codex or Claude Code release**, so every plan is still blocked with `CURATED_RELEASE_MISSING`. This page describes the flow you get once a release exists. Which agents you can deploy at any moment is decided by the live registry (the dashboard list and `GET /curated-templates`), not by this page.
+A curated agent stays **hidden** and cannot be installed until TOSE publishes a reviewed release: an image pinned by `sha256` digest, with its upstream version, date and validation evidence. #502 added the install flow and the console but **did not publish a Pi, Codex or Claude Code release**, so every plan is still blocked with `CURATED_RELEASE_MISSING`. This page describes the flow you get once a release exists. Two checks are still open: the per-installation network policy, private ingress and pod hardening are tested against a fake cluster but not yet shown on the production cluster, and for Claude Code TOSE needs written legal confirmation before it redistributes the binary in an image. Which agents you can deploy at any moment is decided by the live registry (the dashboard list and `GET /curated-templates`), not by this page.
 :::
 
 ### What a definition fixes
@@ -161,7 +161,7 @@ An installed agent has no public address, no domain and a default-deny network p
 
 ### Revoked versions and suspended publishers
 
-Platform admins can revoke a release version or suspend the `tose-curated` publisher. This affects what happens next, not what you see in the form:
+Platform admins can revoke a release version or suspend the `tose-curated` publisher. The dashboard list and `GET /curated-templates` show the resulting blocker instead of a **Deploy** link, and later plans and deploys are refused:
 
 - A **revoked version** blocks later plans with `VERSION_REVOKED`, and its later deploys.
 - A **suspended publisher** blocks every curated plan (`CURATED_INSTALL_UNAVAILABLE`).
@@ -183,7 +183,7 @@ Platform admins can revoke a release version or suspend the `tose-curated` publi
 | `CURATED_RELEASE_MISSING` | No reviewed release image pinned by digest. | A reviewed release in the definition. |
 | `CURATED_TEMPLATE_HIDDEN` | A release exists, but its rollout is held. | Removing the hold. |
 | `CURATED_INSTALL_UNAVAILABLE` | The release cannot be installed from the registry: not published yet, stored with another manifest, or the publisher is suspended. | TOSE publishing the release, or lifting the suspension. |
-| `VERSION_REVOKED` | A platform admin revoked this version. | A new release. |
+| `VERSION_REVOKED` | A platform admin revoked this version. | A newer reviewed release (a later version). |
 | `COMMUNITY_TEMPLATES_DISABLED` (or `SECURITY_GATE_UNAVAILABLE`, `IMAGE_SCANNER_NOT_CONFIGURED`, depending on configuration) | The security gate refuses registry workloads in this configuration. | The operator enabling the gate and an image scanner. |
 | `NETWORK_POLICY_NOT_ENFORCED`, `INGRESS_MODE_NOT_ENFORCED` | The target cluster cannot enforce the installation's own network policy, so the egress limit and the private console could not be guaranteed. Nothing is created or billed. | A cluster that enforces the policy. |
 

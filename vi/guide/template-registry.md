@@ -13,7 +13,7 @@ Phần nền tảng của registry đã được phát hành (tose-app [#388](ht
 | Định dạng manifest `tose.dev/v1` và validate nghiêm ngặt | Có |
 | Definition và version bản nháp riêng tư trong workspace (REST) | Có |
 | Lưu lượt validate cho từng version | Có. Manifest hợp lệ vẫn trả `security_gate: pending` |
-| Xuất bản công khai, review để public, deprecate và revoke | Chưa có. Chế độ public giữ tắt cho đến khi security gate đạt |
+| Xuất bản công khai, review để public, deprecate và revoke do tác giả | Chưa có (chỉ admin nền tảng thu hồi được bản phát hành tuyển chọn). Chế độ public giữ tắt cho đến khi security gate đạt |
 | Thư mục template (tìm kiếm, lọc, sắp xếp) | Chưa có |
 | Plan deploy, chi phí và blocker cho template trong registry | Đã có ở backend, chưa được tài liệu hóa ở đây ngoại trừ các mẫu tuyển chọn bên dưới |
 | Mẫu Pi, Claude Code và Codex tuyển chọn: plan, cài đặt và console riêng tư | Đã xây dựng nhưng đang ẩn. TOSE chưa phát hành bản đã rà soát được ghim bằng digest, nên mọi plan bị chặn cho tới khi có |
@@ -81,7 +81,7 @@ Parser từ chối key lạ, alias YAML và nhiều hơn một tài liệu YAML.
 
 Mỗi cặp `(definition, version)` là duy nhất. **Bản nháp** có thể được thay thế khi `metadata.name` và `metadata.version` giữ nguyên. Version đã rời trạng thái `draft` không sửa được: hãy xuất bản số version mới. Vì `source` được ghim vào commit hoặc digest, mỗi version mô tả đúng một đầu vào build.
 
-Registry lưu các trạng thái version `draft`, `validating`, `review`, `published`, `deprecated` và `revoked`. Hiện API chỉ tạo version ở trạng thái `draft`; các trạng thái còn lại dành cho luồng xuất bản chưa có.
+Registry lưu các trạng thái version `draft`, `validating`, `review`, `published`, `deprecated` và `revoked`. Hiện API chỉ tạo version ở trạng thái `draft`; các trạng thái còn lại dành cho luồng xuất bản chưa có, trừ các bản phát hành của [mẫu agent tuyển chọn](#curated-agent-templates) do chính máy chủ TOSE xuất bản.
 
 ### Lỗi validate
 
@@ -121,7 +121,7 @@ Chi tiết, scope và ví dụ nằm ở [tham chiếu API registry](/vi/api/tem
 TOSE tự định nghĩa ba mẫu agent lập trình tuyển chọn: **Pi**, **Claude Code** và **Codex** (tose-app [#461](https://github.com/saasvn/tose-app/pull/461) và [#502](https://github.com/saasvn/tose-app/pull/502), issue [#405](https://github.com/saasvn/tose-app/issues/405)). Chúng được lập kế hoạch qua cùng bộ planner triển khai như các version trong registry, không qua [catalog](/vi/guide/dewee-template) cũ.
 
 ::: warning Ẩn cho tới khi TOSE phát hành bản đã rà soát
-Agent tuyển chọn vẫn **bị ẩn** và chưa cài được cho tới khi TOSE phát hành một bản đã rà soát: image được ghim bằng digest `sha256`, kèm phiên bản upstream, ngày và bằng chứng kiểm tra. #502 bổ sung luồng cài đặt và console nhưng **chưa phát hành bản nào cho Pi, Codex hay Claude Code**, nên mọi plan vẫn bị chặn với `CURATED_RELEASE_MISSING`. Trang này mô tả luồng bạn có khi đã có bản phát hành. Agent nào triển khai được tại một thời điểm do registry hiện hành quyết định (danh sách trên dashboard và `GET /curated-templates`), không phải trang này.
+Agent tuyển chọn vẫn **bị ẩn** và chưa cài được cho tới khi TOSE phát hành một bản đã rà soát: image được ghim bằng digest `sha256`, kèm phiên bản upstream, ngày và bằng chứng kiểm tra. #502 bổ sung luồng cài đặt và console nhưng **chưa phát hành bản nào cho Pi, Codex hay Claude Code**, nên mọi plan vẫn bị chặn với `CURATED_RELEASE_MISSING`. Trang này mô tả luồng bạn có khi đã có bản phát hành. Còn hai việc chưa xong: chính sách mạng riêng cho từng bản cài, ingress riêng tư và gia cố pod mới được kiểm thử trên cụm giả lập, chưa chứng minh trên cụm production; và với Claude Code, TOSE cần xác nhận pháp lý bằng văn bản trước khi phân phối binary trong image. Agent nào triển khai được tại một thời điểm do registry hiện hành quyết định (danh sách trên dashboard và `GET /curated-templates`), không phải trang này.
 :::
 
 ### Một định nghĩa cố định những gì
@@ -138,14 +138,14 @@ Agent tuyển chọn vẫn **bị ẩn** và chưa cài được cho tới khi T
 
 ### Vì sao agent bị ẩn
 
-Định nghĩa chưa có bản phát hành thì bị ẩn: dashboard hiển thị lý do chưa triển khai được thay vì liên kết **Deploy**, và API chỉ liệt kê nó khi có `include_hidden=true`. Thêm bản phát hành là một thay đổi được rà soát trong định nghĩa, được biên dịch vào máy chủ TOSE. Khi máy chủ khởi động, mỗi bản phát hành được lưu thành một **version registry đã xuất bản và bất biến** dưới nhà phát hành nền tảng `tose-curated` (hiển thị là "TOSE"). Bước này idempotent, không bao giờ sửa version đã lưu và không cần thao tác của admin. Định nghĩa chưa có bản phát hành thì không xuất bản gì.
+Định nghĩa chưa có bản phát hành thì bị ẩn: dashboard hiển thị lý do chưa triển khai được thay vì liên kết **Triển khai**, và API chỉ liệt kê nó khi có `include_hidden=true`. Thêm bản phát hành là một thay đổi được rà soát trong định nghĩa, được biên dịch vào máy chủ TOSE. Khi máy chủ khởi động, mỗi bản phát hành được lưu thành một **version registry đã xuất bản và bất biến** dưới nhà phát hành nền tảng `tose-curated` (hiển thị là "TOSE"). Bước này idempotent, không bao giờ sửa version đã lưu và không cần thao tác của admin. Định nghĩa chưa có bản phát hành thì không xuất bản gì.
 
 ### Triển khai từ dashboard (khi đã có bản phát hành)
 
-Mở **Templates** ở thanh bên của workspace, rồi **My templates**. Agent tuyển chọn nằm ở mục "Agent templates by TOSE". Chọn **Deploy** ở agent khả dụng; agent bị ẩn hiển thị các blocker thay cho liên kết này.
+Mở **Mẫu** ở thanh bên của workspace, rồi **Mẫu của tôi**. Agent tuyển chọn nằm ở mục "Mẫu agent do TOSE tuyển chọn". Chọn **Triển khai** ở agent khả dụng; agent bị ẩn hiển thị các blocker thay cho liên kết này.
 
 1. **Cấu hình.** Chọn **bản phát hành**, với Pi thì chọn thêm **nhà cung cấp**, rồi tùy chọn **mô hình**. Chọn CPU và bộ nhớ trong các mức được đưa ra, và quyền truy cập mạng: **Chỉ các máy chủ được duyệt** (API của nhà cung cấp, cổng 443) hoặc **Internet**. Nhập **giới hạn chi phí mỗi giờ** (bắt buộc): plan bị chặn nếu workload có thể tốn hơn mức này. Khóa API nhà cung cấp không được hỏi ở bước này và không bao giờ nằm trong plan.
-2. **Xem lại và phê duyệt.** Bước xem lại hiển thị bản phát hành được ghim, chi phí, các đích mạng và mục "Con người luôn nắm quyền". Chủ sở hữu hoặc quản trị viên workspace phê duyệt hash của plan. Plan bị chặn không phê duyệt được.
+2. **Xem và duyệt.** Bước xem lại hiển thị bản phát hành được ghim, chi phí, các đích mạng và mục "Con người luôn nắm quyền kiểm soát". Chủ sở hữu hoặc quản trị viên workspace phê duyệt hash của plan. Plan bị chặn không phê duyệt được.
 3. **Cài đặt.** Nhập khóa API nhà cung cấp vào ô mật khẩu. Khóa chỉ được gửi cùng yêu cầu cài đặt, lưu ở dạng mã hóa và không hiển thị lại, và ô nhập được xóa sau khi cài xong. Cài đặt tạo ứng dụng và xếp hàng lần triển khai đầu tiên của **version registry đã ghim**: đúng digest đã được phê duyệt.
 4. **Trạng thái.** Trang tự làm mới cho tới khi lần triển khai đầu tiên kết thúc. Bạn có thể rời đi; ứng dụng vẫn tiếp tục triển khai.
 
@@ -156,14 +156,14 @@ Cùng luồng này dùng được qua API: `POST /template-deployment-plans` v�
 Agent đã cài không có địa chỉ công khai, không có tên miền và có chính sách mạng chặn mặc định. Bạn mở console của nó qua TOSE:
 
 - **Ai.** Chỉ **chủ sở hữu hoặc quản trị viên workspace đã đăng nhập** vào dashboard hoặc CLI. API key và ứng dụng đã kết nối (MCP) bị từ chối dù có scope nào: console là một shell tương tác đang giữ khóa nhà cung cấp của bạn, nên chỉ một người mới mở được. Đây là ngoại lệ được ghi rõ so với nguyên tắc "agent là người dùng hạng nhất".
-- **Cách mở.** Ở trang của ứng dụng đã cài, chọn **Open console**. Console mở trong tab mới (hãy cho phép cửa sổ bật lên nếu trình duyệt chặn). Ứng dụng phải đang chạy; nếu không, nút sẽ báo console chưa khả dụng và yêu cầu khởi động ứng dụng. Yêu cầu được ghi nhật ký kiểm toán.
+- **Cách mở.** Ở trang của ứng dụng đã cài, chọn **Mở console**. Console mở trong tab mới (hãy cho phép cửa sổ bật lên nếu trình duyệt chặn). Ứng dụng phải đang chạy; nếu không, nút sẽ báo console chưa khả dụng và yêu cầu khởi động ứng dụng. Yêu cầu được ghi nhật ký kiểm toán.
 - **Phiên.** Địa chỉ console mang một token đã ký, có hiệu lực 8 giờ. Đó là thông tin xác thực duy nhất trong địa chỉ, nên đừng chia sẻ URL. TOSE proxy HTTP và WebSocket tới cổng 8080 của agent, nên pod không bao giờ bị phơi ra ngoài.
 - **Thu hồi quyền truy cập sẽ đóng console.** Mỗi yêu cầu, và mỗi WebSocket đang mở cứ năm giây một lần, kiểm tra lại rằng phiên đăng nhập của bạn còn hiệu lực, bạn vẫn là chủ sở hữu hoặc quản trị viên của workspace và ứng dụng đang chạy. Đăng xuất, mất vai trò, bị xóa khỏi workspace hoặc dừng ứng dụng sẽ khiến yêu cầu kế tiếp bị từ chối và WebSocket đang mở bị đóng. Xoay khóa ký của máy chủ sẽ kết thúc mọi console đang mở. Mỗi lần mở WebSocket đều được ghi nhật ký kiểm toán.
 - **Trang console không đáng tin.** Agent kiểm soát trang console và có thể chạy mã bất kỳ, nên TOSE phục vụ nó trong CSP sandbox (một origin mờ, không dùng được phiên đăng nhập TOSE của bạn), bỏ cookie và thông tin xác thực của bạn khỏi các yêu cầu tới agent, loại bỏ cookie do console đặt, không gửi referrer và che token trong nhật ký truy cập.
 
 ### Version bị thu hồi và nhà phát hành bị đình chỉ
 
-Admin nền tảng có thể thu hồi một version phát hành hoặc đình chỉ nhà phát hành `tose-curated`. Điều này ảnh hưởng tới những gì xảy ra tiếp theo, không phải những gì bạn thấy trong biểu mẫu:
+Admin nền tảng có thể thu hồi một version phát hành hoặc đình chỉ nhà phát hành `tose-curated`. Danh sách trên dashboard và `GET /curated-templates` hiển thị blocker tương ứng thay cho liên kết **Triển khai**, và các plan, lần deploy sau đó bị từ chối:
 
 - **Version bị thu hồi** chặn các plan sau đó với `VERSION_REVOKED`, và các lần deploy sau đó của nó.
 - **Nhà phát hành bị đình chỉ** chặn mọi plan tuyển chọn (`CURATED_INSTALL_UNAVAILABLE`).
@@ -185,7 +185,7 @@ Admin nền tảng có thể thu hồi một version phát hành hoặc đình c
 | `CURATED_RELEASE_MISSING` | Chưa có image phát hành đã rà soát được ghim bằng digest. | Có bản phát hành đã rà soát trong định nghĩa. |
 | `CURATED_TEMPLATE_HIDDEN` | Đã có bản phát hành nhưng việc triển khai đang bị giữ. | Gỡ việc giữ. |
 | `CURATED_INSTALL_UNAVAILABLE` | Bản phát hành không cài được từ registry: chưa xuất bản, được lưu với manifest khác, hoặc nhà phát hành bị đình chỉ. | TOSE xuất bản bản phát hành, hoặc gỡ đình chỉ. |
-| `VERSION_REVOKED` | Admin nền tảng đã thu hồi version này. | Một bản phát hành mới. |
+| `VERSION_REVOKED` | Admin nền tảng đã thu hồi version này. | Một bản phát hành mới hơn đã rà soát (version sau). |
 | `COMMUNITY_TEMPLATES_DISABLED` (hoặc `SECURITY_GATE_UNAVAILABLE`, `IMAGE_SCANNER_NOT_CONFIGURED`, tùy cấu hình) | Cổng bảo mật từ chối workload registry với cấu hình này. | Nhà vận hành bật cổng và bộ quét image. |
 | `NETWORK_POLICY_NOT_ENFORCED`, `INGRESS_MODE_NOT_ENFORCED` | Cụm đích không thực thi được chính sách mạng riêng của bản cài, nên không đảm bảo được giới hạn egress và console riêng tư. Không tạo gì và không tính phí. | Một cụm thực thi được chính sách này. |
 

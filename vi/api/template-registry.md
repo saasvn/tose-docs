@@ -144,19 +144,19 @@ Yêu cầu lập plan (gửi `curated_template` hoặc `definition_slug`, không
 
 ### Mở console
 
-`POST .../template-installations/{installation_id}/console-sessions` không có body và trả `201`:
+`POST .../template-installations/{installation_id}/console-sessions` nhận body rỗng (hoặc `{}`; trường khác trả `400`) và trả `201`:
 
 ```json
 {
-  "installation_id": "ins_...",
+  "installation_id": "...",
   "console_path": "/api/template-console/<signed token>/",
   "expires_at": "2026-11-06T18:00:00Z"
 }
 ```
 
 - Chỉ chủ sở hữu hoặc quản trị viên workspace đã đăng nhập. API key hoặc ứng dụng đã kết nối nhận `403` dù có scope nào; yêu cầu được ghi nhật ký kiểm toán.
-- Ứng dụng phải đang chạy; nếu không là `409 CONSOLE_UNAVAILABLE` (`503` khi máy chủ chưa kiểm tra được). View bản cài có trường tùy chọn `console` (`available`, `reason`, `session_path`).
-- Mở `console_path` trong tab trình duyệt mới. Đường dẫn này phục vụ cổng 8080 của agent (HTTP và WebSocket) qua port-forward, và token trong đó có hiệu lực tới `expires_at` (8 giờ). Đừng chia sẻ. Token không rõ hoặc đã hết hạn trả `404 CONSOLE_SESSION_NOT_FOUND`.
+- Bản cài phải là agent tuyển chọn có ứng dụng đang chạy; nếu không là `409 CONSOLE_UNAVAILABLE` (`503` khi console chưa được cấu hình hoặc máy chủ chưa kiểm tra được). Bản cài không tồn tại trả `404 INSTALLATION_NOT_FOUND`. View bản cài có trường tùy chọn `console` (`available`, `reason`, `session_path`).
+- Mở `console_path` trong tab trình duyệt mới. Đường dẫn này phục vụ cổng 8080 của agent (HTTP và WebSocket) qua port-forward, và token trong đó có hiệu lực tới `expires_at` (8 giờ). Đừng chia sẻ. Token không rõ, đã hết hạn hoặc phiên đã đăng xuất trả `404 CONSOLE_SESSION_NOT_FOUND`; mất vai trò trả `403`, ứng dụng dừng trả `409 CONSOLE_UNAVAILABLE`, và pod không tới được trả `502 CONSOLE_UNREACHABLE`.
 - Mỗi yêu cầu, và mỗi WebSocket đang mở cứ năm giây một lần, kiểm tra lại rằng người dùng còn đăng nhập, vẫn là chủ sở hữu hoặc quản trị viên và ứng dụng đang chạy. Nếu không, yêu cầu bị từ chối và socket đóng. Mỗi lần mở WebSocket đều được ghi nhật ký kiểm toán.
 - Trang được phục vụ trong CSP sandbox; cookie và thông tin xác thực của bạn bị bỏ trước khi yêu cầu tới agent.
 

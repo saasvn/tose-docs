@@ -144,19 +144,19 @@ Plan request (send `curated_template` or `definition_slug`, not both):
 
 ### Open the console
 
-`POST .../template-installations/{installation_id}/console-sessions` takes no body and answers `201`:
+`POST .../template-installations/{installation_id}/console-sessions` takes an empty body (or `{}`; any other field is `400`) and answers `201`:
 
 ```json
 {
-  "installation_id": "ins_...",
+  "installation_id": "...",
   "console_path": "/api/template-console/<signed token>/",
   "expires_at": "2026-11-06T18:00:00Z"
 }
 ```
 
 - Only a signed-in workspace owner or admin. An API key or a connected app is `403` whatever its scopes; the request is audited.
-- The app must be running; otherwise `409 CONSOLE_UNAVAILABLE` (`503` when the server cannot check right now). The installation view has an optional `console` field (`available`, `reason`, `session_path`).
-- Open `console_path` in a new browser tab. It serves the agent's port 8080 (HTTP and WebSocket) through a port-forward, and the token in it is valid until `expires_at` (8 hours). Do not share it. An unknown or expired token is `404 CONSOLE_SESSION_NOT_FOUND`.
+- The installation must be a curated agent with a running app; otherwise `409 CONSOLE_UNAVAILABLE` (`503` when consoles are not configured or the server cannot check right now). An unknown installation is `404 INSTALLATION_NOT_FOUND`. The installation view has an optional `console` field (`available`, `reason`, `session_path`).
+- Open `console_path` in a new browser tab. It serves the agent's port 8080 (HTTP and WebSocket) through a port-forward, and the token in it is valid until `expires_at` (8 hours). Do not share it. An unknown or expired token, or a signed-out session, is `404 CONSOLE_SESSION_NOT_FOUND`; a lost role is `403`, a stopped app `409 CONSOLE_UNAVAILABLE`, and a pod that cannot be reached `502 CONSOLE_UNREACHABLE`.
 - Every request, and every open WebSocket every five seconds, checks again that the person is signed in, still an owner or admin, and that the app runs. Otherwise the request is refused and the socket closes. Each WebSocket start is audited.
 - The page is served in a CSP sandbox; your cookies and credentials are stripped before the request reaches the agent.
 
