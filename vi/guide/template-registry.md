@@ -128,13 +128,25 @@ Agent tuyển chọn vẫn **bị ẩn** và chưa cài được cho tới khi T
 
 | Phần | Quy tắc |
 |------|---------|
-| Khóa nhà cung cấp | **Chỉ dùng khóa của bạn (BYOK).** Một biến bí mật: `ANTHROPIC_API_KEY` (Claude Code), `OPENAI_API_KEY` (Codex) hoặc `PI_API_KEY` (Pi, kèm `PI_PROVIDER` là `anthropic`, `openai` hoặc `google`). Không hỗ trợ đăng nhập bằng gói thuê bao của nhà cung cấp. TOSE không tính phí sử dụng mô hình: nhà cung cấp tính trên khóa của bạn. |
+| Khóa nhà cung cấp | **Chỉ dùng khóa của bạn (BYOK).** Một biến bí mật: `ANTHROPIC_API_KEY` (Claude Code), `OPENAI_API_KEY` (Codex, kèm `CODEX_PROVIDER` là `openai`) hoặc `PI_API_KEY` (Pi, kèm `PI_PROVIDER` là `anthropic`, `openai` hoặc `google`). Codex còn hiển thị lựa chọn **gói ChatGPT**, nhưng lựa chọn này không khả dụng trên TOSE được lưu trữ: xem [Đăng nhập nhà cung cấp](#provider-sign-in). TOSE không tính phí sử dụng mô hình: nhà cung cấp tính trên khóa của bạn. |
 | Mô hình | `AGENT_MODEL` tùy chọn, là tên mô hình của nhà cung cấp. Để trống thì agent dùng mặc định. |
 | Cấu hình | Số nhân và GiB nguyên trong danh sách cho phép: Claude Code và Codex 1, 2 hoặc 4 nhân và 2, 4 hoặc 8 GiB; Pi 1 hoặc 2 nhân và 1, 2 hoặc 4 GiB. |
 | Lưu trữ | Ổ đĩa bền vững gồm `/workspace` (5 GiB) và `/home/agent` (1 GiB), tính phí khi ổ đĩa còn tồn tại, kể cả khi đã dừng. |
 | Mạng | Egress `approved` (chỉ máy chủ API của nhà cung cấp, mặc định) hoặc `internet`. Không có `none`, vì agent không gọi được nhà cung cấp nếu không có egress. Ingress luôn là `private`: console của agent không bao giờ công khai. |
 | Thiết lập | Chỉ `image_entrypoint`: entrypoint đã rà soát của image phát hành. Không có bước build, lệnh khởi động, hook, đối tượng Kubernetes hay `privileged`; trường lạ bị từ chối. |
 | Bản phát hành | Mỗi bản ghim image OCI bằng digest `sha256` và ghi phiên bản upstream, ngày và liên kết https tới bằng chứng. Nhà phát hành (TOSE) được đặt một lần trên định nghĩa. Bản này được chuyển thành manifest `tose.dev/v1` thông thường và được kiểm tra theo các quy tắc ở trên. |
+
+### Đăng nhập nhà cung cấp {#provider-sign-in}
+
+**Trên TOSE được lưu trữ, hãy dùng khóa API của bạn.** Đây là đường nhà cung cấp duy nhất hiện hoạt động, với mọi agent tuyển chọn. Với Codex, chọn nhà cung cấp **khóa API OpenAI** (`CODEX_PROVIDER=openai`) và nhập `OPENAI_API_KEY` khi cài đặt, như mô tả ở [Triển khai từ dashboard](#trien-khai-tu-dashboard-khi-đa-co-ban-phat-hanh).
+
+Danh sách nhà cung cấp của Codex cũng có lựa chọn **gói ChatGPT** (`CODEX_PROVIDER=chatgpt`, tose-app [#513](https://github.com/saasvn/tose-app/pull/513)). Lựa chọn này **không khả dụng trên TOSE được lưu trữ**, và bạn không thể dùng gói thuê bao ChatGPT ở đó:
+
+- OpenAI chưa chấp thuận cho TOSE vận hành đăng nhập bằng gói ChatGPT như một dịch vụ được lưu trữ, nên tính năng được phát hành ở trạng thái tắt. Máy chủ production của TOSE từ chối khởi động nếu bật nó.
+- Dashboard hiển thị lựa chọn này là không khả dụng, `GET /curated-templates` đánh dấu nhà cung cấp `available: false` kèm lý do, và plan chọn nó bị chặn với `SUBSCRIPTION_LOGIN_DISABLED`. Không có gì được tạo hay tính phí.
+- Lựa chọn này tồn tại để có thể thử nghiệm ngoài production. Nó không có nghĩa là tính năng sẽ ra mắt vào một ngày cụ thể; trang này chỉ thay đổi khi OpenAI chấp thuận việc lưu trữ và TOSE phát hành bản đã rà soát.
+
+Với bất kỳ nhà cung cấp nào, **không bao giờ gửi cho TOSE phiên đăng nhập, token, cookie, tệp `auth.json` hay mã đăng nhập của ChatGPT hoặc nhà cung cấp khác**, dù qua biểu mẫu, lệnh gọi API, tin nhắn hỗ trợ hay biến. TOSE không có trường nào nhận chúng, và khóa nhà cung cấp gửi trong plan sẽ bị từ chối. Bí mật duy nhất agent nhận là khóa API bạn nhập ở bước cài đặt. Nếu một ngày tính năng đăng nhập được bật cho workspace, bạn sẽ đăng nhập trên trang của chính nhà cung cấp, trong trình duyệt của bạn, và thông tin xác thực nằm lại trong agent; TOSE không nhận gì trong đó.
 
 ### Vì sao agent bị ẩn
 
@@ -184,6 +196,7 @@ Admin nền tảng có thể thu hồi một version phát hành hoặc đình c
 |----|---------|--------|
 | `CURATED_RELEASE_MISSING` | Chưa có image phát hành đã rà soát được ghim bằng digest. | Có bản phát hành đã rà soát trong định nghĩa. |
 | `CURATED_TEMPLATE_HIDDEN` | Đã có bản phát hành nhưng việc triển khai đang bị giữ. | Gỡ việc giữ. |
+| `SUBSCRIPTION_LOGIN_DISABLED` | Plan chọn nhà cung cấp **gói ChatGPT** của Codex, mà TOSE được lưu trữ không bật. Xem [Đăng nhập nhà cung cấp](#provider-sign-in). | Chọn nhà cung cấp khóa API. |
 | `CURATED_INSTALL_UNAVAILABLE` | Bản phát hành không cài được từ registry: chưa xuất bản, được lưu với manifest khác, hoặc nhà phát hành bị đình chỉ. | TOSE xuất bản bản phát hành, hoặc gỡ đình chỉ. |
 | `VERSION_REVOKED` | Admin nền tảng đã thu hồi version này. | Một bản phát hành mới hơn đã rà soát (version sau). |
 | `COMMUNITY_TEMPLATES_DISABLED` (hoặc `SECURITY_GATE_UNAVAILABLE`, `IMAGE_SCANNER_NOT_CONFIGURED`, tùy cấu hình) | Cổng bảo mật từ chối workload registry với cấu hình này. | Nhà vận hành bật cổng và bộ quét image. |

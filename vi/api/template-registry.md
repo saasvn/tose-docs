@@ -140,6 +140,7 @@ Yêu cầu lập plan (gửi `curated_template` hoặc `definition_slug`, không
 - Plan có thêm mục `curated` được băm: nhà cung cấp, `auth: byok`, chế độ mạng cùng các đích, kiểu thiết lập và `human_control` (ai được thao tác và các route dừng, gỡ khóa, xóa). Agent không giữ thông tin xác thực API TOSE.
 - Phê duyệt plan có blocker trả `PLAN_BLOCKED` (`409`, hoặc `402` khi ví trống) và không tạo gì; ứng dụng MCP đã kết nối nhận `403 APPROVAL_REQUIRES_PERSON`.
 - Plan tuyển chọn ánh xạ bản phát hành tới một version registry đã xuất bản (`template.version_id`) và kiểm tra manifest đã lưu đúng bằng manifest của bản phát hành. Khi bản phát hành không cài được từ registry (chưa xuất bản, được lưu với manifest khác, hoặc nhà phát hành `tose-curated` bị đình chỉ), plan mang `CURATED_INSTALL_UNAVAILABLE`; version bị thu hồi mang `VERSION_REVOKED`.
+- Nhà cung cấp `chatgpt` của Codex (gói ChatGPT, `CODEX_PROVIDER=chatgpt`) không khả dụng trên TOSE được lưu trữ: danh sách đánh dấu `available: false` kèm lý do, và plan chọn nó mang `SUBSCRIPTION_LOGIN_DISABLED`. Hãy dùng `CODEX_PROVIDER=openai` với khóa API. Không API nào nhận token, cookie hay tệp đăng nhập của nhà cung cấp. Xem [Đăng nhập nhà cung cấp](/vi/guide/template-registry#provider-sign-in).
 - Cài plan đã phê duyệt là `POST /template-installations` thông thường kèm `Idempotency-Key`. Khóa nhà cung cấp chỉ nằm trong `secrets`, được lưu mã hóa và không bao giờ được trả lại. Nâng cấp tại chỗ một bản cài tuyển chọn trả `409 CURATED_UPGRADE_UNAVAILABLE`.
 
 ### Mở console

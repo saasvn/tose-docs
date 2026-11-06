@@ -126,13 +126,25 @@ A curated agent stays **hidden** and cannot be installed until TOSE publishes a 
 
 | Part | Rule |
 |------|------|
-| Provider key | **Bring your own key (BYOK) only.** One secret variable: `ANTHROPIC_API_KEY` (Claude Code), `OPENAI_API_KEY` (Codex) or `PI_API_KEY` (Pi, with `PI_PROVIDER` set to `anthropic`, `openai` or `google`). Signing in with a provider subscription is not offered. TOSE never bills model usage: the provider bills your key. |
+| Provider key | **Bring your own key (BYOK) only.** One secret variable: `ANTHROPIC_API_KEY` (Claude Code), `OPENAI_API_KEY` (Codex, with `CODEX_PROVIDER` set to `openai`) or `PI_API_KEY` (Pi, with `PI_PROVIDER` set to `anthropic`, `openai` or `google`). Codex also lists a **ChatGPT plan** choice, which is not available on hosted TOSE: see [Provider sign-in](#provider-sign-in). TOSE never bills model usage: the provider bills your key. |
 | Model | Optional `AGENT_MODEL`, the provider's model name. Empty uses the agent's default. |
 | Size | Whole cores and GiB from the allowed list: Claude Code and Codex 1, 2 or 4 cores and 2, 4 or 8 GiB; Pi 1 or 2 cores and 1, 2 or 4 GiB. |
 | Storage | A persistent disk with `/workspace` (5 GiB) and `/home/agent` (1 GiB), billed while the disk exists, also when stopped. |
 | Network | Egress `approved` (only the provider's API host, the default) or `internet`. `none` is not offered, because an agent cannot reach its provider without egress. Ingress is always `private`: the agent's console is never public. |
 | Setup | `image_entrypoint` only: the release image's own reviewed entrypoint. No build steps, startup commands, hooks, Kubernetes objects or `privileged`; unknown fields are refused. |
 | Release | Each release pins an OCI image by `sha256` digest and records the upstream version, the date and an https link to its evidence. The publisher (TOSE) is set once on the definition. It renders to a normal `tose.dev/v1` manifest checked by the rules above. |
+
+### Provider sign-in {#provider-sign-in}
+
+**On hosted TOSE, use your own API key.** That is the only provider path that works today, for every curated agent. For Codex, choose the **OpenAI API key** provider (`CODEX_PROVIDER=openai`) and enter an `OPENAI_API_KEY` at install, as described in [Deploy from the dashboard](#deploy-from-the-dashboard-once-a-release-is-available).
+
+The Codex provider list also shows a **ChatGPT plan** choice (`CODEX_PROVIDER=chatgpt`, tose-app [#513](https://github.com/saasvn/tose-app/pull/513)). It is **unavailable on hosted TOSE**, and you cannot use your ChatGPT subscription there:
+
+- OpenAI has not approved TOSE to run ChatGPT plan sign-in as a hosted service, so the feature ships switched off. TOSE's production servers refuse to start with it enabled.
+- The dashboard shows the choice as unavailable, `GET /curated-templates` marks the provider `available: false` with the reason, and a plan that picks it is blocked with `SUBSCRIPTION_LOGIN_DISABLED`. Nothing is created or billed.
+- The choice exists so that it can be tested outside production. It does not mean the sign-in is coming on a date; this page will change only when OpenAI approves hosted use and TOSE publishes a reviewed release.
+
+Whatever the provider, **never send TOSE a ChatGPT or other provider session, token, cookie, `auth.json` file or login code**, in a form, an API call, a support message or a variable. TOSE has no field that accepts one, and a provider key sent in a plan is refused. The only secret an agent takes is the API key you enter in the install step. If the sign-in is ever enabled for a workspace, you would sign in on the provider's own page, in your own browser, and the credential would stay inside the agent; TOSE would receive none of it.
 
 ### Why an agent stays hidden
 
@@ -182,6 +194,7 @@ Platform admins can revoke a release version or suspend the `tose-curated` publi
 |------|---------|-----------|
 | `CURATED_RELEASE_MISSING` | No reviewed release image pinned by digest. | A reviewed release in the definition. |
 | `CURATED_TEMPLATE_HIDDEN` | A release exists, but its rollout is held. | Removing the hold. |
+| `SUBSCRIPTION_LOGIN_DISABLED` | The plan chose the Codex **ChatGPT plan** provider, which hosted TOSE does not enable. See [Provider sign-in](#provider-sign-in). | Choosing the API key provider. |
 | `CURATED_INSTALL_UNAVAILABLE` | The release cannot be installed from the registry: not published yet, stored with another manifest, or the publisher is suspended. | TOSE publishing the release, or lifting the suspension. |
 | `VERSION_REVOKED` | A platform admin revoked this version. | A newer reviewed release (a later version). |
 | `COMMUNITY_TEMPLATES_DISABLED` (or `SECURITY_GATE_UNAVAILABLE`, `IMAGE_SCANNER_NOT_CONFIGURED`, depending on configuration) | The security gate refuses registry workloads in this configuration. | The operator enabling the gate and an image scanner. |

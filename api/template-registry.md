@@ -140,6 +140,7 @@ Plan request (send `curated_template` or `definition_slug`, not both):
 - The plan has an extra hashed `curated` section: provider, `auth: byok`, network mode with its destinations, setup kind and `human_control` (who may act and the stop, key removal and delete routes). The agent holds no TOSE API credential.
 - Approving a plan with blockers returns `PLAN_BLOCKED` (`409`, or `402` when the wallet is empty) and creates nothing; a connected MCP app gets `403 APPROVAL_REQUIRES_PERSON`.
 - A curated plan resolves its release to a published registry version (`template.version_id`) and checks that the stored manifest is exactly the release's. When the release cannot be installed from the registry (not published, stored with another manifest, or the `tose-curated` publisher suspended) the plan carries `CURATED_INSTALL_UNAVAILABLE`; a revoked version carries `VERSION_REVOKED`.
+- The Codex provider `chatgpt` (a ChatGPT plan, `CODEX_PROVIDER=chatgpt`) is unavailable on hosted TOSE: the list marks it `available: false` with the reason, and a plan that picks it carries `SUBSCRIPTION_LOGIN_DISABLED`. Use `CODEX_PROVIDER=openai` with an API key. No API accepts a provider token, cookie or login file. See [Provider sign-in](/guide/template-registry#provider-sign-in).
 - Installing an approved plan is the normal `POST /template-installations` with an `Idempotency-Key`. The provider key goes only in `secrets`, is stored encrypted and is never returned. Upgrading a curated installation in place is `409 CURATED_UPGRADE_UNAVAILABLE`.
 
 ### Open the console
