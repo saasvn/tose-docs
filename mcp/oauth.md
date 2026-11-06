@@ -20,7 +20,7 @@ A client can identify itself in either of two ways. TOSE accepts both:
 - **Client ID Metadata Document (CIMD), preferred.** The client uses an `https` URL as its `client_id`, and TOSE fetches the JSON document at that URL. The consent page names the domain that published it.
 - **Dynamic client registration.** Clients without a metadata document register with `POST /oauth/register`. The consent page shows these clients as unverified.
 
-Both flows use the authorization code grant with PKCE (S256 only), including for clients that sign an assertion. Dynamically registered clients authenticate with `none` or a client secret (`client_secret_post` or `client_secret_basic`).
+Both flows use the authorization code grant with PKCE (S256 only), including for clients that sign an assertion. Both accept `https` callbacks, `http` loopback callbacks and the two fixed desktop callbacks described under [Redirect URIs](#redirect-uris-on-loopback). Dynamically registered clients authenticate with `none` or a client secret (`client_secret_post` or `client_secret_basic`).
 
 ### Metadata clients and client assertions
 
@@ -31,9 +31,18 @@ If a metadata document declares `private_key_jwt` and also allows `none`, the cl
 - A token family issued through that public PKCE exchange can be refreshed or revoked without a signature.
 - A token family issued with a signed assertion always needs an assertion to refresh or revoke it.
 
+### Grant types in client metadata
+
+If a registration or metadata document lists `grant_types`, the list must include `authorization_code`. TOSE ignores other declarations: Claude, for example, also lists the JWT bearer grant, and that does not stop it from connecting. The token endpoint serves the authorization code grant with PKCE S256 and the refresh token grant, and nothing else.
+
 ### Redirect URIs on loopback
 
 A client that runs on your machine, such as a desktop app or a CLI, often listens on a random free port. For an `http` loopback callback, the port can differ from the registered one only when the registered URI has no port. The host, the encoded path and the query must still match exactly. A registered URI that names a port accepts only that port.
+
+Two desktop apps use a custom URL scheme instead of loopback. TOSE accepts exactly these two callbacks, compared in full, and no other custom scheme:
+
+- `cursor://anysphere.cursor-mcp/oauth/callback`
+- `antigravity://google.antigravity/callback`
 
 ## Scopes
 
