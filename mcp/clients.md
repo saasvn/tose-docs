@@ -16,7 +16,8 @@ These are checked by TOSE's automated tests against the server, not against a cl
 |---------|--------|
 | Streamable HTTP, stateless | Offered |
 | Protocol revisions 2026-07-28 and the 2025 and 2024-11-05 revisions | Offered |
-| Client ID Metadata Documents and dynamic registration | Offered |
+| Client ID Metadata Documents (`none` or `private_key_jwt` with a JWKS) and dynamic registration | Offered |
+| Loopback `http` callbacks that vary the port when the registered URI has none | Offered |
 | `insufficient_scope` step-up | Offered |
 | [Tasks](./tasks) for deploy and rollback | Offered, with no task status notifications |
 | [Apps](./apps) views | Offered |

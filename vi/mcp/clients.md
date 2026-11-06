@@ -16,7 +16,8 @@ Những mục này được kiểm thử tự động trên server, không phả
 |-----------|------------|
 | Streamable HTTP, stateless | Có |
 | Revision 2026-07-28 cùng các revision 2025 và 2024-11-05 | Có |
-| Client ID Metadata Document và đăng ký động | Có |
+| Client ID Metadata Document (`none` hoặc `private_key_jwt` kèm JWKS) và đăng ký động | Có |
+| Callback `http` loopback đổi cổng khi URI đã đăng ký không nêu cổng | Có |
 | Step-up `insufficient_scope` | Có |
 | [Tasks](./tasks) cho deploy và rollback | Có, nhưng không có thông báo trạng thái task |
 | View [Apps](./apps) | Có |
