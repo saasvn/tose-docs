@@ -56,10 +56,12 @@ Nếu workspace chưa được bật, API trả `SIDECARS_DISABLED` (exit code `
 Xóa mọi sidecar đã lưu (gửi danh sách rỗng tường minh). Luôn được phép, kể cả ở workspace tắt sidecar.
 
 ```bash
-tose sidecars rm [project]
+tose sidecars rm [project] [--yes]
 ```
 
-Giống `set`, việc xóa áp dụng từ lần triển khai tiếp theo.
+Lệnh yêu cầu xác nhận; khi không có terminal (hoặc dùng `--json`) hãy thêm `--yes`. Giống `set`, việc xóa áp dụng từ lần triển khai tiếp theo.
+
+Nếu phản hồi của server không chứa danh sách đã lưu (ví dụ server chưa hỗ trợ sidecar), `set` và `rm` báo lỗi `SIDECARS_NOT_CONFIRMED` thay vì báo thành công. [`tose deploy --dry-run`](/vi/commands/deploy) liệt kê sidecar đã lưu và tính giới hạn mỗi replica vào giá dự kiến.
 
 ## Liên quan
 

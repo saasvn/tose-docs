@@ -56,10 +56,12 @@ If the workspace is not enabled, the API answers `SIDECARS_DISABLED` (exit code 
 Remove every saved sidecar (sends an explicit empty list). Always allowed, including in workspaces where sidecars are disabled.
 
 ```bash
-tose sidecars rm [project]
+tose sidecars rm [project] [--yes]
 ```
 
-Like `set`, the removal applies at the next deployment.
+It asks for confirmation; without a terminal (or with `--json`) pass `--yes`. Like `set`, the removal applies at the next deployment.
+
+If the server's response does not contain the stored list (for example a server without sidecar support), `set` and `rm` fail with `SIDECARS_NOT_CONFIRMED` instead of reporting success. [`tose deploy --dry-run`](/commands/deploy) lists the saved sidecars and includes their per-replica limits in its cost estimate.
 
 ## Related
 
