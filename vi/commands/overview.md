@@ -11,6 +11,7 @@ TOSE CLI cung cấp các lệnh chính sau để quản lý triển khai của b
 | [`tose logs`](/vi/commands/logs) | Xem logs triển khai | Debug vấn đề, giám sát đầu ra ứng dụng |
 | [`tose down`](/vi/commands/down) | Dừng triển khai | Dừng các triển khai đang chạy |
 | [`tose disk`](/vi/commands/disk) | Quản lý ổ đĩa bền vững của dự án | Lưu file upload, SQLite, dữ liệu cần giữ qua các lần triển khai |
+| [`tose sidecars`](/vi/commands/sidecars) | Quản lý sidecar đã lưu của dự án (bật theo workspace, áp dụng ở lần triển khai tiếp theo) | Chạy agent phụ cạnh ứng dụng |
 | [`tose volumes`](/vi/commands/disk#tose-volumes-list) | Liệt kê và mở rộng mọi ổ đĩa trong workspace | Kiểm tra dung lượng và chi phí lưu trữ |
 | [`tose pricing`](/vi/commands/disk#tose-pricing) | Xem bảng giá compute và lưu trữ | Ước tính chi phí |
 | [`tose deployment rollback`](/vi/commands/deployment#tose-deployment-rollback) | Rollback về một triển khai trước (cần `--yes`) | Khôi phục sau bản phát hành lỗi |

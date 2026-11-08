@@ -47,6 +47,7 @@ export default defineConfig({
               { text: 'tose skills', link: '/commands/skills' },
               { text: 'tose desktop', link: '/commands/desktop' },
               { text: 'tose template', link: '/commands/template' },
+              { text: 'tose sidecars', link: '/commands/sidecars' },
               { text: 'tose disk / volumes / pricing', link: '/commands/disk' },
               { text: 'tose generate', link: '/commands/generate' }
             ]
@@ -156,6 +157,7 @@ export default defineConfig({
               { text: 'tose skills', link: '/vi/commands/skills' },
               { text: 'tose desktop', link: '/commands/desktop' },
               { text: 'tose template', link: '/vi/commands/template' },
+              { text: 'tose sidecars', link: '/vi/commands/sidecars' },
               { text: 'tose disk / volumes / pricing', link: '/vi/commands/disk' },
               { text: 'tose generate', link: '/vi/commands/generate' }
             ]

@@ -31,6 +31,7 @@ Logs are color-coded by severity for easy reading.
 | `--follow` | `-f` | Stream logs in real-time via WebSocket |
 | `--lines <number>` | `-n` | Number of lines to display (default: 100) |
 | `--deployment <id>` | `-d` | View logs for a specific deployment |
+| `--container <name>` | | Follow a [sidecar](/guide/project-sidecars) instead of the project's own container. Live logs only: cannot be combined with `--build` or `-d` |
 
 ## Usage
 
@@ -74,6 +75,16 @@ $ tose logs -f
 [2025-06-15 10:31:05] GET /api/health 200 2ms
 [2025-06-15 10:31:10] POST /api/login 201 45ms
 ```
+
+### Follow a Sidecar
+
+Without `--container` the project's own container is followed, as before. Pass a sidecar name to follow that sidecar:
+
+```bash
+tose logs -f --container otel-collector
+```
+
+The name is validated locally and URL-encoded; an unknown container is refused by the API with `400`. The key still travels in the `X-API-Key` header, never in the URL.
 
 ### View Build Logs for Specific Deployment
 
