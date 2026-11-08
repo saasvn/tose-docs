@@ -56,12 +56,13 @@ Every project response carries `sidecars` (`[]` when there are none). Saving cha
 | Status | Codes |
 |--------|-------|
 | `400` | `INVALID_SIDECAR`, `IMAGE_DIGEST_REQUIRED`, `INVALID_IMAGE_REFERENCE` |
-| `403` | `SIDECARS_DISABLED`. Also returned for a deploy, redeploy, image deploy or rollback of a project with sidecars in a workspace that may not use them |
-| `422` | `SIDECAR_ENV_MISSING`, `SIDECAR_DISK_MISSING`, `SIDECAR_IMAGE_FORBIDDEN`, `REGISTRY_CREDENTIAL_NOT_FOUND`, `REGISTRY_CREDENTIAL_HOST_MISMATCH`, `REGISTRY_ACCESS_DENIED`, `IMAGE_NOT_FOUND` |
+| `403` | `SIDECARS_DISABLED`. A redeploy of a project with saved sidecars in a workspace that may not use them also gets `403`; a direct rollback with live sidecars gets `409` with the same code; a deploy or image deploy is accepted and then fails, with the refusal in the deploy log |
+| `422` | `SIDECAR_ENV_MISSING` and `SIDECAR_DISK_MISSING` (`409` at redeploy), `SIDECAR_IMAGE_FORBIDDEN`, `REGISTRY_CREDENTIAL_NOT_FOUND`, `REGISTRY_CREDENTIAL_HOST_MISMATCH`, `REGISTRY_ACCESS_DENIED`, `IMAGE_NOT_FOUND` |
 | `502` | `REGISTRY_UNAVAILABLE` |
+| `500` | `REGISTRY_CREDENTIAL_UNREADABLE` |
 | `503` | `ENCRYPTION_UNAVAILABLE` |
 
-`GET .../logs` and `GET .../live-logs` accept `container=<sidecar name>`, and `GET .../status` lists every container of each pod and reports the per-replica total in `pod_total`. A project export of a project with sidecars returns `409 SIDECARS_NOT_PORTABLE`. The schema is `ProjectSidecar` in the [OpenAPI spec](https://api.tose.sh/api/openapi.yaml).
+`GET .../logs` and `GET .../live-logs` accept `container=<sidecar name>`, and `GET .../status` lists every container of each pod and reports the per-replica total of the saved configuration in `pod_total`. A project export of a project with sidecars returns `409 SIDECARS_NOT_PORTABLE`. The schema is `ProjectSidecar` in the [OpenAPI spec](https://api.tose.sh/api/openapi.yaml).
 
 ## Restart a project
 

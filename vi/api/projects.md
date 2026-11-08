@@ -47,7 +47,7 @@ Thay đổi có hiệu lực ở lần deploy tiếp theo. Dự án có [ổ đ�
 | Yêu cầu | Kết quả |
 |---------|--------|
 | Tạo, bỏ trống `sidecars` | Không có sidecar |
-| Cập nhật, bỏ trống hoặc `null` | Giữ nguyên danh sách đã lưu |
+| Cập nhật, bỏ trống `sidecars` hoặc `null` | Giữ nguyên danh sách đã lưu |
 | Cập nhật với `"sidecars": []` | Xoá toàn bộ sidecar. Luôn được phép, kể cả khi sidecar bị tắt |
 | Cập nhật với danh sách không rỗng | Thay thế danh sách đã lưu. Cần bật sidecar cho workspace |
 
@@ -56,12 +56,13 @@ Mọi phản hồi dự án đều có `sidecars` (`[]` khi không có). Lưu th
 | Status | Mã |
 |--------|-------|
 | `400` | `INVALID_SIDECAR`, `IMAGE_DIGEST_REQUIRED`, `INVALID_IMAGE_REFERENCE` |
-| `403` | `SIDECARS_DISABLED`. Cũng được trả khi deploy, redeploy, deploy image hoặc rollback dự án có sidecar trong workspace không được phép |
-| `422` | `SIDECAR_ENV_MISSING`, `SIDECAR_DISK_MISSING`, `SIDECAR_IMAGE_FORBIDDEN`, `REGISTRY_CREDENTIAL_NOT_FOUND`, `REGISTRY_CREDENTIAL_HOST_MISMATCH`, `REGISTRY_ACCESS_DENIED`, `IMAGE_NOT_FOUND` |
+| `403` | `SIDECARS_DISABLED`. Redeploy dự án có sidecar đã lưu trong workspace không được phép cũng nhận `403`; rollback trực tiếp khi còn sidecar đang chạy nhận `409` cùng mã; deploy và deploy image được nhận rồi mới thất bại, lý do nằm trong log deploy |
+| `422` | `SIDECAR_ENV_MISSING` và `SIDECAR_DISK_MISSING` (`409` khi redeploy), `SIDECAR_IMAGE_FORBIDDEN`, `REGISTRY_CREDENTIAL_NOT_FOUND`, `REGISTRY_CREDENTIAL_HOST_MISMATCH`, `REGISTRY_ACCESS_DENIED`, `IMAGE_NOT_FOUND` |
 | `502` | `REGISTRY_UNAVAILABLE` |
+| `500` | `REGISTRY_CREDENTIAL_UNREADABLE` |
 | `503` | `ENCRYPTION_UNAVAILABLE` |
 
-`GET .../logs` và `GET .../live-logs` nhận `container=<tên sidecar>`, còn `GET .../status` liệt kê mọi container của từng pod và trả tổng mỗi replica trong `pod_total`. Xuất dự án có sidecar trả `409 SIDECARS_NOT_PORTABLE`. Schema là `ProjectSidecar` trong [spec OpenAPI](https://api.tose.sh/api/openapi.yaml).
+`GET .../logs` và `GET .../live-logs` nhận `container=<tên sidecar>`, còn `GET .../status` liệt kê mọi container của từng pod và trả tổng mỗi replica của cấu hình đã lưu trong `pod_total`. Xuất dự án có sidecar trả `409 SIDECARS_NOT_PORTABLE`. Schema là `ProjectSidecar` trong [spec OpenAPI](https://api.tose.sh/api/openapi.yaml).
 
 ## Restart dự án {#restart}
 
