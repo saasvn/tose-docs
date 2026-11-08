@@ -17,6 +17,8 @@ Compute is billed per hour for the CPU and RAM allocated to running workloads. T
 | $100 or more | $0.014 | $0.007 |
 | $200 or more | $0.012 | $0.006 |
 
+A project with [sidecars](/guide/project-sidecars) is billed for its own CPU and RAM plus the applied limits of its sidecars, per replica, at the same rates.
+
 Compute is billed **only while the workload is running**. Stopping a project (`tose down`), sleeping, or suspension stops compute billing.
 
 ## Storage
@@ -119,3 +121,4 @@ The same action is available as `POST /api/workspaces/{slug}/templates/{template
 - [Cloud Harness](/guide/cloud-harness)
 - [`tose pricing` / `tose volumes`](/commands/disk)
 - [Disks, Volumes & Pricing API](/api/disks)
+- [Project Sidecars](/guide/project-sidecars)

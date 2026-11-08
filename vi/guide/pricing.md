@@ -17,6 +17,8 @@ Compute được tính theo giờ cho CPU và RAM cấp cho workload đang chạ
 | Từ $100 | $0.014 | $0.007 |
 | Từ $200 | $0.012 | $0.006 |
 
+Dự án có [sidecar](/vi/guide/project-sidecars) được tính phí theo CPU và RAM của chính nó cộng với giới hạn đã áp dụng của các sidecar, cho mỗi replica, cùng mức giá.
+
 Compute **chỉ tính phí khi workload đang chạy**. Dừng dự án (`tose down`), ngủ hoặc bị tạm ngưng sẽ dừng tính phí compute.
 
 ## Lưu trữ {#storage}
@@ -121,3 +123,4 @@ Thao tác tương tự có ở `POST /api/workspaces/{slug}/templates/{template_
 - [Cloud Harness](/vi/guide/cloud-harness)
 - [`tose pricing` / `tose volumes`](/vi/commands/disk)
 - [API ổ đĩa, volume & bảng giá](/vi/api/disks)
+- [Sidecar của dự án](/vi/guide/project-sidecars)
