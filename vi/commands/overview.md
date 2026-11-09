@@ -13,6 +13,7 @@ TOSE CLI cung cấp các lệnh chính sau để quản lý triển khai của b
 | [`tose disk`](/vi/commands/disk) | Quản lý ổ đĩa bền vững của dự án | Lưu file upload, SQLite, dữ liệu cần giữ qua các lần triển khai |
 | [`tose volumes`](/vi/commands/disk#tose-volumes-list) | Liệt kê và mở rộng mọi ổ đĩa trong workspace | Kiểm tra dung lượng và chi phí lưu trữ |
 | [`tose pricing`](/vi/commands/disk#tose-pricing) | Xem bảng giá compute và lưu trữ | Ước tính chi phí |
+| [`tose autoscaling budget`](/vi/commands/autoscaling) | Xem và đề xuất trần chi phí và floor của workspace hoặc project; chỉ có khi nhà vận hành nền tảng đã bật ngân sách | Giới hạn chi tiêu compute; một người duyệt kế hoạch trên dashboard |
 | [`tose deployment rollback`](/vi/commands/deployment#tose-deployment-rollback) | Rollback về một triển khai trước (cần `--yes`) | Khôi phục sau bản phát hành lỗi |
 | [`tose db create`](/vi/commands/db#tose-db-create) | Tạo database (`--type`, `--server`) | Postgres, pgvector, MySQL, Redis, MongoDB |
 | [`tose skills`](/vi/commands/skills) | Liệt kê và cài skill cho agent | Dạy agent dùng TOSE an toàn |
@@ -25,7 +26,7 @@ Tất cả lệnh TOSE CLI theo mẫu này:
 tose <lệnh> [tùy chọn]
 ```
 
-### Tùy chọn toàn cục
+### Tùy chọn toàn cục {#global-options}
 
 Các tùy chọn này hoạt động với tất cả lệnh:
 

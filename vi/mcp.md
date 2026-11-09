@@ -27,6 +27,30 @@ Muốn kết nối workspace khác thì thêm connector lần nữa và chọn w
 | `deploy_project` | Build và deploy commit đầu của branch đã kết nối, đúng commit hiển thị trong kế hoạch. | **Có**, cần phê duyệt |
 | `rollback_deployment` | Đưa image của một deployment cũ lên chạy lại. | **Có**, cần phê duyệt |
 
+### Tool ngân sách autoscaling
+
+Khi nền tảng bật [ngân sách autoscaling](/vi/guide/autoscaling-budgets), có thêm hai tool:
+
+| Tool | Chức năng | Có thay đổi gì không? |
+|------|-----------|-----------------------|
+| `autoscaling_budget_get` | Đọc các trần, mức sử dụng và quỹ dự phòng floor của workspace, hoặc của một project. Có thể truyền `project_slug`; không có thì trả ngân sách workspace. Cần `projects:read`. | Không |
+| `autoscaling_budget_plan` | Đề xuất trần hoặc floor mới. Nó trả về một kế hoạch và liên kết duyệt; ngân sách không đổi cho đến khi owner hoặc admin duyệt kế hoạch trên dashboard. Cần `projects:write` và vai trò owner hoặc admin. | Không, cho đến khi có người duyệt |
+
+`autoscaling_budget_plan` nhận các tham số sau:
+
+| Tham số | Ý nghĩa |
+|---------|---------|
+| `project_slug` | Tùy chọn. Một project của workspace đã kết nối; bỏ qua để dùng ngân sách workspace. |
+| `caps` | Bắt buộc. `{"hourly_nano_usd": n hoặc null, "monthly_nano_usd": n hoặc null}`. Cần đủ cả hai key; `null` nghĩa là không có trần. |
+| `floor` | Chỉ với project. `{"replicas": 1-100, "cpu": "0.25"-"64", "ram": "0.5"-"256"}`. Bỏ qua để giữ floor hiện có của project. |
+| `remove_floor` | Chỉ với project. `true` đề xuất gỡ floor. Không gửi cùng `floor`. |
+
+Kế hoạch project không có `floor` giữ floor của revision ngân sách mà kế hoạch được tạo dựa trên, nên floor mà một người đã đổi trong lúc đó không bị hoàn lại. Floor trên ngân sách workspace là `INVALID_ARGUMENT`.
+
+Agent không bao giờ tự duyệt được kế hoạch ngân sách của mình: không có tool MCP nào duyệt, và việc duyệt cần phiên đăng nhập của một người, trên thực tế là dashboard. Kế hoạch hết hạn sau 30 phút. Đề xuất lại cùng một thay đổi sẽ trả lại cùng kế hoạch đang chờ.
+
+Khi bật ngân sách, `deploy_project` từ chối lần khởi chạy làm vượt trần (`BUDGET_CAP`) hoặc làm quỹ dự phòng floor thiếu tiền (`INSUFFICIENT_BALANCE`). Nếu không kiểm tra được ngân sách, không có gì được khởi chạy và tool trả `UNAVAILABLE` có thể thử lại; hãy thử lại sau ít phút. Xem [Lỗi](/vi/api/errors#mcp-budget-codes).
+
 Connector không có tool gọi API tùy ý. Nó không đọc hay sửa được biến môi trường, domain, database, thanh toán hay thành viên.
 
 ### Cơ chế phê duyệt

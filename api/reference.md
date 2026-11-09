@@ -60,8 +60,9 @@ message text. See [Errors](/api/errors) for the full list, including the codes o
 ## Platform features
 
 `GET /api/public/features` (tag `Platform`) needs no authentication and holds no account or workspace
-data. It returns `{"ci": bool, "desktops": bool}`, which optional sections this platform serves.
-Responses are cached for 60 seconds. The dashboard uses it to hide **CI** and **Cloud desktops**.
+data. It returns `{"ci": bool, "desktops": bool, "autoscaling_budget": bool}`, which optional sections this platform serves.
+Responses are cached for 60 seconds. The dashboard uses it to hide **CI**, **Cloud desktops** and the
+**Autoscaling** entry (see [Autoscaling budgets](/guide/autoscaling-budgets)).
 
 ## Request IDs
 
@@ -130,4 +131,5 @@ if (res.status === 503) {
 - [Errors](/api/errors)
 - [Cloud Desktops API](/api/desktops)
 - [Disks, Volumes & Pricing API](/api/disks)
+- [Autoscaling budget API](/api/autoscaling-budget)
 - [Self-hosting](/guide/self-hosting)
