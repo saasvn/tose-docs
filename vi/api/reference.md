@@ -61,7 +61,7 @@ dung `message`. Xem [Mã lỗi](/vi/api/errors) để có danh sách đầy đ�
 
 `GET /api/public/features` (tag `Platform`) không cần xác thực và không chứa dữ liệu tài khoản hay
 workspace. Endpoint trả về `{"ci": bool, "desktops": bool}`, cho biết nền tảng đang phục vụ phần tùy
-chọn nào. Response được cache 60 giây. Dashboard dùng nó để ẩn **CI** và **Cloud desktops**.
+chọn nào. Response được cache 60 giây. Dashboard dùng nó để ẩn **CI** và **Desktop đám mây**.
 
 ## Request ID
 

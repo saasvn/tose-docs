@@ -245,7 +245,7 @@ https://my-awesome-app.tose.app
 ## Làm quen với dashboard
 
 Thanh bên của workspace nhóm các trang theo việc bạn làm. Địa chỉ trang (`/w/<slug>/...`) không
-đổi. Ở đầu thanh bên, tên workspace là liên kết tới **All workspaces** (tất cả workspace).
+đổi. Ở đầu thanh bên, tên workspace là liên kết tới **Tất cả workspace**.
 
 | Nhóm | Trang |
 |------|-------|
@@ -255,7 +255,7 @@ Thanh bên của workspace nhóm các trang theo việc bạn làm. Địa chỉ
 | **Giám sát** | **Thông báo**, **Nhật ký** |
 | **Workspace** | **Thành viên**, **Ví & thanh toán**, **Giới thiệu**, **Cài đặt** |
 
-**Ứng dụng đã cài** trước đây là **Templates**, **Ví & thanh toán** là **Thanh toán**, và **Desktop
+**Ứng dụng đã cài** trước đây là **Mẫu**, **Ví & thanh toán** là **Thanh toán**, và **Desktop
 đám mây** là **Desktop**. Để cài một agent được tuyển chọn như Codex hoặc Claude Code, hãy mở
 **Kho mẫu**.
 
