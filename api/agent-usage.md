@@ -47,9 +47,11 @@ All money fields are integer **nano-USD** (1 USD = 1,000,000,000). Summaries als
 
 | Field | Meaning |
 |-------|---------|
-| `charged_nano_usd` | Charged to the wallet by TOSE. Negative on a correction row. |
+| `charged_nano_usd` | Charged to the wallet by TOSE (summary totals). |
 | `forgiven_nano_usd` | Compute that a budget or an empty wallet could not cover. Not charged. |
 | `provider_telemetry_nano_usd` | Model spend billed by the provider for BYOK keys. Never charged by TOSE. |
+| `cost_nano_usd` | On a ledger row: what TOSE charged for it. Negative for a correction. |
+| `provider_cost_nano_usd` | On a ledger row: the provider's own cost for a BYOK call. |
 
 See [what is free, forgiven and owed](/guide/agent-runtime-pricing#free-forgiven-owed).
 

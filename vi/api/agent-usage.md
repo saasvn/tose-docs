@@ -46,9 +46,11 @@ chuỗi USD thập phân với chín chữ số sau dấu phẩy.
 
 | Trường | Ý nghĩa |
 |--------|---------|
-| `charged_nano_usd` | TOSE đã trừ vào ví. Âm ở dòng điều chỉnh. |
+| `charged_nano_usd` | TOSE đã trừ vào ví (tổng hợp). |
 | `forgiven_nano_usd` | Compute mà hạn mức hoặc ví hết tiền không trang trải được. Không bị thu. |
 | `provider_telemetry_nano_usd` | Chi phí model do nhà cung cấp thu với khóa BYOK. TOSE không bao giờ thu. |
+| `cost_nano_usd` | Trên dòng sổ cái: số TOSE đã tính. Âm với dòng điều chỉnh. |
+| `provider_cost_nano_usd` | Trên dòng sổ cái: chi phí của chính nhà cung cấp cho lời gọi BYOK. |
 
 Xem [miễn phí, được miễn và phải trả](/vi/guide/agent-runtime-pricing#free-forgiven-owed).
 

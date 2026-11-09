@@ -19,7 +19,8 @@ CPU and RAM are metered for the time a sandbox is **Ready**:
 - The interval starts when TOSE has **confirmed the sandbox Ready** and ends when it has **confirmed
   the sandbox terminated**. A pod that fails before it is Ready is not billed.
 - The price is `CPU cores × hours × CPU rate + GiB of RAM × hours × RAM rate`, from the CPU and RAM
-  the sandbox actually uses.
+  **requested** for the sandbox pod. A Ready sandbox is charged for its full request, whether or not
+  it uses all of it.
 - Each amount is rounded half-up to a whole nano-USD. When an interval is split between a run and
   idle time, the parts add up to exactly the same total, so the split never adds a charge.
 - **The price is frozen when an interval opens.** A falling balance never raises the price of an
@@ -37,8 +38,6 @@ Agent CPU and RAM use the base rate and **get no wallet-balance discount**. A wo
 core and 2 GiB of RAM for one hour costs $0.02 + 2 × $0.01 = **$0.04**. You can price a workload
 before you run it with the [pricing preview](/api/agent-usage#pricing-preview).
 
-A workspace on a `dedicated` node pool pays for the whole pool, busy or idle, because nobody else can
-use its spare capacity.
 
 ## What is free, forgiven and owed {#free-forgiven-owed}
 
@@ -84,7 +83,7 @@ How a model call is billed depends on whose API key the agent uses:
 |---|---|---|
 | Who bills the model | Your model provider | TOSE |
 | TOSE charges for tokens | **No.** Telemetry only | **Yes**, by token |
-| In the ledger | `provider_telemetry_nano_usd`, with a zero TOSE charge | `charged_nano_usd` |
+| In a ledger row | `provider_cost_nano_usd`, with a zero `cost_nano_usd` | `cost_nano_usd` |
 | TOSE still charges | The infrastructure (CPU, RAM, storage) | Infrastructure and tokens |
 
 - With **BYOK**, TOSE charges only for infrastructure. Token counts and the provider's cost are

@@ -18,7 +18,8 @@ CPU và RAM được đo trong thời gian sandbox ở trạng thái **Ready**:
 
 - Khoảng thời gian bắt đầu khi TOSE **xác nhận sandbox Ready** và kết thúc khi TOSE **xác nhận sandbox
   đã dừng**. Pod lỗi trước khi Ready thì không bị tính phí.
-- Giá là `số core × giờ × giá CPU + số GiB RAM × giờ × giá RAM`, theo CPU và RAM sandbox thực sự dùng.
+- Giá là `số core × giờ × giá CPU + số GiB RAM × giờ × giá RAM`, theo CPU và RAM đã **yêu cầu** cho pod sandbox. Sandbox Ready bị tính theo toàn bộ phần yêu cầu,
+  dù có dùng hết hay không.
 - Mỗi khoản được làm tròn nửa lên đến nano-USD nguyên. Khi một khoảng được chia giữa lượt chạy và thời
   gian rảnh, tổng các phần bằng đúng tổng ban đầu nên việc chia không phát sinh thêm phí.
 - **Giá được chốt khi khoảng thời gian mở ra.** Số dư giảm giữa chừng không làm tăng giá của khoảng đang
@@ -36,8 +37,6 @@ CPU và RAM của agent dùng mức giá cơ bản và **không được giảm 
 và 2 GiB RAM trong một giờ tốn $0.02 + 2 × $0.01 = **$0.04**. Bạn có thể tính trước giá của một
 workload bằng [xem trước giá](/vi/api/agent-usage#pricing-preview).
 
-Workspace dùng node pool `dedicated` trả tiền cho cả pool, dù bận hay rảnh, vì không ai khác dùng được
-phần dung lượng trống của pool đó.
 
 ## Miễn phí, được miễn và phải trả {#free-forgiven-owed}
 
@@ -82,7 +81,7 @@ Cách tính phí một lời gọi model phụ thuộc agent dùng khóa API c�
 |---|---|---|
 | Ai thu tiền model | Nhà cung cấp model của bạn | TOSE |
 | TOSE tính phí token | **Không.** Chỉ là telemetry | **Có**, theo token |
-| Trong sổ cái | `provider_telemetry_nano_usd`, phí TOSE bằng 0 | `charged_nano_usd` |
+| Trong dòng sổ cái | `provider_cost_nano_usd`, với `cost_nano_usd` bằng 0 | `cost_nano_usd` |
 | TOSE vẫn tính | Hạ tầng (CPU, RAM, lưu trữ) | Hạ tầng và token |
 
 - Với **BYOK**, TOSE chỉ tính hạ tầng. Số token và chi phí của nhà cung cấp được ghi lại để bạn xem cạnh
