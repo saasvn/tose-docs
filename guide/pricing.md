@@ -117,5 +117,6 @@ The same action is available as `POST /api/workspaces/{slug}/templates/{template
 
 - [Persistent Disks](/guide/persistent-disks)
 - [Cloud Harness](/guide/cloud-harness)
+- [Agent Runtime pricing and budgets](/guide/agent-runtime-pricing)
 - [`tose pricing` / `tose volumes`](/commands/disk)
 - [Disks, Volumes & Pricing API](/api/disks)
