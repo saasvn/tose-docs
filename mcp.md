@@ -47,7 +47,7 @@ When the platform has [autoscaling budgets](/guide/autoscaling-budgets) turned o
 
 A project plan without `floor` keeps the floor of the budget revision the plan is made against, so a floor a person changed in the meantime is not reverted. A floor on the workspace budget is `INVALID_ARGUMENT`.
 
-An agent can never approve its own budget plan. Approval is dashboard-only, and a plan expires after 30 minutes. Proposing the same change again returns the same pending plan.
+An agent can never approve its own budget plan: no MCP tool approves, and approval needs a person's signed-in session, in practice the dashboard. A plan expires after 30 minutes. Proposing the same change again returns the same pending plan.
 
 With budgets on, `deploy_project` refuses a start that would break a cap (`BUDGET_CAP`) or the floor reserve (`INSUFFICIENT_BALANCE`). If the budget cannot be checked, nothing is started and the tool returns the retryable `UNAVAILABLE`; try again shortly. See [Errors](/api/errors#mcp-budget-codes).
 

@@ -3,7 +3,7 @@
 Ngân sách autoscaling giới hạn số tiền compute mà một workspace hoặc một project được phép cấu hình để chi. Nó đặt trần chi phí theo giờ và theo tháng, và có thể giữ một **floor**: mức phân bổ tối thiểu luôn được đảm bảo đủ tiền trong 72 giờ. Mọi thay đổi làm mức phân bổ vượt trần đều bị từ chối trước khi xảy ra.
 
 ::: info Nhà vận hành nền tảng bật tính năng này
-Ngân sách mặc định tắt. Khi tính năng tắt, các route ngân sách trả `404`, các tool ngân sách không xuất hiện, và không có lần deploy hay scale nào bị từ chối vì lý do ngân sách. Trên nền tảng có bật, `GET /api/public/features` trả `autoscaling_budget: true` (xem [Tính năng nền tảng](/vi/api/reference#platform-features)).
+Ngân sách mặc định tắt: nền tảng chỉ chạy tính năng này khi có `AUTOSCALING_BUDGET_ENABLED=true`. Khi tính năng tắt, các route ngân sách trả `404`, các tool ngân sách không xuất hiện, và không có lần deploy hay scale nào bị từ chối vì lý do ngân sách. Trên nền tảng có bật, `GET /api/public/features` trả `autoscaling_budget: true` (xem [Tính năng nền tảng](/vi/api/reference#platform-features)).
 :::
 
 ## Ngân sách tính những gì
@@ -19,11 +19,13 @@ Có hai phạm vi:
 
 Ngân sách trống (không có trần, không có floor) không thay đổi gì: không có gì bị từ chối và không có kiểm tra bổ sung nào.
 
+Ngân sách không thay đổi số tiền bạn bị tính. Việc tính tiền vẫn như trước; ngân sách chỉ từ chối việc tăng.
+
 ## Trần chi phí
 
 Trần là một số tiền USD theo giờ hoặc theo tháng. Có thể đặt một trần hoặc cả hai, và `none` xóa một trần.
 
-- **Trần theo giờ:** chi phí cấu hình theo giờ của các project đang chạy hoặc đang khởi động phải nhỏ hơn hoặc bằng trần. Số replica, CPU và RAM đều được tính.
+- **Trần theo giờ:** chi phí cấu hình theo giờ của các project đang chạy hoặc đang khởi động phải nhỏ hơn hoặc bằng trần. Số replica, CPU, RAM và sidecar đều được tính.
 - **Trần theo tháng:** chi phí đã tính trong tháng UTC này, cộng chi phí theo giờ hiện tại cho phần còn lại của tháng, phải nhỏ hơn hoặc bằng trần.
 
 Trang ngân sách và `tose autoscaling budget get` hiển thị các con số đằng sau một trần: chi phí theo giờ hiện tại, lũy kế tháng và dự báo cả tháng.
@@ -39,7 +41,7 @@ Việc kiểm tra chạy khi bạn cố **tăng** mức phân bổ. Các hành �
 
 Lỗi nêu trần nào sẽ bị vượt (`workspace_hourly`, `workspace_monthly`, `deployment_hourly` hoặc `deployment_monthly`), giới hạn của nó và mức chi phí mà thay đổi sẽ đạt tới. Xem [`BUDGET_CAP`](/vi/api/errors#BUDGET_CAP).
 
-Hai việc không bao giờ bị từ chối: giảm mức phân bổ, và khôi phục project về trạng thái trước khi bị dừng. Khôi phục trạng thái cũ sau khi nạp tiền không phải là một lần tăng mới.
+Hai việc không bao giờ bị từ chối: giảm mức phân bổ, và việc tự động khôi phục sau khi nạp tiền vào ví, đưa project về trạng thái trước khi bị tạm ngưng. Khôi phục trạng thái cũ không phải là một lần tăng mới.
 
 ::: tip Nhiều lần khởi động cùng lúc
 Hai request mà mỗi cái vừa với trần nhưng cộng lại thì không sẽ được xử lý lần lượt: cái thứ hai bị từ chối. Việc kiểm tra thiên về an toàn. Project có deployment chưa kết thúc được tính theo chi phí đã cấu hình, nên có thể tạm thời bị tính hai lần và từ chối một thay đổi lẽ ra vừa với trần.
@@ -49,7 +51,7 @@ Hai request mà mỗi cái vừa với trần nhưng cộng lại thì không s�
 
 **Floor** của project là mức phân bổ nhỏ nhất bạn muốn luôn giữ chạy: một số replica, mỗi replica có CPU và RAM nhất định. **Quỹ dự phòng** của workspace là chi phí của mọi floor trong 72 giờ.
 
-Một lần tăng bị từ chối với `402 INSUFFICIENT_BALANCE` và `details.reason = "floor_reserve"` khi số dư ví chưa được dự phòng không đủ trả các floor trong 72 giờ cộng thêm một giờ của mức phân bổ mới. Khi các floor đang thiếu tiền, mọi lần tăng đều bị từ chối cho đến khi ví được nạp thêm.
+Một lần tăng bị từ chối với `402 INSUFFICIENT_BALANCE` và `details.reason = "floor_reserve"` khi số dư ví chưa được dự phòng không đủ trả các floor trong 72 giờ cộng thêm một giờ chi phí theo giờ của cả workspace sau thay đổi. Khi các floor đang thiếu tiền, mọi lần tăng đều bị từ chối cho đến khi ví được nạp thêm.
 
 Ngân sách cho biết quỹ dự phòng đã đủ tiền chưa và floor được phủ bao nhiêu giờ, tối đa 72. Nó không bao giờ hiển thị số dư ví. Chi phí theo giờ của floor không được cao hơn trần theo giờ của project.
 
@@ -63,13 +65,14 @@ Ngân sách chỉ **từ chối việc tăng**. Nó không bao giờ tự dừng
 |-----------|----|
 | Xem ngân sách | Mọi thành viên workspace |
 | Đổi ngân sách | Owner hoặc admin của workspace |
-| Duyệt hoặc từ chối thay đổi của agent | Owner hoặc admin của workspace, đã đăng nhập dashboard |
+| Duyệt hoặc từ chối thay đổi của agent | Owner hoặc admin của workspace, có phiên đăng nhập |
 
 Cách một thay đổi có hiệu lực phụ thuộc vào credential:
 
-- **Phiên đăng nhập** (dashboard, hoặc `tose` đăng nhập bằng tài khoản của bạn): thay đổi được áp dụng ngay.
-- **API key của workspace, hoặc agent qua MCP:** thay đổi **không** được áp dụng. API trả `202` kèm một **kế hoạch** (thay đổi gì, từ giá trị nào sang giá trị nào) và liên kết tới dashboard, rồi kế hoạch chờ một người.
-- Owner hoặc admin đã đăng nhập mở liên kết, kiểm tra kế hoạch, rồi duyệt hoặc từ chối. Việc duyệt chỉ làm được trên dashboard; API key hoặc OAuth token cố duyệt sẽ nhận `403 HUMAN_APPROVAL_REQUIRED`.
+- **Phiên đăng nhập** (dashboard, hoặc request gửi token phiên của bạn): thay đổi được áp dụng ngay.
+- **API key của workspace (kể cả CLI `tose`, vốn luôn dùng API key), hoặc agent qua MCP:** thay đổi **không** được áp dụng. API trả `202` kèm một **kế hoạch** (thay đổi gì, từ giá trị nào sang giá trị nào) và liên kết tới dashboard, rồi kế hoạch chờ một người.
+- Owner hoặc admin đã đăng nhập mở liên kết, kiểm tra kế hoạch, rồi duyệt hoặc từ chối. Việc duyệt cần phiên đăng nhập của một người, trên thực tế là trang dashboard tại liên kết đó. API key cố duyệt sẽ nhận `403 HUMAN_APPROVAL_REQUIRED`, và không có tool MCP nào duyệt được.
+- Bất cứ thứ gì giữ token phiên của bạn (token mà `/api/auth/login` trả về) hoặc mật khẩu của bạn đều có thể duyệt thay bạn. Hãy đưa cho agent một API key hoặc MCP connector, không bao giờ đưa thông tin đăng nhập của bạn.
 - Kế hoạch có hiệu lực 30 phút. Nếu ngân sách đã thay đổi sau khi kế hoạch được tạo, việc duyệt thất bại với `PLAN_STALE` và agent phải tạo kế hoạch mới.
 - Dashboard gửi kèm hash của kế hoạch mà người dùng đã xem khi quyết định, nên kế hoạch đã đổi sau khi xem sẽ không bị duyệt nhầm (`PLAN_HASH_MISMATCH`). Nếu project đã lớn hơn kể từ khi tạo kế hoạch và floor của nó giờ có chi phí cao hơn trần theo giờ của kế hoạch, việc duyệt thất bại với `INVALID_ARGUMENT` (`422`).
 

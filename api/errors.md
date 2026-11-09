@@ -148,7 +148,7 @@ Clients that compared `code` with `payment_required`, `unavailable`, `invalid_re
 When [autoscaling budgets](/guide/autoscaling-budgets) are on, the same code also means an increase would break the 72-hour floor reserve. The response then carries `details`:
 
 ```json
-{ "reason": "floor_reserve", "reserve_target_nano_usd": 1440000000, "coverage_hours": 40 }
+{ "project_slug": "api", "reason": "floor_reserve", "reserve_target_nano_usd": 1440000000, "coverage_hours": 40 }
 ```
 
 Top up the wallet, or lower the project floors, then repeat the request.
@@ -175,7 +175,7 @@ Top up the wallet, or lower the project floors, then repeat the request.
 
 ### `NOT_FOUND` {#NOT_FOUND}
 
-`404`. Rollback only: the deployment id does not exist in this project. A project or workspace you cannot see uses the snake_case `not_found` instead.
+`404`. Rollback only: the deployment id does not exist in this project. A project or workspace you cannot see uses the snake_case `not_found` instead. The [autoscaling budget routes](/api/autoscaling-budget) also return `NOT_FOUND` for a project or plan that does not exist in the workspace.
 
 ### `UPSTREAM_ERROR` {#UPSTREAM_ERROR}
 
@@ -214,11 +214,11 @@ These come from the [autoscaling budget](/guide/autoscaling-budgets) routes and 
 
 ### `HUMAN_APPROVAL_REQUIRED` {#HUMAN_APPROVAL_REQUIRED}
 
-`403`. Approving or rejecting a budget plan was tried with an API key or an OAuth token. Only a signed-in person can approve, in the dashboard. Give the `approval_url` of the plan to an owner or admin.
+`403`. Approving or rejecting a budget plan was tried with an API key. Approval needs a person's signed-in session, in practice the dashboard. Give the `approval_url` of the plan to an owner or admin. Anything holding a person's session token or password can approve as them, so give agents an API key or the MCP connector, never a login.
 
 ### `CROSS_SITE_REQUEST` {#CROSS_SITE_REQUEST}
 
-`403`. A budget `PUT`, approve or reject was authenticated with the session cookie from a browser origin other than the dashboard, or from a page marked cross-site. Nothing changed. Make the change from the dashboard itself. API keys and `Authorization` headers are not checked.
+`403`. A budget `PUT`, approve or reject was authenticated with the session cookie from a browser origin other than the dashboard or the API itself, or from a page marked cross-site. Nothing changed. Make the change from the dashboard itself. API keys and `Authorization` headers are not checked.
 
 ### `UNSUPPORTED_MEDIA_TYPE` {#UNSUPPORTED_MEDIA_TYPE}
 

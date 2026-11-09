@@ -148,7 +148,7 @@ Client từng so sánh `code` với `payment_required`, `unavailable`, `invalid_
 Khi [ngân sách autoscaling](/vi/guide/autoscaling-budgets) được bật, mã này còn có nghĩa là một lần tăng sẽ làm hỏng quỹ dự phòng floor 72 giờ. Khi đó response có thêm `details`:
 
 ```json
-{ "reason": "floor_reserve", "reserve_target_nano_usd": 1440000000, "coverage_hours": 40 }
+{ "project_slug": "api", "reason": "floor_reserve", "reserve_target_nano_usd": 1440000000, "coverage_hours": 40 }
 ```
 
 Hãy nạp tiền vào ví, hoặc giảm floor của các project, rồi gửi lại request.
@@ -175,7 +175,7 @@ Hãy nạp tiền vào ví, hoặc giảm floor của các project, rồi gửi 
 
 ### `NOT_FOUND` {#NOT_FOUND}
 
-`404`. Chỉ với rollback: id deployment không tồn tại trong project này. Project hoặc workspace mà bạn không xem được dùng mã snake_case `not_found`.
+`404`. Chỉ với rollback: id deployment không tồn tại trong project này. Project hoặc workspace mà bạn không xem được dùng mã snake_case `not_found`. Các [route ngân sách autoscaling](/vi/api/autoscaling-budget) cũng trả `NOT_FOUND` cho project hoặc kế hoạch không tồn tại trong workspace.
 
 ### `UPSTREAM_ERROR` {#UPSTREAM_ERROR}
 
@@ -214,11 +214,11 @@ Các mã này đến từ các route của [ngân sách autoscaling](/vi/guide/a
 
 ### `HUMAN_APPROVAL_REQUIRED` {#HUMAN_APPROVAL_REQUIRED}
 
-`403`. Có người cố duyệt hoặc từ chối kế hoạch ngân sách bằng API key hoặc OAuth token. Chỉ người đã đăng nhập mới duyệt được, trên dashboard. Hãy đưa `approval_url` của kế hoạch cho owner hoặc admin.
+`403`. Có người cố duyệt hoặc từ chối kế hoạch ngân sách bằng API key. Việc duyệt cần phiên đăng nhập của một người, trên thực tế là dashboard. Hãy đưa `approval_url` của kế hoạch cho owner hoặc admin. Bất cứ thứ gì giữ token phiên hoặc mật khẩu của một người đều có thể duyệt thay người đó, nên hãy đưa cho agent một API key hoặc MCP connector, không bao giờ đưa thông tin đăng nhập.
 
 ### `CROSS_SITE_REQUEST` {#CROSS_SITE_REQUEST}
 
-`403`. `PUT` ngân sách, duyệt hoặc từ chối được xác thực bằng cookie phiên từ một origin của trình duyệt khác dashboard, hoặc từ một trang bị đánh dấu cross-site. Chưa có gì thay đổi. Hãy thực hiện thay đổi ngay trên dashboard. API key và header `Authorization` không bị kiểm tra.
+`403`. `PUT` ngân sách, duyệt hoặc từ chối được xác thực bằng cookie phiên từ một origin của trình duyệt không phải dashboard hay chính API, hoặc từ một trang bị đánh dấu cross-site. Chưa có gì thay đổi. Hãy thực hiện thay đổi ngay trên dashboard. API key và header `Authorization` không bị kiểm tra.
 
 ### `UNSUPPORTED_MEDIA_TYPE` {#UNSUPPORTED_MEDIA_TYPE}
 

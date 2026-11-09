@@ -1,12 +1,12 @@
 # Autoscaling budget API
 
-Read and change the [autoscaling budget](/guide/autoscaling-budgets) of a workspace or a project. Routes live under `/api/workspaces/{slug}` and use the usual [authentication](/api/authentication). They exist only when the platform operator has turned budgets on; otherwise they return `404`.
+Read and change the [autoscaling budget](/guide/autoscaling-budgets) of a workspace or a project. Routes live under `/api/workspaces/{slug}` and use the usual [authentication](/api/authentication). They exist only when the platform operator has turned budgets on (`AUTOSCALING_BUDGET_ENABLED=true`, off by default); otherwise they return `404 not_found`.
 
 ## Conventions
 
 - **Money** is an integer number of **nano-USD**. `1 cent = 10,000,000`, so `$0.05` is `50000000`. JSON keys end in `_nano_usd`.
 - **Times** are RFC 3339, in UTC.
-- **A missing or foreign resource** (workspace, project or plan, including one that belongs to another tenant) returns `404 NOT_FOUND`.
+- **A missing workspace, or one you are not a member of,** returns `404 not_found`. A workspace API key used on another workspace returns `403 forbidden`. A missing project or plan inside your workspace returns `404 NOT_FOUND`.
 - **Raw wallet balance** never appears in a response. Only `reserve.funded` and `reserve.coverage_hours` do.
 
 ## Permissions
@@ -14,8 +14,10 @@ Read and change the [autoscaling budget](/guide/autoscaling-budgets) of a worksp
 | Action | Minimum role | Scope | Notes |
 |--------|--------------|-------|-------|
 | `autoscaling.budget.read` | member | `projects:read` | |
-| `autoscaling.budget.write` | admin | `projects:write` | A session applies the change. A credential gets a plan instead. |
-| `autoscaling.budget.approve` | admin | `projects:write` | Session only. API keys and OAuth tokens are refused. |
+| `autoscaling.budget.write` | admin | `projects:write` | A session applies the change. An API key gets a plan instead. |
+| `autoscaling.budget.approve` | admin | `projects:write` | Session only. API keys are refused with `403 HUMAN_APPROVAL_REQUIRED`. |
+
+A session is a person signed in to TOSE: the dashboard's session cookie, or the session token `/api/auth/login` returns, sent as `Authorization: Bearer`. Anything holding that token can approve as the person, so give agents an API key instead. OAuth (MCP) tokens are not accepted on these routes; connected apps use the `autoscaling_budget_get` and `autoscaling_budget_plan` [MCP tools](/mcp#tools).
 
 ## Routes
 
@@ -31,18 +33,18 @@ Read and change the [autoscaling budget](/guide/autoscaling-budgets) of a worksp
 
 There is no route that lists plans. Read the pending ones from `pending_plans` of the workspace budget, then fetch one by `id`.
 
-Every `PUT`, approve and reject also refuses a request that is authenticated with the session cookie from a browser origin other than the dashboard (`403 CROSS_SITE_REQUEST`). API keys and `Authorization` headers are not affected. A `PUT` body must be exactly one JSON object with no unknown fields; anything after it is `400 INVALID_ARGUMENT`.
+Every `PUT`, approve and reject also refuses a request that is authenticated with the session cookie from a browser origin other than the dashboard or the API itself (`403 CROSS_SITE_REQUEST`). API keys and `Authorization` headers are not affected. A `PUT` body must be exactly one JSON object with no unknown fields; anything after it is `400 INVALID_ARGUMENT`.
 ### Optimistic concurrency
 
 Every budget has a `revision`. `GET` returns it as the weak ETag `W/"r{revision}"`. `PUT` accepts an optional `If-Match` with that value; if the revision has moved on, the answer is `412 PRECONDITION_FAILED` and nothing changes. Resending the same `PUT` with the same `If-Match` is safe: it can apply the change at most once. A value that names no revision (for example `W/"abc"`) never matches and is also `412`. An empty header or `*` skips the check.
 
-With an API key or OAuth token the `If-Match` is compared when the plan is made, under the budget lock, so a stale value is `412` before any plan is stored. Proposing the same change again while its plan is pending returns that plan.
+With an API key the `If-Match` is compared when the plan is made, under the budget lock, so a stale value is `412` before any plan is stored. Proposing the same change again while its plan is pending returns that plan.
 
 ## Shapes
 
 ### Caps
 
-Every field is present on `PUT`. `null` means no cap. A cap is between `1` and `1000000000000000` nano-USD (10 million USD).
+Every field is present on `PUT`. `null` means no cap. A cap is between `1` and `1000000000000000` nano-USD (1 million USD).
 
 ```json
 { "hourly_nano_usd": 50000000, "monthly_nano_usd": 30000000000 }
@@ -155,7 +157,7 @@ Who last approved the budget, or `null` when it was never set.
 }
 ```
 
-The first is the workspace body. The second is the project body; `floor` may be `null`. A floor on the workspace scope is refused with `400`.
+The first is the workspace body. The second is the project body; `floor` is required there, and `null` means no floor. A floor on the workspace scope is refused with `400`.
 
 ### PendingPlan
 
@@ -220,18 +222,21 @@ These use the standard [error envelope](/api/errors). Branch on `code`.
 
 | HTTP | `code` | When | `details` |
 |------|--------|------|-----------|
-| 400 | `INVALID_ARGUMENT` | Malformed JSON or trailing data after it, an unknown field, a missing `caps` or `plan_hash`, a value out of range, a bad floor string, or a floor on workspace scope | `{field}` |
+| 400 | `INVALID_ARGUMENT` | Malformed JSON or trailing data after it, an unknown field, a missing `caps`, `plan_hash` or project `floor`, a value out of range, a bad floor string, or a floor on workspace scope | `{field}` |
 | 422 | `INVALID_ARGUMENT` | The floor's hourly cost is above the project's hourly cap, on a `PUT` or on approve | `{field: "floor"}` |
 | 415 | `UNSUPPORTED_MEDIA_TYPE` | Approve or reject without `Content-Type: application/json` | |
 | 403 | [`CROSS_SITE_REQUEST`](/api/errors#CROSS_SITE_REQUEST) | A `PUT`, approve or reject authenticated with the session cookie from another origin | |
 | 412 | [`PRECONDITION_FAILED`](/api/errors#PRECONDITION_FAILED) | `If-Match` does not match the current revision (for an API key, when the plan is made) | |
-| 403 | `FORBIDDEN` | The role or scope is too low | |
-| 403 | [`HUMAN_APPROVAL_REQUIRED`](/api/errors#HUMAN_APPROVAL_REQUIRED) | Approve or reject was called with an API key or OAuth token | |
-| 404 | `NOT_FOUND` | Unknown, or belongs to another tenant | |
+| 403 | [`forbidden`](/api/errors#forbidden) | The workspace role is too low, or a workspace API key was used on another workspace | |
+| 403 | [`insufficient_scope`](/api/errors#insufficient_scope) | The API key lacks the scope; the body names `required_scope` | |
+| 403 | [`HUMAN_APPROVAL_REQUIRED`](/api/errors#HUMAN_APPROVAL_REQUIRED) | Approve or reject was called with an API key | |
+| 404 | [`not_found`](/api/errors#not_found) | The workspace does not exist or you are not a member, or budgets are not turned on | |
+| 404 | [`NOT_FOUND`](/api/errors#NOT_FOUND) | The project or plan does not exist in this workspace | |
 | 409 | [`PLAN_STALE`](/api/errors#PLAN_STALE) | The budget changed after the plan was made | `{base_revision, current_revision}` |
 | 409 | [`PLAN_HASH_MISMATCH`](/api/errors#PLAN_HASH_MISMATCH) | The `plan_hash` sent with approve or reject does not match the plan | |
 | 410 | [`PLAN_EXPIRED`](/api/errors#PLAN_EXPIRED) | The plan is past `expires_at` | |
 | 409 | [`PLAN_CLOSED`](/api/errors#PLAN_CLOSED) | The plan is already applied or rejected | `{status}` |
+| 503 | [`unavailable`](/api/errors#unavailable) | The permission check could not run. Retryable | |
 
 The two guard codes, [`BUDGET_CAP`](/api/errors#BUDGET_CAP) and [`INSUFFICIENT_BALANCE`](/api/errors#INSUFFICIENT_BALANCE), come from the endpoints that raise an allocation (project update, deploy, redeploy, rollback, image deploy, environment apply and runbook scale), not from the budget routes.
 

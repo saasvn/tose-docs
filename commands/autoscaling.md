@@ -2,7 +2,7 @@
 
 Read and change the [autoscaling budget](/guide/autoscaling-budgets): hourly and monthly caps for a workspace or a project, and a project floor.
 
-All commands accept the [global options](/commands/overview#global-options), including `--json`. The platform operator must have turned budgets on; otherwise the API answers `404`.
+All commands accept the [global options](/commands/overview#global-options), including `--json`. The platform operator must have turned budgets on; otherwise the commands fail with `FEATURE_DISABLED` (exit code `6`).
 
 **Scope.** Every command works on the workspace unless you pass `--project <slug>`. The project from `TOSE_PROJECT`, `.tose.json` or `tose use` is not used here, so a workspace change is never applied to one project by accident.
 
@@ -32,7 +32,7 @@ With `--json` the `data` field is the [WorkspaceBudget or ProjectBudget](/api/au
 
 ## tose autoscaling budget set
 
-Change caps and, for a project, the floor. Needs the workspace admin or owner role.
+Propose new caps and, for a project, a new floor. The CLI always authenticates with an API key, so `set` never applies a change itself: it creates a plan that a signed-in workspace owner or admin approves. The key needs `projects:write`, and its owner needs the workspace owner or admin role.
 
 ### Synopsis
 
@@ -63,8 +63,8 @@ USD amounts have up to 9 decimals and are converted to nano-USD exactly, so `0.0
 ### How it works
 
 1. `set` reads the current budget, because the API needs every cap key on each write.
-2. It merges the flags you gave and sends the result with the ETag it read as `If-Match` (or your `--if-match`). If someone changed the budget in between, the write fails with `PRECONDITION_FAILED` and nothing changes. Run `get` again and retry.
-3. A network failure or gateway error is retried with the same body and the same `If-Match`, so a retry applies the change at most once. If a retry finds the budget already holds your change, it reports success.
+2. It merges the flags you gave and sends the result with the ETag it read as `If-Match` (or your `--if-match`). The write is always conditional. If someone changed the budget in between, the write fails with `PRECONDITION_FAILED` and nothing changes. Run `get` again and retry.
+3. A network failure or gateway error is retried with the same body and the same `If-Match`. Proposing the same change again returns the plan that is already pending, so a retry never creates a second plan.
 
 ### Usage
 
@@ -79,16 +79,9 @@ tose autoscaling budget set --hourly none
 tose autoscaling budget set --project api --floor-replicas 1 --floor-cpu 0.5 --floor-ram 1
 ```
 
-### Approval for API keys
+### Approval
 
-What happens next depends on how you are logged in:
-
-| Login | Result | Exit code |
-|-------|--------|-----------|
-| A user session | The change applies. The budget is printed. With `--json`, `status` is `ok` and `data` is the new budget. | `0` |
-| A workspace API key | The API does not apply the change. It returns a plan. | `0` |
-
-For an API key the CLI prints `Approval needed: open <url>`. With `--json` the result has `status: "pending"`, `data.plan`, `data.approval_url`, and a `next_actions` entry whose `url` is the same link:
+The API does not apply the change. It stores a plan, and `set` exits `0`. The CLI prints `Approval needed: open <url>`. With `--json` the result has `status: "pending"`, `data.plan`, `data.approval_url`, and a `next_actions` entry whose `url` is the same link. With `--project`, a second entry shows how to check the project budget after approval:
 
 ```json
 {
@@ -103,27 +96,31 @@ For an API key the CLI prints `Approval needed: open <url>`. With `--json` the r
   "next_actions": [
     {
       "command": "tose autoscaling budget get --json",
-      "description": "After a signed-in owner or admin approves this plan in the dashboard, confirm it was applied",
+      "description": "Lists this plan under pending_plans until a signed-in owner or admin approves it in the dashboard",
       "url": "https://tose.sh/w/acme/autoscaling?plan=plan_01"
     }
   ]
 }
 ```
 
-A signed-in owner or admin opens the link and approves the plan in the dashboard. The CLI has no approve command, and `--yes` does not skip this step, because the approval happens on the server. The plan expires after 30 minutes. Run `tose autoscaling budget get` afterwards to see that it was applied.
+A signed-in owner or admin opens the link and approves the plan in the dashboard. The CLI has no approve command, and `--yes` does not skip this step, because the approval happens on the server. The plan expires after 30 minutes. `tose autoscaling budget get` lists pending plans, a project's included; run it afterwards to see that the plan was applied.
 
 ### Errors
 
-With `--json`, errors use the [standard envelope](/api/errors) and the API `code` is passed through:
+With `--json`, errors use the [standard envelope](/api/errors). The API `code` is passed through, except for three cases the CLI names itself (`FEATURE_DISABLED`, `INSUFFICIENT_SCOPE`, `API_KEY_WORKSPACE_SCOPED`):
 
 | `error.code` | Meaning |
 |--------------|---------|
 | `VALIDATION_ERROR` | A flag is wrong or incomplete, for example `--floor-cpu` without `--floor-replicas`. Nothing was sent. Exit code `2`. |
-| `PRECONDITION_FAILED` | The budget changed since it was read. Run `get`, then retry. |
-| `NOT_FOUND` | The workspace or project does not exist, or budgets are not enabled. Exit code `6`. |
-| `FORBIDDEN` | The role or scope is too low. Exit code `3`. |
+| `PRECONDITION_FAILED` | The budget changed since it was read. Run `get`, then retry. Exit code `1`. |
+| `FEATURE_DISABLED` | Autoscaling budgets are not enabled on this server. After a `404` from a budget route, the CLI checks `GET /api/public/features` and reports this when `autoscaling_budget` is `false`. Exit code `6`. |
+| `not_found` | The workspace does not exist, or you are not a member of it. Exit code `6`. |
+| `NOT_FOUND` | The project does not exist in the workspace. Exit code `6`. |
+| `forbidden` | Your workspace role is too low. Exit code `3`. |
+| `INSUFFICIENT_SCOPE` | The API key lacks the scope (`projects:read`, or `projects:write` for `set`). Create a key that has it. Exit code `3`. |
+| `API_KEY_WORKSPACE_SCOPED` | The API key belongs to another workspace. Use a key created in this one. Exit code `3`. |
 | `INVALID_ARGUMENT` | The API refused a value, for example a floor that costs more than the project's hourly cap. Exit code `2`. |
-| `UNAVAILABLE` | The API could not complete the request (`503`). The CLI retries it with the same body and `If-Match` before it reports the error, which has `retryable: true`. |
+| `unavailable` | The API could not complete the request (`503`). The CLI retries it with the same body and `If-Match` before it reports the error, which has `retryable: true`. Exit code `1`. |
 | `BUDGET_CAP`, `INSUFFICIENT_BALANCE` | Returned by deploy, redeploy and other commands that raise an allocation. See [Errors](/api/errors#BUDGET_CAP). `INSUFFICIENT_BALANCE` exits `9` and its `next_actions` links to the top-up page. |
 
 ## Related

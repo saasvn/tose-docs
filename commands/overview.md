@@ -110,7 +110,9 @@ production yet.
 | Command | Description |
 |---------|-------------|
 | [`tose autoscaling budget get`](/commands/autoscaling#tose-autoscaling-budget-get) | Show spend caps, usage and pending approvals |
-| [`tose autoscaling budget set`](/commands/autoscaling#tose-autoscaling-budget-set) | Set caps and a project floor; an API key gets an approval link |
+| [`tose autoscaling budget set`](/commands/autoscaling#tose-autoscaling-budget-set) | Propose caps and a project floor; a person approves the plan in the dashboard |
+
+Budgets work only where the platform operator has turned them on.
 
 ### Agent Skills
 

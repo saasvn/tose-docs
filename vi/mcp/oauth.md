@@ -30,7 +30,7 @@ Cả hai luồng đều dùng authorization code kèm PKCE (chỉ S256). Client 
 | `deployments:write` | Deploy và rollback. | Có |
 | `workspace:read` | Tên workspace và vai trò của bạn. Được thêm vào mọi yêu cầu scope hẹp hơn. | Không |
 | `projects:read` | `list_projects`; khi bật ngân sách autoscaling, thêm `autoscaling_budget_get` | Không |
-| `projects:write` | Khi bật ngân sách autoscaling và là owner hoặc admin, `autoscaling_budget_plan`, chỉ lưu thay đổi ngân sách thành một kế hoạch để người dùng duyệt trên dashboard | Không |
+| `projects:write` | Với owner hoặc admin: `create_template_draft` và `publish_template`, và khi có thêm `deployments:execute` thì cả `deploy_template`. Khi bật ngân sách autoscaling, `autoscaling_budget_plan`, chỉ lưu thay đổi ngân sách thành một kế hoạch để người dùng duyệt trên dashboard | Chỉ `deploy_template`, vốn cần thêm `deployments:execute` |
 | `logs:read` | `read_logs` | Không |
 | `deployments:execute` | `deploy_project` | Có |
 | `deployments:rollback` | `rollback_deployment` | Có |

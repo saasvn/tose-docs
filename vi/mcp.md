@@ -47,7 +47,7 @@ Khi nền tảng bật [ngân sách autoscaling](/vi/guide/autoscaling-budgets),
 
 Kế hoạch project không có `floor` giữ floor của revision ngân sách mà kế hoạch được tạo dựa trên, nên floor mà một người đã đổi trong lúc đó không bị hoàn lại. Floor trên ngân sách workspace là `INVALID_ARGUMENT`.
 
-Agent không bao giờ tự duyệt được kế hoạch ngân sách của mình. Việc duyệt chỉ làm được trên dashboard, và kế hoạch hết hạn sau 30 phút. Đề xuất lại cùng một thay đổi sẽ trả lại cùng kế hoạch đang chờ.
+Agent không bao giờ tự duyệt được kế hoạch ngân sách của mình: không có tool MCP nào duyệt, và việc duyệt cần phiên đăng nhập của một người, trên thực tế là dashboard. Kế hoạch hết hạn sau 30 phút. Đề xuất lại cùng một thay đổi sẽ trả lại cùng kế hoạch đang chờ.
 
 Khi bật ngân sách, `deploy_project` từ chối lần khởi chạy làm vượt trần (`BUDGET_CAP`) hoặc làm quỹ dự phòng floor thiếu tiền (`INSUFFICIENT_BALANCE`). Nếu không kiểm tra được ngân sách, không có gì được khởi chạy và tool trả `UNAVAILABLE` có thể thử lại; hãy thử lại sau ít phút. Xem [Lỗi](/vi/api/errors#mcp-budget-codes).
 
