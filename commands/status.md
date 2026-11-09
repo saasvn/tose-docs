@@ -120,6 +120,10 @@ $ tose status --json
 }
 ```
 
+### Process limit
+
+When the operator of your TOSE deployment has declared a per-Pod process (PID) limit, `tose status --json` includes it as `data.resources.pids.limit`. The text output does not print it. The limit is shared by the project container and its sidecars, is a declaration rather than a live check, and a missing field means the limit is unknown, not necessarily unlimited. See [Projects API](/api/projects#process-limit).
+
 ## Use Cases
 
 ### Monitor After Deployment
