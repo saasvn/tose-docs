@@ -53,9 +53,9 @@ Phản hồi trạng thái có đối tượng `resources` chứa giới hạn C
 ```
 
 - **Theo Pod, dùng chung.** Con số là một ngân sách cho cả Pod: container của dự án và mọi sidecar cùng tính vào đó. Đây không phải cài đặt theo từng container hay từng dự án.
-- **Là khai báo, không phải số đo.** Giá trị do bên vận hành hệ thống TOSE cấu hình (`PROJECT_POD_PIDS_LIMIT`) sau khi đã xác nhận cấu hình trên node. TOSE không đọc lại giá trị từ node, nên có thể lỗi thời nếu node thay đổi.
+- **Là khai báo, không phải số đo.** Giá trị do bên vận hành hệ thống TOSE cấu hình (`PROJECT_POD_PIDS_LIMIT`) sau khi đã xác nhận cấu hình trên node. TOSE không đọc lại giá trị từ node, nên có thể lỗi thời nếu node thay đổi, và giới hạn có thể khác nhau giữa các node.
 - **Vắng mặt nghĩa là chưa biết.** Trường chỉ xuất hiện khi bên vận hành đã cấu hình một giá trị được xác nhận. Không có đối tượng `pids` không có nghĩa là không giới hạn; nó nghĩa là TOSE không biết giới hạn.
-- **Chỉ để báo cáo.** Trường này không đặt hay thực thi giới hạn, và không có lệnh API nào thay đổi nó. Việc thực thi là cấu hình kubelet ở cấp node (`podPidsLimit`), nằm ngoài API này.
+- **Chỉ để báo cáo.** Trường này không đặt hay thực thi giới hạn, và không có lệnh gọi API nào thay đổi nó. Việc thực thi là cấu hình kubelet ở cấp node (`podPidsLimit`), nằm ngoài API này.
 
 ## Restart dự án {#restart}
 

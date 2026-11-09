@@ -107,8 +107,8 @@ $ tose status --json
       ]
     },
     "resources": {
-      "cpu": { "used": "100m", "limit": "2000m" },
-      "memory": { "used": "500Mi", "limit": "4Gi" }
+      "cpu": { "limit": "2", "pod_total": "2" },
+      "memory": { "limit": "4", "pod_total": "4" }
     },
     "latestDeployment": {
       "id": "dep_abc123",

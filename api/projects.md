@@ -53,7 +53,7 @@ The status response carries a `resources` object with the project's CPU and memo
 ```
 
 - **Per Pod, shared.** The number is one budget for the whole Pod: the project's container and every sidecar count against it together. It is not a per-container or per-project setting.
-- **A declaration, not a measurement.** The value is whatever the operator of the TOSE deployment configured after confirming the node setting (`PROJECT_POD_PIDS_LIMIT`). TOSE does not read it back from the nodes, so it can be stale if the nodes change.
+- **A declaration, not a measurement.** The value is whatever the operator of the TOSE deployment configured after confirming the node setting (`PROJECT_POD_PIDS_LIMIT`). TOSE does not read it back from the nodes, so it can be stale if the nodes change, and limits can differ between nodes.
 - **Absent means unknown.** The field appears only when the operator configured a confirmed value. A missing `pids` object does not mean the limit is unlimited; it means TOSE does not know the limit.
 - **Reporting only.** The field does not set or enforce a limit and no API call changes it. Enforcement is a node-level kubelet setting (`podPidsLimit`) outside this API.
 
