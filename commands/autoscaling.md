@@ -114,13 +114,13 @@ With `--json`, errors use the [standard envelope](/api/errors). The API `code` i
 | `VALIDATION_ERROR` | A flag is wrong or incomplete, for example `--floor-cpu` without `--floor-replicas`. Nothing was sent. Exit code `2`. |
 | `PRECONDITION_FAILED` | The budget changed since it was read. Run `get`, then retry. Exit code `1`. |
 | `FEATURE_DISABLED` | Autoscaling budgets are not enabled on this server. After a `404` from a budget route, the CLI checks `GET /api/public/features` and reports this when `autoscaling_budget` is `false`. Exit code `6`. |
-| `not_found` | The workspace does not exist, or you are not a member of it. Exit code `6`. |
+| `not_found` | The API key's owner is no longer a member of the workspace. Exit code `6`. |
 | `NOT_FOUND` | The project does not exist in the workspace. Exit code `6`. |
 | `forbidden` | Your workspace role is too low. Exit code `3`. |
 | `INSUFFICIENT_SCOPE` | The API key lacks the scope (`projects:read`, or `projects:write` for `set`). Create a key that has it. Exit code `3`. |
-| `API_KEY_WORKSPACE_SCOPED` | The API key belongs to another workspace. Use a key created in this one. Exit code `3`. |
+| `API_KEY_WORKSPACE_SCOPED` | The workspace does not exist, or the API key belongs to another workspace. An API key cannot tell the two apart, so check the slug, then use a key created in that workspace. Exit code `3`. |
 | `INVALID_ARGUMENT` | The API refused a value, for example a floor that costs more than the project's hourly cap. Exit code `2`. |
-| `unavailable` | The API could not complete the request (`503`). The CLI retries it with the same body and `If-Match` before it reports the error, which has `retryable: true`. Exit code `1`. |
+| `unavailable` | The API could not complete the request (`503`). For the write inside `set`, the CLI tries up to three times with the same body and `If-Match` before it reports the error; a `503` on a read is reported straight away. The error has `retryable: true`. Exit code `1`. |
 | `BUDGET_CAP`, `INSUFFICIENT_BALANCE` | Returned by deploy, redeploy and other commands that raise an allocation. See [Errors](/api/errors#BUDGET_CAP). `INSUFFICIENT_BALANCE` exits `9` and its `next_actions` links to the top-up page. |
 
 ## Related

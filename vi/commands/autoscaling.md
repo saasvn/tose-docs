@@ -114,13 +114,13 @@ Với `--json`, lỗi dùng [envelope chuẩn](/vi/api/errors). `code` của API
 | `VALIDATION_ERROR` | Một cờ sai hoặc thiếu, ví dụ `--floor-cpu` mà không có `--floor-replicas`. Chưa gửi gì. Mã thoát `2`. |
 | `PRECONDITION_FAILED` | Ngân sách đã đổi kể từ lúc đọc. Chạy `get` rồi thử lại. Mã thoát `1`. |
 | `FEATURE_DISABLED` | Server này chưa bật ngân sách autoscaling. Sau khi một route ngân sách trả `404`, CLI kiểm tra `GET /api/public/features` và báo mã này khi `autoscaling_budget` là `false`. Mã thoát `6`. |
-| `not_found` | Workspace không tồn tại, hoặc bạn không phải thành viên. Mã thoát `6`. |
+| `not_found` | Chủ sở hữu API key không còn là thành viên của workspace. Mã thoát `6`. |
 | `NOT_FOUND` | Project không tồn tại trong workspace. Mã thoát `6`. |
 | `forbidden` | Vai trò của bạn trong workspace quá thấp. Mã thoát `3`. |
 | `INSUFFICIENT_SCOPE` | API key thiếu scope (`projects:read`, hoặc `projects:write` cho `set`). Hãy tạo key có scope đó. Mã thoát `3`. |
-| `API_KEY_WORKSPACE_SCOPED` | API key thuộc về workspace khác. Hãy dùng key tạo trong workspace này. Mã thoát `3`. |
+| `API_KEY_WORKSPACE_SCOPED` | Workspace không tồn tại, hoặc API key thuộc về workspace khác. API key không phân biệt được hai trường hợp này, nên hãy kiểm tra slug rồi dùng key tạo trong workspace đó. Mã thoát `3`. |
 | `INVALID_ARGUMENT` | API từ chối một giá trị, ví dụ floor có chi phí cao hơn trần theo giờ của project. Mã thoát `2`. |
-| `unavailable` | API không hoàn tất được request (`503`). CLI thử lại với cùng body và `If-Match` trước khi báo lỗi, lỗi này có `retryable: true`. Mã thoát `1`. |
+| `unavailable` | API không hoàn tất được request (`503`). Với lệnh ghi bên trong `set`, CLI thử tối đa ba lần với cùng body và `If-Match` trước khi báo lỗi; `503` ở một lệnh đọc được báo ngay. Lỗi có `retryable: true`. Mã thoát `1`. |
 | `BUDGET_CAP`, `INSUFFICIENT_BALANCE` | Do deploy, redeploy và các lệnh khác làm tăng mức phân bổ trả về. Xem [Mã lỗi](/vi/api/errors#BUDGET_CAP). `INSUFFICIENT_BALANCE` thoát với mã `9` và `next_actions` của nó dẫn tới trang nạp tiền. |
 
 ## Liên quan
