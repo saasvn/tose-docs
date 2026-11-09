@@ -6,7 +6,7 @@
 
 - **Tiền** là số nguyên **nano-USD**. `1 cent = 10,000,000`, nên `$0.05` là `50000000`. Các key JSON kết thúc bằng `_nano_usd`.
 - **Thời gian** theo RFC 3339, múi giờ UTC.
-- **Workspace không tồn tại, hoặc bạn không phải thành viên,** trả `404 not_found` khi dùng phiên đăng nhập. Với API key, workspace không tồn tại và key dùng cho workspace khác đều trả `403 forbidden`, để key không dò được workspace nào tồn tại. Project hoặc kế hoạch không tồn tại trong workspace của bạn trả `404 NOT_FOUND`.
+- **Workspace không tồn tại, hoặc bạn không phải thành viên,** trả `404 not_found` khi dùng phiên đăng nhập, và với API key mà chủ sở hữu không còn là thành viên. Ngoài ra, với API key, workspace không tồn tại và key dùng cho workspace khác đều trả `403 forbidden`, để key không dò được workspace nào tồn tại. Project hoặc kế hoạch không tồn tại trong workspace của bạn trả `404 NOT_FOUND`.
 - **Số dư ví thô** không bao giờ xuất hiện trong response. Chỉ có `reserve.funded` và `reserve.coverage_hours`.
 
 ## Quyền
@@ -230,7 +230,7 @@ Các lỗi dùng [envelope lỗi](/vi/api/errors) chuẩn. Hãy rẽ nhánh theo
 | 403 | [`forbidden`](/vi/api/errors#forbidden) | Vai trò trong workspace quá thấp, hoặc API key của một workspace được dùng cho workspace khác | |
 | 403 | [`insufficient_scope`](/vi/api/errors#insufficient_scope) | API key thiếu scope; body nêu `required_scope` | |
 | 403 | [`HUMAN_APPROVAL_REQUIRED`](/vi/api/errors#HUMAN_APPROVAL_REQUIRED) | Gọi duyệt hoặc từ chối bằng API key | |
-| 404 | [`not_found`](/vi/api/errors#not_found) | Workspace không tồn tại hoặc bạn không phải thành viên (phiên đăng nhập), hoặc ngân sách chưa được bật | |
+| 404 | [`not_found`](/vi/api/errors#not_found) | Workspace không tồn tại hoặc bạn không phải thành viên (phiên đăng nhập), chủ sở hữu API key không còn là thành viên, hoặc ngân sách chưa được bật | |
 | 404 | [`NOT_FOUND`](/vi/api/errors#NOT_FOUND) | Project hoặc kế hoạch không tồn tại trong workspace này | |
 | 409 | [`PLAN_STALE`](/vi/api/errors#PLAN_STALE) | Ngân sách đã đổi sau khi kế hoạch được tạo | `{base_revision, current_revision}` |
 | 409 | [`PLAN_HASH_MISMATCH`](/vi/api/errors#PLAN_HASH_MISMATCH) | `plan_hash` gửi kèm khi duyệt hoặc từ chối không khớp với kế hoạch | |

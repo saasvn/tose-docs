@@ -114,7 +114,7 @@ With `--json`, errors use the [standard envelope](/api/errors). The API `code` i
 | `VALIDATION_ERROR` | A flag is wrong or incomplete, for example `--floor-cpu` without `--floor-replicas`. Nothing was sent. Exit code `2`. |
 | `PRECONDITION_FAILED` | The budget changed since it was read. Run `get`, then retry. Exit code `1`. |
 | `FEATURE_DISABLED` | Autoscaling budgets are not enabled on this server. After a `404` from a budget route, the CLI checks `GET /api/public/features` and reports this when `autoscaling_budget` is `false`. Exit code `6`. |
-| `not_found` | The API key's owner is no longer a member of the workspace. Exit code `6`. |
+| `not_found` | The API key's owner is no longer a member of the workspace, or budgets are off but the CLI could not confirm it from `GET /api/public/features`. Exit code `6`. |
 | `NOT_FOUND` | The project does not exist in the workspace. Exit code `6`. |
 | `forbidden` | Your workspace role is too low. Exit code `3`. |
 | `INSUFFICIENT_SCOPE` | The API key lacks the scope (`projects:read`, or `projects:write` for `set`). Create a key that has it. Exit code `3`. |

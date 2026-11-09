@@ -114,7 +114,7 @@ Với `--json`, lỗi dùng [envelope chuẩn](/vi/api/errors). `code` của API
 | `VALIDATION_ERROR` | Một cờ sai hoặc thiếu, ví dụ `--floor-cpu` mà không có `--floor-replicas`. Chưa gửi gì. Mã thoát `2`. |
 | `PRECONDITION_FAILED` | Ngân sách đã đổi kể từ lúc đọc. Chạy `get` rồi thử lại. Mã thoát `1`. |
 | `FEATURE_DISABLED` | Server này chưa bật ngân sách autoscaling. Sau khi một route ngân sách trả `404`, CLI kiểm tra `GET /api/public/features` và báo mã này khi `autoscaling_budget` là `false`. Mã thoát `6`. |
-| `not_found` | Chủ sở hữu API key không còn là thành viên của workspace. Mã thoát `6`. |
+| `not_found` | Chủ sở hữu API key không còn là thành viên của workspace, hoặc ngân sách đang tắt nhưng CLI không xác nhận được qua `GET /api/public/features`. Mã thoát `6`. |
 | `NOT_FOUND` | Project không tồn tại trong workspace. Mã thoát `6`. |
 | `forbidden` | Vai trò của bạn trong workspace quá thấp. Mã thoát `3`. |
 | `INSUFFICIENT_SCOPE` | API key thiếu scope (`projects:read`, hoặc `projects:write` cho `set`). Hãy tạo key có scope đó. Mã thoát `3`. |

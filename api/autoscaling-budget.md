@@ -6,7 +6,7 @@ Read and change the [autoscaling budget](/guide/autoscaling-budgets) of a worksp
 
 - **Money** is an integer number of **nano-USD**. `1 cent = 10,000,000`, so `$0.05` is `50000000`. JSON keys end in `_nano_usd`.
 - **Times** are RFC 3339, in UTC.
-- **A missing workspace, or one you are not a member of,** returns `404 not_found` to a session. With an API key, a missing workspace and a key used on another workspace both return `403 forbidden`, so a key cannot probe which workspaces exist. A missing project or plan inside your workspace returns `404 NOT_FOUND`.
+- **A missing workspace, or one you are not a member of,** returns `404 not_found` to a session, and to an API key whose owner is no longer a member. Otherwise, with an API key, a missing workspace and a key used on another workspace both return `403 forbidden`, so a key cannot probe which workspaces exist. A missing project or plan inside your workspace returns `404 NOT_FOUND`.
 - **Raw wallet balance** never appears in a response. Only `reserve.funded` and `reserve.coverage_hours` do.
 
 ## Permissions
@@ -230,7 +230,7 @@ These use the standard [error envelope](/api/errors). Branch on `code`.
 | 403 | [`forbidden`](/api/errors#forbidden) | The workspace role is too low, or a workspace API key was used on another workspace | |
 | 403 | [`insufficient_scope`](/api/errors#insufficient_scope) | The API key lacks the scope; the body names `required_scope` | |
 | 403 | [`HUMAN_APPROVAL_REQUIRED`](/api/errors#HUMAN_APPROVAL_REQUIRED) | Approve or reject was called with an API key | |
-| 404 | [`not_found`](/api/errors#not_found) | The workspace does not exist or you are not a member (session), or budgets are not turned on | |
+| 404 | [`not_found`](/api/errors#not_found) | The workspace does not exist or you are not a member (session), the API key's owner is no longer a member, or budgets are not turned on | |
 | 404 | [`NOT_FOUND`](/api/errors#NOT_FOUND) | The project or plan does not exist in this workspace | |
 | 409 | [`PLAN_STALE`](/api/errors#PLAN_STALE) | The budget changed after the plan was made | `{base_revision, current_revision}` |
 | 409 | [`PLAN_HASH_MISMATCH`](/api/errors#PLAN_HASH_MISMATCH) | The `plan_hash` sent with approve or reject does not match the plan | |
