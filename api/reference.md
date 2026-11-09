@@ -57,6 +57,12 @@ See [Authentication](/api/authentication) for API keys, session tokens and the U
 Every JSON error has the same envelope with a stable `code`. Branch on `code`, never on the
 message text. See [Errors](/api/errors) for the full list, including the codes of the MCP tools.
 
+## Platform features
+
+`GET /api/public/features` (tag `Platform`) needs no authentication and holds no account or workspace
+data. It returns `{"ci": bool, "desktops": bool}`, which optional sections this platform serves.
+Responses are cached for 60 seconds. The dashboard uses it to hide **CI** and **Cloud desktops**.
+
 ## Request IDs
 
 Every response carries an `X-Request-ID` header. Send your own to have it echoed back. Error

@@ -57,6 +57,12 @@ Xem [Xác thực](/vi/api/authentication) về API key, session token và quy t�
 Mọi lỗi JSON đều có cùng một envelope với `code` ổn định. Hãy xử lý theo `code`, đừng dựa vào nội
 dung `message`. Xem [Mã lỗi](/vi/api/errors) để có danh sách đầy đủ, gồm cả mã lỗi của các tool MCP.
 
+## Tính năng của nền tảng
+
+`GET /api/public/features` (tag `Platform`) không cần xác thực và không chứa dữ liệu tài khoản hay
+workspace. Endpoint trả về `{"ci": bool, "desktops": bool}`, cho biết nền tảng đang phục vụ phần tùy
+chọn nào. Response được cache 60 giây. Dashboard dùng nó để ẩn **CI** và **Cloud desktops**.
+
 ## Request ID
 
 Mọi response có header `X-Request-ID`. Gửi ID của bạn để server trả lại nguyên giá trị. Body lỗi
