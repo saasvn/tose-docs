@@ -98,7 +98,7 @@ TOSE refuses every deploy while your workspace wallet balance is zero or negativ
 
 When the wallet runs out, TOSE also suspends compute, as before. Running Cloud Harness instances are stopped and their docker hosts suspended. Persistent disks and their data are **not** deleted, and their storage cost keeps accruing; it is charged after your next top-up. See [Persistent Disks](/guide/persistent-disks#retention). Any compute that could not be paid for is written off, so you do not owe it after a top-up.
 
-**To recover:** top up the wallet from the dashboard billing page, then deploy again. Deploys work normally once the balance is above zero.
+**To recover:** top up the wallet from **Wallet & billing** in the dashboard (under **Workspace**), then deploy again. Deploys work normally once the balance is above zero.
 
 A top-up resumes most suspended templates automatically. Deploying a suspended template needs a positive wallet balance too: otherwise the deploy is refused with `402 INSUFFICIENT_BALANCE` and the template stays suspended (see [Template deploy and resume API](/api/template-deploy#suspended-needs-balance)).
 

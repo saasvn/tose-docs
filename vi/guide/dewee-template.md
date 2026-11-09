@@ -41,7 +41,7 @@ Tạo, thay đổi và xóa instance cần vai trò **admin** của workspace. T
 
 ### Dashboard
 
-1. Mở **Templates** trong workspace và chọn **Dewee**.
+1. Mở **Ứng dụng đã cài** (Installed apps, nhóm **Ứng dụng & agent**) trong workspace, chọn **Tạo mẫu** rồi chọn **Dewee**.
 2. Thanh toán phí mở khóa nếu được yêu cầu.
 3. Chọn CPU và RAM rồi tạo.
 4. Mở **Environment** và đặt ba biến bắt buộc (bên dưới).
