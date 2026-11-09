@@ -33,10 +33,23 @@ When the platform has [autoscaling budgets](/guide/autoscaling-budgets) turned o
 
 | Tool | What it does | Changes anything? |
 |------|--------------|-------------------|
-| `autoscaling_budget_get` | Reads the caps, usage and floor reserve of the workspace, or of one project. | No |
-| `autoscaling_budget_plan` | Proposes new caps or a floor. It returns a plan and an approval link; the budget is not changed until an owner or admin approves the plan in the dashboard. | No, until a person approves |
+| `autoscaling_budget_get` | Reads the caps, usage and floor reserve of the workspace, or of one project. Optional `project_slug`; without it you get the workspace budget. Needs `projects:read`. | No |
+| `autoscaling_budget_plan` | Proposes new caps or a floor. It returns a plan and an approval link; the budget is not changed until an owner or admin approves the plan in the dashboard. Needs `projects:write` and an owner or admin. | No, until a person approves |
 
-An agent can never approve its own budget plan. Approval is dashboard-only, and a plan expires after 30 minutes.
+`autoscaling_budget_plan` takes these arguments:
+
+| Argument | Meaning |
+|----------|---------|
+| `project_slug` | Optional. A project of the connected workspace; omit it for the workspace budget. |
+| `caps` | Required. `{"hourly_nano_usd": n or null, "monthly_nano_usd": n or null}`. Both keys are required; `null` means no cap. |
+| `floor` | Project only. `{"replicas": 1-100, "cpu": "0.25"-"64", "ram": "0.5"-"256"}`. Leave it out to keep the floor the project has. |
+| `remove_floor` | Project only. `true` proposes removing the floor. Do not send it together with `floor`. |
+
+A project plan without `floor` keeps the floor of the budget revision the plan is made against, so a floor a person changed in the meantime is not reverted. A floor on the workspace budget is `INVALID_ARGUMENT`.
+
+An agent can never approve its own budget plan. Approval is dashboard-only, and a plan expires after 30 minutes. Proposing the same change again returns the same pending plan.
+
+With budgets on, `deploy_project` refuses a start that would break a cap (`BUDGET_CAP`) or the floor reserve (`INSUFFICIENT_BALANCE`). If the budget cannot be checked, nothing is started and the tool returns the retryable `UNAVAILABLE`; try again shortly. See [Errors](/api/errors#mcp-budget-codes).
 
 There is no generic API tool. The connector cannot read or change environment variables, domains, databases, billing or members.
 

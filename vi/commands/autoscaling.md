@@ -122,7 +122,8 @@ Với `--json`, lỗi dùng [envelope chuẩn](/vi/api/errors) và `code` của 
 | `PRECONDITION_FAILED` | Ngân sách đã đổi kể từ lúc đọc. Chạy `get` rồi thử lại. |
 | `NOT_FOUND` | Workspace hoặc project không tồn tại, hoặc ngân sách chưa được bật. Mã thoát `6`. |
 | `FORBIDDEN` | Vai trò hoặc scope quá thấp. Mã thoát `3`. |
-| `INVALID_ARGUMENT` | API từ chối một giá trị, ví dụ floor có chi phí cao hơn trần theo giờ của project. |
+| `INVALID_ARGUMENT` | API từ chối một giá trị, ví dụ floor có chi phí cao hơn trần theo giờ của project. Mã thoát `2`. |
+| `UNAVAILABLE` | API không hoàn tất được request (`503`). CLI thử lại với cùng body và `If-Match` trước khi báo lỗi, lỗi này có `retryable: true`. |
 | `BUDGET_CAP`, `INSUFFICIENT_BALANCE` | Do deploy, redeploy và các lệnh khác làm tăng mức phân bổ trả về. Xem [Mã lỗi](/vi/api/errors#BUDGET_CAP). `INSUFFICIENT_BALANCE` thoát với mã `9` và `next_actions` của nó dẫn tới trang nạp tiền. |
 
 ## Liên quan

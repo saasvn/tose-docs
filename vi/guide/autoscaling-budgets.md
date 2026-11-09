@@ -71,6 +71,7 @@ Cách một thay đổi có hiệu lực phụ thuộc vào credential:
 - **API key của workspace, hoặc agent qua MCP:** thay đổi **không** được áp dụng. API trả `202` kèm một **kế hoạch** (thay đổi gì, từ giá trị nào sang giá trị nào) và liên kết tới dashboard, rồi kế hoạch chờ một người.
 - Owner hoặc admin đã đăng nhập mở liên kết, kiểm tra kế hoạch, rồi duyệt hoặc từ chối. Việc duyệt chỉ làm được trên dashboard; API key hoặc OAuth token cố duyệt sẽ nhận `403 HUMAN_APPROVAL_REQUIRED`.
 - Kế hoạch có hiệu lực 30 phút. Nếu ngân sách đã thay đổi sau khi kế hoạch được tạo, việc duyệt thất bại với `PLAN_STALE` và agent phải tạo kế hoạch mới.
+- Dashboard gửi kèm hash của kế hoạch mà người dùng đã xem khi quyết định, nên kế hoạch đã đổi sau khi xem sẽ không bị duyệt nhầm (`PLAN_HASH_MISMATCH`). Nếu project đã lớn hơn kể từ khi tạo kế hoạch và floor của nó giờ có chi phí cao hơn trần theo giờ của kế hoạch, việc duyệt thất bại với `INVALID_ARGUMENT` (`422`).
 
 Nhờ vậy con người vẫn nắm quyền quyết định giới hạn chi tiêu, kể cả khi agent làm việc. Xem [API ngân sách](/vi/api/autoscaling-budget) để biết route và cấu trúc chính xác.
 

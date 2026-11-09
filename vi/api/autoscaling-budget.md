@@ -29,9 +29,14 @@
 | `POST` | `/api/workspaces/{slug}/autoscaling/budget/plans/{plan_id}/approve` | approve | `200` BudgetPlan, status `applied` |
 | `POST` | `/api/workspaces/{slug}/autoscaling/budget/plans/{plan_id}/reject` | approve | `200` BudgetPlan, status `rejected` |
 
+Không có route nào liệt kê kế hoạch. Hãy đọc các kế hoạch đang chờ ở `pending_plans` của ngân sách workspace, rồi lấy từng kế hoạch theo `id`.
+
+Mọi `PUT`, duyệt và từ chối đều từ chối request xác thực bằng cookie phiên từ một origin của trình duyệt khác dashboard (`403 CROSS_SITE_REQUEST`). API key và header `Authorization` không bị ảnh hưởng. Body của `PUT` phải đúng một object JSON, không có field lạ; bất kỳ dữ liệu nào phía sau là `400 INVALID_ARGUMENT`.
 ### Kiểm soát đồng thời lạc quan
 
-Mỗi ngân sách có một `revision`. `GET` trả nó dưới dạng weak ETag `W/"r{revision}"`. `PUT` nhận header `If-Match` tùy chọn với giá trị đó; nếu revision đã đổi, kết quả là `412 PRECONDITION_FAILED` và không có gì thay đổi. Gửi lại cùng một `PUT` với cùng `If-Match` là an toàn: nó áp dụng thay đổi tối đa một lần.
+Mỗi ngân sách có một `revision`. `GET` trả nó dưới dạng weak ETag `W/"r{revision}"`. `PUT` nhận header `If-Match` tùy chọn với giá trị đó; nếu revision đã đổi, kết quả là `412 PRECONDITION_FAILED` và không có gì thay đổi. Gửi lại cùng một `PUT` với cùng `If-Match` là an toàn: nó áp dụng thay đổi tối đa một lần. Giá trị không chỉ tới revision nào (ví dụ `W/"abc"`) không bao giờ khớp và cũng là `412`. Header rỗng hoặc `*` bỏ qua việc kiểm tra.
+
+Với API key hoặc OAuth token, `If-Match` được so sánh lúc tạo kế hoạch, dưới khóa ngân sách, nên giá trị cũ trả `412` trước khi có kế hoạch nào được lưu. Đề xuất lại cùng một thay đổi khi kế hoạch của nó đang chờ sẽ trả lại chính kế hoạch đó.
 
 ## Cấu trúc dữ liệu {#shapes}
 
@@ -174,8 +179,8 @@ Hãy đưa `approval_url` cho một người. Không thể duyệt kế hoạch 
   "scope": "workspace",
   "project_slug": null,
   "status": "pending",
-  "before": { "caps": { "hourly_nano_usd": null, "monthly_nano_usd": null } },
-  "after": { "caps": { "hourly_nano_usd": 50000000, "monthly_nano_usd": null } },
+  "before": { "caps": { "hourly_nano_usd": null, "monthly_nano_usd": null }, "floor": null },
+  "after": { "caps": { "hourly_nano_usd": 50000000, "monthly_nano_usd": null }, "floor": null },
   "base_revision": 3,
   "plan_hash": "sha256:9f2c...",
   "requested_via": "api_key",
@@ -185,15 +190,17 @@ Hãy đưa `approval_url` cho một người. Không thể duyệt kế hoạch 
 }
 ```
 
-`status` là `pending`, `applied`, `rejected` hoặc `expired`. `requested_via` là `api_key` hoặc `mcp`. Kế hoạch có hiệu lực 30 phút. Với kế hoạch của project, `before` và `after` còn chứa `floor`.
+`status` là `pending`, `applied`, `rejected` hoặc `expired`. `requested_via` là `api_key` hoặc `mcp`. Kế hoạch có hiệu lực 30 phút. `before` và `after` luôn chứa `caps` và `floor`; `floor` là `null` với kế hoạch của workspace.
 
-### Body khi duyệt
+### Body khi duyệt và từ chối
 
 ```json
 { "plan_hash": "sha256:9f2c..." }
 ```
 
-Duyệt sẽ áp dụng kế hoạch ngay, với điều kiện ngân sách vẫn ở `base_revision` và `plan_hash` khớp. `reject` không cần body.
+Cả `approve` và `reject` đều bắt buộc body này, với `plan_hash` của kế hoạch mà người dùng đã xem. Request phải có `Content-Type: application/json` (nếu không là `415 UNSUPPORTED_MEDIA_TYPE`) và chỉ chứa đúng một object; thiếu `plan_hash`, field lạ hoặc dữ liệu thừa phía sau là `400 INVALID_ARGUMENT`. Hash khác với kế hoạch là `409 PLAN_HASH_MISMATCH`.
+
+Duyệt sẽ áp dụng kế hoạch ngay, với điều kiện ngân sách vẫn ở `base_revision` và `plan_hash` khớp. Floor được kiểm tra lại: nếu project đã lớn hơn kể từ khi tạo kế hoạch và chi phí floor giờ cao hơn trần theo giờ của kế hoạch, việc duyệt trả `422 INVALID_ARGUMENT`. Từ chối không thay đổi ngân sách.
 
 ## Ví dụ
 
@@ -213,14 +220,16 @@ Các lỗi dùng [envelope lỗi](/vi/api/errors) chuẩn. Hãy rẽ nhánh theo
 
 | HTTP | `code` | Khi nào | `details` |
 |------|--------|---------|-----------|
-| 400 | `INVALID_ARGUMENT` | JSON sai cú pháp, thiếu key trong `caps`, giá trị ngoài khoảng cho phép, chuỗi floor sai, hoặc có floor ở phạm vi workspace | `{field}` |
-| 422 | `INVALID_ARGUMENT` | Chi phí theo giờ của floor cao hơn trần theo giờ của project | `{field: "floor"}` |
-| 412 | [`PRECONDITION_FAILED`](/vi/api/errors#PRECONDITION_FAILED) | `If-Match` không khớp revision hiện tại | |
+| 400 | `INVALID_ARGUMENT` | JSON sai cú pháp hoặc có dữ liệu thừa phía sau, field lạ, thiếu `caps` hoặc `plan_hash`, giá trị ngoài khoảng cho phép, chuỗi floor sai, hoặc có floor ở phạm vi workspace | `{field}` |
+| 422 | `INVALID_ARGUMENT` | Chi phí theo giờ của floor cao hơn trần theo giờ của project, khi `PUT` hoặc khi duyệt | `{field: "floor"}` |
+| 415 | `UNSUPPORTED_MEDIA_TYPE` | Duyệt hoặc từ chối không có `Content-Type: application/json` | |
+| 403 | [`CROSS_SITE_REQUEST`](/vi/api/errors#CROSS_SITE_REQUEST) | `PUT`, duyệt hoặc từ chối xác thực bằng cookie phiên từ origin khác | |
+| 412 | [`PRECONDITION_FAILED`](/vi/api/errors#PRECONDITION_FAILED) | `If-Match` không khớp revision hiện tại (với API key, lúc tạo kế hoạch) | |
 | 403 | `FORBIDDEN` | Vai trò hoặc scope quá thấp | |
 | 403 | [`HUMAN_APPROVAL_REQUIRED`](/vi/api/errors#HUMAN_APPROVAL_REQUIRED) | Gọi duyệt hoặc từ chối bằng API key hoặc OAuth token | |
 | 404 | `NOT_FOUND` | Không tồn tại, hoặc thuộc tenant khác | |
 | 409 | [`PLAN_STALE`](/vi/api/errors#PLAN_STALE) | Ngân sách đã đổi sau khi kế hoạch được tạo | `{base_revision, current_revision}` |
-| 409 | [`PLAN_HASH_MISMATCH`](/vi/api/errors#PLAN_HASH_MISMATCH) | `plan_hash` gửi lên không khớp với kế hoạch | |
+| 409 | [`PLAN_HASH_MISMATCH`](/vi/api/errors#PLAN_HASH_MISMATCH) | `plan_hash` gửi kèm khi duyệt hoặc từ chối không khớp với kế hoạch | |
 | 410 | [`PLAN_EXPIRED`](/vi/api/errors#PLAN_EXPIRED) | Kế hoạch đã quá `expires_at` | |
 | 409 | [`PLAN_CLOSED`](/vi/api/errors#PLAN_CLOSED) | Kế hoạch đã được áp dụng hoặc từ chối | `{status}` |
 

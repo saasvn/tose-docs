@@ -29,7 +29,8 @@ Both flows use the authorization code grant with PKCE (S256 only). Clients that 
 | `deployments:read` | Workspace, projects, deployment status and logs. This is the default when a client asks for no scope. | No |
 | `deployments:write` | Deploy and roll back. | Yes |
 | `workspace:read` | The workspace name and your role. Added to every narrower request. | No |
-| `projects:read` | `list_projects` | No |
+| `projects:read` | `list_projects`; with autoscaling budgets on, `autoscaling_budget_get` | No |
+| `projects:write` | With autoscaling budgets on and an owner or admin, `autoscaling_budget_plan`, which only stores a budget change as a plan for a person to approve in the dashboard | No |
 | `logs:read` | `read_logs` | No |
 | `deployments:execute` | `deploy_project` | Yes |
 | `deployments:rollback` | `rollback_deployment` | Yes |

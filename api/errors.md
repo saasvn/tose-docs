@@ -216,13 +216,21 @@ These come from the [autoscaling budget](/guide/autoscaling-budgets) routes and 
 
 `403`. Approving or rejecting a budget plan was tried with an API key or an OAuth token. Only a signed-in person can approve, in the dashboard. Give the `approval_url` of the plan to an owner or admin.
 
+### `CROSS_SITE_REQUEST` {#CROSS_SITE_REQUEST}
+
+`403`. A budget `PUT`, approve or reject was authenticated with the session cookie from a browser origin other than the dashboard, or from a page marked cross-site. Nothing changed. Make the change from the dashboard itself. API keys and `Authorization` headers are not checked.
+
+### `UNSUPPORTED_MEDIA_TYPE` {#UNSUPPORTED_MEDIA_TYPE}
+
+`415`. Approving or rejecting a budget plan needs `Content-Type: application/json` and a body of exactly one object, `{"plan_hash": "..."}`. Send the header and repeat the request. Trailing data after the object is `400 INVALID_ARGUMENT`.
+
 ### `PLAN_STALE` {#PLAN_STALE}
 
 `409`. The budget changed after the plan was made, so approving it could undo that change. `details` holds `base_revision` and `current_revision`. Make a new plan from the current budget.
 
 ### `PLAN_HASH_MISMATCH` {#PLAN_HASH_MISMATCH}
 
-`409`. The `plan_hash` sent with an approval does not match the plan. Nothing was applied. Read the plan again and send its own hash.
+`409`. The `plan_hash` sent with an approval or a rejection does not match the plan. Nothing was applied. Read the plan again and send its own hash.
 
 ### `PLAN_EXPIRED` {#PLAN_EXPIRED}
 
@@ -231,6 +239,10 @@ These come from the [autoscaling budget](/guide/autoscaling-budgets) routes and 
 ### `PLAN_CLOSED` {#PLAN_CLOSED}
 
 `409`. The plan was already applied or rejected. `details.status` says which. A closed plan cannot be reopened; make a new one if the change is still needed.
+
+### Budget codes from the MCP tools {#mcp-budget-codes}
+
+`deploy_project` and `deploy_image` check the budget like the REST routes and return `BUDGET_CAP` or `INSUFFICIENT_BALANCE`. If the budget cannot be checked (a database error), they start nothing and return [`UNAVAILABLE`](#UNAVAILABLE) with no HTTP status. It is retryable: try again shortly. `autoscaling_budget_get` and `autoscaling_budget_plan` return `INVALID_ARGUMENT` and `NOT_FOUND`.
 
 ## MCP tool errors
 

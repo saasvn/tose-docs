@@ -71,6 +71,7 @@ How a change takes effect depends on the credential:
 - **Workspace API key, or an agent over MCP:** the change does **not** apply. The API answers `202` with a **plan** (what changes, from and to) and a link to the dashboard, and the plan waits for a person.
 - A signed-in owner or admin opens the link, checks the plan, and approves or rejects it. Approval is dashboard-only; an API key or an OAuth token that tries gets `403 HUMAN_APPROVAL_REQUIRED`.
 - A plan lives 30 minutes. If the budget changed after the plan was made, approving it fails with `PLAN_STALE`, and the agent makes a new plan.
+- The dashboard sends the hash of the plan the person reviewed with the decision, so a plan that changed after review is not approved by mistake (`PLAN_HASH_MISMATCH`). If a project grew after the plan was made and its floor now costs more than the plan's hourly cap, approval fails with `INVALID_ARGUMENT` (`422`).
 
 This keeps a person in charge of spending limits even when an agent is doing the work. See the [budget API](/api/autoscaling-budget) for the exact routes and shapes.
 

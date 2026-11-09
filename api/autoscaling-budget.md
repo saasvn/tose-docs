@@ -29,9 +29,14 @@ Read and change the [autoscaling budget](/guide/autoscaling-budgets) of a worksp
 | `POST` | `/api/workspaces/{slug}/autoscaling/budget/plans/{plan_id}/approve` | approve | `200` BudgetPlan, status `applied` |
 | `POST` | `/api/workspaces/{slug}/autoscaling/budget/plans/{plan_id}/reject` | approve | `200` BudgetPlan, status `rejected` |
 
+There is no route that lists plans. Read the pending ones from `pending_plans` of the workspace budget, then fetch one by `id`.
+
+Every `PUT`, approve and reject also refuses a request that is authenticated with the session cookie from a browser origin other than the dashboard (`403 CROSS_SITE_REQUEST`). API keys and `Authorization` headers are not affected. A `PUT` body must be exactly one JSON object with no unknown fields; anything after it is `400 INVALID_ARGUMENT`.
 ### Optimistic concurrency
 
-Every budget has a `revision`. `GET` returns it as the weak ETag `W/"r{revision}"`. `PUT` accepts an optional `If-Match` with that value; if the revision has moved on, the answer is `412 PRECONDITION_FAILED` and nothing changes. Resending the same `PUT` with the same `If-Match` is safe: it can apply the change at most once.
+Every budget has a `revision`. `GET` returns it as the weak ETag `W/"r{revision}"`. `PUT` accepts an optional `If-Match` with that value; if the revision has moved on, the answer is `412 PRECONDITION_FAILED` and nothing changes. Resending the same `PUT` with the same `If-Match` is safe: it can apply the change at most once. A value that names no revision (for example `W/"abc"`) never matches and is also `412`. An empty header or `*` skips the check.
+
+With an API key or OAuth token the `If-Match` is compared when the plan is made, under the budget lock, so a stale value is `412` before any plan is stored. Proposing the same change again while its plan is pending returns that plan.
 
 ## Shapes
 
@@ -174,8 +179,8 @@ Give the `approval_url` to a person. The plan cannot be approved with an API key
   "scope": "workspace",
   "project_slug": null,
   "status": "pending",
-  "before": { "caps": { "hourly_nano_usd": null, "monthly_nano_usd": null } },
-  "after": { "caps": { "hourly_nano_usd": 50000000, "monthly_nano_usd": null } },
+  "before": { "caps": { "hourly_nano_usd": null, "monthly_nano_usd": null }, "floor": null },
+  "after": { "caps": { "hourly_nano_usd": 50000000, "monthly_nano_usd": null }, "floor": null },
   "base_revision": 3,
   "plan_hash": "sha256:9f2c...",
   "requested_via": "api_key",
@@ -185,15 +190,17 @@ Give the `approval_url` to a person. The plan cannot be approved with an API key
 }
 ```
 
-`status` is `pending`, `applied`, `rejected` or `expired`. `requested_via` is `api_key` or `mcp`. A plan lives 30 minutes. For a project plan, `before` and `after` also hold the `floor`.
+`status` is `pending`, `applied`, `rejected` or `expired`. `requested_via` is `api_key` or `mcp`. A plan lives 30 minutes. `before` and `after` always hold `caps` and `floor`; `floor` is `null` on a workspace plan.
 
-### Approve body
+### Approve and reject body
 
 ```json
 { "plan_hash": "sha256:9f2c..." }
 ```
 
-Approving applies the plan at once, provided the budget is still at `base_revision` and `plan_hash` matches. `reject` takes no body.
+`approve` and `reject` both require this body, with the `plan_hash` of the plan the person reviewed. The request must have `Content-Type: application/json` (otherwise `415 UNSUPPORTED_MEDIA_TYPE`) and carry exactly one object; a missing `plan_hash`, an unknown field or trailing data is `400 INVALID_ARGUMENT`. A hash that differs from the plan is `409 PLAN_HASH_MISMATCH`.
+
+Approving applies the plan at once, provided the budget is still at `base_revision` and `plan_hash` matches. The floor is checked again: if the project grew since the plan was made and its floor now costs more than the plan's hourly cap, the approval is `422 INVALID_ARGUMENT`. Rejecting leaves the budget unchanged.
 
 ## Example
 
@@ -213,14 +220,16 @@ These use the standard [error envelope](/api/errors). Branch on `code`.
 
 | HTTP | `code` | When | `details` |
 |------|--------|------|-----------|
-| 400 | `INVALID_ARGUMENT` | Malformed JSON, a missing `caps` key, a value out of range, a bad floor string, or a floor on workspace scope | `{field}` |
-| 422 | `INVALID_ARGUMENT` | The floor's hourly cost is above the project's hourly cap | `{field: "floor"}` |
-| 412 | [`PRECONDITION_FAILED`](/api/errors#PRECONDITION_FAILED) | `If-Match` does not match the current revision | |
+| 400 | `INVALID_ARGUMENT` | Malformed JSON or trailing data after it, an unknown field, a missing `caps` or `plan_hash`, a value out of range, a bad floor string, or a floor on workspace scope | `{field}` |
+| 422 | `INVALID_ARGUMENT` | The floor's hourly cost is above the project's hourly cap, on a `PUT` or on approve | `{field: "floor"}` |
+| 415 | `UNSUPPORTED_MEDIA_TYPE` | Approve or reject without `Content-Type: application/json` | |
+| 403 | [`CROSS_SITE_REQUEST`](/api/errors#CROSS_SITE_REQUEST) | A `PUT`, approve or reject authenticated with the session cookie from another origin | |
+| 412 | [`PRECONDITION_FAILED`](/api/errors#PRECONDITION_FAILED) | `If-Match` does not match the current revision (for an API key, when the plan is made) | |
 | 403 | `FORBIDDEN` | The role or scope is too low | |
 | 403 | [`HUMAN_APPROVAL_REQUIRED`](/api/errors#HUMAN_APPROVAL_REQUIRED) | Approve or reject was called with an API key or OAuth token | |
 | 404 | `NOT_FOUND` | Unknown, or belongs to another tenant | |
 | 409 | [`PLAN_STALE`](/api/errors#PLAN_STALE) | The budget changed after the plan was made | `{base_revision, current_revision}` |
-| 409 | [`PLAN_HASH_MISMATCH`](/api/errors#PLAN_HASH_MISMATCH) | The `plan_hash` sent does not match the plan | |
+| 409 | [`PLAN_HASH_MISMATCH`](/api/errors#PLAN_HASH_MISMATCH) | The `plan_hash` sent with approve or reject does not match the plan | |
 | 410 | [`PLAN_EXPIRED`](/api/errors#PLAN_EXPIRED) | The plan is past `expires_at` | |
 | 409 | [`PLAN_CLOSED`](/api/errors#PLAN_CLOSED) | The plan is already applied or rejected | `{status}` |
 

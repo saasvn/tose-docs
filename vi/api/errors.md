@@ -216,13 +216,21 @@ Các mã này đến từ các route của [ngân sách autoscaling](/vi/guide/a
 
 `403`. Có người cố duyệt hoặc từ chối kế hoạch ngân sách bằng API key hoặc OAuth token. Chỉ người đã đăng nhập mới duyệt được, trên dashboard. Hãy đưa `approval_url` của kế hoạch cho owner hoặc admin.
 
+### `CROSS_SITE_REQUEST` {#CROSS_SITE_REQUEST}
+
+`403`. `PUT` ngân sách, duyệt hoặc từ chối được xác thực bằng cookie phiên từ một origin của trình duyệt khác dashboard, hoặc từ một trang bị đánh dấu cross-site. Chưa có gì thay đổi. Hãy thực hiện thay đổi ngay trên dashboard. API key và header `Authorization` không bị kiểm tra.
+
+### `UNSUPPORTED_MEDIA_TYPE` {#UNSUPPORTED_MEDIA_TYPE}
+
+`415`. Duyệt hoặc từ chối kế hoạch ngân sách cần `Content-Type: application/json` và body gồm đúng một object, `{"plan_hash": "..."}`. Hãy gửi header đó rồi thử lại. Dữ liệu thừa phía sau object là `400 INVALID_ARGUMENT`.
+
 ### `PLAN_STALE` {#PLAN_STALE}
 
 `409`. Ngân sách đã đổi sau khi kế hoạch được tạo, nên duyệt nó có thể hoàn tác thay đổi đó. `details` chứa `base_revision` và `current_revision`. Hãy tạo kế hoạch mới từ ngân sách hiện tại.
 
 ### `PLAN_HASH_MISMATCH` {#PLAN_HASH_MISMATCH}
 
-`409`. `plan_hash` gửi kèm khi duyệt không khớp với kế hoạch. Chưa có gì được áp dụng. Hãy đọc lại kế hoạch và gửi đúng hash của nó.
+`409`. `plan_hash` gửi kèm khi duyệt hoặc từ chối không khớp với kế hoạch. Chưa có gì được áp dụng. Hãy đọc lại kế hoạch và gửi đúng hash của nó.
 
 ### `PLAN_EXPIRED` {#PLAN_EXPIRED}
 
@@ -231,6 +239,10 @@ Các mã này đến từ các route của [ngân sách autoscaling](/vi/guide/a
 ### `PLAN_CLOSED` {#PLAN_CLOSED}
 
 `409`. Kế hoạch đã được áp dụng hoặc đã bị từ chối. `details.status` cho biết trường hợp nào. Kế hoạch đã đóng không mở lại được; nếu vẫn cần thay đổi, hãy tạo kế hoạch mới.
+
+### Mã ngân sách từ tool MCP {#mcp-budget-codes}
+
+`deploy_project` và `deploy_image` kiểm tra ngân sách như các route REST và trả `BUDGET_CAP` hoặc `INSUFFICIENT_BALANCE`. Nếu không kiểm tra được ngân sách (lỗi cơ sở dữ liệu), chúng không khởi chạy gì và trả [`UNAVAILABLE`](#UNAVAILABLE) không kèm HTTP status. Mã này có thể thử lại: hãy thử lại sau ít phút. `autoscaling_budget_get` và `autoscaling_budget_plan` trả `INVALID_ARGUMENT` và `NOT_FOUND`.
 
 ## Lỗi của tool MCP
 

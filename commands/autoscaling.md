@@ -122,7 +122,8 @@ With `--json`, errors use the [standard envelope](/api/errors) and the API `code
 | `PRECONDITION_FAILED` | The budget changed since it was read. Run `get`, then retry. |
 | `NOT_FOUND` | The workspace or project does not exist, or budgets are not enabled. Exit code `6`. |
 | `FORBIDDEN` | The role or scope is too low. Exit code `3`. |
-| `INVALID_ARGUMENT` | The API refused a value, for example a floor that costs more than the project's hourly cap. |
+| `INVALID_ARGUMENT` | The API refused a value, for example a floor that costs more than the project's hourly cap. Exit code `2`. |
+| `UNAVAILABLE` | The API could not complete the request (`503`). The CLI retries it with the same body and `If-Match` before it reports the error, which has `retryable: true`. |
 | `BUDGET_CAP`, `INSUFFICIENT_BALANCE` | Returned by deploy, redeploy and other commands that raise an allocation. See [Errors](/api/errors#BUDGET_CAP). `INSUFFICIENT_BALANCE` exits `9` and its `next_actions` links to the top-up page. |
 
 ## Related
