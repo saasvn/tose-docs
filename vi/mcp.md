@@ -27,6 +27,17 @@ Muốn kết nối workspace khác thì thêm connector lần nữa và chọn w
 | `deploy_project` | Build và deploy commit đầu của branch đã kết nối, đúng commit hiển thị trong kế hoạch. | **Có**, cần phê duyệt |
 | `rollback_deployment` | Đưa image của một deployment cũ lên chạy lại. | **Có**, cần phê duyệt |
 
+### Tool ngân sách autoscaling
+
+Khi nền tảng bật [ngân sách autoscaling](/vi/guide/autoscaling-budgets), có thêm hai tool:
+
+| Tool | Chức năng | Có thay đổi gì không? |
+|------|-----------|-----------------------|
+| `autoscaling_budget_get` | Đọc các trần, mức sử dụng và quỹ dự phòng floor của workspace, hoặc của một project. | Không |
+| `autoscaling_budget_plan` | Đề xuất trần hoặc floor mới. Nó trả về một kế hoạch và liên kết duyệt; ngân sách không đổi cho đến khi owner hoặc admin duyệt kế hoạch trên dashboard. | Không, cho đến khi có người duyệt |
+
+Agent không bao giờ tự duyệt được kế hoạch ngân sách của mình. Việc duyệt chỉ làm được trên dashboard, và kế hoạch hết hạn sau 30 phút.
+
 Connector không có tool gọi API tùy ý. Nó không đọc hay sửa được biến môi trường, domain, database, thanh toán hay thành viên.
 
 ### Cơ chế phê duyệt

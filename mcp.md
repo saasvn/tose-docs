@@ -27,6 +27,17 @@ To connect another workspace, add the connector again and pick the other workspa
 | `deploy_project` | Builds and deploys the head commit of the project's connected branch, as shown in the plan. | **Yes**, needs approval |
 | `rollback_deployment` | Puts the image of an earlier deployment live again. | **Yes**, needs approval |
 
+### Autoscaling budget tools
+
+When the platform has [autoscaling budgets](/guide/autoscaling-budgets) turned on, two more tools are listed:
+
+| Tool | What it does | Changes anything? |
+|------|--------------|-------------------|
+| `autoscaling_budget_get` | Reads the caps, usage and floor reserve of the workspace, or of one project. | No |
+| `autoscaling_budget_plan` | Proposes new caps or a floor. It returns a plan and an approval link; the budget is not changed until an owner or admin approves the plan in the dashboard. | No, until a person approves |
+
+An agent can never approve its own budget plan. Approval is dashboard-only, and a plan expires after 30 minutes.
+
 There is no generic API tool. The connector cannot read or change environment variables, domains, databases, billing or members.
 
 ### How approval works

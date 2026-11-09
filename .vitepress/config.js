@@ -48,6 +48,7 @@ export default defineConfig({
               { text: 'tose desktop', link: '/commands/desktop' },
               { text: 'tose template', link: '/commands/template' },
               { text: 'tose disk / volumes / pricing', link: '/commands/disk' },
+              { text: 'tose autoscaling', link: '/commands/autoscaling' },
               { text: 'tose generate', link: '/commands/generate' }
             ]
           },
@@ -59,6 +60,7 @@ export default defineConfig({
               { text: 'Git Integration', link: '/guide/git' },
               { text: 'Dockerfile Examples', link: '/guide/dockerfile' },
               { text: 'Persistent Disks', link: '/guide/persistent-disks' },
+              { text: 'Autoscaling budgets', link: '/guide/autoscaling-budgets' },
               { text: 'Dewee Template Runbook', link: '/guide/dewee-template' },
               { text: 'Pricing', link: '/guide/pricing' },
               { text: 'Self-hosting', link: '/guide/self-hosting' },
@@ -110,7 +112,8 @@ export default defineConfig({
               { text: 'GitHub', link: '/api/github' },
               { text: 'Templates', link: '/api/templates' },
               { text: 'Template deploy and resume', link: '/api/template-deploy' },
-              { text: 'Disks, Volumes & Pricing', link: '/api/disks' }
+              { text: 'Disks, Volumes & Pricing', link: '/api/disks' },
+              { text: 'Autoscaling budget', link: '/api/autoscaling-budget' }
             ]
           }
         ]
@@ -156,6 +159,7 @@ export default defineConfig({
               { text: 'tose desktop', link: '/commands/desktop' },
               { text: 'tose template', link: '/vi/commands/template' },
               { text: 'tose disk / volumes / pricing', link: '/vi/commands/disk' },
+              { text: 'tose autoscaling', link: '/vi/commands/autoscaling' },
               { text: 'tose generate', link: '/vi/commands/generate' }
             ]
           },
@@ -167,6 +171,7 @@ export default defineConfig({
               { text: 'Tích hợp Git', link: '/vi/guide/git' },
               { text: 'Ví dụ Dockerfile', link: '/vi/guide/dockerfile' },
               { text: 'Ổ đĩa bền vững', link: '/vi/guide/persistent-disks' },
+              { text: 'Ngân sách autoscaling', link: '/vi/guide/autoscaling-budgets' },
               { text: 'Runbook template Dewee', link: '/vi/guide/dewee-template' },
               { text: 'Bảng giá', link: '/vi/guide/pricing' },
               { text: 'Tự host', link: '/vi/guide/self-hosting' },
@@ -216,7 +221,8 @@ export default defineConfig({
               { text: 'Template', link: '/vi/api/templates' },
               { text: 'Attribution khi đăng ký', link: '/vi/api/signup-attribution' },
               { text: 'Deploy và resume template', link: '/vi/api/template-deploy' },
-              { text: 'Ổ đĩa, Volume & Bảng giá', link: '/vi/api/disks' }
+              { text: 'Ổ đĩa, Volume & Bảng giá', link: '/vi/api/disks' },
+              { text: 'API ngân sách autoscaling', link: '/vi/api/autoscaling-budget' }
             ]
           }
         ],
