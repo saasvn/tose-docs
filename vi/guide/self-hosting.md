@@ -58,6 +58,36 @@ Theo mặc định, API thêm startup, readiness (`/health`) và liveness (`/liv
 API phục vụ spec OpenAPI tại `/api/openapi.yaml`, nên một instance tự host tự có tài liệu. Hãy sinh
 client theo base URL của bạn. Xem [Tài liệu REST API](/vi/api/reference).
 
+## Thumbnail của project
+
+Thumbnail của project là ảnh chụp trang https công khai của project, được chụp sau mỗi lần deploy. API không bao
+giờ chạy trình duyệt trong pod của chính nó. Mỗi lần chụp là một pod tồn tại ngắn cùng một NetworkPolicy trong
+namespace `tose-thumbnail` trên cluster của project, và cả hai bị xóa khi chụp xong.
+
+Những gì giới hạn pod chụp ảnh:
+
+- **Mạng.** Egress chỉ được phép tới địa chỉ mà API đã phân giải và ghim, dạng `<ip>/32` trên TCP 443. Không có
+  DNS, không có ingress, và không có đường tới dải mạng của cluster hay metadata endpoint.
+- **Danh tính.** Pod không có service-account token và không có Secret.
+- **Trình duyệt.** Sandbox của Chromium luôn bật và worker từ chối chạy bằng root.
+
+Để bật thumbnail cho API tự host:
+
+1. Áp dụng `deploy/thumbnail` từ [`saasvn/tose-app`](https://github.com/saasvn/tose-app) lên cluster. Thư mục này tạo namespace,
+   policy default-deny, quota và một Role. Gán Role đó cho danh tính trong kubeconfig của API.
+2. Publish image build từ `images/thumbnail-shot` và đặt `THUMBNAIL_IMAGE` cho API.
+3. Nếu seccomp profile mặc định của container runtime chặn user namespace (containerd chặn với pod không có
+   capability), hãy cài một profile cục bộ trên node cho phép chúng và đặt `THUMBNAIL_SECCOMP_PROFILE` là đường dẫn
+   của profile đó trong thư mục seccomp của kubelet.
+
+Nếu chưa đặt `THUMBNAIL_IMAGE`, việc chụp bị bỏ qua và ghi log với tiền tố `[screenshot]`. Deploy không bị ảnh hưởng.
+Nếu đã đặt image nhưng thiếu namespace hoặc Role, mỗi lần deploy ghi log các lần chụp thất bại và vẫn thành công.
+
+Cluster do workspace sở hữu hiện không có thumbnail.
+
+Chi tiết vận hành, gồm giới hạn của pod và cách kiểm tra policy, nằm trong `docs/operations.md` (mục "Project
+thumbnails") và `deploy/thumbnail/README.md` của `saasvn/tose-app`.
+
 ## Tài liệu liên quan
 
 - [Xác thực](/vi/api/authentication)
