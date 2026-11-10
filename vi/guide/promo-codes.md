@@ -8,7 +8,8 @@ Mã khuyến mãi giảm số tiền bạn trả khi nạp ví, hoặc cộng th
 |------|---------|--------------|
 | `percent` | Số tiền trừ đi một tỷ lệ phần trăm | **Toàn bộ** số tiền bạn chọn |
 | `fixed` | Số tiền trừ đi một khoản cố định bằng USD | **Toàn bộ** số tiền bạn chọn |
-| `bonus` | Toàn bộ số tiền | Toàn bộ số tiền, cộng thêm credit khuyến mãi |
+| `bonus` | Toàn bộ số tiền | Toàn bộ số tiền, cộng thêm một khoản credit khuyến mãi cố định |
+| `match_percent` | Toàn bộ số tiền | Toàn bộ số tiền, cộng thêm credit khuyến mãi bằng một tỷ lệ phần trăm của số đó, tối đa đến một mức trần |
 
 Giảm giá không làm giảm số credit ví nhận được (trừ một ngoại lệ, xem [Quy tắc](#rules)): nạp $50 với mã `percent` giảm 20% thì bạn trả $40 và nhận $50. Khoản thanh toán sau giảm không được thấp hơn mức tối thiểu của cổng thanh toán ($1.00 với Polar, 10,000 VND với SePay); mã nào đẩy khoản thanh toán xuống dưới mức này sẽ bị từ chối.
 
@@ -16,7 +17,7 @@ Giảm giá không làm giảm số credit ví nhận được (trừ một ngo�
 
 1. Mở trang **Billing** của workspace và chọn **Top up**.
 2. Chọn loại tiền (USD qua Polar, VND qua SePay) và số tiền.
-3. Gõ mã vào ô **Promo code (optional)** rồi chọn **Apply**. Trang hiện số tiền bạn sẽ trả. Với mã bonus, trang còn hiện số credit thưởng và số ngày có hiệu lực. Bước Apply chỉ xem trước, chưa giữ chỗ mã.
+3. Gõ mã vào ô **Promo code (optional)** rồi chọn **Apply**. Trang hiện số tiền bạn sẽ trả. Với mã bonus, trang còn hiện số credit thưởng và số ngày có hiệu lực. Với mã `match_percent`, trang hiện số tiền bạn nạp, phần thưởng thêm và tổng số ví nhận. Khi đã áp dụng mã, phần xem trước tự cập nhật theo khi bạn đổi số tiền hoặc loại tiền. Bước Apply chỉ xem trước, chưa giữ chỗ mã.
 4. Tiếp tục thanh toán. Mã được kiểm tra lại và giữ chỗ khi khoản thanh toán được tạo.
 
 Mã không phân biệt hoa thường. Mỗi khoản thanh toán dùng một mã.
@@ -42,6 +43,7 @@ Mã bị từ chối không làm thay đổi khoản thanh toán. Thông báo ch
 | `PROMO_EXHAUSTED` | Mã đã dùng hết lượt. |
 | `PROMO_USER_LIMIT` | Bạn đã dùng mã này rồi. |
 | `PROMO_CAMPAIGN_USED` | Bạn hoặc workspace này đã dùng một mã khác của cùng chương trình. |
+| `PROMO_CAMPAIGN_EXHAUSTED` | Chương trình đã hết suất. Xem [Giới hạn suất theo chiến dịch](#campaign-limits). |
 
 ## Quy tắc {#rules}
 
@@ -52,9 +54,25 @@ Mã bị từ chối không làm thay đổi khoản thanh toán. Thông báo ch
 - **Mã có thể bị từ chối khi thanh toán hoàn tất.** Các quy tắc được kiểm tra lại lúc hoàn tất. Nếu mã không còn hợp lệ (ví dụ một lần nạp khác đã hoàn tất trước với mã chỉ cho lần nạp đầu, hoặc một khoản bỏ dở được hoàn tất muộn), phần giảm giá bị bỏ và ví được cộng đúng số tiền bạn thực trả.
 - **Lần nạp đầu.** "Đầu" nghĩa là workspace chưa có lần nạp nào đã hoàn tất hoặc đã hoàn tiền trước đó. Workspace có lần nạp đầu đã được hoàn tiền không còn dùng được mã chỉ cho lần nạp đầu.
 
+## Mã thưởng theo tỷ lệ {#match-bonus}
+
+Mã `match_percent` tặng credit thưởng bằng một tỷ lệ phần trăm của số tiền bạn nạp, tối đa đến một mức trần. Với mã 100% và trần $100, nạp $60 nhận $60 thưởng (tổng $120), còn nạp $250 nhận $100 thưởng (tổng $350). Bạn trả đủ số tiền và ví được cộng đủ số tiền đó; chỉ phần thưởng phụ thuộc vào mã.
+
+- **Phần xem trước hiện cả ba con số**: số tiền bạn nạp, phần thưởng và tổng số ví nhận. Về mọi mặt khác, phần thưởng là [credit thưởng](#bonus-credit): được cộng sau khi thanh toán hoàn tất, có hạn dùng, được tiêu trước và bị thu hồi khi hoàn tiền toàn bộ.
+- **Nạp bằng VND.** Mức trần tính bằng USD, nên phần thưởng của lần nạp VND được tính theo tỷ giá tham chiếu trong ngày, để mức trần là cùng số đô la dù bạn trả bằng tiền nào. Tỷ giá tham chiếu chỉ dùng để tính phần thưởng. Số dư bạn nhận cho số VND đã trả vẫn dùng tỷ giá của ví. Khi nguồn tỷ giá gặp sự cố, TOSE dùng tỷ giá lấy được gần nhất, hoặc tỷ giá cố định của ví nếu chưa từng lấy được. Trang billing ghi nguồn tỷ giá khi hiện phần thưởng cho lần nạp VND.
+- **Phần thưởng chỉ được áp dụng khi đáp ứng điều kiện.** Nếu mã bị từ chối khi thanh toán hoàn tất, ví được cộng số tiền bạn đã trả và không có phần thưởng (xem bên dưới).
+
+## Giới hạn suất theo chiến dịch {#campaign-limits}
+
+Operator có thể giới hạn tổng số khoản thanh toán mà cả một chiến dịch được áp dụng, ví dụ "300 khách hàng đầu tiên". Suất được giữ theo thứ tự đến trước được trước, tính chung cho mọi mã của chiến dịch, và mã của chiến dịch đã hết suất bị từ chối với `PROMO_CAMPAIGN_EXHAUSTED`.
+
+- **Suất được giữ trong hai giờ.** Bắt đầu thanh toán với mã của chiến dịch sẽ giữ một suất trong lúc khoản thanh toán còn chờ. Nếu khoản thanh toán không hoàn tất trong hai giờ, suất được trả lại cho người thanh toán kế tiếp. Khoản thanh toán đã hoàn tất giữ suất của nó.
+- **Thanh toán đến muộn.** Nếu bạn thanh toán sau khi suất giữ đã hết hạn, khoản thanh toán vẫn được ghi nhận và ví được cộng số tiền bạn đã trả. Phần giảm giá hoặc phần thưởng chỉ được áp dụng nếu chiến dịch vẫn còn suất; nếu không, mã bị từ chối lúc hoàn tất và không có phần thưởng.
+- **Giới hạn có thể thay đổi.** Hạ giới hạn xuống dưới số suất đã dùng chỉ chặn các lượt dùng mới, không thu hồi phần thưởng đã tặng.
+
 ## Credit thưởng {#bonus-credit}
 
-Mã `bonus` cộng credit khuyến mãi vào ví **sau khi** thanh toán hoàn tất. Lịch sử ví hiện khoản này là giao dịch `promo_credit` kèm ngày hết hạn.
+Mã `bonus` hoặc `match_percent` cộng credit khuyến mãi vào ví **sau khi** thanh toán hoàn tất. Lịch sử ví hiện khoản này là giao dịch `promo_credit` kèm ngày hết hạn.
 
 - **Dùng trước.** Mọi khoản trừ ví đều tiêu credit khuyến mãi trước, rồi mới đến credit đã nạp; khoản (grant) sắp hết hạn nhất được dùng trước. Gồm phí compute và lưu trữ tính theo giờ, phí CI job và khoản lưu trữ tồn đọng được thu khi bạn nạp tiền. Referral reversal và `admin_adjust` âm cố ý không tiêu credit thưởng.
 - **Có hạn dùng.** Khi credit qua ngày hết hạn (`credit_valid_days` của mã, tính từ lúc thanh toán hoàn tất), phần còn lại bị thu hồi bằng giao dịch `promo_expired`. Phần đã dùng cho phí sử dụng thì giữ nguyên. Ví không bao giờ xuống dưới 0 vì việc này.
@@ -84,7 +102,7 @@ Trong đợt ra mắt AgentKit, mỗi khách hàng nhận một mã riêng dạn
 
 ## Dành cho nhà vận hành nền tảng {#for-operators}
 
-Nhà vận hành tạo và quản lý mã qua REST API của admin console hoặc qua các công cụ MCP chỉ admin nền tảng mới thấy. Xem [Vận hành mã giảm giá](/vi/api/promo-codes#admin).
+Nhà vận hành tạo và quản lý mã qua REST API của admin console hoặc qua các công cụ MCP chỉ admin nền tảng mới thấy. Họ có thể cấp mỗi địa chỉ email một mã, xuất mã của chiến dịch ra CSV, đặt giới hạn suất cho chiến dịch và theo dõi số suất đã dùng và còn lại. Xem [Vận hành mã giảm giá](/vi/api/promo-codes#admin).
 
 ## Liên quan {#related}
 
