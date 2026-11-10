@@ -10,16 +10,20 @@ An agent runs one task at a time. There is no queue.
 |-------------|------------|
 | The server offers tasks. | An operator sets `TEMPLATE_AGENT_TASKS_ENABLED=true`. It is **off by default**. While it is off, every task route answers `404 TASKS_DISABLED` and the dashboard hides the Tasks card. |
 | The agent's release has a task runner. | Use Claude Code 1.1.0, Codex 1.1.0 or Pi 1.2.0 (or newer). Older installations keep running unchanged and refuse tasks with `409 TASKS_UNSUPPORTED`. Curated upgrades in place are not available yet, so [deploy](/guide/deploy-coding-agent) the new release as a new installation and move your work over with git. |
-| The owner allowed it. | See [Turn it on](#turn-it-on). |
+| The owner allows it. | On by default for a new agent with a task runner; see [Turn it on or off](#turn-it-on). |
 | The agent is running and signed in. | A task never wakes a sleeping agent, never starts a stopped one and never uses another account or key. |
 | The wallet has a balance. | The task runs on the agent's compute. There is no extra charge; your provider bills model usage to your key or plan. |
 
-## Turn it on {#turn-it-on}
+## Turn it on or off {#turn-it-on}
 
-On the installed agent's page, a signed-in workspace **owner or admin** turns on the switch **Accept tasks from connected apps and API keys**. It is off for every installation until someone does this. An API key or connected app can never change it, whatever its scopes.
+The switch **Accept tasks from connected apps and API keys** on the installed agent's page says whether the agent accepts tasks.
 
-::: warning Read this before you turn it on
-A task can read and send back anything the agent can, including its sign-in (for example `~/.claude` or `$CODEX_HOME/auth.json`) or its key. A connected app or API key that holds `agents:execute` is therefore trusted as much as the owner or admin who granted it. Before it writes an event or a result, the agent replaces the credential values it knows with `[redacted]`, but this is best effort: it catches accidents, not a determined prompt. Turn the switch on only for clients you trust with the agent's sign-in.
+- It starts **on** for a new installation of a release with a task runner (Claude Code 1.1.0, Codex 1.1.0, Pi 1.2.0 or newer), since tose-app [#701](https://github.com/saasvn/tose-app/pull/701). A connected app or API key with `agents:execute` can then give the agent tasks from its first start.
+- It stays **off** for an installation that existed before, until an owner or admin turns it on. A release without a task runner cannot take tasks at all: turning the switch on is refused with `409 TASKS_UNSUPPORTED`.
+- Only a signed-in workspace **owner or admin** can turn it off or on (`PUT .../task-delegation` with `{"enabled": false}` or `true`). An API key or connected app can never change it, whatever its scopes. While it is off, tasks are refused with `403 TASKS_NOT_ALLOWED`.
+
+::: warning Read this before you keep it on
+A task can read and send back anything the agent can, including its sign-in (for example `~/.claude` or `$CODEX_HOME/auth.json`) or its key. A connected app or API key that holds `agents:execute` is therefore trusted as much as the owner or admin who granted it. Before it writes an event or a result, the agent replaces the credential values it knows with `[redacted]`, but this is best effort: it catches accidents, not a determined prompt. Keep the switch on only while you trust the connected clients with the agent's sign-in. If you do not, turn it off right after the deploy.
 :::
 
 Tasks run in every provider mode, including Claude Code with your Claude plan and Codex with your ChatGPT plan. A task uses whatever the agent is signed in with at that moment.
@@ -63,7 +67,7 @@ Routes under `/api/workspaces/{slug}/template-installations/{id}`. The contract 
 
 | Route | Scope | Purpose |
 |-------|-------|---------|
-| `PUT /task-delegation` with `{"enabled": true}` | none: a signed-in session only | The switch. Returns `{"task_delegation": true}`. |
+| `PUT /task-delegation` with `{"enabled": true}` or `false` | none: a signed-in session only | The switch. Returns `{"task_delegation": <the new value>}`. |
 | `POST /tasks` | `agents:execute` | Give a task: `prompt`, `timeout_minutes`, `continue_task_id` and an optional `Idempotency-Key` header. Answers `201`, or `200` when the key names an earlier task. |
 | `GET /tasks` | `agents:read` | List tasks, newest first (`?limit=`, default 20, at most 100), without events. |
 | `GET /tasks/{task_id}?after=&wait_seconds=` | `agents:read` | Read one task with its events. `after` is the cursor, and `wait_seconds` (0 to 25) waits for a change. |
@@ -105,7 +109,7 @@ A refusal always has its own code, never a quiet fallback.
 |------|------|
 | `404 TASKS_DISABLED` | The server flag is off. |
 | `409 TASKS_UNSUPPORTED` | The release has no task runner. Install a newer release. |
-| `403 TASKS_NOT_ALLOWED` | The owner has not turned the switch on. |
+| `403 TASKS_NOT_ALLOWED` | The switch is off: an owner or admin turned it off, or the installation is older than the default and nobody turned it on. |
 | `409 AGENT_BUSY` | Another task of this agent is `starting` or `running`. |
 | `409 AGENT_SLEEPING` | The agent sleeps. Wake it on its page or with the wake route; a task never does. |
 | `409 AGENT_STOPPED` | The agent is stopped. A task never starts it. |

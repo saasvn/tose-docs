@@ -164,7 +164,7 @@ The curated Pi, Claude Code and Codex templates are released: Codex 1.0.0, Claud
 | `POST /api/workspaces/{slug}/template-installations` with an `Idempotency-Key` | `admin` or `owner`, signed in or key | `deployments:execute` and `projects:write`, plus `env:write` with `secrets` |
 | `POST /api/workspaces/{slug}/template-installations/{installation_id}/console-sessions` | `admin` or `owner`, **signed in only** | none: API keys and connected apps are refused |
 
-The list returns the inputs of the guided form (provider and key name, `AGENT_MODEL`, allowed cores and GiB, `network_mode`, the optional `max_hourly_cost_cents`), `hidden`, `releases`, the runtime port and storage, and the blockers that do not depend on the workspace. It never holds a secret value. A template held back with `hidden` is listed only with `include_hidden=true`; a read by key returns it. An unknown key is `404 CURATED_TEMPLATE_NOT_FOUND`.
+The list returns the inputs of the guided form (provider and key name, `AGENT_MODEL`, allowed cores and GiB, `workspace_disk_gib`, `network_mode`, the optional `max_hourly_cost_cents`), `hidden`, `releases`, the runtime port and storage, and the blockers that do not depend on the workspace. It never holds a secret value. A template held back with `hidden` is listed only with `include_hidden=true`; a read by key returns it. An unknown key is `404 CURATED_TEMPLATE_NOT_FOUND`.
 
 Plan request (send `curated_template` or `definition_slug`, not both):
 
@@ -175,20 +175,38 @@ Plan request (send `curated_template` or `definition_slug`, not both):
   "cpu_cores": 2,
   "memory_gib": 4,
   "network_mode": "approved",
+  "workspace_disk_gib": 10,
   "variables": {"AGENT_MODEL": "claude-sonnet-4-5"}
 }
 ```
+
+- `workspace_disk_gib` is the size in GiB of the agent's `/workspace` volume: one of `inputs.workspace_disk_gib.allowed` in the list (5, the default, 10, 20 or 50). `inputs.workspace_disk_gib` also has `default` and `monthly_usd`, the monthly storage price of each size in the order of `allowed`. Any other value is `422 PLAN_INPUT_INVALID` at `workspace_disk_gib`. `/home/agent` stays 1 GiB. The plan pins the size in `curated.storage.workspace_disk_gib`, which is part of the plan hash, and prices the whole disk in the cost ceiling. The size is fixed at install: an upgrade or rollback plan that sends it is refused. Storage is billed while the disk exists, also while the agent is stopped.
+- `repository` pins one GitHub repository (owners and admins only); see [GitHub repository](/guide/agent-repository-checkout). Add `"push": true` to let the agent push to it through the TOSE git proxy, and `push_branches`: `all` (the default: any branch, including the default branch) or `agent` (only `tose/<installation slug>/...`). `push` defaults to `false`; `push_branches` without `push` is `422` at `repository.push_branches`. A plan with push needs the GitHub App permission `contents: write` (otherwise blocker `GITHUB_PERMISSION_MISSING`) and a server whose git proxy has a public https address (otherwise `503 GIT_PROXY_NOT_CONFIGURED`). See [Let the agent push](/guide/agent-repository-checkout#let-the-agent-push-to-your-repository).
 
 - `max_hourly_cost_cents` is **optional** (it was required until 2026-11-09, tose-app [#571](https://github.com/saasvn/tose-app/pull/571)). The plan always shows its cost ceiling for approval; when you set the limit, a plan whose ceiling is higher is blocked with `COST_CEILING_EXCEEDED`. The dashboard does not ask for it. An empty wallet blocks the plan with `INSUFFICIENT_BALANCE`.
 - `network_mode` is `approved` (the default), `development` or `internet`. The list describes `development` in its own `development` object, with the toolchain hosts of the server's reviewed policy; a client offers it when that object is present.
 - A provider key in `variables` is `422 PLAN_INPUT_INVALID` with an `errors[]` entry `SECRET_VALUE_IN_PLAN` at `variables.<KEY>`; the response does not echo it, and it is never stored in the plan.
 - Unknown fields such as a startup command, a hook or `privileged` are `400`.
-- The plan has an extra hashed `curated` section: the release, the provider, `auth: byok`, the network mode with its destinations, the setup kind and `human_control` (who may act and the stop, key removal and delete routes). The agent holds no TOSE API credential.
+- The plan has an extra hashed `curated` section: the release, the provider, `auth: byok`, the network mode with its destinations, the setup kind, `storage` (`workspace_disk_gib`, absent for a template whose volumes have a fixed size), `human_control` (who may act and the stop, key removal and delete routes) and, with a repository, `repository`. With push, `curated.repository` adds `push: true`, `push_branches`, `push_branch_pattern` (`*` or `tose/<installation slug>/*`) and `push_remote` (the git proxy URL, without a credential); `access` stays `contents:read`, the clone token's permission. The agent holds no TOSE API credential for the workspace and no GitHub token; with push it holds only its checkout's git proxy secret ([below](#git-proxy)).
 - Approving a plan with blockers returns `PLAN_BLOCKED` (`409`, or `402` when the wallet is empty) and creates nothing; a connected MCP app gets `403 APPROVAL_REQUIRES_PERSON`.
 - A curated plan resolves its release to a published registry version (`template.version_id`) and checks that the stored manifest is exactly the release's. When the release cannot be installed from the registry (not published, stored with another manifest, or the `tose-curated` publisher suspended) the plan carries `CURATED_INSTALL_UNAVAILABLE`; a revoked version carries `VERSION_REVOKED`.
 - Plan sign-ins follow the server flag `CURATED_SUBSCRIPTION_LOGIN_ENABLED`, which the product owner allowed in production on 2026-11-09. Where the server enables it, the Codex provider `chatgpt` (`CODEX_PROVIDER=chatgpt`) is offered and the Claude Code installed-app page offers **Connect Claude**. Where it is off, `chatgpt` is `available: false` with the reason and a plan that picks it is blocked with `SUBSCRIPTION_LOGIN_DISABLED`, so read the listing rather than assume. `CODEX_PROVIDER=openai` or `CLAUDE_PROVIDER=anthropic` with an API key never depends on the flag. See [Provider sign-in](/guide/template-registry#provider-sign-in).
 - With the flag on, the `provider-account` routes (Codex device code) and the `claude-provider-account` routes (Claude paste code) under an installation are served to signed-in owners and admins of the workspace; with it off they answer `404`. The Claude `login/code` route takes Anthropic's one-time sign-in code once and never stores or returns it. No other API accepts a provider token, cookie, login file or code, so do not build integrations that collect one. Turning the flag off needs an API restart, closes both sign-ins together and does not revoke existing provider sessions. The contract is the [OpenAPI](https://github.com/saasvn/tose-app/blob/17a6559f286d3b3c20195a8af85474d18225b490/internal/apispec/openapi.yaml) and the [decision record](https://github.com/saasvn/tose-app/blob/17a6559f286d3b3c20195a8af85474d18225b490/docs/agent-provider-auth-gate.md). Native terminal sign-in (`CLAUDE_PROVIDER=claude` with `/login` in the console) is separate from the flag.
 - Installing an approved plan is the normal `POST /template-installations` with an `Idempotency-Key`. The provider key goes only in `secrets`, is stored encrypted and is never returned. Upgrading a curated installation in place is `409 CURATED_UPGRADE_UNAVAILABLE`.
+- The installation view reports the checkout as `repository`, with `push` and `push_branches` when the agent may push. Push cannot be changed after install; plan the agent again to change it.
+- Task delegation (`task_delegation` in the installation view) starts `true` for a new installation of a release with a task runner, and `false` for an older installation or a release without one. Only a signed-in owner or admin changes it with `PUT .../template-installations/{installation_id}/task-delegation` and `{"enabled": false}` or `true`. See [Delegate tasks](/guide/agent-tasks#turn-it-on).
+
+### Git proxy
+
+An agent allowed to push reaches GitHub only through these routes. They are not workspace routes: no session, API key or connected app is accepted, only the agent's own git with its checkout secret (HTTP Basic, user `x-tose`, password `TOSE_GIT_TOKEN`).
+
+| Route | What it does |
+|-------|--------------|
+| `GET /api/git/{checkout_id}/info/refs?service=git-upload-pack` or `git-receive-pack` | Ref advertisement. |
+| `POST /api/git/{checkout_id}/git-upload-pack` | Fetch, forwarded with a `contents:read` token for the one repository. Body at most 64 MiB. |
+| `POST /api/git/{checkout_id}/git-receive-pack` | Push, forwarded with a `contents:write` token for the one repository. At most 1 GiB, also after gzip decompression. Audited as `template_installation.git_push`. |
+
+A missing or wrong secret is `401`, a request outside git's smart protocol `403 GIT_REQUEST_INVALID` (`400` for a malformed push), too large `413 GIT_REQUEST_TOO_LARGE`, too many (more than 4 at once or 60 a minute per checkout) `429 GIT_RATE_LIMITED` with `Retry-After`, and a server without a public proxy address `503 GIT_PROXY_NOT_CONFIGURED`. Other refusals reach git as `remote error` with a code; see [When git refuses](/guide/agent-repository-checkout#when-git-refuses).
 
 ### Open the console
 

@@ -17,9 +17,9 @@ Các phiên bản đã phát hành là **Codex 1.0.0**, **Claude Code 1.0.0**, c
 2. Chọn một agent rồi chọn **Triển khai**. Agent được triển khai trên một trang duy nhất, **Triển khai** kèm tên agent, gồm các thẻ sau:
    - **Ứng dụng**: **Tên ứng dụng**.
    - **Đăng nhập**: nhà cung cấp (xem [Chọn nhà cung cấp](#chon-nha-cung-cap)). Nếu dùng API key, hãy nhập key ngay tại đây. Key được mã hóa, chỉ gửi đi cùng lần triển khai, không hiển thị lại và không nằm trong kế hoạch. Đăng nhập bằng gói không cần key: bạn đăng nhập sau khi triển khai.
-   - **Cấu hình**: **Số nhân CPU** và **Bộ nhớ (GiB)** trong danh sách có sẵn, cùng **Tự động ngủ khi không hoạt động** (mặc định **Tắt**).
+   - **Cấu hình**: **Số nhân CPU** và **Bộ nhớ (GiB)** trong danh sách có sẵn, **Ổ đĩa workspace** (dung lượng của `/workspace`: mặc định **5 GiB**, hoặc 10, 20 hay 50 GiB, mỗi mức kèm giá mỗi tháng), cùng **Tự động ngủ khi không hoạt động** (mặc định **Tắt**). Dung lượng ổ đĩa cố định sau khi cài agent.
    - **Truy cập mạng**: **Chỉ nhà cung cấp mô hình** (mặc định: chỉ host của nhà cung cấp), **Phát triển (giới hạn)** (nhà cung cấp cùng các host mã nguồn và gói đã được duyệt cho những công cụ có trong image của agent) hoặc **Internet công khai không giới hạn** (mọi host công khai, rủi ro cao hơn). Thẻ này cho thấy agent kết nối được tới đâu trong từng chế độ.
-   - **Kho mã (không bắt buộc)**: một kho GitHub của workspace, được tải vào `/workspace` khi agent khởi động lần đầu. Bỏ qua mục này để bắt đầu với workspace trống.
+   - **Kho mã (không bắt buộc)**: một kho GitHub của workspace, được tải vào `/workspace` khi agent khởi động lần đầu. Bỏ qua mục này để bắt đầu với workspace trống. Bật **Cho phép agent push lên kho mã này** để agent push commit ngược lên kho ([cách push hoạt động](/vi/guide/agent-repository-checkout#cho-agent-push-len-kho-ma)); mặc định tắt.
    - **Nâng cao: phiên bản, model và biến môi trường**: **Bản phát hành** (mặc định là bản mới nhất, với Pi là 1.1.0), **Mô hình** tùy chọn (để trống thì dùng model mặc định của agent) và **Biến môi trường** của riêng bạn.
 3. Xem kế hoạch bên cạnh nút **Triển khai**. Khi bạn thay đổi các ô nhập, trang tự lập kế hoạch và hiển thị mức trần chi phí (số tiền tối đa agent có thể tốn mỗi giờ), số giờ ví còn đủ, cùng các điều chặn và cảnh báo nếu có. Sửa các ô được đánh dấu để xem chi phí.
 4. Chọn **Triển khai**. Nút này duyệt đúng kế hoạch đang hiển thị, cài đặt và theo dõi tiến trình: duyệt kế hoạch, cài đặt, khởi động agent, cho tới khi **Agent đang chạy**. Thành viên không có quyền duyệt sẽ nhận một liên kết tới kế hoạch để gửi cho owner hoặc admin.
@@ -76,12 +76,13 @@ Codex nhận token trực tiếp từ OpenAI và giữ chúng trên ổ đĩa c�
 
 ## Giao tác vụ
 
-Ứng dụng được kết nối hoặc API key có thể giao tác vụ cho agent và đọc kết quả, sau khi owner hoặc admin bật **Accept tasks from connected apps and API keys** trên trang của agent. Xem [Giao tác vụ cho coding agent](/vi/guide/agent-tasks), gồm cả cảnh báo về thông tin đăng nhập của agent.
+Ứng dụng được kết nối hoặc API key có `agents:execute` có thể giao tác vụ cho agent và đọc kết quả. Với agent mới có trình chạy tác vụ, **Nhận tác vụ từ ứng dụng đã kết nối và khóa API** **mặc định bật**; owner hoặc admin có thể tắt bất cứ lúc nào trên trang của agent. Xem [Giao tác vụ cho coding agent](/vi/guide/agent-tasks), gồm cả cảnh báo về thông tin đăng nhập của agent.
 
 ## Chi phí và quyền kiểm soát
 
-- Tính toán được tính phí khi agent chạy; lưu trữ (ổ `/workspace` 5 GiB và `/home/agent` 1 GiB) được tính phí khi ổ đĩa còn tồn tại, kể cả lúc agent đã dừng.
-- Owner hoặc admin nào cũng có thể dừng hoặc xóa agent bất cứ lúc nào. Agent không giữ thông tin xác thực TOSE nên không thể tự thay đổi.
+- Tính toán được tính phí khi agent chạy; lưu trữ (dung lượng `/workspace` bạn chọn, mặc định 5 GiB, cộng 1 GiB cho `/home/agent`) được tính phí khi ổ đĩa còn tồn tại, kể cả lúc agent đã dừng. Plan tính giá cả ổ đĩa vào mức trần chi phí.
+- Ổ đĩa giữ công việc của bạn qua các lần khởi động lại, ngủ và deploy lại. Dung lượng cố định khi cài, nên hãy chọn đủ chỗ cho kho mã và kết quả build.
+- Owner hoặc admin nào cũng có thể dừng hoặc xóa agent bất cứ lúc nào. Agent không giữ thông tin xác thực API TOSE nào cho workspace (khi có push, chỉ có bí mật git proxy cho đúng một kho mã) nên không thể tự thay đổi.
 - Với API key, hãy đặt thêm giới hạn chi tiêu ở nhà cung cấp.
 
 Liên quan: [Bảng giá](/vi/guide/pricing), [Bắt đầu](/vi/guide/getting-started).
