@@ -43,6 +43,7 @@ These options are available on **all** commands:
 | [`tose down`](/commands/down) | Stop current deployment |
 | [`tose restart`](/commands/down#tose-restart) | Restart pods without redeploying |
 | [`tose deployment rollback`](/commands/deployment#tose-deployment-rollback) | Roll back to an earlier deployment (needs `--yes`) |
+| [`tose runbook`](/commands/runbook) | Plan, review and run a restart or rollback that a person approves in the browser |
 
 ### Monitoring
 
@@ -104,6 +105,15 @@ production yet.
 | [`tose volumes list`](/commands/disk#tose-volumes-list) | List all disks in the workspace |
 | [`tose volumes resize`](/commands/disk#tose-volumes-resize) | Grow any disk by volume ID |
 | [`tose pricing`](/commands/disk#tose-pricing) | Show compute and storage rates |
+
+### Autoscaling budgets
+
+| Command | Description |
+|---------|-------------|
+| [`tose autoscaling budget get`](/commands/autoscaling#tose-autoscaling-budget-get) | Show spend caps, usage and pending approvals |
+| [`tose autoscaling budget set`](/commands/autoscaling#tose-autoscaling-budget-set) | Propose caps and a project floor; a person approves the plan in the dashboard |
+
+Budgets work only where the platform operator has turned them on.
 
 ### Agent Skills
 
