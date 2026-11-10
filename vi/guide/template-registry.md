@@ -178,7 +178,7 @@ Thêm bản phát hành là một thay đổi được rà soát trong định n
 
 ### Triển khai từ dashboard {#deploy-from-the-dashboard}
 
-Mở **Mẫu** ở thanh bên của workspace, rồi **Triển khai**. Agent tuyển chọn được liệt kê đầu tiên, ở mục **Mẫu agent do TOSE tuyển chọn**. Chọn **Triển khai** ở Codex, Pi hoặc Claude Code: agent được triển khai trên **một trang** (tose-app [#598](https://github.com/saasvn/tose-app/pull/598)) gồm các thẻ sau:
+Mở **Kho mẫu** ở thanh bên của workspace (nhóm **Ứng dụng & agent**). Agent tuyển chọn được liệt kê đầu tiên, ở mục **Mẫu agent do TOSE tuyển chọn**. Chọn **Triển khai** ở Codex, Pi hoặc Claude Code: agent được triển khai trên **một trang** (tose-app [#598](https://github.com/saasvn/tose-app/pull/598)) gồm các thẻ sau:
 
 - **Ứng dụng**: tên ứng dụng.
 - **Đăng nhập**: nhà cung cấp (với Pi là một trong các nhà cung cấp của Pi) và, khi cần, khóa API của bạn ngay tại đó. Đăng nhập bằng gói (gói ChatGPT hoặc gói Claude) không cần khóa và được thực hiện sau khi triển khai.
