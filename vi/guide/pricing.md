@@ -117,7 +117,7 @@ Thao tác tương tự có ở `POST /api/workspaces/{slug}/templates/{template_
 
 ## Mã khuyến mãi {#promo-codes}
 
-Mã khuyến mãi giảm số tiền nạp ví hoặc cộng credit thưởng. Credit thưởng chưa dùng được trừ trước và bị loại khỏi số dư quyết định mức giá compute của bạn. Xem [Mã khuyến mãi và credit thưởng](/vi/guide/promo-codes).
+Mã khuyến mãi giảm số tiền nạp ví hoặc cộng credit thưởng. Credit thưởng được trừ trước. Xem [Mã khuyến mãi và credit thưởng](/vi/guide/promo-codes).
 
 ## Liên quan {#related}
 

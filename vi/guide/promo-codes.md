@@ -46,7 +46,7 @@ Mã bị từ chối không làm thay đổi khoản thanh toán. Thông báo ch
 ## Quy tắc {#rules}
 
 - **Giới hạn.** Mã có thể có mức tối thiểu, quy tắc chỉ cho lần nạp đầu, ngày bắt đầu và ngày hết hạn, tổng số lượt dùng và số lượt dùng cho mỗi người. Các mã thuộc cùng một **chiến dịch** (campaign) chỉ được dùng một lần cho mỗi người và một lần cho mỗi workspace, tính chung.
-- **Một mã cho mỗi khoản thanh toán, không cộng dồn.** Khoản thanh toán dùng mã không tạo [hoa hồng giới thiệu](/vi/guide/referral). Nếu mã bị từ chối khi thanh toán hoàn tất (xem bên dưới), khoản đó vẫn tạo hoa hồng như bình thường.
+- **Một mã cho mỗi khoản thanh toán, không cộng dồn.** Khoản thanh toán dùng mã không nhận thưởng nạp tiền và không tạo [hoa hồng giới thiệu](/vi/guide/referral). Nếu mã bị từ chối khi thanh toán hoàn tất (xem bên dưới), khoản đó vẫn tạo hoa hồng như bình thường.
 - **Mặc định chỉ áp dụng cho nạp ví.** Mã chỉ áp dụng cho việc mở khóa template (Dewee, GoClaw) khi nhà vận hành cho phép. Credit thưởng không bao giờ áp dụng cho việc mở khóa template.
 - **Thanh toán bỏ dở.** Nếu bạn bắt đầu thanh toán với một mã nhưng không hoàn tất, khoản thanh toán tiếp theo dùng cùng mã (hoặc mã cùng chiến dịch) sẽ thay thế khoản cũ. Thanh toán bỏ dở của chính bạn không khóa mã dùng một lần đối với bạn. Thanh toán chưa hoàn tất của người khác dùng cùng mã, kể cả đồng đội trong workspace với mã của một chiến dịch, vẫn tính vào giới hạn của mã cho đến khi hoàn tất hoặc bị thay thế.
 - **Mã có thể bị từ chối khi thanh toán hoàn tất.** Các quy tắc được kiểm tra lại lúc hoàn tất. Nếu mã không còn hợp lệ (ví dụ một lần nạp khác đã hoàn tất trước với mã chỉ cho lần nạp đầu, hoặc một khoản bỏ dở được hoàn tất muộn), phần giảm giá bị bỏ và ví được cộng đúng số tiền bạn thực trả.
@@ -57,7 +57,6 @@ Mã bị từ chối không làm thay đổi khoản thanh toán. Thông báo ch
 Mã `bonus` cộng credit khuyến mãi vào ví **sau khi** thanh toán hoàn tất. Lịch sử ví hiện khoản này là giao dịch `promo_credit` kèm ngày hết hạn.
 
 - **Dùng trước.** Phí sử dụng compute và lưu trữ tính theo giờ được trừ vào credit khuyến mãi trước, rồi mới đến credit đã nạp, khoản sắp hết hạn trước được dùng trước.
-- **Không tính vào bậc giá.** Credit thưởng chưa dùng bị loại khỏi số dư quyết định [giá compute](/vi/guide/pricing#compute) của bạn, nên không thể đưa bạn sang bậc giá rẻ hơn.
 - **Có hạn dùng.** Khi credit qua ngày hết hạn (`credit_valid_days` của mã, tính từ lúc thanh toán hoàn tất), phần còn lại bị thu hồi bằng giao dịch `promo_expired`. Phần đã dùng cho phí sử dụng theo giờ thì giữ nguyên. Ví không bao giờ xuống dưới 0 vì việc này.
 - **Hoàn tiền.** Hoàn tiền toàn bộ khoản thanh toán sẽ giải phóng mã và thu hồi credit thưởng chưa dùng (giao dịch `promo_revoked`). Hoàn tiền một phần giữ nguyên mã và credit.
 - **Không phải tiền mặt.** Credit thưởng chỉ dùng để trả phí sử dụng TOSE và không thể rút.

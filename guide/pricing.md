@@ -115,7 +115,7 @@ The same action is available as `POST /api/workspaces/{slug}/templates/{template
 
 ## Promo codes
 
-A promo code lowers a wallet top-up or adds bonus credit. Unspent bonus credit is spent first and is left out of the balance that picks your compute rate. See [Promo codes and bonus credit](/guide/promo-codes).
+A promo code lowers a wallet top-up or adds bonus credit. Bonus credit is spent first. See [Promo codes and bonus credit](/guide/promo-codes).
 
 ## Related
 
