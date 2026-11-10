@@ -1,6 +1,6 @@
 # Tương thích client
 
-Connector hoạt động với mọi client hỗ trợ MCP từ xa qua Streamable HTTP và OAuth, vì nó không phụ thuộc vào tính năng tùy chọn nào bên dưới. Bảng đầy đủ, được duy trì thường xuyên, là [`docs/mcp-client-matrix.md`](https://github.com/saasvn/tose-app/blob/master/docs/mcp-client-matrix.md) trong tose-app.
+Thêm server URL hosted `https://app.tose.sh/mcp` vào client; instance tự vận hành dùng origin riêng. Connector hoạt động với mọi client hỗ trợ MCP từ xa qua Streamable HTTP và OAuth, vì nó không phụ thuộc vào tính năng tùy chọn nào bên dưới. Bảng đầy đủ, được duy trì thường xuyên, là [`docs/mcp-client-matrix.md`](https://github.com/saasvn/tose-app/blob/master/docs/mcp-client-matrix.md) trong tose-app.
 
 ## Đã kiểm chứng với client thật
 

@@ -63,13 +63,32 @@ Phản hồi trạng thái có đối tượng `resources` chứa giới hạn C
 POST /api/workspaces/{slug}/projects/{project_slug}/restart
 ```
 
-Kích hoạt rolling restart của deployment đang chạy mà không build image mới. Lệnh trả về khi yêu cầu restart được ghi nhận, không phải khi pod mới sẵn sàng; hãy poll trạng thái dự án để biết khi nào chạy lại.
+Restart deployment đang chạy mà không build image mới. Restart là một runbook khôi phục (`restart`): TOSE lập kế hoạch, ghi nhận phê duyệt rồi chạy. Người gọi phải là owner hoặc admin của workspace; API key còn cần scope `deployments:execute`.
+
+**Đã đăng nhập (phiên dashboard).** Lệnh gọi của bạn chính là sự phê duyệt, nên TOSE lập kế hoạch, phê duyệt và chạy restart ngay, rồi trả `200`:
 
 ```json
-{ "success": true, "message": "Project restarting", "restarted_pods": 1 }
+{ "success": true, "message": "Project restarting", "restarted_pods": 1, "runbook": { "id": "...", "status": "executed", "execution": { "status": "started" } } }
 ```
 
-`restarted_pods` là số replica của deployment đã restart. Dự án chưa được gán server trả `400`, dự án chưa từng deploy trả `404`.
+`restarted_pods` là số replica theo kế hoạch. `runbook` là kế hoạch kèm lần chạy. Lệnh trả về khi restart đã bắt đầu, không phải khi pod mới sẵn sàng; đọc lại kế hoạch bằng `GET .../runbooks/{plan_id}` để biết khi nào lần chạy xong.
+
+**API key.** Key không thể phê duyệt runbook. Lệnh gọi chỉ lưu kế hoạch và trả `409 APPROVAL_REQUIRED` với kế hoạch trong `runbook`, cùng `approval_url` và `details.runbook_id` khi server biết URL công khai của mình. Owner hoặc admin của workspace đăng nhập và phê duyệt kế hoạch, sau đó key chạy nó bằng `POST .../runbooks/restart/{plan_id}/execute`.
+
+Có thể gửi thêm header `Idempotency-Key` (8 đến 128 ký tự, `[A-Za-z0-9._:-]`). Gửi lại với cùng key sẽ trả về lần chạy đầu tiên kèm header `Idempotent-Replayed: true`, không restart thêm lần nữa.
+
+| Trạng thái | Mã | Ý nghĩa |
+|------------|----|---------|
+| `400` | `NO_SERVER` | Dự án chưa được gán server |
+| `403` | `FORBIDDEN`, `INSUFFICIENT_SCOPE` | Bạn không phải owner hoặc admin, hoặc key thiếu `deployments:execute` |
+| `409` | `APPROVAL_REQUIRED` | Gọi bằng API key. Kế hoạch đã được lưu và chờ owner hoặc admin đã đăng nhập phê duyệt |
+| `409` | `DEPLOY_IN_PROGRESS` | Một deployment của dự án vẫn đang chạy. Chờ nó xong |
+| `409` | `NOT_RUNNING` | Dự án đang ở 0 replica, nên không có gì để restart |
+| `409` | `NO_WORKLOAD` | Dự án không có workload nào đang chạy trong cluster. Hãy deploy thay vì restart |
+| `409` | `RUNBOOK_FAILED` hoặc một mã cụ thể hơn | Lần chạy đã bắt đầu nhưng cluster từ chối thay đổi. Body có `runbook` |
+| `409` | `CONFLICT` | Một thao tác khác trên dự án đang giữ khóa. Thử lại sau ít phút |
+| `409` | (không có mã) | Trong workspace dùng môi trường, bộ chặn chuyển môi trường từ chối lệnh gọi: một thao tác ghi khác trên dự án đang chạy, hoặc dự án là nguồn được giữ lại của một lần chuyển (`Source is retained for a move. Restore it before making changes.`). Body chỉ có `message` |
+| `503` | `UNAVAILABLE` | TOSE không đọc được cluster, không lấy được khóa dự án hoặc không kiểm tra được quyền thành viên. Không có gì bị thay đổi |
 
 ## Xóa dự án {#delete}
 
@@ -129,7 +148,7 @@ Lệnh tạo webhook push. Nếu không tạo được webhook, kết nối vẫ
 
 | Mã | Ý nghĩa |
 |--------|---------|
-| `400` | Thiếu `repo_full_name` hoặc không phải `owner/repo`, repository không truy cập được qua installation, branch không tồn tại, hoặc không installation nào đã gắn truy cập được repository |
+| `400` | Thiếu `repo_full_name` hoặc không phải `owner/repo`, repository không truy cập được qua installation, branch không tồn tại, hoặc không installation nào đã gắn truy cập được repository. Lỗi do GitHub gây ra có [mã `github_*`](/vi/api/errors#ma-loi-upstream-cua-github) và không thể thử lại |
 | `403` | `installation_id` chưa được gắn vào workspace này |
 | `409` | Dự án đã có kết nối Git |
 | `503` | GitHub App chưa được cấu hình trên hệ thống này |
