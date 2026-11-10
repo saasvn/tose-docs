@@ -8,7 +8,7 @@ For how to send a key with a request, see [Authentication](/api/authentication).
 
 - A key belongs to **one workspace**, the one it was created in. It can read and change that workspace and nothing else.
 - A key never gains account-level or platform-level power, even when the person who created it is a platform admin. See [Routes that reject API keys](#routes-that-reject-api-keys).
-- TOSE checks the creator's workspace membership on every request. If the person is removed from the workspace, or demoted, their keys lose that access at once.
+- TOSE checks the creator's workspace membership on every request. If the person is demoted, their keys lose that access at once. If the person is removed from the workspace, the keys they created there are revoked. They stay revoked if the person is invited back, so anything that used them (a CI job, for example) needs a new key.
 - A request for any other workspace is refused with `403`.
 
 ## Create a key
@@ -66,6 +66,7 @@ Notes:
 - `deployments:read` also covers reading projects, logs and the workspace, so a read-only key for a status dashboard needs only that one scope.
 - Reading an environment variable value (`env.reveal`) needs `env:read`. Treat `env:read` like a secret.
 - `deployments:write` exists only for the [MCP connector](/mcp) and cannot be granted to an API key.
+- `tose up` with a key that has `projects:write` but not `deployments:execute` connects Git with auto-deploy off, starts no deployment and exits with `INSUFFICIENT_SCOPE` (`details.required_scope: deployments:execute`, `details.git_connected: true`, `details.deploy_skipped: true`). Run `tose deploy` with a key that has `deployments:execute`. See [`tose up`](/commands/up#api-key-without-deployments-execute).
 - Scopes limit the key, never the person. Even with a scope, a request can still be refused when the workspace role of the key's creator is too low for the action.
 
 ## Full-access keys
@@ -96,7 +97,7 @@ Some routes act on a person's account or on shared infrastructure, not on one wo
 | `GET /api/mcp/connections`, `DELETE /api/mcp/connections/{family_id}`, `GET /api/mcp/tasks`, `GET /api/mcp/audit` | Connections belong to the person who made them, so only that person can see or revoke them. |
 | `POST` and `DELETE /api/servers`, `PUT /api/servers/{id}/development`, `POST` and `DELETE /api/registries`, `GET /api/registries` | Servers and registries are shared platform infrastructure. |
 
-A few account-level reads do accept a key, limited to its own workspace: `GET /api/workspaces` lists only the key's workspace, `GET /api/workspaces/available-templates` returns the template catalog, and `GET /api/servers` and the `GET /api/github/...` reads check the workspace the key is bound to. The GitHub reads also need the `projects:read` scope.
+A few account-level reads do accept a key, limited to its own workspace: `GET /api/workspaces` lists only the key's workspace, `GET /api/workspaces/available-templates` returns the template catalog, and `GET /api/servers` and the `GET /api/github/...` reads check the workspace the key is bound to. The GitHub reads also need the `projects:read` scope. A key that omits `workspace_slug` on them uses its own workspace, never the key creator's account, so `available-installations` returns only installations attached to that workspace. Naming another workspace is `403`. See [GitHub API](/api/github).
 
 ### Behavior change: `POST /api/upload` no longer accepts API keys
 

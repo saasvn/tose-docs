@@ -13,6 +13,7 @@ tose template env set demo --env-file provider.env     # file phải ở chế �
 printf 'GEMINI_API_KEY=%s\n' "$KEY" | tose template env set demo --env-stdin
 tose template env set demo GEMINI_API_KEY              # chỉ có tên key: nhập giá trị ở prompt ẩn trong terminal
 tose template deploy demo --wait --json                # chờ xong, rồi trả về các liên kết do API báo
+tose template resume demo --wait --json                # cấp token và resume instance Dewee/GoClaw đang bị suspend
 ```
 
 ## tose template catalog
@@ -142,7 +143,7 @@ tose template deploy <slug> [--mode <mode>] [--upgrade | --rollback <deployment_
 - `--upgrade`, `--rollback` và `--expected-image` cần `--mode image`. Dùng cùng `--mode build` thì lệnh thoát với mã `2` và không thay đổi gì.
 - Không thể kết hợp `--upgrade` với `--rollback`.
 - `--rollback` nhận ID của một lần deploy của template này đã chạy, ví dụ dòng `Deployment ID:` do một lần `tose template deploy` trước in ra, hoặc danh sách trong [API template](/vi/api/templates#deployments). ID rỗng bị từ chối.
-- Một số template bỏ qua các tùy chọn này. Nếu API không áp dụng một tùy chọn, CLI báo lỗi nêu tên tùy chọn và lần deploy đã được khởi chạy, thay vì nói tùy chọn đã hoạt động.
+- Template Cloud Harness không có image để chạy hay rollback. `--upgrade`, `--rollback` và `--expected-image` bị từ chối với `400` và không có gì được deploy; hãy dùng `tose template deploy` thường. Với template khác, nếu API không áp dụng một tùy chọn, CLI báo lỗi nêu tên tùy chọn và lần deploy đã được khởi chạy, thay vì nói tùy chọn đã hoạt động.
 - Cảnh báo từ API được in ra. Với `--json` chúng nằm ở `data.warnings`.
 
 ```bash
@@ -159,7 +160,7 @@ tose template deploy demo --rollback <deployment_id> --yes --wait
 `--rollback` chạy lại một image cũ hơn. Nó **không** rollback schema hay dữ liệu của database. Nếu phiên bản mới đã migrate chúng, image cũ có thể lỗi hoặc đọc sai. Hãy khôi phục bản sao lưu cùng với image cũ.
 :::
 
-### Mã thoát khi dùng `--wait`
+### Mã thoát khi dùng `--wait` {#ma-thoat-khi-dung-wait}
 
 | Mã | Ý nghĩa |
 |----|---------|
@@ -172,6 +173,39 @@ tose template deploy demo --rollback <deployment_id> --yes --wait
 - Các liên kết dashboard, MCP, API và docs lấy từ phản hồi của API. CLI không tự ghép chúng từ slug.
 - Thông tin đăng nhập được sinh ra và bootstrap secret dùng một lần không bao giờ được in. Hãy mở liên kết dashboard và hoàn tất đăng nhập bootstrap ở đó.
 - Thiếu số dư ví, thiếu domain TLS hoặc cấp ổ đĩa thất bại đều được báo kèm bước cần làm tiếp theo.
+
+## tose template resume
+
+Cấp gateway token và resume một instance Dewee/GoClaw đang bị suspend. Dùng khi billing đã resume template nhưng không để lại gateway token còn hiệu lực.
+
+### Tóm tắt {#tose-template-resume-synopsis}
+
+```bash
+tose template resume <slug> [--wait] [--timeout <duration>]
+```
+
+- Cần cùng vai trò workspace như `tose template deploy`.
+- Template không có gateway trả `400`. Với chúng, hãy dùng [`tose template deploy`](#tose-template-deploy).
+- `--wait` và `--timeout` hoạt động như ở `deploy`, gồm cả [mã thoát](#ma-thoat-khi-dung-wait).
+
+::: warning Client phải chuyển sang token mới
+Sau khi resume, client phải dùng gateway token mới và các phiên hiện có sẽ kết thúc. CLI in cảnh báo này, và với `--json` nó cũng nằm trong `warnings`. Nếu một lần resume đã được chấp nhận nhưng thất bại khi đang chờ, cảnh báo tương tự nằm trong chi tiết lỗi.
+:::
+
+```bash
+tose template resume demo --wait --json
+```
+
+## Template đang bị suspend {#template-dang-bi-suspend}
+
+Template đang bị suspend từ chối `deploy` và `resume` khi ví hết tiền. Các lần từ chối này được báo bằng mã ổn định:
+
+| Phản hồi | Kết quả ở CLI |
+|----------|---------------|
+| `402 INSUFFICIENT_BALANCE` | Thoát với mã `9`. Liên kết billing là một next action, và template vẫn ở trạng thái suspended. Hãy nạp tiền rồi chạy lại lệnh |
+| `409` do request chạy đua với việc suspend | `retryable`. Chưa có gì được khởi động. Lệnh thử lại là một next action và giữ nguyên các flag của bạn, trừ thông tin xác thực (`--api-key`) và `--yes` |
+| `409` vì đã có deployment đang chạy | Không retry được. Next action là [`tose template info`](#tose-template-info) |
+| `409` khi resume một template không bị suspend | Không retry được. Next action là [`tose template deploy`](#tose-template-deploy) |
 
 ## Sử dụng nhà cung cấp AI (BYOK) {#su-dung-nha-cung-cap-ai-byok}
 
