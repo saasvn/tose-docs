@@ -20,7 +20,29 @@ Client có thể tự nhận diện theo một trong hai cách. TOSE chấp nh�
 - **Client ID Metadata Document (CIMD), ưu tiên.** Client dùng một URL `https` làm `client_id`, và TOSE tải tài liệu JSON tại URL đó. Trang đồng ý (consent) hiển thị tên miền đã phát hành tài liệu.
 - **Đăng ký động.** Client không có metadata document đăng ký bằng `POST /oauth/register`. Trang consent hiển thị các client này là chưa xác minh.
 
-Cả hai luồng đều dùng authorization code kèm PKCE (chỉ S256). Client dùng metadata document xác thực bằng `none`. Client đăng ký động dùng `none` hoặc client secret (`client_secret_post` hoặc `client_secret_basic`). Không hỗ trợ xác thực client bằng khóa như `private_key_jwt`.
+Cả hai luồng đều dùng authorization code kèm PKCE (chỉ S256), kể cả với client ký assertion. Cả hai đều chấp nhận callback `https`, callback `http` loopback và hai callback desktop cố định, xem [Redirect URI loopback](#redirect-uri-loopback). Client đăng ký động xác thực bằng `none` hoặc client secret (`client_secret_post` hoặc `client_secret_basic`).
+
+### Client dùng metadata document và client assertion
+
+Client dùng metadata document khai báo `token_endpoint_auth_method` là `none` hoặc `private_key_jwt`. Với `private_key_jwt`, tài liệu còn chứa khóa công khai của client dưới dạng JWKS, và client chứng minh danh tính tại token endpoint bằng một assertion có chữ ký.
+
+Nếu một metadata document khai báo `private_key_jwt` và đồng thời cho phép `none`, client có thể trao đổi authorization code chỉ bằng PKCE. Sau đó hai loại cấp phát hoạt động khác nhau:
+
+- Token family được cấp qua trao đổi PKCE công khai đó có thể refresh hoặc revoke mà không cần chữ ký.
+- Token family được cấp bằng assertion có chữ ký luôn cần assertion để refresh hoặc revoke.
+
+### Grant type trong metadata của client
+
+Nếu bản đăng ký hoặc metadata document liệt kê `grant_types`, danh sách phải có `authorization_code`. TOSE bỏ qua các khai báo khác: ví dụ Claude còn khai báo thêm JWT bearer grant, và điều đó không ngăn nó kết nối. Token endpoint phục vụ authorization code kèm PKCE S256 và refresh token, không có grant nào khác.
+
+### Redirect URI loopback
+
+Client chạy trên máy của bạn, như ứng dụng desktop hoặc CLI, thường lắng nghe ở một cổng trống ngẫu nhiên. Với callback `http` loopback, cổng chỉ được khác cổng đã đăng ký khi URI đã đăng ký không nêu cổng. Host, đường dẫn đã mã hóa và query vẫn phải khớp chính xác. URI đã đăng ký có nêu cổng thì chỉ nhận đúng cổng đó.
+
+Hai ứng dụng desktop dùng URL scheme tùy biến thay vì loopback. TOSE chấp nhận đúng hai callback sau, so khớp toàn bộ, và không chấp nhận scheme tùy biến nào khác:
+
+- `cursor://anysphere.cursor-mcp/oauth/callback`
+- `antigravity://google.antigravity/callback`
 
 ## Scope
 
@@ -29,7 +51,8 @@ Cả hai luồng đều dùng authorization code kèm PKCE (chỉ S256). Client 
 | `deployments:read` | Workspace, project, trạng thái và log của deployment. Đây là mặc định khi client không xin scope nào. | Không |
 | `deployments:write` | Deploy và rollback. | Có |
 | `workspace:read` | Tên workspace và vai trò của bạn. Được thêm vào mọi yêu cầu scope hẹp hơn. | Không |
-| `projects:read` | `list_projects` | Không |
+| `projects:read` | `list_projects`; khi bật ngân sách autoscaling, thêm `autoscaling_budget_get` | Không |
+| `projects:write` | Với owner hoặc admin: `create_template_draft` và `publish_template`, và khi có thêm `deployments:execute` thì cả `deploy_template`. Khi bật ngân sách autoscaling, `autoscaling_budget_plan`, chỉ lưu thay đổi ngân sách thành một kế hoạch để người dùng duyệt trên dashboard | Chỉ `deploy_template`, vốn cần thêm `deployments:execute` |
 | `logs:read` | `read_logs` | Không |
 | `deployments:execute` | `deploy_project` | Có |
 | `deployments:rollback` | `rollback_deployment` | Có |

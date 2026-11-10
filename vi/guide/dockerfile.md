@@ -1005,6 +1005,36 @@ CMD ["nginx", "-g", "daemon off;"]
 
 ---
 
+## Cache layer khi build
+
+TOSE tái sử dụng các layer Docker từ lần build trước của cùng project và cùng branch. Khi các bước đầu của Dockerfile không đổi (ví dụ `apt-get install`, cài browser hoặc `pnpm install`), lần rebuild sẽ bỏ qua các bước đó và chỉ chạy những bước từ chỗ thay đổi đầu tiên trở đi.
+
+- **Mỗi project và mỗi branch có cache riêng.** Các project khác không bao giờ dùng chung cache, kể cả trong cùng workspace, nên hai project có cùng Dockerfile đều build "nguội" (không cache) ở lần đầu.
+- **Lần build đầu tiên của một branch mới là build nguội.** Chưa có gì để tái sử dụng cho đến khi branch đó build xong một lần.
+- **Lỗi cache không bao giờ làm build thất bại.** Nếu không dùng được cache, TOSE sẽ build lại mà không dùng cache.
+
+### Các dòng log build
+
+`tose logs --build` cho biết cache đã làm gì:
+
+| Dòng log | Ý nghĩa |
+|----------|---------|
+| `Build cache: reusing N MB from the previous build` | Tìm thấy cache từ lần build trước của project và branch này và đang dùng nó. |
+| `Build cache: no cache from an earlier build yet` | Build nguội: project và branch này chưa có cache từ lần build trước. |
+| `Build cache: N steps reused` | N bước trong Dockerfile được bỏ qua vì layer được tái sử dụng. |
+| `Build cache: the cache could not be used; ... building again without cache` | Không tải được cache nên build chạy lại từ đầu. Build vẫn tiếp tục và không bị đánh dấu thất bại vì cache. |
+
+### Tăng tỷ lệ trúng cache
+
+Sắp xếp các bước trong Dockerfile từ ít thay đổi nhất đến thay đổi thường xuyên nhất. Copy lockfile và cài dependencies **trước** khi copy mã nguồn, để việc sửa code không làm mất cache của bước cài đặt:
+
+```dockerfile
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
+COPY . .
+RUN pnpm build
+```
+
 ## Best Practices
 
 ### 1. Sử dụng Multi-Stage Builds
