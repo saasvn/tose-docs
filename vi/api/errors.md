@@ -101,7 +101,7 @@ key không thể tạo key khác với scope mà nó không có.
 
 ### `unsupported_media_type` {#unsupported_media_type}
 
-`415`. Route nhận body JSON, nhưng request gửi body không kèm `Content-Type: application/json`. Các route ghi của CI trả về mã này. Hãy gửi header đó rồi thử lại. Body JSON có trường lạ hoặc dữ liệu thừa phía sau là `400 invalid_request`. Các route ngân sách autoscaling dùng mã viết hoa [`UNSUPPORTED_MEDIA_TYPE`](#UNSUPPORTED_MEDIA_TYPE).
+`415`. Route nhận body JSON, nhưng request gửi body không kèm `Content-Type: application/json`. Các route ghi của CI trả về mã này. Hãy gửi header đó rồi thử lại. Body JSON có trường lạ hoặc dữ liệu thừa phía sau là `400 invalid_request`. Riêng việc duyệt hoặc từ chối kế hoạch ngân sách autoscaling dùng mã viết hoa [`UNSUPPORTED_MEDIA_TYPE`](#UNSUPPORTED_MEDIA_TYPE).
 
 ### `validation_failed` {#validation_failed}
 
@@ -222,7 +222,7 @@ Các mã này đến từ các route của [ngân sách autoscaling](/vi/guide/a
 
 ### `CROSS_SITE_REQUEST` {#CROSS_SITE_REQUEST}
 
-`403`. Một request `POST`, `PUT`, `PATCH` hoặc `DELETE` chỉ được xác thực bằng cookie phiên, từ một origin của trình duyệt không phải dashboard hay chính API, hoặc từ một trang bị đánh dấu cross-site. Chưa có gì thay đổi. Mọi route dưới `/api` đều trả về mã này, không riêng các route ngân sách. Xem [Lệnh ghi bằng cookie từ site khác](/vi/api/authentication#cross-site-cookie-writes). Hãy thực hiện thay đổi ngay trên dashboard. Request có API key hoặc token `Authorization: Bearer` không bị kiểm tra.
+`403`. Một request `POST`, `PUT`, `PATCH` hoặc `DELETE` chỉ được xác thực bằng cookie phiên, từ một origin của trình duyệt không phải dashboard hay chính API, hoặc từ một trang bị đánh dấu cross-site. Chưa có gì thay đổi. Mọi route cần đăng nhập dưới `/api` đều có thể trả về mã này, không riêng các route ngân sách. Xem [Lệnh ghi bằng cookie từ site khác](/vi/api/authentication#cross-site-cookie-writes). Hãy thực hiện thay đổi ngay trên dashboard. Request có API key hoặc token `Authorization: Bearer` không bị kiểm tra.
 
 ### `UNSUPPORTED_MEDIA_TYPE` {#UNSUPPORTED_MEDIA_TYPE}
 

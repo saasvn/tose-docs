@@ -46,13 +46,14 @@ Không commit API key. Không đặt key vào URL, query string, dòng log hoặ
 
 Một request `POST`, `PUT`, `PATCH` hoặc `DELETE` chỉ được xác thực bằng cookie `tose_token` phải
 đến từ dashboard. API từ chối request đó với `403` và mã
-[`CROSS_SITE_REQUEST`](/vi/api/errors#CROSS_SITE_REQUEST) khi trình duyệt cho biết nó đến từ site
-khác: `Origin` là một site khác hoặc `null`, hoặc không có `Origin` nhưng được đánh dấu
-`Sec-Fetch-Site: cross-site`. Không có gì thay đổi. Quy tắc này áp dụng cho mọi route dưới `/api`,
-cùng với `DELETE /auth/sessions/{id}` và `POST /auth/email/verification`.
+[`CROSS_SITE_REQUEST`](/vi/api/errors#CROSS_SITE_REQUEST) khi trình duyệt cho biết nó đến từ nơi
+khác: `Origin` không phải dashboard cũng không phải API (origin `null` cũng tính), hoặc không có
+`Origin` nhưng được đánh dấu `Sec-Fetch-Site: cross-site`. Không có gì thay đổi. Quy tắc này áp dụng
+cho mọi route cần đăng nhập dưới `/api`, cùng với `DELETE /auth/sessions/{id}` và
+`POST /auth/email/verification`.
 
 Request gửi API key hoặc token `Authorization: Bearer` không bị kiểm tra, các request đọc cũng vậy.
-Script và CLI không bị ảnh hưởng.
+Kiểu `Authorization` khác vẫn dùng cookie nên vẫn bị kiểm tra. Script và CLI không bị ảnh hưởng.
 
 ## Không đặt credential trong URL {#credentials-in-url}
 

@@ -47,13 +47,14 @@ Browsers use the `tose_token` cookie, which holds the same token.
 
 A `POST`, `PUT`, `PATCH` or `DELETE` that is authenticated only by the `tose_token` cookie must
 come from the dashboard. The API refuses it with `403` and code
-[`CROSS_SITE_REQUEST`](/api/errors#CROSS_SITE_REQUEST) when the browser says it came from another
-site: its `Origin` is a different site or `null`, or it has no `Origin` and is marked
-`Sec-Fetch-Site: cross-site`. Nothing changes. The rule covers every route under `/api`, plus
-`DELETE /auth/sessions/{id}` and `POST /auth/email/verification`.
+[`CROSS_SITE_REQUEST`](/api/errors#CROSS_SITE_REQUEST) when the browser says it came from somewhere
+else: its `Origin` is neither the dashboard nor the API (a `null` origin counts), or it has no
+`Origin` and is marked `Sec-Fetch-Site: cross-site`. Nothing changes. The rule covers every
+signed-in route under `/api`, plus `DELETE /auth/sessions/{id}` and `POST /auth/email/verification`.
 
 Requests that send an API key or an `Authorization: Bearer` token are not checked, and neither are
-reads. Scripts and the CLI are not affected.
+reads. Any other `Authorization` scheme leaves the request on the cookie, so it is checked. Scripts
+and the CLI are not affected.
 
 ## Never put credentials in the URL {#credentials-in-url}
 

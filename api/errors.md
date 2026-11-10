@@ -101,7 +101,7 @@ project is running.
 
 ### `unsupported_media_type` {#unsupported_media_type}
 
-`415`. The route takes a JSON body, and the request sent one without `Content-Type: application/json`. The CI write routes answer this way. Send the header and repeat the request. A JSON body with unknown fields or trailing data is `400 invalid_request`. The autoscaling budget routes use the upper-case [`UNSUPPORTED_MEDIA_TYPE`](#UNSUPPORTED_MEDIA_TYPE).
+`415`. The route takes a JSON body, and the request sent one without `Content-Type: application/json`. The CI write routes answer this way. Send the header and repeat the request. A JSON body with unknown fields or trailing data is `400 invalid_request`. Approving or rejecting an autoscaling budget plan uses the upper-case [`UNSUPPORTED_MEDIA_TYPE`](#UNSUPPORTED_MEDIA_TYPE) instead.
 
 ### `validation_failed` {#validation_failed}
 
@@ -222,7 +222,7 @@ These come from the [autoscaling budget](/guide/autoscaling-budgets) routes and 
 
 ### `CROSS_SITE_REQUEST` {#CROSS_SITE_REQUEST}
 
-`403`. A `POST`, `PUT`, `PATCH` or `DELETE` was authenticated only with the session cookie, from a browser origin other than the dashboard or the API itself, or from a page marked cross-site. Nothing changed. Every route under `/api` returns it, not only the budget routes. See [Cookie writes from other sites](/api/authentication#cross-site-cookie-writes). Make the change from the dashboard itself. Requests with an API key or an `Authorization: Bearer` token are not checked.
+`403`. A `POST`, `PUT`, `PATCH` or `DELETE` was authenticated only with the session cookie, from a browser origin other than the dashboard or the API itself, or from a page marked cross-site. Nothing changed. Every signed-in route under `/api` can return it, not only the budget routes. See [Cookie writes from other sites](/api/authentication#cross-site-cookie-writes). Make the change from the dashboard itself. Requests with an API key or an `Authorization: Bearer` token are not checked.
 
 ### `UNSUPPORTED_MEDIA_TYPE` {#UNSUPPORTED_MEDIA_TYPE}
 
