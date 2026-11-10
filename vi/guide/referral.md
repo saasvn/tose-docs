@@ -29,7 +29,7 @@ Tỷ lệ và ngưỡng là giá trị chính sách do backend nắm giữ. Đ�
 
 ### Điều kiện tính hoa hồng
 
-- Chỉ các khoản thanh toán **Polar và SePay đã hoàn tất** mới tạo hoa hồng. Credit khuyến mãi, điều chỉnh của admin và bonus đăng ký cũ không bao giờ tạo hoa hồng.
+- Chỉ các khoản thanh toán **Polar và SePay đã hoàn tất** mới tạo hoa hồng. Khoản thanh toán dùng [mã khuyến mãi](/vi/guide/promo-codes#rules) không tạo hoa hồng. Credit khuyến mãi, điều chỉnh của admin và bonus đăng ký cũ không bao giờ tạo hoa hồng.
 - Hoa hồng là `số tiền thanh toán × tỷ lệ`, tính bằng cent và làm tròn xuống. Kết quả bằng 0 cent thì không tạo hoa hồng.
 - Mỗi khoản thanh toán tạo **tối đa một** hoa hồng. Webhook gửi hai lần không ghi credit hai lần.
 - Mỗi người dùng chỉ có **một** người giới thiệu. Mã thứ hai không thay thế mã đầu.
