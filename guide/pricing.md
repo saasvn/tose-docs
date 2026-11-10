@@ -18,6 +18,8 @@ Compute is billed per hour for the CPU and RAM allocated to running workloads. E
 
 The price never changes as your balance goes up or down. Larger single top-ups earn [bonus credit](#top-up-bonus) instead. Disk pricing is described under [Storage](#storage).
 
+A project with [sidecars](/guide/project-sidecars) is billed for its own CPU and RAM plus the applied limits of its sidecars, per replica, at the same rates.
+
 Compute is billed **only while the workload is running**. Stopping a project (`tose down`), sleeping, or suspension stops compute billing.
 
 ## Top-up bonus {#top-up-bonus}
@@ -174,3 +176,4 @@ A promo code lowers a wallet top-up or adds bonus credit. Bonus credit is spent 
 - [Agent Runtime pricing and budgets](/guide/agent-runtime-pricing)
 - [`tose pricing` / `tose volumes`](/commands/disk)
 - [Disks, Volumes & Pricing API](/api/disks)
+- [Project Sidecars](/guide/project-sidecars)

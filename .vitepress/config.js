@@ -82,6 +82,8 @@ export default defineConfig({
               { text: 'Deploy a coding agent', link: '/guide/deploy-coding-agent' },
               { text: 'Autoscaling budgets', link: '/guide/autoscaling-budgets' },
               { text: 'Recovery runbooks', link: '/guide/recovery-runbooks' },
+
+              { text: 'Project Sidecars', link: '/guide/project-sidecars' },
               { text: 'Dewee Template Runbook', link: '/guide/dewee-template' },
               { text: 'Template registry (early access)', link: '/guide/template-registry' },
               { text: 'Registry templates: probes and upgrade', link: '/guide/template-upgrades' },
@@ -224,6 +226,8 @@ export default defineConfig({
               { text: 'Triển khai coding agent', link: '/vi/guide/deploy-coding-agent' },
               { text: 'Ngân sách autoscaling', link: '/vi/guide/autoscaling-budgets' },
               { text: 'Runbook khôi phục', link: '/vi/guide/recovery-runbooks' },
+
+              { text: 'Sidecar của dự án', link: '/vi/guide/project-sidecars' },
               { text: 'Runbook template Dewee', link: '/vi/guide/dewee-template' },
               { text: 'Template registry (truy cập sớm)', link: '/vi/guide/template-registry' },
               { text: 'Template registry: probe và nâng cấp', link: '/vi/guide/template-upgrades' },

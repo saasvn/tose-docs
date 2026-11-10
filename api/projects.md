@@ -40,6 +40,30 @@ Changes take effect on the next deployment. A project with a [persistent disk](/
 | `400` | `status` is not one of the allowed values, the slug is malformed, the project has a persistent disk and you raise `replicas` above `1` or change `server_id`, or the server is not valid for the workspace |
 | `409` | The slug is already taken in the workspace |
 
+## Sidecars {#sidecars}
+
+`POST /api/workspaces/{slug}/projects` and the update endpoint above also take a `sidecars` list: up to three extra containers that run in every pod of a standard project. A sidecar is not a separately exposed service. The guide has the field rules, a pinned-digest example and the operating details: [Project Sidecars](/guide/project-sidecars).
+
+| Request | Result |
+|---------|--------|
+| Create with `sidecars` omitted | No sidecars |
+| Update with `sidecars` omitted or `null` | The saved list is kept |
+| Update with `"sidecars": []` | Every sidecar is removed. Always allowed, even where sidecars are disabled |
+| Update with a non-empty list | Replaces the saved list. Needs sidecars enabled for the workspace |
+
+Every project response carries `sidecars` (`[]` when there are none). Saving changes the **next deployment**, not the running pods.
+
+| Status | Codes |
+|--------|-------|
+| `400` | `INVALID_SIDECAR`, `IMAGE_DIGEST_REQUIRED`, `INVALID_IMAGE_REFERENCE` |
+| `403` | `SIDECARS_DISABLED`. A redeploy of a project with saved sidecars in a workspace that may not use them also gets `403`; a direct rollback with live sidecars gets `409` with the same code; a deploy or image deploy is accepted and then fails, with the refusal in the deploy log |
+| `422` | `SIDECAR_ENV_MISSING` and `SIDECAR_DISK_MISSING` (`409` at redeploy), `SIDECAR_IMAGE_FORBIDDEN`, `REGISTRY_CREDENTIAL_NOT_FOUND`, `REGISTRY_CREDENTIAL_HOST_MISMATCH`, `REGISTRY_ACCESS_DENIED`, `IMAGE_NOT_FOUND` |
+| `502` | `REGISTRY_UNAVAILABLE` |
+| `500` | `REGISTRY_CREDENTIAL_UNREADABLE` |
+| `503` | `ENCRYPTION_UNAVAILABLE` |
+
+`GET .../logs` and `GET .../live-logs` accept `container=<sidecar name>`, and `GET .../status` lists every container of each pod and reports the per-replica total of the saved configuration in `pod_total`. A project export of a project with sidecars returns `409 SIDECARS_NOT_PORTABLE`. The schema is `ProjectSidecar` in the [OpenAPI spec](https://api.tose.sh/api/openapi.yaml).
+
 ## Process limit {#process-limit}
 
 ```http
@@ -442,3 +466,5 @@ runs, for deployments made before this field existed, and after a runbook rollba
 - [`tose deployment rollback`](/commands/deployment#tose-deployment-rollback)
 - [Portable project export guide](https://github.com/saasvn/tose-app/blob/master/docs/portable-project-export.md): the restore drill with Docker and Kubernetes steps
 - [Backend OpenAPI document](https://github.com/saasvn/tose-app/blob/master/internal/apispec/openapi.yaml)
+
+- [Project Sidecars](/guide/project-sidecars)

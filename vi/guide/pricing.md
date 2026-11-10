@@ -18,6 +18,8 @@ Compute được tính theo giờ cho CPU và RAM cấp cho workload đang chạ
 
 Giá không đổi khi số dư ví tăng hay giảm. Thay vào đó, các lần nạp tiền lớn trong một thanh toán được tặng [credit thưởng](#top-up-bonus). Giá ổ đĩa xem ở mục [Lưu trữ](#storage).
 
+Dự án có [sidecar](/vi/guide/project-sidecars) được tính phí theo CPU và RAM của chính nó cộng với giới hạn đã áp dụng của các sidecar, cho mỗi replica, cùng mức giá.
+
 Compute **chỉ tính phí khi workload đang chạy**. Dừng dự án (`tose down`), ngủ hoặc bị tạm ngưng sẽ dừng tính phí compute.
 
 ## Thưởng khi nạp tiền {#top-up-bonus}
@@ -176,3 +178,4 @@ Mã khuyến mãi giảm số tiền nạp ví hoặc cộng credit thưởng. C
 - [Giá và hạn mức của Agent Runtime](/vi/guide/agent-runtime-pricing)
 - [`tose pricing` / `tose volumes`](/vi/commands/disk)
 - [API ổ đĩa, volume & bảng giá](/vi/api/disks)
+- [Sidecar của dự án](/vi/guide/project-sidecars)
