@@ -106,6 +106,12 @@ production yet.
 | [`tose volumes resize`](/commands/disk#tose-volumes-resize) | Grow any disk by volume ID |
 | [`tose pricing`](/commands/disk#tose-pricing) | Show compute and storage rates |
 
+### Migration Planning
+
+| Command | Description |
+|---------|-------------|
+| [`tose export`](/commands/export) | Print a read-only, secret-free project inventory (not a backup) |
+
 ### Autoscaling budgets
 
 | Command | Description |

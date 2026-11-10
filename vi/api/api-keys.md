@@ -47,6 +47,7 @@ Bảng dưới được tạo từ catalog phân quyền trong tose-app (`intern
 | `members:manage` | - | `member.manage`, `member.remove`, `invitation.manage` |
 | `projects:read` | - | `project.read` |
 | `projects:write` | `projects:read` | `project.write`, `project.delete` |
+| `projects:export` | - | `project.export` |
 | `deployments:read` | `workspace:read`, `projects:read`, `logs:read` | `deployment.read` |
 | `deployments:execute` | - | `deployment.execute` |
 | `deployments:rollback` | - | `deployment.rollback` |

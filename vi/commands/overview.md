@@ -18,6 +18,7 @@ TOSE CLI cung cấp các lệnh chính sau để quản lý triển khai của b
 | [`tose runbook`](/vi/commands/runbook) | Lập kế hoạch, xem lại và chạy restart hoặc rollback do người duyệt trong trình duyệt | Khôi phục có kiểm soát |
 | [`tose db create`](/vi/commands/db#tose-db-create) | Tạo database (`--type`, `--server`) | Postgres, pgvector, MySQL, Redis, MongoDB |
 | [`tose skills`](/vi/commands/skills) | Liệt kê và cài skill cho agent | Dạy agent dùng TOSE an toàn |
+| [`tose export`](/vi/commands/export) | In danh mục chỉ đọc, không chứa secret, của một dự án | Lập kế hoạch chuyển nền tảng (không phải backup) |
 | [`tose feedback`](/vi/commands/feedback) | Báo lỗi hoặc đề xuất tính năng, không cần tài khoản GitHub | Gửi phản hồi cho đội TOSE ngay từ terminal |
 
 ## Cấu trúc lệnh
