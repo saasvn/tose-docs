@@ -96,7 +96,7 @@ Lập kế hoạch scale up và scale down theo cùng một cách:
 
 ```bash
 curl -X POST "$TOSE_API_URL/api/workspaces/$WORKSPACE/projects/$PROJECT/runbooks/scale" \
-  -H "Authorization: Bearer $TOSE_API_KEY" \
+  -H "X-API-Key: $TOSE_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"replicas": 3}'
 ```
@@ -109,7 +109,7 @@ Kế hoạch restore áp dụng một bản sao lưu đã hoàn tất vào datab
 
 ```bash
 curl -X POST "$TOSE_API_URL/api/workspaces/$WORKSPACE/projects/$PROJECT/runbooks/restore" \
-  -H "Authorization: Bearer $TOSE_API_KEY" \
+  -H "X-API-Key: $TOSE_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"database_id": "<database_id>", "backup_id": "<backup_id>"}'
 ```

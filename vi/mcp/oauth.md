@@ -60,6 +60,7 @@ Hai ứng dụng desktop dùng URL scheme tùy biến thay vì loopback. TOSE ch
 | `env:write` | `plan_project_env_update`, `apply_project_env_update`: đổi biến sau khi bạn nhập giá trị và duyệt trong TOSE. Mặc định tắt, chỉ owner và admin, xem [Cập nhật biến môi trường](#cap-nhat-bien-moi-truong-env-write). | Có |
 
 - Mọi scope khác, gồm thành viên, thanh toán, database và hạ tầng, đều bị từ chối với `invalid_scope`. `env:read` và `env:write` là hai scope về biến môi trường, mỗi scope được cấp riêng. Quản trị viên nền tảng còn cấp được `blog:write` (xem [Đăng blog qua MCP](/vi/guide/blog-and-editorial-mcp)).
+- Các công cụ giao tác vụ cho coding agent tuyển chọn cần scope `agents:read`, `agents:execute` và `agents:control`. Xem [Giao tác vụ cho coding agent](/vi/guide/agent-tasks#scope).
 - Scope ghi chỉ được cấp khi owner hoặc admin của workspace tick chọn trên trang consent. Scope này bị gỡ ở lần refresh kế tiếp nếu người đó bị hạ vai trò.
 - Refresh chỉ được thu hẹp scope, không bao giờ mở rộng.
 - `tools/list` chỉ hiển thị tool mà scope cho phép: kết nối chỉ đọc thấy bốn tool đọc, có scope ghi thì thêm deploy và rollback. Hai tool metadata env chỉ hiện khi có `env:read`, hai tool cập nhật env chỉ hiện khi có `env:write`.

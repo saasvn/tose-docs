@@ -17,7 +17,7 @@ Checks a code against an amount and shows what you would pay and receive. It res
 
 ```bash
 curl -X POST https://<api-host>/api/workspaces/acme/wallet/promo/preview \
-  -H "Authorization: Bearer $TOSE_API_KEY" \
+  -H "X-API-Key: $TOSE_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"code":"AKTOSE-7QXM-K4HP","amount":5000,"currency":"USD"}'
 ```
