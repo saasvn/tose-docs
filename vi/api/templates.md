@@ -6,7 +6,7 @@ Endpoint của template nằm dưới `/api/workspaces/{slug}/templates` và dù
 
 [Spec OpenAPI](https://api.tose.sh/api/openapi.yaml) là nguồn chuẩn cho từng trường. Trang này giải thích hành vi xung quanh.
 
-## Template chọn image như thế nào
+## Template chọn image như thế nào {#how-a-template-picks-its-image}
 
 Một template lưu tối đa một **custom image**. Deploy bằng image chạy đúng image đã lưu đó và không bao giờ tự thay bằng image mặc định của catalog.
 
@@ -26,9 +26,33 @@ Khi template chưa lưu image nào, deploy bằng image chạy image mặc đị
 GET /api/workspaces/available-templates
 ```
 
-Mọi người dùng đã xác thực đều đọc được. `available-templates` là route cố định, không phải slug workspace. Các mục có `name`, `key`, `description`, `source`, `branch`, `default_port`, `default_cpu`, `default_ram`, `default_image`, `required_envs` và `unlock_fee_vnd`. Một số mục khác: mục Cloud Harness không có `default_image` và thêm `release`, `max_instances`, `pricing`. Hãy đọc danh sách trường của từng mục từ phản hồi hoặc spec OpenAPI. Dùng `key` làm `template_name` khi tạo template.
+Mọi người dùng đã xác thực đều đọc được. `available-templates` là route cố định, không phải slug workspace. Mỗi mục có `name`, `key`, `description`, `source`, `branch`, `default_port`, `default_cpu`, `default_ram`, `default_image`, `required_envs` và `unlock_fee_vnd` (chỉ có khi phí lớn hơn 0), cùng các trường dưới đây lấy từ manifest đã được kiểm tra của template. Mục Cloud Harness không lấy từ manifest: không có `source`, `branch`, `default_image` hay các trường manifest trong bảng dưới, và thêm `release`, `max_instances`, `pricing`. Hãy đọc danh sách trường đầy đủ từ phản hồi hoặc spec OpenAPI. Dùng `key` làm `template_name` khi tạo template.
 
-### Tạo template
+| Trường | Ý nghĩa với bạn |
+|--------|-----------------|
+| `schema_version` | Phiên bản định dạng manifest, hiện là `1`. |
+| `category`, `icon` | Nhãn tùy chọn để nhóm và hiển thị template. Rỗng nếu template không đặt. |
+| `min_cpu`, `min_ram` | vCPU và RAM (GB) nhỏ nhất mà lệnh tạo hoặc đổi cấu hình chấp nhận. Rỗng nếu template không có mức tối thiểu. |
+| `mounts` | Danh sách `{path, sub_path}`. Mỗi `path` trong container được lưu ở `sub_path` trên đĩa bền của instance, nên chỉ các đường dẫn này còn nguyên sau khi deploy lại. Dữ liệu ghi ở chỗ khác sẽ mất khi container khởi động lại. |
+| `disk_size_gib` | Dung lượng đĩa bền tính bằng GiB (2 nếu template không đặt kích thước khác). |
+| `secrets` | Các biến môi trường template cần: `key`, `mode`, `sensitive`, `label` và `placeholder`. Xem bên dưới. |
+| `network_egress` | `internet` hoặc `none`. Mô tả quyền truy cập mạng ra ngoài dự kiến, hiện chưa được áp dụng cưỡng chế. |
+
+`mode` của một secret cho biết ai cung cấp giá trị:
+
+| `mode` | Ai cung cấp |
+|--------|-------------|
+| `required` | Bạn, trong biểu mẫu thiết lập. Cũng có trong `required_envs`. |
+| `optional` | Bạn, hoặc để trống. Cũng có trong `required_envs`. |
+| `generated` | TOSE tạo một lần khi instance được tạo và lưu dạng mã hóa. TOSE không bao giờ tạo lại giá trị này. Nó bị che trong danh sách biến môi trường và catalog không trả giá trị; owner hoặc admin vẫn xem, ghi đè hoặc xóa được như biến khác, nhưng dữ liệu của instance có thể đã được mã hóa bằng nó nên đừng đổi. Không nằm trong `required_envs`. |
+
+`sensitive` đánh dấu giá trị mà dashboard ẩn đi. Catalog không bao giờ trả giá trị secret, chỉ trả các khai báo này.
+
+Tạo template hoặc đổi cấu hình xuống dưới `min_cpu` hay `min_ram` bị từ chối với `400` và thông báo `<name> needs at least <n> vCPU` hoặc `<name> needs at least <n> GB RAM`. Template chỉ cho phép kích thước cố định giữ thông báo hiện có, `<name> supports up to <n> vCPU` và `<name> supports <a> GB or <b> GB RAM`. Hiện chưa template nào trong catalog đặt mức tối thiểu, nên `min_cpu` và `min_ram` đang rỗng.
+
+Manifest không chứa container image. Image, quy trình nâng cấp và rollback vẫn như mô tả trong [Template chọn image như thế nào](#how-a-template-picks-its-image), [Deploy Template](#deploy-template) và [hướng dẫn Dewee](/vi/guide/dewee-template#versions-and-upgrades).
+
+### Tạo template {#create-a-template}
 
 ```http
 POST /api/workspaces/{slug}/templates
@@ -47,6 +71,51 @@ GET /api/workspaces/{slug}/templates/unlock-status
 ```
 
 Một object theo key template, mỗi template bị khóa một mục: `unlocked`, `unlock_fee_vnd`, `unlock_credit_usd_cents`, `exchange_rate_vnd_per_usd`, `unlock_url` và `payment_purpose`. Khoản phí vẫn dùng được như credit trong ví. Xem [Bảng giá](/vi/guide/pricing).
+
+### Trạng thái release công khai {#public-release-status}
+
+```http
+GET /api/public/template-releases
+```
+
+Công khai: không cần xác thực, không gắn workspace, không có dữ liệu tenant. Phản hồi được cache 300 giây (`Cache-Control: public, max-age=300`) và không chứa tên image, digest hay liên kết bằng chứng. Dùng nó để hiển thị template 1-click (Dewee, GoClaw) đã được xác minh hay chưa, ví dụ trên trang marketing.
+
+```json
+{
+  "templates": [
+    {
+      "key": "dewee",
+      "status": "experimental",
+      "unlock_fee_vnd": 0,
+      "default_cpu": 1,
+      "default_ram_gb": 2,
+      "region": "SGP1"
+    }
+  ]
+}
+```
+
+Ví dụ chỉ minh họa hình dạng; hãy đọc giá trị thật từ phản hồi. `templates[]` có một mục cho mỗi template trong catalog:
+
+| Trường | Ý nghĩa |
+|--------|---------|
+| `key` | Key template, cùng giá trị với `template_name` khi [tạo template](#create-a-template) |
+| `status` | `verified`, `experimental`, `deprecated` hoặc `unavailable` (bên dưới) |
+| `version` | Phiên bản release. Chỉ có khi `status` là `verified` |
+| `last_validated_at` | Ngày của lần chạy staging đạt. Chỉ có khi `status` là `verified` |
+| `unlock_fee_vnd` | Phí mở khóa một lần, tính bằng VND. Khoản này vẫn nằm trong ví dưới dạng credit; xem [Bảng giá](/vi/guide/pricing) |
+| `default_cpu` | vCPU mặc định |
+| `default_ram_gb` | RAM mặc định, tính bằng GB |
+| `region` | Region nơi instance chạy |
+
+| `status` | Ý nghĩa |
+|----------|---------|
+| `verified` | Image trong catalog đã đạt một lần chạy staging end-to-end. Mục có `version` và `last_validated_at`. Bản ghi thiếu một trong hai sẽ báo `experimental`, không bao giờ báo `verified` |
+| `experimental` | Được cung cấp, nhưng chưa ghi nhận lần chạy staging đạt cho image trong catalog. Image không có trong manifest cũng là `experimental` |
+| `deprecated` | Image trong catalog bị đánh dấu ngừng dùng |
+| `unavailable` | Cờ công khai của endpoint đang tắt, nên mọi template đều báo trạng thái này bất kể trạng thái thật |
+
+`verified` do release gate trong `templates/verified-images.json` của [saasvn/tose-app](https://github.com/saasvn/tose-app) quyết định (xem [Release gate và bảng tương thích](/vi/guide/dewee-template#release-gate-and-compatibility)), không phải do endpoint này. Chưa có gì là `verified` cho tới khi một lần chạy staging thật nâng cấp một image, nên trước đó hãy mong đợi `experimental`.
 
 ### Liệt kê template
 
@@ -264,7 +333,7 @@ GET /api/workspaces/{slug}/templates/{template_slug}/deployments/{id}
 | `status` | string | `pending`, `building`, `deploying`, `running`, `failed` hoặc `stopped` |
 | `docker_image` | string | Image mà deployment này đã chạy |
 | `image_source` | string | `catalog`, `custom` hoặc `rollback` |
-| `image_digest` | string | Digest `algorithm:hex` (thường là `sha256:…`) khi tham chiếu được ghim theo digest. Bỏ qua với tham chiếu chỉ có tag |
+| `image_digest` | string | Digest đã chạy, dạng `algorithm:hex` (thường là `sha256:…`). Lấy từ tham chiếu khi nó được ghim bằng `@sha256:…`; nếu không thì là digest registry trả về cho tag lúc deploy chạy. Bỏ qua khi tra cứu thất bại. Là bản ghi, không phải ghim: xem bên dưới |
 | `previous_image` | string | Image template đã lưu trước deployment này |
 | `config_fingerprint` | string | Hash `sha256:…` của image, cổng, CPU, RAM và số replica mà deployment đã áp dụng. Hai deployment cùng fingerprint đã chạy cùng một cấu hình |
 | `trigger_type` | string | `manual`, hoặc `image_only` với deploy bằng image |
@@ -274,4 +343,8 @@ GET /api/workspaces/{slug}/templates/{template_slug}/deployments/{id}
 
 Bốn trường biên nhận này chỉ được ghi với deploy bằng image; deploy kiểu build bỏ qua chúng. `image_source`, `image_digest`, `previous_image`, `config_fingerprint` và `triggered_by` hợp lại là biên nhận deploy: cái gì đã chạy, nó thay thế cái gì và ai yêu cầu.
 
-Tag có thể bị đổi trỏ. Để biết chính xác bản build nào đã chạy, hãy ghim custom image theo digest (`repository:tag@sha256:…`) để `image_digest` được ghi lại.
+### Digest image trong biên nhận {#image-digest-in-the-receipt}
+
+- Tham chiếu được ghim bằng `@sha256:…` giữ nguyên digest đó. Tag được tra từ registry khi deploy chạy.
+- Digest là bản ghi về cái đã chạy, không phải ghim. Deploy vẫn chạy tag, và rollback chạy lại tag của deployment trước, nên tag đã bị đổi trỏ có thể chạy bản build khác với digest đã ghi. Để chạy đúng một bản build, hãy ghim tham chiếu theo digest (`repository:tag@sha256:…`).
+- Nếu tra cứu thất bại (image private không có credential, không tìm thấy image hoặc tag, hoặc không kết nối được registry), deploy vẫn tiếp tục. Biên nhận không có `image_digest` và log deploy ghi `WARNING: image digest not recorded` kèm lý do. Khi thành công, log ghi `Image digest: …`.

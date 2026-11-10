@@ -26,7 +26,31 @@ When a template has no stored image, an image deploy runs the catalog default an
 GET /api/workspaces/available-templates
 ```
 
-Any authenticated caller may read it. `available-templates` is a fixed route, not a workspace slug. Entries have `name`, `key`, `description`, `source`, `branch`, `default_port`, `default_cpu`, `default_ram`, `default_image`, `required_envs` and `unlock_fee_vnd`. Some entries differ: the Cloud Harness entry has no `default_image` and adds `release`, `max_instances` and `pricing`. Read the field list for each entry from the response or the OpenAPI spec. Use `key` as `template_name` when you create a template.
+Any authenticated caller may read it. `available-templates` is a fixed route, not a workspace slug. Each entry has `name`, `key`, `description`, `source`, `branch`, `default_port`, `default_cpu`, `default_ram`, `default_image`, `required_envs` and `unlock_fee_vnd` (only when the fee is above zero), plus the fields below, which come from the template's validated manifest. The Cloud Harness entry does not come from a manifest: it has no `source`, `branch`, `default_image` or manifest fields from the table below, and it adds `release`, `max_instances` and `pricing`. Read the full field list from the response or the OpenAPI spec. Use `key` as `template_name` when you create a template.
+
+| Field | What it means for you |
+|-------|-----------------------|
+| `schema_version` | Version of the manifest format, currently `1`. |
+| `category`, `icon` | Optional labels for grouping and showing the template. Empty when the template sets none. |
+| `min_cpu`, `min_ram` | The smallest vCPU and RAM (GB) a create or resize accepts. Empty when the template has no minimum. |
+| `mounts` | List of `{path, sub_path}`. Each `path` inside the container is stored in `sub_path` on the instance's persistent disk, so only these paths survive a redeploy. Anything written elsewhere is lost when the container restarts. |
+| `disk_size_gib` | Size of the persistent disk in GiB (2 unless the template sets another size). |
+| `secrets` | The environment variables the template needs: `key`, `mode`, `sensitive`, `label` and `placeholder`. See below. |
+| `network_egress` | `internet` or `none`. It describes the intended outbound access and is not enforced today. |
+
+A secret's `mode` tells you who supplies the value:
+
+| `mode` | Who provides it |
+|--------|-----------------|
+| `required` | You, in the setup form. Also listed in `required_envs`. |
+| `optional` | You, or leave it empty. Also listed in `required_envs`. |
+| `generated` | TOSE creates it once, when the instance is created, and stores it encrypted. TOSE never generates it again. It is masked in the environment list, and the catalog never returns its value; an owner or admin can still reveal, overwrite or delete it like any other variable, but the instance's data may already be encrypted with it, so do not change it. It is not listed in `required_envs`. |
+
+`sensitive` marks values the dashboard hides. The catalog never returns secret values, only these declarations.
+
+Creating a template, or resizing one, below `min_cpu` or `min_ram` is refused with `400` and the message `<name> needs at least <n> vCPU` or `<name> needs at least <n> GB RAM`. Templates that allow only fixed sizes keep their existing messages, `<name> supports up to <n> vCPU` and `<name> supports <a> GB or <b> GB RAM`. No catalog template sets a minimum yet, so `min_cpu` and `min_ram` are empty today.
+
+The manifest does not contain the container image. The image, upgrade and rollback flow stays as described in [How a template picks its image](#how-a-template-picks-its-image), [Deploy Template](#deploy-template) and the [Dewee guide](/guide/dewee-template#versions-and-upgrades).
 
 ### Create a template
 
@@ -47,6 +71,51 @@ GET /api/workspaces/{slug}/templates/unlock-status
 ```
 
 An object keyed by template key, with one entry per gated template: `unlocked`, `unlock_fee_vnd`, `unlock_credit_usd_cents`, `exchange_rate_vnd_per_usd`, `unlock_url` and `payment_purpose`. The fee stays available as wallet credit. See [Pricing](/guide/pricing).
+
+### Public release status {#public-release-status}
+
+```http
+GET /api/public/template-releases
+```
+
+Public: no authentication, no workspace, no tenant data. Responses are cached for 300 seconds (`Cache-Control: public, max-age=300`), and they carry no image names, digests or evidence links. Use it to show whether a 1-click template (Dewee, GoClaw) is verified, for example on a marketing page.
+
+```json
+{
+  "templates": [
+    {
+      "key": "dewee",
+      "status": "experimental",
+      "unlock_fee_vnd": 0,
+      "default_cpu": 1,
+      "default_ram_gb": 2,
+      "region": "SGP1"
+    }
+  ]
+}
+```
+
+The example shows the shape only; read the real values from the response. `templates[]` has one entry per catalog template:
+
+| Field | Meaning |
+|-------|---------|
+| `key` | Template key, the same value as `template_name` when you [create a template](#create-a-template) |
+| `status` | `verified`, `experimental`, `deprecated` or `unavailable` (below) |
+| `version` | Release version. Present only when `status` is `verified` |
+| `last_validated_at` | Date of the passing staging run. Present only when `status` is `verified` |
+| `unlock_fee_vnd` | One-time unlock fee in VND. It stays in the wallet as credit; see [Pricing](/guide/pricing) |
+| `default_cpu` | Default vCPU |
+| `default_ram_gb` | Default RAM in GB |
+| `region` | Region where instances run |
+
+| `status` | Meaning |
+|----------|---------|
+| `verified` | The catalog image passed an end-to-end staging run. The entry carries `version` and `last_validated_at`. A record missing either is reported as `experimental`, never `verified` |
+| `experimental` | Offered, but no passing staging run is recorded for the catalog image. An image missing from the manifest is also `experimental` |
+| `deprecated` | The catalog image is marked deprecated |
+| `unavailable` | The endpoint's public flag is off, so every template reports this status regardless of its real state |
+
+`verified` is decided by the release gate in `templates/verified-images.json` in [saasvn/tose-app](https://github.com/saasvn/tose-app) (see [Release gate and compatibility](/guide/dewee-template#release-gate-and-compatibility)), not by this endpoint. Nothing is `verified` until a real staging run promotes an image, so expect `experimental` until then.
 
 ### List templates
 
@@ -262,7 +331,7 @@ GET /api/workspaces/{slug}/templates/{template_slug}/deployments/{id}
 | `status` | string | `pending`, `building`, `deploying`, `running`, `failed` or `stopped` |
 | `docker_image` | string | The image this deployment ran |
 | `image_source` | string | `catalog`, `custom` or `rollback` |
-| `image_digest` | string | The `algorithm:hex` digest (usually `sha256:…`) when the reference is pinned to one. Omitted for tag-only references |
+| `image_digest` | string | The digest that ran, as `algorithm:hex` (usually `sha256:…`). Taken from the reference when it is pinned with `@sha256:…`; otherwise the digest the registry served for the tag when the deploy ran. Omitted when the lookup failed. A record, not a pin: see below |
 | `previous_image` | string | The image the template had stored before this deployment |
 | `config_fingerprint` | string | `sha256:…` hash of the image, port, CPU, RAM and replicas that the deployment applied. Two deployments with the same fingerprint ran the same configuration |
 | `trigger_type` | string | `manual`, or `image_only` for an image deploy |
@@ -272,4 +341,8 @@ GET /api/workspaces/{slug}/templates/{template_slug}/deployments/{id}
 
 These four receipt fields are recorded for image deploys only; build deploys leave them out. Together, `image_source`, `image_digest`, `previous_image`, `config_fingerprint` and `triggered_by` are the deploy receipt: what ran, what it replaced, and who asked.
 
-A tag can move. To know exactly which build ran, pin your custom image to a digest (`repository:tag@sha256:…`) so `image_digest` is recorded.
+### Image digest in the receipt {#image-digest-in-the-receipt}
+
+- A reference pinned with `@sha256:…` keeps that digest. A tag is resolved from the registry when the deploy runs.
+- The digest is a record of what ran, not a pin. The deploy still runs the tag, and a rollback re-runs the tag of the earlier deployment, so a tag that was moved since can run a different build than the recorded digest. To run exactly one build, pin the reference to a digest (`repository:tag@sha256:…`).
+- If the lookup fails (a private image without credentials, an image or tag that is not found, or a registry that cannot be reached), the deploy continues. The receipt has no `image_digest` and the deploy log shows `WARNING: image digest not recorded` with the reason. On success the log shows `Image digest: …`.
