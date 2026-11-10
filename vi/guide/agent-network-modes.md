@@ -24,13 +24,15 @@ Phát triển (giới hạn) đã được triển khai và có kiểm thử cho
 
 ## Bộ công cụ theo agent {#bo-cong-cu-theo-agent}
 
-Chế độ Phát triển chỉ cung cấp những bộ công cụ mà image của agent thực sự có, nên không bao giờ quảng cáo một công cụ mà image không có. Go module không được cung cấp, vì không image tuyển chọn nào có Go toolchain.
+Chế độ Phát triển cung cấp các bộ công cụ của image agent, nên không quảng cáo một công cụ mà image không có. Go module không được cung cấp, vì không image tuyển chọn nào có Go toolchain.
 
 | Bộ công cụ | Máy chủ (tên chính xác, cổng 443) | Pi | Codex | Claude Code |
 |------------|-----------------------------------|:--:|:-----:|:-----------:|
 | `git` | `github.com`, `codeload.github.com`, `raw.githubusercontent.com`, `objects.githubusercontent.com`, `release-assets.githubusercontent.com` | Có | Có | Có |
-| `npm` | `registry.npmjs.org` | Không | Có | Có |
-| `python` (uv và pip) | `pypi.org`, `files.pythonhosted.org` | Không | Có | Có |
+| `npm` | `registry.npmjs.org` | Có | Có | Có |
+| `python` (uv và pip) | `pypi.org`, `files.pythonhosted.org` | Có | Có | Có |
+
+Pi có Node.js kèm npm và uv cho Python từ bản 1.1.0, bản phát hành mặc định của Pi. Pi 1.0.0 là bất biến và không có các công cụ này: chế độ Phát triển vẫn mở cùng các máy chủ npm và PyPI cho nó nhưng thiếu công cụ, nên hãy cài một ứng dụng Pi mới ở bản 1.1.0 để dùng chúng.
 
 Danh sách máy chủ là chính sách đã được duyệt và có phiên bản do TOSE sở hữu (hiện là `2026-11-09.1`). Một yêu cầu không thể thêm máy chủ, ký tự đại diện hay địa chỉ IP. Khi TOSE đổi chính sách, kế hoạch tiếp theo có hash mới. Một cài đặt đã duyệt không bao giờ bị đổi âm thầm.
 
@@ -57,7 +59,7 @@ Phát triển (giới hạn) thu hẹp phạm vi truy cập của agent, nhưng 
 
 - **Cho phép theo tên, không theo trang.** Cluster cho phép các địa chỉ mà một tên phân giải ra và không kiểm tra tên máy chủ TLS. Các trang khác dùng chung địa chỉ CDN (ví dụ Cloudflare hoặc Fastly) vẫn có thể phản hồi. Chế độ Chỉ nhà cung cấp mô hình cũng có mức phơi nhiễm tương tự qua các máy chủ của nhà cung cấp.
 - **Một số máy chủ trong danh sách nhận upload.** `github.com` và `registry.npmjs.org` nhận upload. Agent không tự giữ thông tin xác thực GitHub hay npm, nhưng một token bạn dán vào phiên, hoặc token bị prompt injection cài vào, cho phép nó `git push` hoặc `npm publish` dữ liệu ra ngoài.
-- **Repository riêng tư nằm ngoài phạm vi.** Chế độ này không cấp quyền vào repository riêng tư. Chúng cần một broker checkout đáng tin cậy.
+- **Repository riêng tư dùng tính năng tải kho mã, không dùng chế độ này.** Tính năng tải kho GitHub đã được phát hành: kế hoạch có thể ghim một kho mã của workspace, riêng tư hoặc công khai, và TOSE clone nó vào `/workspace` mà không đưa token GitHub cho agent. Xem [Kho mã GitHub cho coding agent](https://docs.tose.sh/vi/guide/agent-repository-checkout).
 - Agent có nhận khóa hoặc phiên đăng nhập của nhà cung cấp mô hình của bạn, nên hãy coi mọi thứ agent đọc được là thứ nó có thể gửi tới một máy chủ được cho phép.
 
 ## Liên quan

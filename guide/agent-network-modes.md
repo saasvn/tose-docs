@@ -24,13 +24,15 @@ Development (restricted) is implemented and covered by policy and plan tests. It
 
 ## Toolchains per agent
 
-Development mode offers only the toolchains an agent's image actually contains, so it never advertises a tool the image lacks. Go modules are not offered, because no curated image has a Go toolchain.
+Development mode offers the toolchains of the agent's image, so it does not advertise a tool the image lacks. Go modules are not offered, because no curated image has a Go toolchain.
 
 | Toolchain | Hosts (exact names, port 443) | Pi | Codex | Claude Code |
 |-----------|-------------------------------|:--:|:-----:|:-----------:|
 | `git` | `github.com`, `codeload.github.com`, `raw.githubusercontent.com`, `objects.githubusercontent.com`, `release-assets.githubusercontent.com` | Yes | Yes | Yes |
-| `npm` | `registry.npmjs.org` | No | Yes | Yes |
-| `python` (uv and pip) | `pypi.org`, `files.pythonhosted.org` | No | Yes | Yes |
+| `npm` | `registry.npmjs.org` | Yes | Yes | Yes |
+| `python` (uv and pip) | `pypi.org`, `files.pythonhosted.org` | Yes | Yes | Yes |
+
+Pi has Node.js with npm and uv for Python from release 1.1.0, the default Pi release. Pi 1.0.0 is immutable and does not have them: Development mode opens the same npm and PyPI hosts for it, but the tools are missing, so install a new Pi app on 1.1.0 to use them.
 
 The host list is a reviewed, versioned policy owned by TOSE (currently `2026-11-09.1`). A request cannot add a host, a wildcard or an IP address. When TOSE changes the policy, the next plan has a new hash. An approved installation is never changed silently.
 
@@ -57,7 +59,7 @@ Development (restricted) narrows the agent's reach. It does not make the agent s
 
 - **The allow is by name, not by site.** The cluster allows the addresses a name resolves to and does not check the TLS server name. Other sites served from the same shared CDN addresses (for example Cloudflare or Fastly) may still answer. Provider only has the same exposure through its provider hosts.
 - **Some listed hosts accept uploads.** `github.com` and `registry.npmjs.org` accept uploads. The agent holds no GitHub or npm credential of its own, but a token you paste into the session, or one planted by a prompt injection, lets it `git push` or `npm publish` data out.
-- **Private repositories are out of scope.** This mode gives no access to private repositories. They need a trusted checkout broker.
+- **Private repositories use repository checkout, not this mode.** GitHub repository checkout has shipped: a plan can pin one repository of the workspace, private or public, and TOSE clones it into `/workspace` without giving the agent a GitHub token. See [GitHub repository checkout](https://docs.tose.sh/guide/agent-repository-checkout).
 - The agent does receive your model provider key or sign-in, so treat anything the agent can read as something it could send to an allowed host.
 
 ## Related
