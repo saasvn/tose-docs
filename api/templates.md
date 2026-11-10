@@ -48,6 +48,51 @@ GET /api/workspaces/{slug}/templates/unlock-status
 
 An object keyed by template key, with one entry per gated template: `unlocked`, `unlock_fee_vnd`, `unlock_credit_usd_cents`, `exchange_rate_vnd_per_usd`, `unlock_url` and `payment_purpose`. The fee stays available as wallet credit. See [Pricing](/guide/pricing).
 
+### Public release status {#public-release-status}
+
+```http
+GET /api/public/template-releases
+```
+
+Public: no authentication, no workspace, no tenant data. Responses are cached for 300 seconds (`Cache-Control: public, max-age=300`), and they carry no image names, digests or evidence links. Use it to show whether a 1-click template (Dewee, GoClaw) is verified, for example on a marketing page.
+
+```json
+{
+  "templates": [
+    {
+      "key": "dewee",
+      "status": "experimental",
+      "unlock_fee_vnd": 0,
+      "default_cpu": 1,
+      "default_ram_gb": 2,
+      "region": "SGP1"
+    }
+  ]
+}
+```
+
+The example shows the shape only; read the real values from the response. `templates[]` has one entry per catalog template:
+
+| Field | Meaning |
+|-------|---------|
+| `key` | Template key, the same value as `template_name` when you [create a template](#create-a-template) |
+| `status` | `verified`, `experimental`, `deprecated` or `unavailable` (below) |
+| `version` | Release version. Present only when `status` is `verified` |
+| `last_validated_at` | Date of the passing staging run. Present only when `status` is `verified` |
+| `unlock_fee_vnd` | One-time unlock fee in VND. It stays in the wallet as credit; see [Pricing](/guide/pricing) |
+| `default_cpu` | Default vCPU |
+| `default_ram_gb` | Default RAM in GB |
+| `region` | Region where instances run |
+
+| `status` | Meaning |
+|----------|---------|
+| `verified` | The catalog image passed an end-to-end staging run. The entry carries `version` and `last_validated_at`. A record missing either is reported as `experimental`, never `verified` |
+| `experimental` | Offered, but no passing staging run is recorded for the catalog image. An image missing from the manifest is also `experimental` |
+| `deprecated` | The catalog image is marked deprecated |
+| `unavailable` | The endpoint's public flag is off, so every template reports this status regardless of its real state |
+
+`verified` is decided by the release gate in `templates/verified-images.json` in [saasvn/tose-app](https://github.com/saasvn/tose-app) (see [Release gate and compatibility](/guide/dewee-template#release-gate-and-compatibility)), not by this endpoint. Nothing is `verified` until a real staging run promotes an image, so expect `experimental` until then.
+
 ### List templates
 
 ```http

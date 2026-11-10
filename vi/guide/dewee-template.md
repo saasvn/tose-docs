@@ -41,7 +41,7 @@ Tạo, thay đổi và xóa instance cần vai trò **admin** của workspace. T
 
 ### Dashboard
 
-1. Mở **Templates** trong workspace và chọn **Dewee**.
+1. Mở **Ứng dụng đã cài** (Installed apps, nhóm **Ứng dụng & agent**) trong workspace, chọn **Tạo mẫu** rồi chọn **Dewee**.
 2. Thanh toán phí mở khóa nếu được yêu cầu.
 3. Chọn CPU và RAM rồi tạo.
 4. Mở **Environment** và đặt ba biến bắt buộc (bên dưới).
@@ -72,7 +72,9 @@ Ba biến bắt buộc:
 
 Các tên `DEWEE_*` (ví dụ `DEWEE_GATEWAY_TOKEN`) được chấp nhận làm alias và được sao chép sang tên `GOCLAW_*` khi khởi động, nếu tên `GOCLAW_*` đang trống. Chỉ đặt một cách viết, không đặt cả hai.
 
-`tose template env list` che các giá trị mà nó nhận ra là credential (tên chứa `token`, `secret`, `password`, `api_key` và tương tự), trong đó có `GOCLAW_GATEWAY_TOKEN`. Lệnh này **không** che `GOCLAW_POSTGRES_DSN` và `GOCLAW_ENCRYPTION_KEY` khi bạn đặt chúng từ file hoặc stdin, nên hai giá trị này có thể bị in ra dạng văn bản thường. Hãy đặt chúng bằng prompt ẩn (`tose template env set my-dewee GOCLAW_ENCRYPTION_KEY`) và tránh chạy `env list` trên màn hình dùng chung hoặc trong log CI. Bản sửa được theo dõi tại [tose-cli#40](https://github.com/saasvn/tose-cli/issues/40). Xem [`tose template`](/vi/commands/template) để biết đầy đủ các lệnh.
+`tose template env set` gửi `GOCLAW_POSTGRES_DSN`, `GOCLAW_ENCRYPTION_KEY` và `GOCLAW_GATEWAY_TOKEN` dưới dạng secret, và `tose template env list` che giá trị của chúng (`********`). Cột `SECRET` hiển thị `yes` cho các biến này. Tên chứa `token`, `secret`, `password`, `api_key`, `dsn`, `encryption_key` hoặc `connection_string` cũng được xử lý tương tự.
+
+Các giá trị đã lưu bằng CLI cũ có thể vẫn được lưu là không phải secret. Chúng hiển thị `SECRET no` kèm giá trị đã che. Hãy đặt lại để lưu chúng là secret, bằng `--env-file` hoặc `--env-stdin` (hoặc prompt ẩn, ví dụ `tose template env set my-dewee GOCLAW_ENCRYPTION_KEY`), rồi kiểm tra `env list` hiển thị `SECRET yes`. Dù vậy, vẫn nên tránh chạy `env list` trên màn hình dùng chung hoặc trong log CI. Xem [`tose template`](/vi/commands/template) để biết đầy đủ các lệnh.
 
 ## Cam kết bảo mật {#security-contract}
 
@@ -166,6 +168,24 @@ curl -s -o /dev/null -w '%{http_code}\n' https://<host-instance-cua-ban>/health
 - **Gián đoạn.** Template chạy một replica trên ổ đĩa chỉ một pod mount được, và deploy lại sẽ thay pod. Hãy dự kiến có gián đoạn khi deploy. TOSE không hứa zero-downtime cho template này.
 - **Chủ động nâng cấp.** Chỉ nâng cấp khi bạn chọn (`--upgrade`), từ một bản sao lưu, ngoài giờ cao điểm. Thay đổi của catalog không tự nâng cấp cho bạn.
 
+### Nâng cấp và quay lại từ dashboard {#dashboard-upgrade-and-rollback}
+
+Trang template trong dashboard có mục **Image** với các thao tác giống CLI. Mục này hiển thị ba image: **Lần triển khai gần nhất** (đang chạy), **Đã cấu hình** (image lưu trên template, dùng cho lần deploy thông thường kế tiếp) và **Có sẵn** (phiên bản catalog). Huy hiệu **Có bản cập nhật** xuất hiện khi phiên bản catalog khác với bản bạn đang chạy, và **Mới nhất** khi giống nhau.
+
+Ba thao tác tách biệt, không thay nhiệm vụ của nhau:
+
+| Thao tác | Gửi | Kết quả |
+|----------|-----|---------|
+| **Deploy** | `image_source=custom` | Triển khai lại image đã lưu, không nâng cấp. Nếu chưa lưu image nào, triển khai phiên bản catalog và lưu lại |
+| **Nâng cấp lên bản có sẵn** | `image_source=catalog` | Triển khai phiên bản catalog và thay image đã lưu |
+| **Quay lại phiên bản trước** | `rollback_to=<deployment id>` | Chạy image của một lần triển khai trước đó và lưu nó |
+
+Hộp thoại của mỗi thao tác nêu rõ image sẽ chạy. Mọi yêu cầu còn gửi `expected_image` (image **Đã cấu hình** mà bạn đang xem) khi đã có image được lưu. Nếu có người đổi image kể từ lúc bạn mở trang, yêu cầu bị từ chối với `409`; hãy tải lại trang rồi quyết định lại. Khi đang có một lần triển khai khác, các thao tác bị vô hiệu hóa.
+
+Khi quay lại, trang hiển thị cảnh báo trước khi bạn xác nhận: **quay lại image không khôi phục schema hay dữ liệu database.** Nếu phiên bản mới đã migrate chúng, image cũ có thể lỗi hoặc đọc sai, nên hãy khôi phục bản sao lưu database trước. Xem [Sao lưu trước](#versions-and-upgrades).
+
+Danh sách quay lại chỉ đưa ra các lần triển khai trước đó đã chạy thành công (trạng thái `running` hoặc `stopped`, và đã kết thúc), mới nhất trước, mỗi image một mục, tối đa tám mục, không gồm image bạn đang chạy. Bản build lỗi không bao giờ được đưa ra vì image của nó chưa từng được push. API áp dụng cùng quy tắc và trả `404` cho mọi deployment ID khác. Xem [API deploy template](/api/templates#rollback).
+
 ## Release gate và bảng tương thích {#release-gate-and-compatibility}
 
 TOSE chỉ công bố một phiên bản Dewee là đã xác minh sau khi một lần chạy end-to-end đạt trên cụm staging: tạo, xác thực qua domain công khai, WebSocket, MCP, dữ liệu còn sau khi khởi động lại, deploy lại và rollback, cùng các tình huống tiêu cực ở trên ([tose-app#276](https://github.com/saasvn/tose-app/issues/276)).
@@ -179,6 +199,8 @@ TOSE chỉ công bố một phiên bản Dewee là đã xác minh sau khi một 
 | Mức hỗ trợ | **Thử nghiệm (experimental)** |
 
 Khi có một lần chạy đã xác minh, bảng này sẽ có thêm digest, commit, revision TOSE, ngày và chữ *verified*. Đừng coi template là one-click đã xác minh trước thời điểm đó.
+
+Khi endpoint trạng thái công khai đang bật, [`GET /api/public/template-releases`](/vi/api/templates#public-release-status) báo cùng trạng thái này cho từng template: `verified` (kèm `version` và `last_validated_at`), `experimental`, `deprecated`, hoặc `unavailable` khi cờ tắt. Release gate trong `templates/verified-images.json` quyết định `verified`, và chưa có gì được xác minh cho tới khi một lần chạy staging thật nâng cấp một image.
 
 ## Checklist triển khai theo giai đoạn {#staged-rollout-checklist}
 
