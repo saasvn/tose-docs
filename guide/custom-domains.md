@@ -7,12 +7,22 @@ A custom domain is routed only after you prove you control its DNS. The one exce
 1. **Add the domain** in the dashboard, with `tose domain add`, or with `POST /api/workspaces/{slug}/projects/{project_slug}/domains` (`POST .../templates/{template_slug}/domains` for an app). Only an owner or admin can add it.
 2. TOSE records a claim with `verification_status: pending_verification` and returns a `verification_record`: a random token and the name to publish it at.
 3. **Add a TXT record** at `_tose-challenge.<your-domain>` whose value is the token shown. Also point an A record at the `target_ip` shown.
-4. **Click Verify**, or call `POST .../domains/{domain_id}/verify`. TOSE looks the TXT record up (5-second timeout). When it carries the token, the domain becomes `verified`, is routed, and its certificate is requested.
+4. **Click Verify**, run `tose domain verify <domain>`, or call `POST .../domains/{domain_id}/verify`. TOSE looks the TXT record up (5-second timeout). When it carries the token, the domain becomes `verified`, is routed, and its certificate is requested.
 
 ```bash
 curl -X POST https://api.tose.sh/api/workspaces/my-team/projects/my-site/domains/$DOMAIN_ID/verify \
   -H "X-API-Key: $TOSE_API_KEY"
 ```
+
+With the CLI the same steps are:
+
+```bash
+tose domain add app.example.com     # prints the TXT and A records to publish
+tose domain verify app.example.com  # checks the TXT record, routes the domain, refreshes DNS/SSL
+tose domain verify app.example.com  # run again to check a certificate that is still pending
+```
+
+`tose domain verify` exits with code `2` on `DOMAIN_VERIFICATION_FAILED` and `DOMAIN_DNS_LOOKUP_FAILED`; with `--json` the record to publish is in `error.details.verification_record`. The CLI manages project domains only; domains of installed apps are verified in the dashboard or the API.
 
 A pending domain is **not routed and gets no certificate**. Verification can fail with:
 

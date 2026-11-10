@@ -7,12 +7,22 @@ Tên miền tùy chỉnh chỉ được định tuyến sau khi bạn chứng mi
 1. **Thêm tên miền** trong dashboard, bằng `tose domain add`, hoặc bằng `POST /api/workspaces/{slug}/projects/{project_slug}/domains` (`POST .../templates/{template_slug}/domains` cho ứng dụng). Chỉ owner hoặc admin mới thêm được.
 2. TOSE ghi một yêu cầu sở hữu với `verification_status: pending_verification` và trả về `verification_record`: một token ngẫu nhiên và tên cần đặt nó.
 3. **Thêm bản ghi TXT** tại `_tose-challenge.<tên-miền-của-bạn>` với giá trị là token được hiển thị. Đồng thời trỏ bản ghi A tới `target_ip` được hiển thị.
-4. **Bấm Xác minh**, hoặc gọi `POST .../domains/{domain_id}/verify`. TOSE tra cứu bản ghi TXT (hết hạn sau 5 giây). Khi bản ghi chứa token, tên miền chuyển sang `verified`, được định tuyến và chứng chỉ được yêu cầu.
+4. **Bấm Xác minh**, chạy `tose domain verify <tên-miền>`, hoặc gọi `POST .../domains/{domain_id}/verify`. TOSE tra cứu bản ghi TXT (hết hạn sau 5 giây). Khi bản ghi chứa token, tên miền chuyển sang `verified`, được định tuyến và chứng chỉ được yêu cầu.
 
 ```bash
 curl -X POST https://api.tose.sh/api/workspaces/my-team/projects/my-site/domains/$DOMAIN_ID/verify \
   -H "X-API-Key: $TOSE_API_KEY"
 ```
+
+Với CLI, các bước tương tự là:
+
+```bash
+tose domain add app.example.com     # in ra bản ghi TXT và A cần đặt
+tose domain verify app.example.com  # kiểm tra bản ghi TXT, định tuyến tên miền, làm mới DNS/SSL
+tose domain verify app.example.com  # chạy lại để kiểm tra chứng chỉ còn đang chờ
+```
+
+`tose domain verify` thoát với mã `2` khi gặp `DOMAIN_VERIFICATION_FAILED` và `DOMAIN_DNS_LOOKUP_FAILED`; với `--json`, bản ghi cần đặt nằm trong `error.details.verification_record`. CLI chỉ quản lý tên miền của dự án; tên miền của ứng dụng đã cài được xác minh trong dashboard hoặc API.
 
 Tên miền đang chờ **không được định tuyến và không có chứng chỉ**. Xác minh có thể thất bại với:
 
