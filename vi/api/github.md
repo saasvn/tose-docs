@@ -30,14 +30,19 @@ GET /api/github/repos?workspace_slug={slug}
 
 Các repository mà GitHub App của TOSE đọc được, loại trùng theo `full_name`. Với `workspace_slug`, chỉ tìm trong các installation đã gắn vào workspace đó và bạn phải là thành viên. Thêm `installation_id` để liệt kê một installation; khi đó lỗi trả `500`. Nếu không có, installation nào tải lỗi sẽ bị bỏ qua.
 
+Thêm `fork_of=owner/repo` để chỉ nhận các repository mà GitHub báo là fork của repository đó, trực tiếp (`parent_full_name`) hoặc xa hơn trong mạng fork (`source_full_name`). Owner gồm chữ cái, chữ số và dấu gạch ngang đơn ở giữa (tối đa 39 ký tự). Tên repository gồm 1 đến 100 chữ cái, chữ số, dấu chấm, dấu gạch dưới và dấu gạch ngang, trừ `.` và `..`. Giá trị khác trả `400`. Các fork của mỗi installation được đọc lần lượt từng cái, những fork có tên giống repository đích được đọc trước, tối đa 10 fork cho mỗi installation; fork không đọc được sẽ bị bỏ qua.
+
 | Trường | Kiểu | Mô tả |
 |-------|------|-------------|
 | `full_name` | string | `owner/repo`. Dùng làm `repo_full_name` khi kết nối |
 | `private` | boolean | Repository có private không |
+| `fork` | boolean | GitHub có báo repository là một fork không |
 | `default_branch` | string | Branch mặc định |
 | `description`, `language` | string | Metadata của repository |
 | `html_url`, `clone_url` | string | Liên kết GitHub |
 | `installation_id` | integer | Installation đang cho thấy repository. Bỏ qua khi bằng `0` |
+| `parent_full_name` | string | Chỉ có trong kết quả `fork_of`: repository mà fork này được tạo từ đó |
+| `source_full_name` | string | Chỉ có trong kết quả `fork_of`: gốc của mạng fork này |
 
 ### Liệt kê branch {#branches}
 

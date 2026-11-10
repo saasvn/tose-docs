@@ -101,7 +101,7 @@ Các quy tắc khác:
 3. **Chọn workspace.** Nếu chỉ có một workspace, người truy cập đi thẳng tiếp. Nếu có nhiều, họ chọn một. Nếu chưa có workspace nào, họ được yêu cầu tạo workspace đầu tiên, rồi tiếp tục.
 4. **Liên kết repository:** form tạo project mới mở ra với repository, branch, tên project và tên biến đã được điền sẵn. Một banner cho biết form đến từ liên kết Deploy on TOSE. Các dòng biến để trống, nên người truy cập tự nhập giá trị. Nếu branch không tồn tại trong repository, một ghi chú báo như vậy và branch mặc định được chọn.
    **Liên kết template:** việc deploy template mở ra với template, phiên bản và publisher lấy từ liên kết.
-5. **Xem lại và deploy.** Người truy cập kiểm tra từng trường rồi bấm nút tạo project (**Create Project** trên form tạo project mới). Cho đến lúc đó, chưa có gì được tạo và chưa có gì bị tính phí.
+5. **Xem lại và deploy.** Người truy cập kiểm tra từng trường rồi bấm nút tạo project (**Tạo dự án** trên form tạo project mới, hiển thị là **Create Project** khi dashboard dùng tiếng Anh). Cho đến lúc đó, chưa có gì được tạo và chưa có gì bị tính phí.
 
 ### Quyền truy cập repository {#repository-access}
 
@@ -117,7 +117,7 @@ Khi TOSE không tìm thấy kết quả nào khớp, form giải thích còn thi
 - **Install or configure the GitHub App** mở GitHub để người truy cập cấp cho TOSE GitHub App quyền truy cập vào tài khoản sở hữu bản fork.
 - **Check again** đọc lại các tài khoản GitHub đã kết nối mà không rời khỏi form, rồi tìm lại repository và bản fork một lần nữa.
 
-Việc tìm repository không thay đổi gì: form chỉ được gửi khi người truy cập bấm nút tạo project.
+Việc tìm fork chỉ đọc tối đa 10 fork cho mỗi tài khoản GitHub, ưu tiên fork cùng tên; fork nằm ngoài giới hạn đó có thể không được tìm thấy. Việc tìm repository không thay đổi gì: form chỉ được gửi khi người truy cập bấm **Tạo dự án**.
 
 ### Chi phí và ví {#cost-and-wallet}
 
