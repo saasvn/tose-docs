@@ -66,6 +66,10 @@ Bảng **Gói Claude** được cung cấp ở máy chủ bật `CURATED_SUBSCRI
 
 Codex nhận token trực tiếp từ OpenAI và giữ chúng trên ổ đĩa của agent. TOSE không nhận token, cookie hay mã ủy quyền, và không bao giờ yêu cầu bạn gửi chúng; TOSE chỉ chuyển tiếp mã thiết bị dùng một lần cho bạn. Người vận hành bật tính năng này bằng `CURATED_SUBSCRIPTION_LOGIN_ENABLED=true`; chủ sản phẩm đã cho phép bật trên production từ 2026-11-09. Trên máy chủ chưa bật, nhà cung cấp hiện "not available on this server" và không chọn được. Owner hoặc admin nào mở được console cũng dùng được phiên ChatGPT đã kết nối, và OpenAI có thể hạn chế các tài khoản đăng nhập theo cách này, nên hãy kết nối một tài khoản bạn thấy phù hợp.
 
+## Triển khai bằng CLI
+
+`tose templates plan|deploy --curated <tên>` lập kế hoạch và cài cùng các agent này từ terminal. Với Pi, CLI kiểm tra nhà cung cấp trước khi lập kế hoạch: nhà cung cấp mới hơn bản Pi mới nhất bị từ chối kèm danh sách được cung cấp, và `cloudflare-workers-ai` cần `CLOUDFLARE_ACCOUNT_ID` trong `variables`. Xem [Nhà cung cấp Pi curated](/vi/commands/templates#curated-pi-providers).
+
 ## Mở console
 
 **Mở console** mở agent trong một tab mới. Console không có địa chỉ công khai: chỉ owner và admin của workspace đã đăng nhập mới mở được, một phiên kéo dài tối đa 8 giờ, và nó đóng khi ứng dụng dừng hoặc bạn mất quyền truy cập. API key và ứng dụng được kết nối không thể mở console.

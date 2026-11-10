@@ -21,7 +21,7 @@ The registry has shipped (tose-app [#388](https://github.com/saasvn/tose-app/pul
 | In-place upgrade and rollback of a registry installation (tose-app [#483](https://github.com/saasvn/tose-app/pull/483)) | Built, through the same plans and the same security gate |
 | Registry MCP tools: `search_templates`, `get_template`, `validate_template`, `create_template_draft`, `publish_template`, `plan_template_deployment`, `get_template_deployment`, `deploy_template` | Available. No tool approves a plan, and deploys meet the same security gate |
 | Curated Pi, Claude Code and Codex templates: one-page deploy, install and private console | Released: Codex 1.0.0, Claude Code 1.0.0, Pi 1.0.0 and 1.1.0 (the default for Pi). See [below](#curated-agent-templates) |
-| `tose templates ...` CLI | Not available |
+| `tose templates ...` CLI | Available: [manifest check and push, plan, deploy and curated agents](/commands/templates) |
 
 The curated 1-click templates (GoClaw, Dewee) are not changed by the registry. They keep their own [catalog, deploy and billing path](/guide/dewee-template). An installation that does not come from the registry has no template version attached, and is treated as a legacy installation.
 

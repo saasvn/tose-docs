@@ -65,6 +65,7 @@ export default defineConfig({
               { text: 'tose desktop', link: '/commands/desktop' },
               { text: 'tose template', link: '/commands/template' },
               { text: 'tose sidecars', link: '/commands/sidecars' },
+              { text: 'tose templates', link: '/commands/templates' },
               { text: 'tose disk / volumes / pricing', link: '/commands/disk' },
               { text: 'tose autoscaling', link: '/commands/autoscaling' },
               { text: 'tose generate', link: '/commands/generate' }
@@ -210,6 +211,7 @@ export default defineConfig({
               { text: 'tose desktop', link: '/commands/desktop' },
               { text: 'tose template', link: '/vi/commands/template' },
               { text: 'tose sidecars', link: '/vi/commands/sidecars' },
+              { text: 'tose templates', link: '/vi/commands/templates' },
               { text: 'tose disk / volumes / pricing', link: '/vi/commands/disk' },
               { text: 'tose autoscaling', link: '/vi/commands/autoscaling' },
               { text: 'tose generate', link: '/vi/commands/generate' }
