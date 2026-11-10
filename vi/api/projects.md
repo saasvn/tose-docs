@@ -185,6 +185,8 @@ Phản hồi có thêm đối tượng `apply` bên cạnh kết quả thông th
 | `deployment_id`, `status` | Deployment mà lần triển khai ghi nhận, khi đã áp dụng |
 | `code`, `reason` | Lý do chưa áp dụng: `NO_DEPLOYMENT` (chưa có deployment thành công), `NO_SERVER`, `INSUFFICIENT_BALANCE`, `ROLLOUT_FAILED` và tương tự. Hãy redeploy để thử lại |
 
+Hai mã cho biết một thao tác khác đang chen vào. `REDEPLOY_BUSY`: dự án đang có một lần deploy hoặc dừng chạy. `ROLLOUT_REPLACED`: lần triển khai bị thay thế hoặc bị dừng trước khi hoàn tất. Cả hai trường hợp thay đổi đều đã được lưu: hãy chờ thao tác kia xong rồi redeploy. Route `POST .../redeploy` độc lập trả các mã này với HTTP `409`; yêu cầu sửa env đã lưu thay đổi giữ nguyên status ghi thông thường và báo mã trong `apply` kèm `applied: false`.
+
 Apply cần cùng quyền với redeploy: vai trò `owner` hoặc `admin`, scope `deployments:execute` với API
 key, phê duyệt với ứng dụng OAuth được kết nối, và số dư ví dương. Nếu thiếu một điều kiện, yêu cầu bị
 từ chối trước khi lưu bất cứ thứ gì:
