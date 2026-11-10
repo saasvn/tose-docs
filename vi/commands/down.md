@@ -114,7 +114,7 @@ Sau khi yêu cầu Stop được chấp nhận, CLI đọc lại triển khai (c
 | `7` | `TIMEOUT` | Yêu cầu Stop hết thời gian (chưa rõ kết quả), hoặc triển khai vẫn `deploying` sau khi dừng |
 | `8` | `OPERATION_FAILED` | Dự án vẫn bận sau 4 lần thử, hoặc việc dừng kết thúc với một triển khai `running` trở lại |
 
-Triển khai mới nhất đã ở `stopped`, `failed` hoặc trạng thái kết thúc khác không phải lỗi: CLI cảnh báo và thoát với mã `0` mà không gửi yêu cầu. Danh sách đầy đủ xem [Mã thoát](/vi/commands/overview#ma-thoat).
+Triển khai mới nhất đã ở `stopped`, `failed` hoặc trạng thái kết thúc khác không phải lỗi: CLI cảnh báo và thoát với mã `0` mà không gửi yêu cầu. Danh sách đầy đủ xem [Mã thoát](/vi/commands/overview#exit-codes).
 
 `tose deployment cancel <id>` dùng cùng cơ chế thử lại và kiểm tra trạng thái cuối. Xem [`tose deployment cancel`](/vi/commands/deployment#tose-deployment-cancel).
 

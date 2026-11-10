@@ -71,7 +71,7 @@ export RUNTIME_ID=<runtime-id>
 | `last_error` | string | Thông báo lỗi gần nhất, nếu có |
 | `current_operation_id` | string | Operation đang chạy, hoặc `null` |
 | `created_by` | string | Người dùng đã tạo runtime |
-| `compute_cents_per_hour` | number | Giá tính toán theo cent mỗi giờ khi ở trạng thái `ready`, theo bậc số dư ví hiện tại của workspace |
+| `compute_cents_per_hour` | number | Giá tính toán theo cent mỗi giờ khi ở trạng thái `ready`, theo mức giá compute tiêu chuẩn |
 | `created_at`, `updated_at` | string | Mốc thời gian (ISO 8601) |
 
 ### Operation {#operation}

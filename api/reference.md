@@ -57,6 +57,13 @@ See [Authentication](/api/authentication) for API keys, session tokens and the U
 Every JSON error has the same envelope with a stable `code`. Branch on `code`, never on the
 message text. See [Errors](/api/errors) for the full list, including the codes of the MCP tools.
 
+## Platform features
+
+`GET /api/public/features` (tag `Platform`) needs no authentication and holds no account or workspace
+data. It returns `{"ci": bool, "desktops": bool, "autoscaling_budget": bool}`, which optional sections this platform serves.
+Responses are cached for 60 seconds. The dashboard uses it to hide **CI**, **Cloud desktops** and the
+**Autoscaling** entry (see [Autoscaling budgets](/guide/autoscaling-budgets)).
+
 ## Request IDs
 
 Every response carries an `X-Request-ID` header. Send your own to have it echoed back. Error
@@ -105,6 +112,7 @@ The app is scaled to zero replicas and stays there until you deploy again. Only 
 | Status | Meaning |
 |--------|---------|
 | `400` | The deployment is not in a stoppable status |
+| `502` | The cluster did not scale the app down, so nothing was recorded `stopped`. The message is `Failed to stop deployment. See the server log for details.` and never carries the cluster error. Retry |
 | `503` | Nothing was stopped: the project's workload lock could not be taken within 60 seconds because a deployment step is finishing, or the database is unreachable. The response carries a `Retry-After` header |
 
 A Stop answers within about 100 seconds. On `503`, wait the number of seconds in `Retry-After`, then send the request again. The retry is safe because nothing was stopped.
@@ -124,4 +132,5 @@ if (res.status === 503) {
 - [Errors](/api/errors)
 - [Cloud Desktops API](/api/desktops)
 - [Disks, Volumes & Pricing API](/api/disks)
+- [Autoscaling budget API](/api/autoscaling-budget)
 - [Self-hosting](/guide/self-hosting)

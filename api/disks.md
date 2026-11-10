@@ -151,7 +151,7 @@ Omit `disk` to create a stateless project.
 
 ### Get Pricing
 
-Public: send the request without an API key or session. It returns the CPU and RAM hourly rates by wallet balance band, lowest band first (`min_balance_usd` is the balance from which a band applies), and the persistent storage tariff.
+Public: send the request without an API key or session. It returns the standard CPU and RAM hourly rate, the [top-up bonus](#get-top-up-bonus) bands and the persistent storage tariff.
 
 ```http
 GET /api/pricing
@@ -162,11 +162,21 @@ GET /api/pricing
 ```json
 {
   "compute": {
+    "cpu_usd_per_hour": 0.02,
+    "ram_gb_usd_per_hour": 0.01,
     "tiers": [
-      { "min_balance_usd": 0, "cpu_usd_per_hour": 0.02, "ram_gb_usd_per_hour": 0.01 },
-      { "min_balance_usd": 100, "cpu_usd_per_hour": 0.014, "ram_gb_usd_per_hour": 0.007 },
-      { "min_balance_usd": 200, "cpu_usd_per_hour": 0.012, "ram_gb_usd_per_hour": 0.006 }
+      { "min_balance_usd": 0, "cpu_usd_per_hour": 0.02, "ram_gb_usd_per_hour": 0.01 }
     ]
+  },
+  "topup_bonus": {
+    "currency": "USD",
+    "bands": [
+      { "min_amount_usd": 100, "bonus_percent": 10, "most_popular": false },
+      { "min_amount_usd": 250, "bonus_percent": 15, "most_popular": false },
+      { "min_amount_usd": 500, "bonus_percent": 20, "most_popular": true },
+      { "min_amount_usd": 1000, "bonus_percent": 25, "most_popular": false }
+    ],
+    "note": "..."
   },
   "storage": {
     "usd_per_gib_month": 0.15,
@@ -178,6 +188,45 @@ GET /api/pricing
   }
 }
 ```
+
+| Field | Description |
+|-------|-------------|
+| `compute.cpu_usd_per_hour` | Price of one vCPU-hour. The standard rate for every workspace |
+| `compute.ram_gb_usd_per_hour` | Price of one GB of RAM per hour. The standard rate for every workspace |
+| `compute.tiers` | **Deprecated.** Kept for older clients. It always holds one entry (`min_balance_usd: 0`) with the standard rate. Read `cpu_usd_per_hour` and `ram_gb_usd_per_hour` instead. It may be removed in a later release |
+| `topup_bonus` | The same table as [`GET /api/billing/topup-bonus`](#get-top-up-bonus) |
+| `storage` | The persistent storage tariff |
+
+### Get Top-up Bonus {#get-top-up-bonus}
+
+Public: send the request without an API key or session. It returns the bonus credit that a single wallet top-up earns. See [Top-up bonus](/guide/pricing#top-up-bonus) for the rules.
+
+```http
+GET /api/billing/topup-bonus
+```
+
+**Response:**
+
+```json
+{
+  "currency": "USD",
+  "bands": [
+    { "min_amount_usd": 100, "bonus_percent": 10, "most_popular": false },
+    { "min_amount_usd": 250, "bonus_percent": 15, "most_popular": false },
+    { "min_amount_usd": 500, "bonus_percent": 20, "most_popular": true },
+    { "min_amount_usd": 1000, "bonus_percent": 25, "most_popular": false }
+  ],
+  "note": "The bonus applies to one payment and is added as separate, non-expiring credit. Admin and promotional credit earn no bonus. A refund takes back the bonus in proportion."
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `bands[].min_amount_usd` | Smallest single top-up that earns the band |
+| `bands[].bonus_percent` | Bonus credit as a percentage of that top-up |
+| `bands[].most_popular` | `true` for the band the top-up screen highlights |
+
+Bands are listed lowest first. A top-up below the first band earns no bonus. The bonus is not granted on a payment with a promo code, and a refund takes it back in proportion. The bonus shows in the wallet history as a `topup_bonus` transaction (and `topup_bonus_clawback` when taken back).
 
 ## Usage Records
 
