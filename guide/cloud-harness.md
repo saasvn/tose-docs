@@ -47,7 +47,7 @@ You need:
 
 In the dashboard:
 
-1. Open **Templates** in your workspace and select **New Template**.
+1. Open **Installed apps** in your workspace (under **Apps & agents**) and select **New Template**.
 2. Choose **Cloud Harness**. The card shows the instance's costs at your wallet balance tier and how
    many instances the workspace already has.
 3. Enter a name and pick a size: 1 or 2 vCPU, 2 GB or 4 GB RAM. These are the only sizes Cloud
