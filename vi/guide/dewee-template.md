@@ -41,7 +41,7 @@ Tạo, thay đổi và xóa instance cần vai trò **admin** của workspace. T
 
 ### Dashboard
 
-1. Mở **Templates** trong workspace và chọn **Dewee**.
+1. Mở **Ứng dụng đã cài** (Installed apps, nhóm **Ứng dụng & agent**) trong workspace, chọn **Tạo mẫu** rồi chọn **Dewee**.
 2. Thanh toán phí mở khóa nếu được yêu cầu.
 3. Chọn CPU và RAM rồi tạo.
 4. Mở **Environment** và đặt ba biến bắt buộc (bên dưới).
@@ -160,13 +160,13 @@ curl -s -o /dev/null -w '%{http_code}\n' https://<host-instance-cua-ban>/health
 
 ## Phiên bản và nâng cấp {#versions-and-upgrades}
 
-- **Image.** Instance chạy image được lưu trên nó. Ở chế độ `image` (mặc định của `tose template deploy`), mỗi lần deploy hiện thay image đó bằng mặc định của catalog, kể cả khi bạn đã đặt custom image ([tose-app#277](https://github.com/saasvn/tose-app/issues/277)). Vì vậy một lần deploy lại thông thường có thể đưa bạn lên phiên bản Dewee mới hơn. Hãy ghi lại tag đang chạy và tag của catalog trước khi deploy. `tose template deploy --mode build` không thay image.
+- **Image.** Instance chạy image được lưu trên nó. `tose template deploy` thông thường (chế độ `image`) giữ nguyên image đó và không tự nâng cấp. `tose template info` hiển thị image đã deploy, đã cấu hình và khả dụng, cùng việc có bản cập nhật hay không. Chỉ chuyển sang phiên bản catalog bằng `tose template deploy --upgrade`, và truyền `--expected-image` (dòng `Configured:`) để deploy thất bại nếu image đã đổi trong lúc đó. `--mode build` không thay image.
 - **Tag không phải digest.** Tag có thể bị push lại. Để có bản ghi tái lập được, hãy lấy digest của image bạn đang chạy và lưu cùng ghi chú của bạn.
 - **Tự động nâng cấp được bật mặc định.** Mỗi lần khởi động khi có `GOCLAW_POSTGRES_DSN`, container chạy `dewee upgrade` và từ chối khởi động nếu lệnh lỗi. Đặt `GOCLAW_AUTO_UPGRADE=false` nếu bạn muốn tự chạy nâng cấp vào thời điểm bạn chọn.
 - **Sao lưu trước.** PostgreSQL là của bạn: TOSE không snapshot nó. Trước mọi thay đổi phiên bản, hãy sao lưu và khôi phục thử một lần vào database tạm để chứng minh bản sao lưu dùng được. Sao lưu cả dữ liệu ổ đĩa bền vững mà bạn cần.
-- **Rollback không đối xứng.** Quay image về phiên bản cũ **không** quay lại schema hay dữ liệu database. Migration đã chạy có thể không tương thích với image cũ. Để quay lại an toàn, hãy khôi phục bản sao lưu database cùng với image cũ.
+- **Rollback không đối xứng.** `tose template deploy --rollback <deployment_id>` chạy lại image cũ, nhưng **không** quay lại schema hay dữ liệu database. Migration đã chạy có thể không tương thích với image cũ. Để quay lại an toàn, hãy khôi phục bản sao lưu database cùng với image cũ.
 - **Gián đoạn.** Template chạy một replica trên ổ đĩa chỉ một pod mount được, và deploy lại sẽ thay pod. Hãy dự kiến có gián đoạn khi deploy. TOSE không hứa zero-downtime cho template này.
-- **Chủ động nâng cấp.** Chỉ nâng cấp khi bạn chọn, từ một bản sao lưu, ngoài giờ cao điểm. Đừng trông chờ việc catalog thay đổi sẽ nâng cấp hộ bạn.
+- **Chủ động nâng cấp.** Chỉ nâng cấp khi bạn chọn (`--upgrade`), từ một bản sao lưu, ngoài giờ cao điểm. Thay đổi của catalog không tự nâng cấp cho bạn.
 
 ## Release gate và bảng tương thích {#release-gate-and-compatibility}
 

@@ -41,7 +41,7 @@ Creating, changing and deleting an instance needs the workspace **admin** role. 
 
 ### Dashboard
 
-1. Open **Templates** in your workspace and choose **Dewee**.
+1. Open **Installed apps** in your workspace (under **Apps & agents**), select **New Template** and choose **Dewee**.
 2. Pay the unlock fee if asked.
 3. Pick CPU and RAM, then create.
 4. Open **Environment** and set the three required variables (below).
@@ -160,13 +160,13 @@ curl -s -o /dev/null -w '%{http_code}\n' https://<your-instance-host>/health
 
 ## Versions and upgrades
 
-- **Image.** An instance runs the image stored on it. In `image` mode (the default for `tose template deploy`), a deploy currently replaces that image with the catalog default, even if you set a custom image ([tose-app#277](https://github.com/saasvn/tose-app/issues/277)). So a plain redeploy can move you to a newer Dewee version. Record the running tag and the catalog tag before you deploy. `tose template deploy --mode build` does not replace the image.
+- **Image.** An instance runs the image stored on it. A plain `tose template deploy` (`image` mode) keeps that image and does not upgrade you. `tose template info` shows the deployed, configured and available images and whether an update exists. Move to the catalog version only with `tose template deploy --upgrade`, and pass `--expected-image` (the `Configured:` line) so the deploy fails if the image changed meanwhile. `--mode build` does not replace the image.
 - **Tags are not digests.** A tag can be re-pushed. For a reproducible record, resolve the digest of the image you run and store it with your own notes.
 - **Auto-upgrade is on by default.** On every start with `GOCLAW_POSTGRES_DSN` set, the container runs `dewee upgrade` and refuses to start if it fails. Set `GOCLAW_AUTO_UPGRADE=false` if you want to run the upgrade yourself in a window you choose.
 - **Back up first.** Your PostgreSQL is yours: TOSE does not snapshot it. Before any version change, take a backup and restore it to a scratch database once to prove it works. Back up the persistent disk data you need too.
-- **Rollback is not symmetric.** Reverting the image does **not** revert the database schema or data. A migration that has run may be incompatible with the older image. To go back safely, restore the database backup together with the older image.
+- **Rollback is not symmetric.** `tose template deploy --rollback <deployment_id>` runs an earlier image again, but it does **not** revert the database schema or data. A migration that has run may be incompatible with the older image. To go back safely, restore the database backup together with the older image.
 - **Downtime.** The template runs one replica on a disk that one pod can mount, and redeploys replace the pod. Expect an interruption during a deploy. TOSE does not promise zero downtime for this template.
-- **Opt-in.** Upgrade only when you choose to, from a backup, outside peak use. Do not rely on a catalog change to upgrade you.
+- **Opt-in.** Upgrade only when you choose to (`--upgrade`), from a backup, outside peak use. A catalog change does not upgrade you.
 
 ## Release gate and compatibility
 
