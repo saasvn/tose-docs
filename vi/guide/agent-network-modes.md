@@ -22,6 +22,12 @@ Phát triển (giới hạn) đã được triển khai và có kiểm thử cho
 - Địa chỉ nội bộ, link-local và metadata đám mây bị chặn ở mọi chế độ.
 - **Không có gì tự mở rộng một cài đặt đã có.** Cài đặt giữ nguyên các đích của kế hoạch bạn đã duyệt cho đến khi có người duyệt kế hoạch mới.
 
+## Khi agent báo máy chủ bị chặn
+
+Các agent được tuyển chọn biết chế độ mạng của mình. Khi `git`, `npm` hoặc `pip` lỗi vì chế độ chặn máy chủ, agent không thử lại hay tìm cách lách. Nó báo rằng chế độ mạng của cài đặt đang chặn, và bạn có thể cấu hình lại cài đặt bằng một kế hoạch mới dùng egress **Phát triển (giới hạn)**, hoặc **Internet công khai không giới hạn** nếu bạn chấp nhận rủi ro cao hơn. Sau đó nó tiếp tục với những việc làm được khi offline.
+
+Máy chủ bị chặn biểu hiện là lỗi DNS, kết nối bị từ chối hoặc bị reset, hoặc timeout, và chỉ ảnh hưởng máy chủ đó. Khóa API sai hoặc hết hạn và lỗi mô hình đến từ chính nhà cung cấp (401, 403 hoặc thông báo trong phản hồi của mô hình), nên không phải do chặn mạng. Hướng dẫn này tới agent cùng các bản image tiếp theo; agent đã cài giữ nguyên bản của nó cho đến khi bạn cài mới.
+
 ## Bộ công cụ theo agent {#bo-cong-cu-theo-agent}
 
 Chế độ Phát triển cung cấp các bộ công cụ của image agent, nên không quảng cáo một công cụ mà image không có. Go module không được cung cấp, vì không image tuyển chọn nào có Go toolchain.

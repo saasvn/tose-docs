@@ -81,7 +81,15 @@ GET /api/feedback/{id}
 
 Cần `workspace:read`. Chỉ người đã gửi báo cáo đọc được. Người khác, kể cả API key của workspace khác, nhận `404`. Phản hồi có cùng dạng như trên.
 
-## Trạng thái
+## Liệt kê báo cáo trong workspace {#liet-ke-bao-cao-trong-workspace}
+
+```http
+GET /api/workspaces/{slug}/feedback
+```
+
+Trả về các báo cáo bạn đã gửi trong workspace, mới nhất trước, mỗi báo cáo kèm lịch sử trạng thái. Cần là thành viên workspace và, với API key, scope `workspace:read`; API key chỉ thấy workspace của chính nó. Báo cáo là riêng tư với người gửi: báo cáo của đồng đội không bao giờ được liệt kê, và người không phải thành viên nhận `404`. Tham số `limit` tùy chọn từ 1 đến 100 (mặc định 100). Route chỉ tồn tại khi feedback được bật. Trang dashboard dùng route này được mô tả ở [Báo vấn đề ngay từ dashboard](/vi/guide/dashboard-feedback).
+
+## Trạng thái {#trang-thai}
 
 | `status` | Ý nghĩa |
 |----------|---------|

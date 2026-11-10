@@ -81,6 +81,14 @@ GET /api/feedback/{id}
 
 Needs `workspace:read`. Only the user who filed the report can read it. Anyone else, including an API key of another workspace, gets `404`. The response has the same shape as above.
 
+## List your reports in a workspace
+
+```http
+GET /api/workspaces/{slug}/feedback
+```
+
+Returns the reports you filed in the workspace, newest first, each with its status history. It needs workspace membership and, for an API key, `workspace:read`; an API key sees only its own workspace. Reports are private to their reporter: a teammate's are never listed, and a non-member gets `404`. The optional `limit` is 1 to 100 (default 100). The route exists only where feedback is enabled. The dashboard page behind it is described in [Report a problem from the dashboard](/guide/dashboard-feedback).
+
 ## Statuses
 
 | `status` | Meaning |

@@ -57,6 +57,7 @@ Two desktop apps use a custom URL scheme instead of loopback. TOSE accepts exact
 | `deployments:execute` | `deploy_project` | Yes |
 | `deployments:rollback` | `rollback_deployment` | Yes |
 | `env:read` | `list_project_env_keys`, `inspect_project_env`: variable names and whether each is set. Never a value. Off by default, see [Env metadata](#env-metadata-env-read). | No |
+| `feedback:write` | `submit_feedback`: report a TOSE bug or feature request as you, from the connected workspace. Offered only where feedback is enabled. Granted only when you tick its own consent checkbox; any member may grant it for themselves. No other scope implies it. `get_feedback` needs only `workspace:read`. See [Feedback tools](/mcp#feedback-tools). | Files a report that may become a public issue |
 | `env:write` | `plan_project_env_update`, `apply_project_env_update`: change variables after you supply the values and approve in TOSE. Off by default, owners and admins only, see [Env updates](#env-updates-env-write). | Yes |
 
 - Any other scope, including members, billing, databases and infrastructure, is refused with `invalid_scope`. `env:read` and `env:write` are the two environment scopes, and each is granted on its own. Platform administrators can also grant `blog:write` (see [Blog publishing through MCP](/guide/blog-and-editorial-mcp)).

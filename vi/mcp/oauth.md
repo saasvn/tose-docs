@@ -57,6 +57,7 @@ Hai ứng dụng desktop dùng URL scheme tùy biến thay vì loopback. TOSE ch
 | `deployments:execute` | `deploy_project` | Có |
 | `deployments:rollback` | `rollback_deployment` | Có |
 | `env:read` | `list_project_env_keys`, `inspect_project_env`: tên biến và trạng thái đã đặt hay chưa. Không bao giờ trả giá trị. Mặc định tắt, xem [Metadata biến môi trường](#metadata-bien-moi-truong-env-read). | Không |
+| `feedback:write` | `submit_feedback`: báo lỗi hoặc đề xuất tính năng của TOSE dưới danh nghĩa bạn, từ workspace đã kết nối. Chỉ có khi feedback được bật. Chỉ được cấp khi bạn tick ô đồng ý riêng của nó; mọi thành viên đều cấp được cho chính mình. Không scope nào khác bao hàm nó. `get_feedback` chỉ cần `workspace:read`. Xem [Công cụ feedback](/vi/mcp#cong-cu-feedback). | Gửi báo cáo có thể trở thành issue công khai |
 | `env:write` | `plan_project_env_update`, `apply_project_env_update`: đổi biến sau khi bạn nhập giá trị và duyệt trong TOSE. Mặc định tắt, chỉ owner và admin, xem [Cập nhật biến môi trường](#cap-nhat-bien-moi-truong-env-write). | Có |
 
 - Mọi scope khác, gồm thành viên, thanh toán, database và hạ tầng, đều bị từ chối với `invalid_scope`. `env:read` và `env:write` là hai scope về biến môi trường, mỗi scope được cấp riêng. Quản trị viên nền tảng còn cấp được `blog:write` (xem [Đăng blog qua MCP](/vi/guide/blog-and-editorial-mcp)).
