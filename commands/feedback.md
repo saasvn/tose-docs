@@ -9,45 +9,59 @@ All commands accept `--json`. See the [global options](/commands/overview#global
 ## Synopsis
 
 ```bash
-tose feedback [--type <type>] [--component <name>] [--title <text>] [--message <text>] \
+tose feedback [submit] [--type <type>] [--component <name>] [--title <text>] [--message <text>] \
   [--reproduction <text>] [--request-id <id>] [--error-code <code>] \
-  [--include-diagnostics] [--log-file <path>] [--idempotency-key <key>] [--dry-run]
+  [--include-diagnostics] [--idempotency-key <key>] [--dry-run]
 tose feedback status <feedback_id>
 ```
 
-## tose feedback
+## tose feedback submit
 
-In a terminal, `tose feedback` asks for the type, title and message, shows a preview of exactly what will be sent, and sends it only after you confirm.
+`submit` is the default subcommand, so `tose feedback` and `tose feedback submit` do the same thing.
+
+In a terminal, the command asks for the type, component, title and message, shows a preview of exactly what will be sent, and sends it only after you confirm.
 
 For scripts and agents, pass the fields as flags:
 
 ```bash
-tose --json --non-interactive feedback --type bug --component cli \
+tose --json --non-interactive feedback submit --type bug --component cli \
   --title "deploy hangs" --message "tose deploy never finishes" \
   --reproduction "run tose deploy in an empty project" --request-id req_123
 ```
+
+Without a terminal, `--type`, `--title` and `--message` are required.
 
 ### Options
 
 | Option | Description |
 |--------|-------------|
 | `--type <type>` | `bug`, `feature`, `docs`, `ux` or `billing` |
-| `--component <name>` | `cli` (default), `app`, `web` or `docs` |
+| `--component <name>` | `cli` (default), `api` (platform and dashboard), `web` or `docs`. `app` is a deprecated alias of `api` and prints a warning |
 | `--title <text>` | Short summary, up to 120 characters |
 | `--message <text>` | What happened or what you need, up to 8000 characters |
-| `--reproduction <text>` | Steps to reproduce (optional) |
-| `--request-id <id>` | Request ID of the failing API call (optional) |
-| `--error-code <code>` | Error code you received (optional) |
-| `--include-diagnostics` | Also send the Node version, CPU architecture, OS release and API host. This is your explicit consent |
-| `--log-file <path>` | Attach the last 16 KiB of that file, redacted. Needs `--include-diagnostics` |
-| `--idempotency-key <key>` | Make a retry record the report once. Derived from the report text when omitted |
+| `--reproduction <text>` | Steps to reproduce, up to 4000 characters (optional) |
+| `--request-id <id>` | Request ID of the failing API call, up to 128 characters (optional) |
+| `--error-code <code>` | Error code you received, up to 64 characters (optional). Requires `--include-diagnostics` |
+| `--include-diagnostics` | Also send the CLI version, OS and CPU architecture. This is your explicit consent |
+| `--idempotency-key <key>` | Make a retry record the report once, up to 128 characters. Derived from the report when omitted |
 | `--dry-run` | Print exactly what would be sent, without sending |
+
+`--request-id`, `--error-code` and `--idempotency-key` accept only letters, digits and `_ . : -`. The CLI checks them before it sends anything.
 
 ### What is sent
 
-Always sent: the type, component, title and message you wrote, plus the CLI version, `node` as the runtime and the OS name. Nothing else about your machine, no workspace or project names and no paths.
+The report carries the type, component, title and message you wrote, plus the steps and request ID if you gave them. Without your consent no environment details are sent: no workspace or project names, no paths.
 
-With `--include-diagnostics` (or answering yes in a terminal) the report also carries the Node version, CPU architecture, OS release and API host. `--log-file <path>` additionally attaches the last 16 KiB of that file and needs `--include-diagnostics`. Dotenv files are refused. The CLI never reads source code or shell history.
+With `--include-diagnostics` (or answering yes in a terminal) the report also carries these diagnostics, and nothing more:
+
+| Field | Value |
+|-------|-------|
+| `client` | `tose-cli` |
+| `client_version` | CLI version |
+| `os` | OS name, for example `darwin` or `linux` |
+| `arch` | CPU architecture, for example `arm64` or `x64` |
+
+`--error-code` is sent only together with diagnostics, so the CLI refuses it without `--include-diagnostics`. The CLI never reads `.env` files, source code or shell history.
 
 ### Redaction
 
@@ -55,7 +69,7 @@ Keys, bearer tokens, cookies, URLs with credentials and secret-looking assignmen
 
 ### Retrying safely
 
-The idempotency key is derived from the report text, so sending the same report again is recorded once. Set `--idempotency-key` yourself to control that.
+The idempotency key is derived from everything in the report, so sending the same report again is recorded once. Set `--idempotency-key` yourself to control that.
 
 ## tose feedback status
 
@@ -67,16 +81,25 @@ tose feedback status <feedback_id>
 
 ## Result
 
-The command prints one JSON envelope with `--json`:
+The command prints one JSON envelope with `--json`. Its `data` has these fields:
 
 | Field | Meaning |
 |-------|---------|
 | `feedback_id` | ID to pass to `tose feedback status` |
-| `status` | State of the report, for example `pending` or `rejected` |
-| `duplicate_of` | ID of an earlier report this one duplicates, when TOSE found one |
-| `issue_url` | Link to the tracker issue |
+| `status` | State of the report (see below) |
+| `issue_url` | Link to the tracker issue, or `null` |
+| `idempotency_key` | Key the report was sent with (`submit` only) |
 
-A queued report has `status: "pending"` and no `issue_url`. The URL appears only once the server confirms the issue exists, so check again later with `tose feedback status`.
+| Status | Meaning |
+|--------|---------|
+| `received` | Saved and queued |
+| `triaged` | Triaged, waiting to be published |
+| `published` | Published as an issue |
+| `duplicate` | Matches an existing report; yours is linked to it |
+| `publication_failed` | Saved, but publishing failed. TOSE retries |
+| `rejected` | Rejected by moderation and not published |
+
+The envelope `status` is `ok` for `published` and `duplicate`, and `pending` while the report waits. `issue_url` appears only once the server confirms the issue exists, so check again later with `tose feedback status`.
 
 A report with status `rejected` exits with code `8`.
 
