@@ -63,22 +63,32 @@ The status response carries a `resources` object with the project's CPU and memo
 POST /api/workspaces/{slug}/projects/{project_slug}/restart
 ```
 
-Triggers a rolling restart of the running deployment without building a new image. The call returns once the restart is requested, not when the new pods are ready; poll the project status to see it come back.
+Restarts the running deployment without building a new image. The restart is a recovery runbook (`restart`): TOSE plans it, records the approval and runs it. The caller must be a workspace owner or admin; an API key also needs the `deployments:execute` scope.
+
+**Signed in (dashboard session).** Your call is the approval, so TOSE plans, approves and runs the restart at once and answers `200`:
 
 ```json
-{ "success": true, "message": "Project restarting", "restarted_pods": 1 }
+{ "success": true, "message": "Project restarting", "restarted_pods": 1, "runbook": { "id": "...", "status": "executed", "execution": { "status": "started" } } }
 ```
 
-`restarted_pods` is the replica count of the deployment that was restarted. A project with no server assigned returns `400`, and a project that was never deployed returns `404`.
+`restarted_pods` is the planned replica count. `runbook` is the plan with its run. The call returns once the restart has started, not when the new pods are ready; read the plan again with `GET .../runbooks/{plan_id}` to see the run finish.
 
-The restart takes the project's operation lock before it changes the live deployment, so it can also fail with:
+**API key.** A key cannot approve a runbook. The call only stores the plan and answers `409 APPROVAL_REQUIRED` with the plan in `runbook`, plus `approval_url` and `details.runbook_id` when the server knows its public URL. A workspace owner or admin approves the plan while signed in, then the key runs it with `POST .../runbooks/restart/{plan_id}/execute`.
 
-| Status | Meaning |
-|--------|---------|
-| `409` | Another write to the same project is still running (`project is busy; retry after its current operation finishes`), or the project is the retained source of an environment move (`project is the retained source of an environment move`). The body carries an `error` message. |
-| `503` | The lock could not be taken (`Cannot lock project for restart`). |
+Send an optional `Idempotency-Key` header (8 to 128 characters, `[A-Za-z0-9._:-]`). A retry with the same key returns the first run with the `Idempotent-Replayed: true` header instead of restarting again.
 
-A `409` busy answer is safe to retry once the current operation finishes. Nothing was changed on the deployment.
+| Status | Code | Meaning |
+|--------|------|---------|
+| `400` | `NO_SERVER` | The project has no server assigned |
+| `403` | `FORBIDDEN`, `INSUFFICIENT_SCOPE` | You are not an owner or admin, or the key lacks `deployments:execute` |
+| `409` | `APPROVAL_REQUIRED` | Called with an API key. The plan is stored and waits for a signed-in owner or admin |
+| `409` | `DEPLOY_IN_PROGRESS` | A deployment of the project is still running. Wait until it finishes |
+| `409` | `NOT_RUNNING` | The project is scaled to zero, so there is nothing to restart |
+| `409` | `NO_WORKLOAD` | The project has no live workload in the cluster. Deploy it instead |
+| `409` | `RUNBOOK_FAILED` or a more specific code | The run started but the cluster refused the change. The body has `runbook` |
+| `409` | `CONFLICT` | Another operation on the project holds its lock. Try again shortly |
+| `409` | (no code) | In a workspace with environments, the move guard refused the call: another write to the project is running, or the project is the retained source of a move (`Source is retained for a move. Restore it before making changes.`). The body has only `message` |
+| `503` | `UNAVAILABLE` | TOSE could not read the cluster, take the project lock or check your membership. Nothing was changed |
 
 ## Delete a project
 
