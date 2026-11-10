@@ -51,6 +51,8 @@ tose redeploy
 
 Nếu workspace chưa được bật, API trả `SIDECARS_DISABLED` (exit code `3`). Các lỗi xác thực giữ nguyên mã của API, ví dụ `SIDECAR_ENV_MISSING`, `SIDECAR_DISK_MISSING`, `SIDECAR_IMAGE_FORBIDDEN`.
 
+Thay đổi khiến riêng một replica (dự án cộng sidecar) vượt quota workspace là 16 core và 16 GiB giới hạn sẽ bị từ chối với `422 SIDECARS_EXCEED_WORKSPACE_QUOTA`. Thay đổi bị từ chối chứ không được lưu: cấu hình đã lưu giữ nguyên. Nhiều replica hoặc dự án khác vẫn có thể cùng làm cạn quota, khi đó rollout thất bại.
+
 ## tose sidecars rm
 
 Xóa mọi sidecar đã lưu (gửi danh sách rỗng tường minh). Luôn được phép, kể cả ở workspace tắt sidecar.
