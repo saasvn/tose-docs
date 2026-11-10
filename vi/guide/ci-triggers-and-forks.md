@@ -117,8 +117,8 @@ Pull request từ fork là code không đáng tin. Policy `fork_pull_requests` p
 
 | Policy | Kết quả |
 |--------|---------|
-| `disabled` (mặc định) | Run bị `skipped`. Check `tose-ci` trung tính giải thích lý do, nhưng chỉ khi cấu hình ở nhánh đích chạy CI cho pull request đó. Với `require_approval`, run chỉ bị chặn trong cùng điều kiện đó. |
-| `require_approval` | Run bị `blocked` với check `tose-ci` "Waiting for approval". |
+| `disabled` (mặc định) | Run bị `skipped`. Check `tose-ci` trung tính giải thích lý do, nhưng chỉ khi cấu hình ở nhánh đích chạy CI cho pull request đó. |
+| `require_approval` | Run bị `blocked` với check `tose-ci` "Waiting for approval", nhưng chỉ khi cấu hình ở nhánh đích chạy CI cho pull request đó. |
 
 Liệt kê các run đang chờ duyệt bằng `GET /approvals?limit=` (`ci:read`). Route trả các run của pull request từ fork đang `blocked` với `approval_state` là `pending`, cũ nhất trước, kèm `repo_full_name`, `pr_number` và `base_ref`.
 

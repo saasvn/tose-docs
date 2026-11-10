@@ -117,8 +117,8 @@ A pull request from a fork is untrusted code. The server-side `fork_pull_request
 
 | Policy | Result |
 |--------|--------|
-| `disabled` (default) | The run is `skipped`. A neutral `tose-ci` check explains why, but only when the base branch configuration runs CI for that pull request. With `require_approval`, a run is blocked only under the same condition. |
-| `require_approval` | The run is `blocked` with a `tose-ci` check "Waiting for approval". |
+| `disabled` (default) | The run is `skipped`. A neutral `tose-ci` check explains why, but only when the base branch configuration runs CI for that pull request. |
+| `require_approval` | The run is `blocked` with a `tose-ci` check "Waiting for approval", but only when the base branch configuration runs CI for that pull request. |
 
 List the runs waiting for approval with `GET /approvals?limit=` (`ci:read`). It returns fork pull request runs that are `blocked` with `approval_state` `pending`, oldest first, with `repo_full_name`, `pr_number` and `base_ref`.
 
