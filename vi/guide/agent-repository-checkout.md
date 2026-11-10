@@ -2,15 +2,15 @@
 
 Một coding agent được TOSE tuyển chọn (**Pi**, **Codex** hoặc **Claude Code**) có thể khởi động với một kho mã GitHub của bạn, riêng tư hoặc công khai, đã nằm sẵn trong `/workspace` bền vững của agent. Bạn chọn kho mã và nhánh trong wizard cài đặt. Bạn không bao giờ phải dán URL, personal access token hay SSH key, và agent không bao giờ nhận credential nào.
 
-Để cài một agent, mở **Template catalog** trong dashboard ([tổng quan dashboard](/vi/guide/getting-started)).
+Để cài một agent, mở **Kho mẫu** trong dashboard ([tổng quan dashboard](/vi/guide/getting-started)).
 
 ::: warning Chưa được xác minh trên cluster thật
-Tính năng checkout đã được triển khai và có test, nhưng chưa được chứng minh trên cluster thật (theo dõi tại saasvn/tose-app #588 và #621). Hãy coi đây là tính năng mới: sau lần deploy đầu tiên, kiểm tra trạng thái **Tải kho mã** (Repository checkout).
+Tính năng checkout đã được triển khai và có test, nhưng chưa được chứng minh trên cluster thật (theo dõi tại saasvn/tose-app #588; phần hardening tiếp theo ở #621). Hãy coi đây là tính năng mới: sau lần deploy đầu tiên, kiểm tra trạng thái **Tải kho mã** (Repository checkout).
 :::
 
 ## Bạn cần gì
 
-- Một GitHub App installation đã kết nối với workspace (**Settings → GitHub**), với kho mã được cho phép. Chỉ các kho mã mà tài khoản GitHub của workspace cho phép mới được hiển thị.
+- Một GitHub App installation đã kết nối với workspace (**Cài đặt → GitHub**), với kho mã được cho phép. Chỉ các kho mã mà tài khoản GitHub của workspace cho phép mới được hiển thị.
 - Vai trò **owner** hoặc **admin** của workspace. Người khác gửi `repository` sẽ nhận `403 REPOSITORY_REQUIRES_ADMIN`.
 - Một plan của agent được tuyển chọn. Plan template từ registry và nâng cấp không nhận kho mã.
 
@@ -54,10 +54,10 @@ Mục `curated.repository` của plan chứa cùng dữ liệu: `installation_id
 
 - Việc clone diễn ra **trước khi agent khởi động**, trong một bootstrap Job chạy một lần riêng biệt, không phải trong pod của agent. Job dùng chính image đã được kiểm duyệt của agent, có thời hạn ngắn, và có network policy riêng chỉ cho phép tới `github.com` cổng 443.
 - Job dùng một token GitHub App **ngắn hạn, chỉ đọc** cho đúng kho mã đó. Token đến Job dưới dạng một file chỉ Job đọc được, bị thu hồi khi Job kết thúc, và không bao giờ xuất hiện trong dòng lệnh, biến môi trường, URL clone, git config hay log.
-- **Agent không bao giờ nhận token hay credential remote có thể tái sử dụng.** URL `origin` giữ nguyên `https://github.com/<owner>/<repo>.git`. Agent có thể commit cục bộ nhưng **không thể push**. Ghi ngược lên GitHub sẽ là một hành động riêng mà bạn phải duyệt.
+- **Agent không bao giờ nhận token hay credential remote có thể tái sử dụng.** URL `origin` giữ nguyên `https://github.com/<owner>/<repo>.git`. Agent có thể commit cục bộ nhưng **không thể push**. Checkout này không cho agent cách nào để ghi ngược lên GitHub.
 - Bản clone là commit đã ghim với lịch sử nông (depth 50). Submodule và đối tượng Git LFS không được tải.
 - Bootstrap đã hoàn tất sẽ không chạy lại, và một lần chạy lặp không bao giờ ghi đè công việc trong checkout hiện có.
-- Nếu `/workspace/<repo>` đã là một git checkout, nó được giữ nguyên. Nếu nó chứa thứ khác (một file, symlink, hoặc thư mục không rỗng không có `.git`), checkout bị từ chối với `WORKSPACE_NOT_EMPTY`.
+- Nếu `/workspace/<repo>` đã là một git checkout mà config không có credential, nó được giữ nguyên (dù có thay đổi chưa commit hay không). File, symlink, thư mục không rỗng không có `.git`, hoặc checkout có credential trong git config sẽ bị từ chối với `WORKSPACE_NOT_EMPTY`.
 
 ## Trạng thái và các trường hợp lỗi
 
@@ -77,13 +77,13 @@ Sau khi cài đặt, trang **Trạng thái** của installation hiển thị **T
 | Trạng thái | Ý nghĩa |
 |------------|---------|
 | **Đang chờ** (`pending`) | Checkout sẽ chạy ở lần deploy kế tiếp. |
-| **Đang tải** (`cloning`) | Bootstrap Job đang chạy. |
+| **Đang tải về** (`cloning`) | Bootstrap Job đang chạy. |
 | **Sẵn sàng** (`ready`) | Kho mã đã nằm trong `/workspace/<repo>`. |
 | **Thất bại** (`failed`) | Xem mã bên dưới. Deployment thất bại với `<CODE>: <lý do>` và **agent không được khởi động**. |
 
 Đối tượng `repository` của installation có `status`, `error_code` (khi thất bại), `attempts`, `full_name`, `branch`, `commit` (7 ký tự), `commit_sha`, `path`, `description` và, khi thất bại, `retry_path`.
 
-Một checkout thất bại mang một trong sáu mã ở trên, hoặc:
+Một checkout thất bại mang một trong các mã ở trên trừ `REPO_ID_CHANGED` (chỉ là mã chặn khi lập plan), hoặc:
 
 | Mã | Lý do |
 |----|-------|
@@ -92,7 +92,7 @@ Một checkout thất bại mang một trong sáu mã ở trên, hoặc:
 
 ### Thử lại checkout thất bại
 
-Hãy sửa nguyên nhân (cho phép lại kho mã trên GitHub, kết nối lại tài khoản, chọn nhánh khác), rồi chọn **Thử lại tải kho mã**, hoặc gọi API với vai trò owner hoặc admin:
+Hãy sửa nguyên nhân (cho phép lại kho mã trên GitHub, hoặc kết nối lại tài khoản), rồi chọn **Thử tải lại**, hoặc gọi API với vai trò owner hoặc admin. Thử lại clone đúng commit đã ghim; nhánh hoặc commit khác cần một plan mới:
 
 ```text
 POST /api/workspaces/{slug}/template-installations/{id}/repository/retry

@@ -5,7 +5,7 @@ A curated coding agent (**Pi**, **Codex** or **Claude Code**) can start with one
 To install an agent, open **Template catalog** in the dashboard ([dashboard overview](/guide/getting-started#find-your-way-around-the-dashboard)).
 
 ::: warning Not yet verified on a live cluster
-The checkout is implemented and covered by tests, but it has not yet been proven on a real cluster (tracked in saasvn/tose-app #588 and #621). Treat it as new: check the **Repository checkout** status after the first deploy.
+The checkout is implemented and covered by tests, but it has not yet been proven on a real cluster (tracked in saasvn/tose-app #588; follow-up hardening is in #621). Treat it as new: check the **Repository checkout** status after the first deploy.
 :::
 
 ## What you need
@@ -54,10 +54,10 @@ The plan's `curated.repository` section carries the same data: `installation_id`
 
 - The clone happens **before the agent starts**, in a separate one-shot bootstrap Job, not in the agent's pod. The Job uses the agent's own admitted image, has a short deadline, and has its own network policy that reaches only `github.com` on port 443.
 - It uses a **short-lived, read-only** GitHub App token for that one repository. The token reaches the Job as a file that only the Job reads, is revoked when the Job ends, and never appears in a command line, an environment variable, a clone URL, a git config or a log.
-- The **agent never receives a token or a reusable remote credential**. The `origin` URL stays `https://github.com/<owner>/<repo>.git`. The agent can commit locally but **cannot push**. Writing back to GitHub would be a separate action that you approve.
+- The **agent never receives a token or a reusable remote credential**. The `origin` URL stays `https://github.com/<owner>/<repo>.git`. The agent can commit locally but **cannot push**. This checkout gives the agent no way to write back to GitHub.
 - The clone is the pinned commit with a shallow history (depth 50). Submodules and Git LFS objects are not fetched.
 - A bootstrap that finishes is not run again, and a repeated run never overwrites work in an existing checkout.
-- If `/workspace/<repo>` already holds a git checkout, it is left exactly as it is. If it holds something else (a file, a symlink, or a non-empty folder without `.git`), the checkout is refused with `WORKSPACE_NOT_EMPTY`.
+- If `/workspace/<repo>` already holds a git checkout whose config has no credentials, it is left exactly as it is (dirty or not). A file, a symlink, a non-empty folder without `.git`, or a checkout whose git config holds credentials is refused with `WORKSPACE_NOT_EMPTY`.
 
 ## Status and failure states
 
@@ -83,7 +83,7 @@ After install, the installation's **Status** page shows **Repository checkout**:
 
 The installation's `repository` object has `status`, `error_code` (when failed), `attempts`, `full_name`, `branch`, `commit` (7 characters), `commit_sha`, `path`, `description` and, when failed, `retry_path`.
 
-A failed checkout has one of the six codes above, or:
+A failed checkout has one of the codes above except `REPO_ID_CHANGED` (a planning blocker only), or:
 
 | Code | Why |
 |------|-----|
@@ -92,7 +92,7 @@ A failed checkout has one of the six codes above, or:
 
 ### Retry a failed checkout
 
-Fix the cause (allow the repository again on GitHub, reconnect the account, choose another branch), then choose **Retry checkout**, or call the API as an owner or admin:
+Fix the cause (allow the repository again on GitHub, or reconnect the account), then choose **Retry checkout**, or call the API as an owner or admin. Retry clones the same pinned commit; another branch or commit needs a new plan:
 
 ```text
 POST /api/workspaces/{slug}/template-installations/{id}/repository/retry
