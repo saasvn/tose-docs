@@ -222,3 +222,4 @@ tose deploy
 - [`tose deploy`](/commands/deploy) - Deploy after stopping
 - [`tose redeploy`](/commands/deploy#tose-redeploy) - Redeploy without rebuilding
 - [`tose logs`](/commands/logs) - View logs before stopping
+- [`tose runbook`](/commands/runbook) - Restart or roll back through a plan a person approves

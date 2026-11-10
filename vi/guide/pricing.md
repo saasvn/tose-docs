@@ -88,6 +88,19 @@ xóa xong.
 
 Tạo instance và đánh thức docker host của nó đều cần số dư ví lớn hơn 0.
 
+## Job CI {#ci-jobs}
+
+::: info Tình trạng
+TOSE CI chưa được phát hành rộng rãi. Mục này mô tả cách tính phí job khi CI được bật cho workspace của bạn.
+:::
+
+Job CI được trừ vào ví của workspace theo giá [compute](#compute) cơ bản, 2.0 cent mỗi vCPU-giờ và 1.0 cent mỗi GiB-giờ bộ nhớ đã dành riêng, tính theo số giây container của job chạy. Chỉ trả trước: job bị từ chối trước khi chạy nếu trường hợp xấu nhất (CPU và bộ nhớ yêu cầu trong toàn bộ thời gian timeout), cộng với trường hợp xấu nhất của các job khác đang chạy trong workspace, vượt quá số dư sau khi trừ phần sử dụng chưa tính phí và phần cộng dồn CI bên dưới.
+
+- **Cộng dồn dưới 1 cent.** Mỗi job bị trừ theo số cent nguyên. Phần lẻ của một cent được cộng dồn vào một khoản CI riêng trên ví và chỉ bị trừ khi đủ một cent, nên job ngắn không được miễn phí chỉ vì chi phí dưới 1 cent. Ví dụ, job dùng 1 vCPU và 2 GiB chạy khoảng 10 phút có chi phí khoảng 0.667 cent: một job như vậy chưa bị trừ gì, và hai job như vậy cộng lại bị trừ 1 cent.
+- **Không bao giờ vượt số dư.** Job không bao giờ bị trừ quá số dư ví. Phần compute mà số dư không trả được sẽ được xóa nợ, không bị ghi thành nợ.
+- **Xóa khi về 0.** Khi số dư ví về 0, bởi bất kỳ khoản trừ nào, khoản cộng dồn CI bị xóa. Khoản này không bao giờ bị thu sau khi nạp tiền.
+- **Một giao dịch mỗi job.** Job bị trừ ít nhất một cent ghi một giao dịch ví `usage` với loại tham chiếu `ci_job`; job không bị trừ gì thì không ghi giao dịch. Việc tính phí job là idempotent, nên thử lại không bao giờ trừ tiền hai lần.
+
 ## Khi số dư bằng 0 {#when-the-balance-is-zero}
 
 TOSE từ chối mọi deploy khi số dư ví của workspace bằng 0 hoặc âm. Bạn thấy gì tuỳ vào nơi bắt đầu deploy:
@@ -100,7 +113,7 @@ TOSE từ chối mọi deploy khi số dư ví của workspace bằng 0 hoặc �
 
 Khi ví hết tiền, TOSE vẫn tạm ngưng compute như trước. Các instance Cloud Harness đang chạy bị dừng và docker host của chúng được tạm dừng. Ổ đĩa bền vững và dữ liệu **không** bị xóa, và phí lưu trữ vẫn tiếp tục tích lũy; khoản này được trừ sau lần nạp tiền kế tiếp. Xem [Ổ đĩa bền vững](/vi/guide/persistent-disks#retention). Phần compute chưa trả được sẽ được xoá nợ, nên bạn không phải trả sau khi nạp tiền.
 
-**Cách khắc phục:** nạp tiền vào ví ở trang billing trên dashboard, rồi deploy lại. Deploy chạy bình thường khi số dư lớn hơn 0.
+**Cách khắc phục:** nạp tiền vào ví ở **Ví & thanh toán** trên dashboard (nhóm **Workspace**), rồi deploy lại. Deploy chạy bình thường khi số dư lớn hơn 0.
 
 Nạp tiền sẽ tự động khôi phục hầu hết template đang bị tạm ngưng. Deploy một template đang `suspended` cũng cần số dư ví dương: nếu không, deploy bị từ chối với `402 INSUFFICIENT_BALANCE` và template vẫn ở trạng thái suspended (xem [API deploy và resume template](/vi/api/template-deploy#suspended-needs-balance)).
 
@@ -119,5 +132,6 @@ Thao tác tương tự có ở `POST /api/workspaces/{slug}/templates/{template_
 
 - [Ổ đĩa bền vững](/vi/guide/persistent-disks)
 - [Cloud Harness](/vi/guide/cloud-harness)
+- [Giá và hạn mức của Agent Runtime](/vi/guide/agent-runtime-pricing)
 - [`tose pricing` / `tose volumes`](/vi/commands/disk)
 - [API ổ đĩa, volume & bảng giá](/vi/api/disks)
