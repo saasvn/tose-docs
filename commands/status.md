@@ -139,7 +139,7 @@ $ tose status --json
 }
 ```
 
-### Process limit {#process-limit-line}
+## Process limit {#process-limit-line}
 
 When the operator of your TOSE deployment has declared a per-Pod process (PID) limit, the text output adds a line after `Memory:`, and `tose status --json` includes it as `data.resources.pids.limit`:
 
@@ -149,10 +149,10 @@ Memory:  4Gi
 PIDs:    4096 per Pod (operator-declared, shared by the Pod's containers; not verified live)
 ```
 
-- **Operator-declared, not verified live.** The operator reports the number only after the runtime nodes enforce it (kubelet `podPidsLimit`). TOSE does not set or enforce it itself, and it does not read it back from the nodes.
+- **Operator-declared, not verified live.** The operator sets this number after checking the node configuration. TOSE does not enforce it or read it back from the nodes, so it can be stale or differ between nodes. Do not treat it as a guarantee.
 - **Shared by the whole Pod.** The project container and all sidecars count against the same budget; it is not a per-container limit.
 - **No line means unknown, not unlimited.** If the `PIDs:` line is missing, TOSE does not know the limit.
-- **Older servers** do not send the field, and the CLI prints nothing extra.
+- **Older servers and CLIs.** A server that does not send the field, or a CLI that predates this line, prints nothing extra.
 
 See [Process limit](/api/projects#process-limit) in the Projects API.
 

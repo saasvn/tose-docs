@@ -95,10 +95,10 @@ Memory:  4Gi
 PIDs:    4096 per Pod (operator-declared, shared by the Pod's containers; not verified live)
 ```
 
-- **Do bên vận hành khai báo, không đo trực tiếp.** Bên vận hành chỉ khai báo con số sau khi các node chạy đã áp dụng nó (kubelet `podPidsLimit`). TOSE không tự đặt hay áp giới hạn này, và không đọc lại từ node.
+- **Do bên vận hành khai báo, không đo trực tiếp.** Bên vận hành đặt con số này sau khi đã xác nhận cấu hình trên node. TOSE không thực thi giới hạn này và không đọc lại từ node, nên con số có thể lỗi thời hoặc khác nhau giữa các node. Đừng coi đây là cam kết.
 - **Dùng chung cho cả Pod.** Container của dự án và mọi sidecar cùng tính vào một ngân sách; đây không phải giới hạn theo từng container.
 - **Không có dòng nghĩa là chưa biết, không phải không giới hạn.** Thiếu dòng `PIDs:` nghĩa là TOSE chưa biết giới hạn.
-- **Server cũ** không gửi trường này, và CLI không in thêm gì.
+- **Server và CLI cũ.** Server không gửi trường này, hoặc CLI đời trước dòng này, thì không in thêm gì.
 
 Xem [Giới hạn tiến trình](/vi/api/projects#process-limit) trong API dự án.
 
