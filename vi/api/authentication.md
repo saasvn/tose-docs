@@ -9,7 +9,7 @@ Mỗi request tới TOSE API mang đúng một credential. API kiểm tra theo t
 | 3 | Session token | Cookie `tose_token` | Phiên trình duyệt |
 
 ::: tip Giới hạn quyền của key
-Key có thể được giới hạn bằng scope và luôn thuộc về một workspace. Xem [API key và scope](/vi/api/api-keys). Mọi thay đổi thực hiện bằng key đều được ghi vào [audit log](/vi/api/audit).
+Key có thể được giới hạn bằng scope và luôn thuộc về một workspace. Xem [API key và scope](/vi/api/api-keys). Mọi thay đổi thực hiện bằng key đều được ghi vào [audit log](/vi/api/audit). Trợ lý hỗ trợ trong dashboard dùng [support token](/vi/api/support-assistant) riêng sống 5 phút thay cho key.
 :::
 
 ## API key
@@ -41,6 +41,19 @@ Không commit API key. Không đặt key vào URL, query string, dòng log hoặ
 
 Ứng dụng hoạt động thay mặt người dùng đã đăng nhập gửi session token trong
 `Authorization: Bearer <token>`. Trình duyệt dùng cookie `tose_token`, chứa cùng token đó.
+
+### Lệnh ghi bằng cookie từ site khác {#cross-site-cookie-writes}
+
+Một request `POST`, `PUT`, `PATCH` hoặc `DELETE` chỉ được xác thực bằng cookie `tose_token` phải
+đến từ dashboard. API từ chối request đó với `403` và mã
+[`CROSS_SITE_REQUEST`](/vi/api/errors#CROSS_SITE_REQUEST) khi trình duyệt cho biết nó đến từ nơi
+khác: `Origin` không phải dashboard cũng không phải API (origin `null` cũng tính), hoặc không có
+`Origin` nhưng được đánh dấu `Sec-Fetch-Site: cross-site`. Không có gì thay đổi. Quy tắc này áp dụng
+cho mọi route cần đăng nhập dưới `/api`, cùng với `DELETE /auth/sessions/{id}` và
+`POST /auth/email/verification`.
+
+Request gửi API key hoặc token `Authorization: Bearer` không bị kiểm tra, các request đọc cũng vậy.
+Kiểu `Authorization` khác vẫn dùng cookie nên vẫn bị kiểm tra. Script và CLI không bị ảnh hưởng.
 
 ## Không đặt credential trong URL {#credentials-in-url}
 
@@ -88,6 +101,8 @@ Với key có `projects:write` nhưng không có `deployments:execute`:
 | Tạo dự án có khối `git` | Thành công và trả `deploy_skipped` thay cho `deployment_id` và `build_logs_url`. |
 | Bật `auto_deploy`, hoặc đổi nhánh của kết nối đang tự động triển khai | Thất bại với `403 insufficient_scope` và `required_scope: deployments:execute`. |
 
+CLI theo cùng quy tắc này: `tose up` với key như vậy kết nối Git, không bắt đầu lần triển khai nào và thoát với `INSUFFICIENT_SCOPE`. Hãy chạy [`tose deploy`](/vi/commands/deploy) với key có `deployments:execute`. Xem [`tose up`](/vi/commands/up#api-key-khong-co-deployments-execute).
+
 Hãy thêm `deployments:execute` vào key, hoặc dùng phiên đăng nhập, khi muốn mỗi lần push Git tự động triển khai.
 
 ## WebSocket
@@ -106,6 +121,7 @@ Desktop gateway đọc session token từ danh sách `Sec-WebSocket-Protocol`
 | 401 | `unauthenticated` | Không có credential, hoặc không hợp lệ, đã thu hồi, hết hạn | Gửi key hoặc token hợp lệ |
 | 403 | `forbidden` | Credential không được truy cập workspace hoặc hành động này | Dùng key của workspace đó |
 | 403 | `insufficient_scope` | Key thiếu scope cần thiết | Tạo key có scope đó |
+| 403 | `CROSS_SITE_REQUEST` | Lệnh ghi chỉ dùng cookie đến từ site khác | Thực hiện trên dashboard, hoặc dùng key hay token Bearer |
 
 Xem [Mã lỗi](/vi/api/errors) về envelope.
 
