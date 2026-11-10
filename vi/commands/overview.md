@@ -191,6 +191,7 @@ Với `--json`, stdout chỉ có đúng một tài liệu JSON; tiến trình v�
 | `6` | `NOT_FOUND` | Workspace, dự án hoặc tài nguyên không tồn tại |
 | `7` | `TIMEOUT` | Chờ quá lâu; thao tác vẫn có thể hoàn tất |
 | `8` | `OPERATION_FAILED` | Một deploy, build hoặc thao tác desktop kết thúc ở trạng thái lỗi |
+| `9` | `INSUFFICIENT_BALANCE` | Số dư ví của workspace bằng 0 hoặc âm nên deploy, redeploy hoặc rollback bị từ chối |
 
 ### API key không bao giờ nằm trong URL
 
@@ -330,7 +331,7 @@ export TOSE_API_KEY=$(cat ~/.secrets/tose-key)
 TOSE_API_KEY="ws_123..."  # Đừng làm thế này
 ```
 
-## Mã thoát
+## Mã thoát {#exit-codes}
 
 | Mã | Tên | Ý nghĩa |
 |----|-----|---------|
