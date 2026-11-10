@@ -30,10 +30,10 @@ Khi máy chủ cung cấp tác vụ, client được kết nối thấy bốn c�
 
 | Công cụ | Scope | Chức năng |
 |---------|-------|-----------|
-| `list_template_agents` | `agents:read` | Liệt kê các agent tuyển chọn với `installation_id`, `name`, `agent`, `release`, `status`, delegation đã bật chưa, có hỗ trợ tác vụ không, tác vụ đang chạy và liên kết tới trang của agent. |
+| `list_template_agents` | `agents:read` | Liệt kê các agent tuyển chọn với `installation_id`, `name`, `agent`, `release`, `status`, delegation đã bật chưa, có hỗ trợ tác vụ không, có tiếp tục được tác vụ đã xong không (`resume_supported`), tác vụ đang chạy và liên kết tới trang của agent. |
 | `run_template_agent_task` | `agents:execute` | Giao tác vụ: `installation_id`, `prompt`, tùy chọn `timeout_minutes`, tùy chọn `continue_task_id` (tiếp tục tác vụ đã xong khi bản phát hành hỗ trợ) và tùy chọn `request_id` để thử lại an toàn. |
 | `get_template_agent_task` | `agents:read` | Đọc một tác vụ. Truyền `after` (con trỏ của lần gọi trước) để chỉ nhận sự kiện mới, và `wait_seconds` (0 đến 25) để chờ thay đổi thay vì hỏi liên tục. |
-| `cancel_template_agent_task` | `agents:control` | Dừng tác vụ đang chạy. |
+| `cancel_template_agent_task` | `agents:control` | Dừng tác vụ đang `starting` hoặc đang chạy. Tác vụ đã kết thúc được trả về nguyên trạng. |
 
 Các công cụ không bao giờ bật delegation, không mở console và không nhận bí mật. Khi một lần từ chối có cách khắc phục trên trang của agent (`TASKS_NOT_ALLOWED`, `TASKS_UNSUPPORTED`, `AGENT_SLEEPING`, `PROVIDER_SIGN_IN_REQUIRED`), thông báo chỉ ra trang đó. Các host có MCP Apps hiển thị tác vụ trong một khung trạng thái nhỏ. Màn hình đồng ý ghi về `agents:execute`: "A task can read and send back anything the agent can, including its sign-in."
 
@@ -67,20 +67,20 @@ Các route nằm dưới `/api/workspaces/{slug}/template-installations/{id}`. H
 | `POST /tasks` | `agents:execute` | Giao tác vụ: `prompt`, `timeout_minutes`, `continue_task_id` và header `Idempotency-Key` tùy chọn. Trả `201`, hoặc `200` khi key trỏ tới một tác vụ trước đó. |
 | `GET /tasks` | `agents:read` | Liệt kê tác vụ, mới nhất trước (`?limit=`, mặc định 20, tối đa 100), không kèm sự kiện. |
 | `GET /tasks/{task_id}?after=&wait_seconds=` | `agents:read` | Đọc một tác vụ cùng sự kiện. `after` là con trỏ, `wait_seconds` (0 đến 25) chờ thay đổi. |
-| `POST /tasks/{task_id}/cancel` | `agents:control` | Dừng tác vụ đang chạy. |
+| `POST /tasks/{task_id}/cancel` | `agents:control` | Dừng tác vụ đang `starting` hoặc đang chạy. Tác vụ đã kết thúc được trả về nguyên trạng. |
 
 ```bash
 BASE=https://api.tose.sh/api/workspaces/my-team/template-installations/INSTALLATION_ID
 
 # Giao tác vụ
 curl -sS -X POST "$BASE/tasks" \
-  -H "Authorization: Bearer $TOSE_API_KEY" \
+  -H "X-API-Key: $TOSE_API_KEY" \
   -H "Idempotency-Key: fix-test-001" \
   -H "Content-Type: application/json" \
   -d '{"prompt":"Fix the failing test in api/ and run the tests.","timeout_minutes":30}'
 
 # Theo dõi: chờ tối đa 25 giây, rồi truyền "next" nhận được làm after
-curl -sS "$BASE/tasks/TASK_ID?wait_seconds=25" -H "Authorization: Bearer $TOSE_API_KEY"
+curl -sS "$BASE/tasks/TASK_ID?wait_seconds=25" -H "X-API-Key: $TOSE_API_KEY"
 ```
 
 Một tác vụ có `status`, `final_message` (tối đa 32 KiB), `changed_files` (`repo`, `status`, `path`; `repo` là `.` với chính `/workspace`), `problem_code` và `problem_message`, `ended_by` (người đã dừng nó, hoặc `system`), các mốc thời gian và, khi đọc một tác vụ, `events` kèm `next`, con trỏ cho lần gọi tiếp theo. Prompt không bao giờ được trả lại và không bao giờ được ghi vào nhật ký kiểm toán. Các view bản cài đặt (`GET /template-installations` và `GET /template-installations/{id}`) có `tasks_enabled`, `task_delegation`, `tasks_supported` và `task_resume_supported`.
@@ -107,12 +107,12 @@ Mỗi lần từ chối có mã riêng, không bao giờ lặng lẽ chuyển sa
 | `409 TASKS_UNSUPPORTED` | Bản phát hành không có trình chạy tác vụ. Hãy cài bản mới hơn. |
 | `403 TASKS_NOT_ALLOWED` | Owner chưa bật công tắc. |
 | `409 AGENT_BUSY` | Agent này đang có tác vụ khác ở trạng thái `starting` hoặc `running`. |
-| `409 AGENT_SLEEPING` | Agent đang ngủ. Hãy đánh thức nó trên trang của agent; tác vụ không làm việc này. |
+| `409 AGENT_SLEEPING` | Agent đang ngủ. Hãy đánh thức nó trên trang của agent hoặc bằng route wake; tác vụ không làm việc này. |
 | `409 AGENT_STOPPED` | Agent đã dừng. Tác vụ không khởi động nó. |
 | `409 PROVIDER_SIGN_IN_REQUIRED` | Agent chưa đăng nhập vào nhà cung cấp, hoặc chưa có key. |
 | `402 INSUFFICIENT_BALANCE` | Ví không đủ trả cho tài nguyên tính toán của agent. |
 | `404 TASK_NOT_FOUND`, `404 INSTALLATION_NOT_FOUND` | Không có tác vụ hay bản cài đặt đó trong workspace này. |
-| `502 AGENT_UNREACHABLE` | TOSE không liên lạc được với agent. Lần tạo có thể đã được nhận: tác vụ ở `starting` và trong khoảng hai phút chuyển thành `running` hoặc `failed`. Thử lại với cùng `Idempotency-Key` để lấy lại nó. |
+| `502 AGENT_UNREACHABLE` | TOSE không liên lạc được với agent. Lần tạo có thể đã được nhận: tác vụ ở `starting` và trong khoảng hai phút chuyển thành `running` hoặc `failed`. Thử lại với cùng `Idempotency-Key` để lấy lại nó. Với lệnh hủy, yêu cầu hủy có thể chưa tới agent; khi đó tác vụ kết thúc khi hết thời hạn. |
 
 ## Giới hạn
 

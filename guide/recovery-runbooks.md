@@ -96,7 +96,7 @@ Plan a scale up and a scale down the same way:
 
 ```bash
 curl -X POST "$TOSE_API_URL/api/workspaces/$WORKSPACE/projects/$PROJECT/runbooks/scale" \
-  -H "Authorization: Bearer $TOSE_API_KEY" \
+  -H "X-API-Key: $TOSE_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"replicas": 3}'
 ```
@@ -109,7 +109,7 @@ A restore plan applies a completed backup to a managed database. It is destructi
 
 ```bash
 curl -X POST "$TOSE_API_URL/api/workspaces/$WORKSPACE/projects/$PROJECT/runbooks/restore" \
-  -H "Authorization: Bearer $TOSE_API_KEY" \
+  -H "X-API-Key: $TOSE_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"database_id": "<database_id>", "backup_id": "<backup_id>"}'
 ```

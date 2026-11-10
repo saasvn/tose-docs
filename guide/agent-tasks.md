@@ -30,10 +30,10 @@ When the server offers tasks, a connected client sees four tools. The person who
 
 | Tool | Scope | What it does |
 |------|-------|--------------|
-| `list_template_agents` | `agents:read` | Lists your curated agents with their `installation_id`, `name`, `agent`, `release`, `status`, whether delegation is on, whether tasks are supported, the active task and the link to the agent's page. |
+| `list_template_agents` | `agents:read` | Lists your curated agents with their `installation_id`, `name`, `agent`, `release`, `status`, whether delegation is on, whether tasks are supported, whether it can continue a finished task (`resume_supported`), the active task and the link to the agent's page. |
 | `run_template_agent_task` | `agents:execute` | Gives an agent a task: `installation_id`, `prompt`, optional `timeout_minutes`, optional `continue_task_id` (continue a finished task when the release supports it) and optional `request_id` to retry safely. |
 | `get_template_agent_task` | `agents:read` | Reads a task. Pass `after` (the cursor from the previous call) to get only new events, and `wait_seconds` (0 to 25) to wait for a change instead of polling fast. |
-| `cancel_template_agent_task` | `agents:control` | Stops a running task. |
+| `cancel_template_agent_task` | `agents:control` | Stops a `starting` or running task. A task that already ended is returned unchanged. |
 
 The tools never turn delegation on, never open the console and never take a secret. When a refusal has a fix on the agent's page (`TASKS_NOT_ALLOWED`, `TASKS_UNSUPPORTED`, `AGENT_SLEEPING`, `PROVIDER_SIGN_IN_REQUIRED`), the message names that page. Hosts with MCP Apps show the task in a small status view. The consent screen says of `agents:execute`: "A task can read and send back anything the agent can, including its sign-in."
 
@@ -67,20 +67,20 @@ Routes under `/api/workspaces/{slug}/template-installations/{id}`. The contract 
 | `POST /tasks` | `agents:execute` | Give a task: `prompt`, `timeout_minutes`, `continue_task_id` and an optional `Idempotency-Key` header. Answers `201`, or `200` when the key names an earlier task. |
 | `GET /tasks` | `agents:read` | List tasks, newest first (`?limit=`, default 20, at most 100), without events. |
 | `GET /tasks/{task_id}?after=&wait_seconds=` | `agents:read` | Read one task with its events. `after` is the cursor, and `wait_seconds` (0 to 25) waits for a change. |
-| `POST /tasks/{task_id}/cancel` | `agents:control` | Stop a running task. |
+| `POST /tasks/{task_id}/cancel` | `agents:control` | Stop a `starting` or running task. |
 
 ```bash
 BASE=https://api.tose.sh/api/workspaces/my-team/template-installations/INSTALLATION_ID
 
 # Give the task
 curl -sS -X POST "$BASE/tasks" \
-  -H "Authorization: Bearer $TOSE_API_KEY" \
+  -H "X-API-Key: $TOSE_API_KEY" \
   -H "Idempotency-Key: fix-test-001" \
   -H "Content-Type: application/json" \
   -d '{"prompt":"Fix the failing test in api/ and run the tests.","timeout_minutes":30}'
 
 # Follow it: wait up to 25 seconds, then pass the returned "next" as after
-curl -sS "$BASE/tasks/TASK_ID?wait_seconds=25" -H "Authorization: Bearer $TOSE_API_KEY"
+curl -sS "$BASE/tasks/TASK_ID?wait_seconds=25" -H "X-API-Key: $TOSE_API_KEY"
 ```
 
 A task has `status`, `final_message` (at most 32 KiB), `changed_files` (`repo`, `status`, `path`; `repo` is `.` for `/workspace` itself), `problem_code` and `problem_message`, `ended_by` (the person who stopped it, or `system`), the times and, when you read a single task, `events` with `next`, the cursor for the next call. The prompt is never returned and never written to the audit log. The installation views (`GET /template-installations` and `GET /template-installations/{id}`) show `tasks_enabled`, `task_delegation`, `tasks_supported` and `task_resume_supported`.
@@ -107,12 +107,12 @@ A refusal always has its own code, never a quiet fallback.
 | `409 TASKS_UNSUPPORTED` | The release has no task runner. Install a newer release. |
 | `403 TASKS_NOT_ALLOWED` | The owner has not turned the switch on. |
 | `409 AGENT_BUSY` | Another task of this agent is `starting` or `running`. |
-| `409 AGENT_SLEEPING` | The agent sleeps. Wake it on its page; a task never does. |
+| `409 AGENT_SLEEPING` | The agent sleeps. Wake it on its page or with the wake route; a task never does. |
 | `409 AGENT_STOPPED` | The agent is stopped. A task never starts it. |
 | `409 PROVIDER_SIGN_IN_REQUIRED` | The agent is not signed in to its provider, or has no key. |
 | `402 INSUFFICIENT_BALANCE` | The wallet cannot pay for the agent's compute. |
 | `404 TASK_NOT_FOUND`, `404 INSTALLATION_NOT_FOUND` | No such task or installation in this workspace. |
-| `502 AGENT_UNREACHABLE` | TOSE could not reach the agent. A create may still have started: the task stays `starting` and, within about two minutes, becomes `running` or `failed`. Retry with the same `Idempotency-Key` to get it back. |
+| `502 AGENT_UNREACHABLE` | TOSE could not reach the agent. A create may still have started: the task stays `starting` and, within about two minutes, becomes `running` or `failed`. Retry with the same `Idempotency-Key` to get it back. On a cancel, the cancel may not have reached the agent; the task then ends at its timeout. |
 
 ## Limits
 
