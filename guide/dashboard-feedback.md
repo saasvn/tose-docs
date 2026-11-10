@@ -8,7 +8,7 @@ The page is shown only when feedback is enabled on your deployment. Where it is 
 
 ## Where to find it
 
-Open `/w/{slug}/feedback` from the **Feedback** link in the header or from the user menu. On a failed deployment, **Report this problem** opens the same form with the page you came from and the failing request ID filled in.
+Open `/w/{slug}/feedback` from the **Feedback** link in the header or from the user menu. On a failed deployment, **Report this problem to TOSE** opens the same form with the page you came from, the area `deployments` and the error code `deployment_failed` filled in.
 
 ## Send a report
 

@@ -83,7 +83,7 @@ Agent đang ngủ hoặc đã dừng không được miễn thu hồi khi worksp
 - sau **7 ngày**, workload bị gỡ (Deployment, Service, Ingress và secret môi trường) và ổ đĩa được giữ;
 - sau **14 ngày**, và chỉ với workspace chưa từng thanh toán, ổ đĩa, network policy và bản ghi bị xóa.
 
-Đánh thức agent đã bị thu hồi trả về `409 INSTALLATION_RECLAIMED`: không thể đánh thức, và nó chỉ chạy lại khi bạn **deploy lại**. Hãy giữ ví còn tiền để tránh điều này. Tệp trên ổ đĩa chỉ được giữ đến lần xóa ở ngày thứ 14.
+Đánh thức agent đã bị thu hồi trả về `409 INSTALLATION_RECLAIMED`: không thể đánh thức, và nó chỉ chạy lại khi bạn **deploy lại**. Hãy giữ ví còn tiền để tránh điều này. Với workspace chưa từng thanh toán, tệp trên ổ đĩa chỉ được giữ đến lần xóa ở ngày thứ 14.
 
 Thiết lập và đánh thức dành cho chủ sở hữu hoặc quản trị viên workspace, hoặc API key có `deployments:execute`.
 

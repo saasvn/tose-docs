@@ -8,21 +8,21 @@ Trang chỉ hiển thị khi triển khai của bạn bật feedback. Nếu tắ
 
 ## Tìm ở đâu
 
-Mở `/w/{slug}/feedback` từ liên kết **Feedback** ở header hoặc từ menu người dùng. Với một deployment thất bại, **Report this problem** mở cùng biểu mẫu với trang bạn vừa xem và request ID của lệnh gọi lỗi đã được điền sẵn.
+Mở `/w/{slug}/feedback` từ liên kết **Góp ý** ở header hoặc từ menu người dùng. Với một deployment thất bại, **Báo lỗi này cho TOSE** mở cùng biểu mẫu với trang bạn vừa xem, khu vực `deployments` và mã lỗi `deployment_failed` đã được điền sẵn.
 
 ## Gửi báo cáo
 
-1. Chọn **Type** và **Area**. Area quyết định repository TOSE nào nhận báo cáo. Nếu không chắc, chọn **Other**; khi đó sẽ có người định tuyến.
-2. Viết **Title** và **Description**, và tùy chọn **Steps to reproduce**. Không dán bí mật, biến môi trường hay log.
-3. Chỉ tick **Include diagnostics** nếu bạn đồng ý chia sẻ các giá trị liệt kê trên biểu mẫu (client, phiên bản và mã lỗi). Không bao giờ gồm biến môi trường, token hay log. Để trống nếu không muốn gửi.
-4. Bấm **Preview report**. Bản xem trước cho thấy TOSE nhận được gì, với các giá trị giống bí mật hoặc dữ liệu cá nhân được che. TOSE che lại một lần nữa ở máy chủ, nên bản xem trước chỉ gần đúng.
-5. Bấm **Send report**, hoặc **Edit** để quay lại.
+1. Chọn **Loại** và **Khu vực**. Khu vực quyết định repository TOSE nào nhận báo cáo. Nếu không chắc, chọn **Khác**; khi đó sẽ có người định tuyến.
+2. Viết **Tiêu đề** và **Mô tả**, và tùy chọn **Các bước tái hiện**. Không dán bí mật, biến môi trường hay log.
+3. Chỉ tick **Đính kèm thông tin chẩn đoán** nếu bạn đồng ý chia sẻ các giá trị liệt kê trên biểu mẫu (client, phiên bản và mã lỗi). Không bao giờ gồm biến môi trường, token hay log. Để trống nếu không muốn gửi.
+4. Bấm **Xem trước báo cáo**. Bản xem trước cho thấy TOSE nhận được gì, với các giá trị giống bí mật hoặc dữ liệu cá nhân được che. TOSE che lại một lần nữa ở máy chủ, nên bản xem trước chỉ gần đúng.
+5. Bấm **Gửi báo cáo**, hoặc **Sửa** để quay lại.
 
 Báo cáo cần che dữ liệu, liên quan thanh toán hoặc không định tuyến được sẽ do một người xem xét trước khi đăng.
 
 ## Theo dõi báo cáo của bạn
 
-**Your reports in this workspace** liệt kê các báo cáo bạn đã gửi, mới nhất trước, mỗi báo cáo kèm lịch sử trạng thái và, khi GitHub đã xác nhận, liên kết tới issue. Bạn chỉ thấy báo cáo của chính mình: báo cáo của đồng đội không bao giờ được liệt kê. Các trạng thái giống [Feedback API](/vi/api/feedback#trang-thai).
+**Báo cáo của bạn trong workspace này** liệt kê các báo cáo bạn đã gửi, mới nhất trước, mỗi báo cáo kèm lịch sử trạng thái và, khi GitHub đã xác nhận, liên kết tới issue. Bạn chỉ thấy báo cáo của chính mình: báo cáo của đồng đội không bao giờ được liệt kê. Các trạng thái giống [Feedback API](/vi/api/feedback#trang-thai).
 
 Danh sách này cũng có qua API:
 

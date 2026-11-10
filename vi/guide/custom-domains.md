@@ -1,13 +1,13 @@
 # Tên miền tùy chỉnh và xác minh quyền sở hữu
 
-Tên miền tùy chỉnh chỉ được định tuyến sau khi bạn chứng minh mình kiểm soát DNS của nó. Trang này giải thích cách chứng minh, các trạng thái bạn sẽ thấy và những gì TOSE từ chối. Quy tắc áp dụng cho tên miền của dự án và của ứng dụng đã cài (template).
+Tên miền tùy chỉnh chỉ được định tuyến sau khi bạn chứng minh mình kiểm soát DNS của nó. Ngoại lệ duy nhất là tên miền nằm một cấp dưới tên miền gốc của môi trường phát triển của workspace: DNS đó thuộc về môi trường, nên nó được xác minh ngay khi tạo. Trang này giải thích cách chứng minh, các trạng thái bạn sẽ thấy và những gì TOSE từ chối. Quy tắc áp dụng cho tên miền của dự án và của ứng dụng đã cài (template).
 
 ## Cách xác minh hoạt động
 
 1. **Thêm tên miền** trong dashboard, bằng `tose domain add`, hoặc bằng `POST /api/workspaces/{slug}/projects/{project_slug}/domains` (`POST .../templates/{template_slug}/domains` cho ứng dụng). Chỉ owner hoặc admin mới thêm được.
 2. TOSE ghi một yêu cầu sở hữu với `verification_status: pending_verification` và trả về `verification_record`: một token ngẫu nhiên và tên cần đặt nó.
 3. **Thêm bản ghi TXT** tại `_tose-challenge.<tên-miền-của-bạn>` với giá trị là token được hiển thị. Đồng thời trỏ bản ghi A tới `target_ip` được hiển thị.
-4. **Bấm Verify**, hoặc gọi `POST .../domains/{domain_id}/verify`. TOSE tra cứu bản ghi TXT (hết hạn sau 5 giây). Khi bản ghi chứa token, tên miền chuyển sang `verified`, được định tuyến và chứng chỉ được yêu cầu.
+4. **Bấm Xác minh**, hoặc gọi `POST .../domains/{domain_id}/verify`. TOSE tra cứu bản ghi TXT (hết hạn sau 5 giây). Khi bản ghi chứa token, tên miền chuyển sang `verified`, được định tuyến và chứng chỉ được yêu cầu.
 
 ```bash
 curl -X POST https://api.tose.sh/api/workspaces/my-team/projects/my-site/domains/$DOMAIN_ID/verify \

@@ -1,6 +1,6 @@
 # Custom domains and ownership verification
 
-A custom domain is routed only after you prove you control its DNS. This page explains the proof, the statuses you will see, and what TOSE refuses. It applies to the domains of projects and of installed apps (templates).
+A custom domain is routed only after you prove you control its DNS. The one exception is a domain one label below the base domain of a workspace's development environment: its DNS belongs to the environment, so it is verified when created. This page explains the proof, the statuses you will see, and what TOSE refuses. It applies to the domains of projects and of installed apps (templates).
 
 ## How verification works
 

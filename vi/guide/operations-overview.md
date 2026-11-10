@@ -1,6 +1,6 @@
 # Vận hành trên nhiều workspace
 
-Trang **Operations** (`/operations`, mục **Platform** ở thanh bên) hiển thị mọi workspace bạn là thành viên trong một bảng, để bạn biết nên xem chỗ nào trước khi quản lý nhiều workspace.
+Trang **Vận hành** (`/operations`, mục **Nền tảng** ở thanh bên) hiển thị mọi workspace bạn là thành viên trong một bảng, để bạn biết nên xem chỗ nào trước khi quản lý nhiều workspace.
 
 ## Trang hiển thị gì
 

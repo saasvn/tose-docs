@@ -14,7 +14,7 @@ POST /api/feedback
 
 | Header | Meaning |
 |--------|---------|
-| `X-API-Key` or `Authorization: Bearer` | A [workspace API key](/api/api-keys) or a session token. It needs the `workspace:write` scope, because a report becomes a public issue. |
+| `X-API-Key` or `Authorization: Bearer` | A [workspace API key](/api/api-keys) or a session token. It needs the `feedback:write` scope, which `workspace:write` implies, because a report can become a public issue. |
 | `Idempotency-Key` | Optional. Same as the `idempotency_key` field. |
 
 ```bash
@@ -128,7 +128,7 @@ Past a limit the API returns `429`. See [Errors](/api/errors) for the shared err
 |--------|---------|
 | `400` | The body is not valid JSON, or has a field that is not accepted. |
 | `401` | Missing or invalid credential. |
-| `403` | The credential lacks `workspace:write` (or `workspace:read` to read), or the role is too low. |
+| `403` | The credential lacks `feedback:write` (or `workspace:write`, which implies it; or `workspace:read` to read), or the role is too low. |
 | `404` | Feedback is not enabled on this deployment, or the report is not yours. |
 | `413` | The body is larger than 64 KiB. |
 | `422` | A field is invalid. `details.field` names it. |

@@ -83,7 +83,7 @@ A sleeping or stopped agent is not exempt from reclaiming when its workspace is 
 - after **7 days** the workload is removed (Deployment, Service, Ingress and environment secret) and the disk is kept;
 - after **14 days**, and only for a workspace that never completed a payment, the disk, network policies and records are deleted.
 
-Waking a reclaimed agent returns `409 INSTALLATION_RECLAIMED`: it cannot be woken, and starts again only when you **deploy it again**. Keep the wallet funded to avoid this. Files on the disk are kept only until the 14-day deletion.
+Waking a reclaimed agent returns `409 INSTALLATION_RECLAIMED`: it cannot be woken, and starts again only when you **deploy it again**. Keep the wallet funded to avoid this. For a workspace that never paid, files on the disk are kept only until the 14-day deletion.
 
 Setting and waking are for workspace owners and admins, or an API key with `deployments:execute`.
 

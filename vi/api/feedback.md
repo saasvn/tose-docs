@@ -14,7 +14,7 @@ POST /api/feedback
 
 | Header | Ý nghĩa |
 |--------|---------|
-| `X-API-Key` hoặc `Authorization: Bearer` | [API key của workspace](/vi/api/api-keys) hoặc session token. Cần scope `workspace:write`, vì báo cáo sẽ trở thành issue công khai. |
+| `X-API-Key` hoặc `Authorization: Bearer` | [API key của workspace](/vi/api/api-keys) hoặc session token. Cần scope `feedback:write`, được `workspace:write` bao hàm, vì báo cáo có thể trở thành issue công khai. |
 | `Idempotency-Key` | Tùy chọn. Giống trường `idempotency_key`. |
 
 ```bash
@@ -128,7 +128,7 @@ Vượt giới hạn, API trả về `429`. Xem [Mã lỗi](/vi/api/errors) cho 
 |--------|---------|
 | `400` | Body không phải JSON hợp lệ, hoặc có trường không được chấp nhận. |
 | `401` | Thiếu hoặc sai credential. |
-| `403` | Credential thiếu `workspace:write` (hoặc `workspace:read` khi đọc), hoặc vai trò quá thấp. |
+| `403` | Credential thiếu `feedback:write` (hoặc `workspace:write`, scope bao hàm nó; hoặc `workspace:read` khi đọc), hoặc vai trò quá thấp. |
 | `404` | Deployment này chưa bật feedback, hoặc báo cáo không phải của bạn. |
 | `413` | Body lớn hơn 64 KiB. |
 | `422` | Một trường không hợp lệ. `details.field` chỉ ra trường đó. |
