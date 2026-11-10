@@ -10,16 +10,20 @@ Mỗi agent chỉ chạy một tác vụ tại một thời điểm. Không có 
 |-----------|---------|
 | Máy chủ có cung cấp tác vụ. | Người vận hành đặt `TEMPLATE_AGENT_TASKS_ENABLED=true`. Mặc định **tắt**. Khi tắt, mọi route tác vụ trả `404 TASKS_DISABLED` và dashboard ẩn thẻ Tác vụ. |
 | Bản phát hành của agent có trình chạy tác vụ. | Dùng Claude Code 1.1.0, Codex 1.1.0 hoặc Pi 1.2.0 (hoặc mới hơn). Bản cài đặt cũ vẫn chạy như cũ và từ chối tác vụ với `409 TASKS_UNSUPPORTED`. Chưa nâng cấp tại chỗ được bản tuyển chọn, nên hãy [triển khai](/vi/guide/deploy-coding-agent) bản mới thành một bản cài đặt mới rồi chuyển công việc sang bằng git. |
-| Chủ sở hữu đã cho phép. | Xem [Bật tính năng](#bat-tinh-nang). |
+| Chủ sở hữu cho phép. | Mặc định bật với agent mới có trình chạy tác vụ; xem [Bật hoặc tắt](#bat-tinh-nang). |
 | Agent đang chạy và đã đăng nhập. | Tác vụ không bao giờ đánh thức agent đang ngủ, không khởi động agent đã dừng và không dùng tài khoản hay key khác. |
 | Ví còn số dư. | Tác vụ chạy trên tài nguyên tính toán của agent. Không có phụ phí; nhà cung cấp tính phí mô hình vào key hoặc gói của bạn. |
 
-## Bật tính năng {#bat-tinh-nang}
+## Bật hoặc tắt {#bat-tinh-nang}
 
-Trên trang của agent đã cài, **owner hoặc admin** của workspace đã đăng nhập bật công tắc **Accept tasks from connected apps and API keys** (nhận tác vụ từ ứng dụng được kết nối và API key). Công tắc tắt với mọi bản cài đặt cho tới khi có người bật. API key hay ứng dụng được kết nối không bao giờ đổi được công tắc này, dù có scope nào.
+Công tắc **Nhận tác vụ từ ứng dụng đã kết nối và khóa API** (Accept tasks from connected apps and API keys) trên trang của agent đã cài quyết định agent có nhận tác vụ hay không.
 
-::: warning Hãy đọc trước khi bật
-Một tác vụ có thể đọc và gửi lại mọi thứ agent đọc được, kể cả thông tin đăng nhập của nó (ví dụ `~/.claude` hoặc `$CODEX_HOME/auth.json`) hay key của nó. Vì vậy ứng dụng hoặc API key giữ `agents:execute` được tin cậy ngang với owner hoặc admin đã cấp quyền. Trước khi ghi sự kiện hoặc kết quả, agent thay các giá trị thông tin xác thực mà nó biết bằng `[redacted]`, nhưng đây chỉ là nỗ lực tốt nhất: nó bắt được sơ suất, không chặn được một prompt có chủ đích. Chỉ bật công tắc cho những client bạn tin tưởng với thông tin đăng nhập của agent.
+- Công tắc **bật sẵn** cho bản cài đặt mới của bản phát hành có trình chạy tác vụ (Claude Code 1.1.0, Codex 1.1.0, Pi 1.2.0 hoặc mới hơn), kể từ tose-app [#701](https://github.com/saasvn/tose-app/pull/701). Khi đó ứng dụng được kết nối hoặc API key có `agents:execute` giao được tác vụ cho agent ngay từ lần khởi động đầu tiên.
+- Công tắc vẫn **tắt** với bản cài đặt đã có từ trước, và với mọi bản cài đặt của bản phát hành không có trình chạy tác vụ, cho tới khi có người bật.
+- Chỉ **owner hoặc admin** của workspace đã đăng nhập mới tắt hoặc bật được (`PUT .../task-delegation` với `{"enabled": false}` hoặc `true`). API key hay ứng dụng được kết nối không bao giờ đổi được công tắc này, dù có scope nào. Khi tắt, tác vụ bị từ chối với `403 TASKS_NOT_ALLOWED`.
+
+::: warning Hãy đọc trước khi để bật
+Một tác vụ có thể đọc và gửi lại mọi thứ agent đọc được, kể cả thông tin đăng nhập của nó (ví dụ `~/.claude` hoặc `$CODEX_HOME/auth.json`) hay key của nó. Vì vậy ứng dụng hoặc API key giữ `agents:execute` được tin cậy ngang với owner hoặc admin đã cấp quyền. Trước khi ghi sự kiện hoặc kết quả, agent thay các giá trị thông tin xác thực mà nó biết bằng `[redacted]`, nhưng đây chỉ là nỗ lực tốt nhất: nó bắt được sơ suất, không chặn được một prompt có chủ đích. Chỉ để công tắc bật khi bạn tin tưởng các client đã kết nối với thông tin đăng nhập của agent. Nếu không, hãy tắt ngay sau khi triển khai.
 :::
 
 Tác vụ chạy ở mọi chế độ nhà cung cấp, kể cả Claude Code với gói Claude và Codex với gói ChatGPT của bạn. Tác vụ dùng thông tin mà agent đang đăng nhập tại thời điểm đó.
@@ -63,7 +67,7 @@ Các route nằm dưới `/api/workspaces/{slug}/template-installations/{id}`. H
 
 | Route | Scope | Mục đích |
 |-------|-------|----------|
-| `PUT /task-delegation` với `{"enabled": true}` | không có: chỉ phiên đã đăng nhập | Công tắc. Trả `{"task_delegation": true}`. |
+| `PUT /task-delegation` với `{"enabled": true}` hoặc `false` | không có: chỉ phiên đã đăng nhập | Công tắc. Trả `{"task_delegation": <giá trị mới>}`. |
 | `POST /tasks` | `agents:execute` | Giao tác vụ: `prompt`, `timeout_minutes`, `continue_task_id` và header `Idempotency-Key` tùy chọn. Trả `201`, hoặc `200` khi key trỏ tới một tác vụ trước đó. |
 | `GET /tasks` | `agents:read` | Liệt kê tác vụ, mới nhất trước (`?limit=`, mặc định 20, tối đa 100), không kèm sự kiện. |
 | `GET /tasks/{task_id}?after=&wait_seconds=` | `agents:read` | Đọc một tác vụ cùng sự kiện. `after` là con trỏ, `wait_seconds` (0 đến 25) chờ thay đổi. |
@@ -105,7 +109,7 @@ Mỗi lần từ chối có mã riêng, không bao giờ lặng lẽ chuyển sa
 |----|---------|
 | `404 TASKS_DISABLED` | Cờ của máy chủ đang tắt. |
 | `409 TASKS_UNSUPPORTED` | Bản phát hành không có trình chạy tác vụ. Hãy cài bản mới hơn. |
-| `403 TASKS_NOT_ALLOWED` | Owner chưa bật công tắc. |
+| `403 TASKS_NOT_ALLOWED` | Công tắc đang tắt: owner hoặc admin đã tắt, hoặc bản cài đặt có từ trước khi có mặc định mới và chưa ai bật. |
 | `409 AGENT_BUSY` | Agent này đang có tác vụ khác ở trạng thái `starting` hoặc `running`. |
 | `409 AGENT_SLEEPING` | Agent đang ngủ. Hãy đánh thức nó trên trang của agent hoặc bằng route wake; tác vụ không làm việc này. |
 | `409 AGENT_STOPPED` | Agent đã dừng. Tác vụ không khởi động nó. |

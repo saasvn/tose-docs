@@ -17,9 +17,9 @@ The released versions are **Codex 1.0.0**, **Claude Code 1.0.0**, and **Pi 1.0.0
 2. Choose an agent and select **Deploy**. The agent deploys from one page, **Deploy** followed by the agent's name, with these cards:
    - **App**: the **App name**.
    - **Sign in**: the provider (see [Choose a provider](#choose-a-provider)). When it uses an API key, enter the key right there. The key is encrypted, sent only with the deploy, never shown again and never part of the plan. A plan sign-in needs no key: you sign in after the deploy.
-   - **Size**: **CPU cores** and **Memory (GiB)** from the offered list, and **Auto-sleep after idle** (**Off** by default).
+   - **Size**: **CPU cores** and **Memory (GiB)** from the offered list, the **Workspace disk** (the size of `/workspace`: **5 GiB** by default, or 10, 20 or 50 GiB, each with its monthly price), and **Auto-sleep after idle** (**Off** by default). The disk size is fixed once the agent is installed.
    - **Network access**: **Provider only** (the default: only the provider's hosts), **Development (restricted)** (the provider plus the reviewed code and package hosts of the tools in the agent's image) or **Unrestricted public Internet** (any public host, higher risk). The card shows what the agent can reach in each mode.
-   - **Repository (optional)**: one GitHub repository of the workspace, checked out into `/workspace` when the agent first starts. Leave it out to start with an empty workspace.
+   - **Repository (optional)**: one GitHub repository of the workspace, checked out into `/workspace` when the agent first starts. Leave it out to start with an empty workspace. Turn on **Let the agent push to this repository** to let the agent push its commits back ([how push works](/guide/agent-repository-checkout#let-the-agent-push-to-your-repository)); it is off by default.
    - **Advanced: release, model and environment variables**: the **Release** (the newest by default, so Pi 1.1.0 for Pi), an optional **Model** (leave it empty to use the agent's default) and your own **Environment variables**.
 3. Check the plan next to the **Deploy** button. As you change the inputs, the page plans them and shows the cost ceiling (the most the agent can cost per hour), the wallet runway, and any blockers and warnings. Fix highlighted fields to see the cost.
 4. Select **Deploy**. It approves exactly the plan shown, installs it and follows the progress: approving the plan, installing, starting the agent, until **The agent is running**. A member who cannot approve gets a link to the plan to send to an owner or admin instead.
@@ -76,11 +76,12 @@ Codex receives its tokens from OpenAI directly and keeps them on the agent's dis
 
 ## Delegate tasks
 
-A connected app or API key can give the agent a task and read its result, once an owner or admin turns on **Accept tasks from connected apps and API keys** on the agent's page. See [Delegate tasks to a coding agent](/guide/agent-tasks), including the warning about the agent's sign-in.
+A connected app or API key with `agents:execute` can give the agent a task and read its result. On a new agent with a task runner, **Accept tasks from connected apps and API keys** is **on by default**; an owner or admin can turn it off on the agent's page at any time. See [Delegate tasks to a coding agent](/guide/agent-tasks), including the warning about the agent's sign-in.
 
 ## Cost and control
 
-- Compute is billed while the agent runs, and storage (a 5 GiB `/workspace` and a 1 GiB `/home/agent` disk) while the disk exists, also when the agent is stopped.
+- Compute is billed while the agent runs, and storage (the `/workspace` size you chose, 5 GiB by default, plus 1 GiB for `/home/agent`) while the disk exists, also when the agent is stopped. The plan prices the whole disk in its cost ceiling.
+- The disk keeps your work across restarts, sleep and redeploys. Its size is fixed at install, so choose room for your repositories and build output.
 - Any owner or admin can stop or delete the agent at any time. The agent holds no TOSE credential, so it cannot change itself.
 - With an API key, set a spending limit at the provider as well.
 

@@ -164,7 +164,7 @@ Các mẫu Pi, Claude Code và Codex tuyển chọn đã được phát hành: C
 | `POST /api/workspaces/{slug}/template-installations` kèm `Idempotency-Key` | `admin` hoặc `owner`, đăng nhập hoặc dùng key | `deployments:execute` và `projects:write`, thêm `env:write` khi gửi `secrets` |
 | `POST /api/workspaces/{slug}/template-installations/{installation_id}/console-sessions` | `admin` hoặc `owner`, **chỉ khi đã đăng nhập** | không có: API key và ứng dụng đã kết nối bị từ chối |
 
-Danh sách trả về các trường nhập của biểu mẫu (nhà cung cấp và tên khóa, `AGENT_MODEL`, số nhân và GiB cho phép, `network_mode`, `max_hourly_cost_cents` không bắt buộc), `hidden`, `releases`, cổng và storage của runtime, cùng các blocker không phụ thuộc workspace. Danh sách không bao giờ chứa giá trị bí mật. Mẫu bị giữ lại bằng `hidden` chỉ hiện khi có `include_hidden=true`; đọc theo key vẫn trả về mẫu đó. Key không tồn tại trả `404 CURATED_TEMPLATE_NOT_FOUND`.
+Danh sách trả về các trường nhập của biểu mẫu (nhà cung cấp và tên khóa, `AGENT_MODEL`, số nhân và GiB cho phép, `workspace_disk_gib`, `network_mode`, `max_hourly_cost_cents` không bắt buộc), `hidden`, `releases`, cổng và storage của runtime, cùng các blocker không phụ thuộc workspace. Danh sách không bao giờ chứa giá trị bí mật. Mẫu bị giữ lại bằng `hidden` chỉ hiện khi có `include_hidden=true`; đọc theo key vẫn trả về mẫu đó. Key không tồn tại trả `404 CURATED_TEMPLATE_NOT_FOUND`.
 
 Yêu cầu lập plan (gửi `curated_template` hoặc `definition_slug`, không gửi cả hai):
 
@@ -175,20 +175,38 @@ Yêu cầu lập plan (gửi `curated_template` hoặc `definition_slug`, không
   "cpu_cores": 2,
   "memory_gib": 4,
   "network_mode": "approved",
+  "workspace_disk_gib": 10,
   "variables": {"AGENT_MODEL": "claude-sonnet-4-5"}
 }
 ```
+
+- `workspace_disk_gib` là dung lượng (GiB) của volume `/workspace` của agent: một trong `inputs.workspace_disk_gib.allowed` của danh sách (5, mặc định, 10, 20 hoặc 50). `inputs.workspace_disk_gib` còn có `default` và `monthly_usd`, giá lưu trữ mỗi tháng của từng mức theo thứ tự của `allowed`. Giá trị khác trả `422 PLAN_INPUT_INVALID` tại `workspace_disk_gib`. `/home/agent` vẫn là 1 GiB. Plan ghim dung lượng trong `curated.storage.workspace_disk_gib`, nằm trong plan hash, và tính giá cả ổ đĩa vào mức trần chi phí. Dung lượng cố định khi cài: plan nâng cấp hoặc rollback gửi trường này bị từ chối. Lưu trữ bị tính phí khi ổ đĩa còn tồn tại, kể cả khi agent đã dừng.
+- `repository` ghim một kho GitHub (chỉ owner và admin); xem [Kho mã GitHub](/vi/guide/agent-repository-checkout). Thêm `"push": true` để agent push lên kho đó qua git proxy của TOSE, và `push_branches`: `all` (mặc định: mọi nhánh, kể cả nhánh mặc định) hoặc `agent` (chỉ `tose/<slug của bản cài>/...`). `push` mặc định là `false`; gửi `push_branches` mà không có `push` trả `422` tại `repository.push_branches`. Plan có push cần quyền GitHub App `contents: write` (nếu không, blocker `GITHUB_PERMISSION_MISSING`) và máy chủ có git proxy với địa chỉ https công khai (nếu không, `503 GIT_PROXY_NOT_CONFIGURED`). Xem [Cho agent push](/vi/guide/agent-repository-checkout#cho-agent-push-len-kho-ma).
 
 - `max_hourly_cost_cents` **không bắt buộc** (bắt buộc cho tới 2026-11-09, tose-app [#571](https://github.com/saasvn/tose-app/pull/571)). Plan luôn hiển thị mức trần chi phí để phê duyệt; khi bạn đặt giới hạn, plan có mức trần cao hơn sẽ bị chặn với `COST_CEILING_EXCEEDED`. Dashboard không hỏi trường này. Ví trống chặn plan với `INSUFFICIENT_BALANCE`.
 - `network_mode` là `approved` (mặc định), `development` hoặc `internet`. Danh sách mô tả `development` trong một object `development` riêng, kèm các máy chủ của từng bộ công cụ theo chính sách đã rà soát của máy chủ; client chỉ đưa ra chế độ này khi có object đó.
 - Khóa nhà cung cấp trong `variables` trả `422 PLAN_INPUT_INVALID` kèm một mục `errors[]` là `SECRET_VALUE_IN_PLAN` tại `variables.<KEY>`; phản hồi không lặp lại khóa và khóa không bao giờ được lưu trong plan.
 - Trường lạ như lệnh khởi động, hook hay `privileged` trả `400`.
-- Plan có thêm mục `curated` được băm: bản phát hành, nhà cung cấp, `auth: byok`, chế độ mạng cùng các đích, kiểu thiết lập và `human_control` (ai được thao tác và các route dừng, gỡ khóa, xóa). Agent không giữ thông tin xác thực API TOSE.
+- Plan có thêm mục `curated` được băm: bản phát hành, nhà cung cấp, `auth: byok`, chế độ mạng cùng các đích, kiểu thiết lập, `storage` (`workspace_disk_gib`, không có với mẫu có volume dung lượng cố định), `human_control` (ai được thao tác và các route dừng, gỡ khóa, xóa) và, khi có kho mã, `repository`. Khi có push, `curated.repository` có thêm `push: true`, `push_branches`, `push_branch_pattern` (`*` hoặc `tose/<slug của bản cài>/*`) và `push_remote` (URL của git proxy, không kèm credential); `access` vẫn là `contents:read`, quyền của token clone. Agent không giữ thông tin xác thực API TOSE và không giữ token GitHub.
 - Phê duyệt plan có blocker trả `PLAN_BLOCKED` (`409`, hoặc `402` khi ví trống) và không tạo gì; ứng dụng MCP đã kết nối nhận `403 APPROVAL_REQUIRES_PERSON`.
 - Plan tuyển chọn ánh xạ bản phát hành tới một version registry đã xuất bản (`template.version_id`) và kiểm tra manifest đã lưu đúng bằng manifest của bản phát hành. Khi bản phát hành không cài được từ registry (chưa xuất bản, được lưu với manifest khác, hoặc nhà phát hành `tose-curated` bị đình chỉ), plan mang `CURATED_INSTALL_UNAVAILABLE`; version bị thu hồi mang `VERSION_REVOKED`.
 - Đăng nhập bằng gói theo cờ máy chủ `CURATED_SUBSCRIPTION_LOGIN_ENABLED`, được chủ sản phẩm cho phép trên production từ 2026-11-09. Ở máy chủ bật cờ này, nhà cung cấp `chatgpt` của Codex (`CODEX_PROVIDER=chatgpt`) được đưa ra và trang ứng dụng đã cài của Claude Code có nút **Kết nối Claude**. Ở máy chủ tắt cờ, `chatgpt` là `available: false` kèm lý do và plan chọn nó bị chặn với `SUBSCRIPTION_LOGIN_DISABLED`, nên hãy đọc danh sách thay vì giả định. `CODEX_PROVIDER=openai` hoặc `CLAUDE_PROVIDER=anthropic` với khóa API không bao giờ phụ thuộc cờ. Xem [Đăng nhập nhà cung cấp](/vi/guide/template-registry#provider-sign-in).
 - Khi cờ bật, các route `provider-account` (mã thiết bị của Codex) và `claude-provider-account` (mã dán của Claude) dưới một installation phục vụ owner và admin đã đăng nhập của workspace; khi tắt chúng trả `404`. Route `login/code` của Claude nhận mã đăng nhập dùng một lần của Anthropic một lần và không bao giờ lưu hay trả lại. Không API nào khác nhận token, cookie, tệp đăng nhập hay mã của nhà cung cấp, nên đừng xây tích hợp thu thập chúng. Tắt cờ cần khởi động lại API, đóng cả hai đăng nhập cùng lúc và không thu hồi các phiên nhà cung cấp đã có. Hợp đồng là [OpenAPI](https://github.com/saasvn/tose-app/blob/17a6559f286d3b3c20195a8af85474d18225b490/internal/apispec/openapi.yaml) và [bản ghi quyết định](https://github.com/saasvn/tose-app/blob/17a6559f286d3b3c20195a8af85474d18225b490/docs/agent-provider-auth-gate.md). Đăng nhập native trong terminal (`CLAUDE_PROVIDER=claude` với `/login` trong console) tách biệt với cờ.
 - Cài plan đã phê duyệt là `POST /template-installations` thông thường kèm `Idempotency-Key`. Khóa nhà cung cấp chỉ nằm trong `secrets`, được lưu mã hóa và không bao giờ được trả lại. Nâng cấp tại chỗ một bản cài tuyển chọn trả `409 CURATED_UPGRADE_UNAVAILABLE`.
+- Bản cài báo checkout trong `repository`, kèm `push` và `push_branches` khi agent được push. Không đổi được push sau khi cài; hãy lập lại plan agent để đổi.
+- Giao tác vụ (`task_delegation` trong bản cài) bắt đầu là `true` với bản cài mới của bản phát hành có trình chạy tác vụ, và `false` với bản cài cũ hoặc bản phát hành không có. Chỉ owner hoặc admin đã đăng nhập đổi được, bằng `PUT .../template-installations/{installation_id}/task-delegation` với `{"enabled": false}` hoặc `true`. Xem [Giao tác vụ](/vi/guide/agent-tasks#bat-tinh-nang).
+
+### Git proxy
+
+Agent được push chỉ tới GitHub qua các route này. Chúng không phải route của workspace: không nhận phiên đăng nhập, API key hay ứng dụng đã kết nối, chỉ nhận git của chính agent với bí mật checkout của nó (HTTP Basic, user `x-tose`, mật khẩu `TOSE_GIT_TOKEN`).
+
+| Route | Tác dụng |
+|-------|----------|
+| `GET /api/git/{checkout_id}/info/refs?service=git-upload-pack` hoặc `git-receive-pack` | Quảng bá ref. |
+| `POST /api/git/{checkout_id}/git-upload-pack` | Fetch, chuyển tiếp với token `contents:read` cho đúng kho đó. Body tối đa 64 MiB. |
+| `POST /api/git/{checkout_id}/git-receive-pack` | Push, chuyển tiếp với token `contents:write` cho đúng kho đó. Tối đa 1 GiB, kể cả sau khi giải nén gzip. Ghi nhật ký là `template_installation.git_push`. |
+
+Thiếu hoặc sai bí mật trả `401`, yêu cầu ngoài giao thức smart của git trả `403 GIT_REQUEST_INVALID` (`400` với lệnh push sai định dạng), quá lớn trả `413 GIT_REQUEST_TOO_LARGE`, quá nhiều (hơn 4 yêu cầu cùng lúc hoặc 60 mỗi phút cho một checkout) trả `429 GIT_RATE_LIMITED` kèm `Retry-After`, và máy chủ chưa có địa chỉ proxy công khai trả `503 GIT_PROXY_NOT_CONFIGURED`. Các lần từ chối khác tới git dưới dạng `remote error` kèm mã; xem [Khi git từ chối](/vi/guide/agent-repository-checkout#khi-git-tu-choi).
 
 ### Mở console
 

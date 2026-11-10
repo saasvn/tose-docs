@@ -173,7 +173,7 @@ Mọi agent tuyển chọn đều có bản phát hành đã rà soát, tức im
 | Khóa nhà cung cấp | **Dùng khóa của bạn (BYOK).** Một biến bí mật: `ANTHROPIC_API_KEY` (Claude Code), `OPENAI_API_KEY` (Codex, kèm `CODEX_PROVIDER` là `openai`) hoặc `PI_API_KEY` (Pi, kèm `PI_PROVIDER`: `anthropic`, `openai` hoặc `google` ở bản 1.0.0, mười nhà cung cấp từ bản 1.1.0; xem [Nhà cung cấp model cho Pi](/vi/guide/agent-pi-providers)). Codex còn có lựa chọn **gói ChatGPT** và Claude Code có lựa chọn **gói Claude**: xem [Đăng nhập nhà cung cấp](#provider-sign-in). TOSE không tính phí sử dụng mô hình: nhà cung cấp tính trên khóa của bạn. |
 | Mô hình | `AGENT_MODEL` tùy chọn, là tên mô hình của nhà cung cấp. Để trống thì agent dùng mặc định. |
 | Cấu hình | Số nhân và GiB nguyên trong danh sách cho phép: Claude Code và Codex 1, 2 hoặc 4 nhân và 2, 4 hoặc 8 GiB; Pi 1 hoặc 2 nhân và 1, 2 hoặc 4 GiB. |
-| Lưu trữ | Ổ đĩa bền vững gồm `/workspace` (5 GiB) và `/home/agent` (1 GiB), tính phí khi ổ đĩa còn tồn tại, kể cả khi đã dừng. |
+| Lưu trữ | Ổ đĩa bền vững gồm `/workspace` và `/home/agent` (1 GiB). Bạn chọn dung lượng `/workspace` khi cài: 5 GiB (mặc định), 10, 20 hoặc 50 GiB (`workspace_disk_gib`), và sau đó không đổi được. Ổ đĩa giữ dữ liệu của bạn qua các lần khởi động lại, và bị tính phí khi còn tồn tại, kể cả khi đã dừng. |
 | Mạng | Egress `approved` (**Chỉ nhà cung cấp mô hình**: máy chủ API và đăng nhập của nhà cung cấp, mặc định), `development` (**Phát triển (giới hạn)**: nhà cung cấp cùng các máy chủ git, npm và PyPI đã rà soát cho những công cụ có trong image) hoặc `internet` (**Internet công khai không giới hạn**). Không có `none`, vì agent không gọi được nhà cung cấp nếu không có egress. Ingress luôn là `private`: console của agent không bao giờ công khai. |
 | Thiết lập | Chỉ `image_entrypoint`: entrypoint đã rà soát của image phát hành. Không có bước build, lệnh khởi động, hook, đối tượng Kubernetes hay `privileged`; trường lạ bị từ chối. |
 | Bản phát hành | Mỗi bản ghim image OCI bằng digest `sha256` và ghi phiên bản upstream, ngày và liên kết https tới bằng chứng. Nhà phát hành (TOSE) được đặt một lần trên định nghĩa. Bản này được chuyển thành manifest `tose.dev/v1` thông thường và được kiểm tra theo các quy tắc ở trên. |
@@ -214,9 +214,9 @@ Mở **Kho mẫu** ở thanh bên của workspace (nhóm **Ứng dụng & agent*
 
 - **Ứng dụng**: tên ứng dụng.
 - **Đăng nhập**: nhà cung cấp (với Pi là một trong các nhà cung cấp của Pi) và, khi cần, khóa API của bạn ngay tại đó. Đăng nhập bằng gói (gói ChatGPT hoặc gói Claude) không cần khóa và được thực hiện sau khi triển khai.
-- **Cấu hình**: số nhân CPU và bộ nhớ trong các mức được đưa ra, cùng **Tự động ngủ khi không hoạt động** (mặc định tắt).
+- **Cấu hình**: số nhân CPU và bộ nhớ trong các mức được đưa ra, **Ổ đĩa workspace** (mặc định 5 GiB, hoặc 10, 20 hay 50 GiB, mỗi mức kèm giá mỗi tháng), cùng **Tự động ngủ khi không hoạt động** (mặc định tắt).
 - **Truy cập mạng**: **Chỉ nhà cung cấp mô hình** (mặc định), **Phát triển (giới hạn)** hoặc **Internet công khai không giới hạn**, mỗi chế độ kèm mô tả agent kết nối được tới đâu.
-- **Kho mã (không bắt buộc)**: một kho GitHub của workspace để tải vào `/workspace` khi agent khởi động lần đầu.
+- **Kho mã (không bắt buộc)**: một kho GitHub của workspace để tải vào `/workspace` khi agent khởi động lần đầu, và tùy chọn **Cho phép agent push lên kho mã này** ([push](/vi/guide/agent-repository-checkout#cho-agent-push-len-kho-ma), mặc định tắt).
 - **Nâng cao: phiên bản, model và biến môi trường**: bản phát hành (mặc định Pi 1.1.0), model tùy chọn, cùng các biến và bí mật của riêng bạn.
 
 Khi bạn thay đổi các ô nhập, trang tự lập plan và hiển thị plan hiện hành: mức trần chi phí, số giờ ví còn đủ, blocker và cảnh báo, bên cạnh một nút **Triển khai** duy nhất. Không có ô giới hạn chi phí. **Triển khai** phê duyệt đúng plan đó (theo hash của plan), cài đặt với khóa của bạn và một `Idempotency-Key`, rồi theo dõi bản cài cho tới khi agent chạy. Sau đó trang dẫn tới ứng dụng kèm bước tiếp theo: mở console, **Kết nối** một gói, hoặc `/login`. Khóa của bạn chỉ được gửi cùng yêu cầu cài đặt, lưu ở dạng mã hóa và không hiển thị lại.
@@ -254,7 +254,8 @@ Admin nền tảng có thể thu hồi một version phát hành hoặc đình c
 
 - **`max_hourly_cost_cents` không bắt buộc.** Plan luôn tính chi phí giờ cao nhất (compute cộng storage, theo mức giá được kiểm tra cho plan) và hiển thị mức trần đó để phê duyệt. Khi bạn đặt giới hạn, plan có mức trần vượt giới hạn sẽ bị chặn với `COST_CEILING_EXCEEDED`. Dashboard không hỏi trường này; hãy đặt qua API nếu muốn giới hạn một plan. Ví trống bị chặn với `INSUFFICIENT_BALANCE`. Trang này không nhắc lại mức giá nào: xem [Bảng giá](/vi/guide/pricing).
 - **Khóa nhà cung cấp không bao giờ nằm trong plan.** Gửi trong `variables` sẽ nhận `422 PLAN_INPUT_INVALID` kèm một mục `errors[]` là `SECRET_VALUE_IN_PLAN` tại `variables.<KEY>`, và lỗi không lặp lại giá trị. Khóa chỉ thuộc về `secrets` của yêu cầu cài đặt.
-- Cấu hình phải nằm trong các mức được đưa ra. Đầu vào không hợp lệ trả `422` kèm đường dẫn trường.
+- Cấu hình phải nằm trong các mức được đưa ra, kể cả `workspace_disk_gib` (5, 10, 20 hoặc 50; bỏ trống là 5). Đầu vào không hợp lệ trả `422` kèm đường dẫn trường.
+- Bản cài đặt mới của bản phát hành có trình chạy tác vụ bắt đầu với **Nhận tác vụ từ ứng dụng đã kết nối và khóa API** đang bật; xem [Giao tác vụ](/vi/guide/agent-tasks#bat-tinh-nang).
 
 ### Blocker
 
@@ -266,6 +267,7 @@ Admin nền tảng có thể thu hồi một version phát hành hoặc đình c
 | `CURATED_INSTALL_UNAVAILABLE` | Bản phát hành không cài được từ registry: chưa xuất bản, được lưu với manifest khác, hoặc nhà phát hành bị đình chỉ. | TOSE xuất bản bản phát hành, hoặc gỡ đình chỉ. |
 | `VERSION_REVOKED` | Admin nền tảng đã thu hồi version này. | Một bản phát hành mới hơn đã rà soát (version sau). |
 | `COMMUNITY_TEMPLATES_DISABLED` (hoặc `SECURITY_GATE_UNAVAILABLE`, `IMAGE_SCANNER_NOT_CONFIGURED`, tùy cấu hình) | Cổng bảo mật từ chối workload registry với cấu hình này. | Nhà vận hành bật cổng và bộ quét image. |
+| `GITHUB_PERMISSION_MISSING` | Plan cho agent push, và GitHub App của TOSE thiếu **Contents: Read and write** (hoặc tài khoản chưa chấp nhận). Xem [push](/vi/guide/agent-repository-checkout#cho-agent-push-len-kho-ma). | Người vận hành cấp quyền và tài khoản chấp nhận, hoặc tắt push. |
 | `NETWORK_POLICY_NOT_ENFORCED`, `INGRESS_MODE_NOT_ENFORCED` | Cụm đích không thực thi được chính sách mạng riêng của bản cài, nên không đảm bảo được giới hạn egress và console riêng tư. Không tạo gì và không tính phí. | Một cụm thực thi được chính sách này. |
 
 Các blocker của workspace (không có cluster, trùng tên, mức trần chi phí, số dư) vẫn áp dụng. Plan bị chặn không phê duyệt được: phê duyệt trả `PLAN_BLOCKED` (`409`, hoặc `402` khi ví trống) và không tạo gì. Image được quét trước khi chạy, và deploy bị từ chối nếu có lỗ hổng mức cao hoặc nghiêm trọng.

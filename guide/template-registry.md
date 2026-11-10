@@ -171,7 +171,7 @@ Every curated agent has a reviewed release, an image pinned by `sha256` digest w
 | Provider key | **Bring your own key (BYOK).** One secret variable: `ANTHROPIC_API_KEY` (Claude Code), `OPENAI_API_KEY` (Codex, with `CODEX_PROVIDER` set to `openai`) or `PI_API_KEY` (Pi, with `PI_PROVIDER`: `anthropic`, `openai` or `google` in release 1.0.0, ten providers from release 1.1.0; see [Pi model providers](/guide/agent-pi-providers)). Codex also offers a **ChatGPT plan**, and Claude Code a **Claude plan**: see [Provider sign-in](#provider-sign-in). TOSE never bills model usage: the provider bills your key. |
 | Model | Optional `AGENT_MODEL`, the provider's model name. Empty uses the agent's default. |
 | Size | Whole cores and GiB from the allowed list: Claude Code and Codex 1, 2 or 4 cores and 2, 4 or 8 GiB; Pi 1 or 2 cores and 1, 2 or 4 GiB. |
-| Storage | A persistent disk with `/workspace` (5 GiB) and `/home/agent` (1 GiB), billed while the disk exists, also when stopped. |
+| Storage | A persistent disk with `/workspace` and `/home/agent` (1 GiB). You choose the size of `/workspace` at install: 5 GiB (the default), 10, 20 or 50 GiB (`workspace_disk_gib`), and it is fixed after that. The disk keeps your data across restarts, and is billed while it exists, also when stopped. |
 | Network | Egress `approved` (**Provider only**: the provider's API and sign-in hosts, the default), `development` (**Development (restricted)**: the provider plus the reviewed git, npm and PyPI hosts of the tools in the image) or `internet` (**Unrestricted public Internet**). `none` is not offered, because an agent cannot reach its provider without egress. Ingress is always `private`: the agent's console is never public. |
 | Setup | `image_entrypoint` only: the release image's own reviewed entrypoint. No build steps, startup commands, hooks, Kubernetes objects or `privileged`; unknown fields are refused. |
 | Release | Each release pins an OCI image by `sha256` digest and records the upstream version, the date and an https link to its evidence. The publisher (TOSE) is set once on the definition. It renders to a normal `tose.dev/v1` manifest checked by the rules above. |
@@ -212,9 +212,9 @@ Open **Template catalog** in the workspace sidebar (**Apps & agents**). Curated 
 
 - **App**: the app name.
 - **Sign in**: the provider (for Pi, one of its providers) and, when it needs one, your API key right there. A plan sign-in (ChatGPT or Claude plan) needs no key and happens after the deploy.
-- **Size**: CPU cores and memory from the offered sizes, and **Auto-sleep after idle** (off by default).
+- **Size**: CPU cores and memory from the offered sizes, the **Workspace disk** (5 GiB by default, or 10, 20 or 50 GiB, each with its monthly price), and **Auto-sleep after idle** (off by default).
 - **Network access**: **Provider only** (the default), **Development (restricted)** or **Unrestricted public Internet**, each with what it lets the agent reach.
-- **Repository (optional)**: one GitHub repository of the workspace to check out into `/workspace` on first start.
+- **Repository (optional)**: one GitHub repository of the workspace to check out into `/workspace` on first start, and optionally **Let the agent push to this repository** ([push](/guide/agent-repository-checkout#let-the-agent-push-to-your-repository), off by default).
 - **Advanced: release, model and environment variables**: the release (Pi 1.1.0 by default), an optional model, and your own variables and secrets.
 
 As you change the inputs, the page plans them and shows the live plan: the cost ceiling, the wallet runway, blockers and warnings, next to one **Deploy** button. There is no cost-limit field. **Deploy** approves exactly that plan (its plan hash), installs it with your key and an `Idempotency-Key`, and follows the installation until the agent runs. It then links to the app with the next step: open the console, **Connect** a plan, or `/login`. Your key is sent only with the install request, stored encrypted and never shown again.
@@ -252,7 +252,8 @@ Platform admins can revoke a release version or suspend the `tose-curated` publi
 
 - **`max_hourly_cost_cents` is optional.** The plan always prices the highest hourly cost (compute plus storage, at the rates checked for the plan) and shows that ceiling for approval. When you set the limit, a plan whose ceiling is above it is blocked with `COST_CEILING_EXCEEDED`. The dashboard does not ask for it; set it through the API to cap a plan. An empty wallet is blocked with `INSUFFICIENT_BALANCE`. This page repeats no price: see [Pricing](/guide/pricing).
 - **The provider key never goes in a plan.** Sending it in `variables` is `422 PLAN_INPUT_INVALID` with an `errors[]` entry `SECRET_VALUE_IN_PLAN` at `variables.<KEY>`, and the error does not repeat the value. The key belongs only in the `secrets` of the installation request.
-- Sizes must be among the offered ones. Invalid inputs are `422` with the field path.
+- Sizes must be among the offered ones, including `workspace_disk_gib` (5, 10, 20 or 50; 5 when omitted). Invalid inputs are `422` with the field path.
+- A new installation of a release with a task runner starts with **Accept tasks from connected apps and API keys** on; see [Delegate tasks](/guide/agent-tasks#turn-it-on).
 
 ### Blockers
 
@@ -264,6 +265,7 @@ Platform admins can revoke a release version or suspend the `tose-curated` publi
 | `CURATED_INSTALL_UNAVAILABLE` | The release cannot be installed from the registry: not published yet, stored with another manifest, or the publisher is suspended. | TOSE publishing the release, or lifting the suspension. |
 | `VERSION_REVOKED` | A platform admin revoked this version. | A newer reviewed release (a later version). |
 | `COMMUNITY_TEMPLATES_DISABLED` (or `SECURITY_GATE_UNAVAILABLE`, `IMAGE_SCANNER_NOT_CONFIGURED`, depending on configuration) | The security gate refuses registry workloads in this configuration. | The operator enabling the gate and an image scanner. |
+| `GITHUB_PERMISSION_MISSING` | The plan lets the agent push, and the TOSE GitHub App lacks **Contents: Read and write** (or the account has not accepted it). See [push](/guide/agent-repository-checkout#let-the-agent-push-to-your-repository). | The operator granting the permission and the account accepting it, or turning push off. |
 | `NETWORK_POLICY_NOT_ENFORCED`, `INGRESS_MODE_NOT_ENFORCED` | The target cluster cannot enforce the installation's own network policy, so the egress limit and the private console could not be guaranteed. Nothing is created or billed. | A cluster that enforces the policy. |
 
 The workspace's own blockers (no cluster, name taken, cost ceiling, balance) also apply. A blocked plan cannot be approved: approval returns `PLAN_BLOCKED` (`409`, or `402` when the wallet is empty) and nothing is created. The image is scanned before it runs, and a deploy is refused when it has a high or critical vulnerability.
