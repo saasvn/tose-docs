@@ -1,23 +1,13 @@
-# Triển khai coding agent: biến môi trường và tự động ngủ
+# Coding agent: biến môi trường và tự động ngủ
 
-Dashboard triển khai các coding agent tuyển chọn (**Codex**, **Pi** và **Claude Code**) từ **một trang duy nhất**. Trang này giải thích biểu mẫu đó, các biến môi trường bạn có thể thêm cho agent, và tính năng tự động ngủ cho agent nhàn rỗi.
+Trang này giải thích các biến môi trường bạn có thể thêm cho một coding agent tuyển chọn (**Codex**, **Pi** hoặc **Claude Code**), và tính năng tự động ngủ cho agent nhàn rỗi.
 
-## Triển khai trên một trang
+## Trên trang triển khai {#on-the-deploy-page}
 
-Mở **Kho mẫu**, chọn agent và điền một biểu mẫu. Biểu mẫu gồm các thẻ sau:
+Dashboard triển khai các agent này trên một trang duy nhất. Các thẻ, kế hoạch hiển thị trực tiếp và nút **Triển khai** được mô tả ở [Triển khai một coding agent](https://docs.tose.sh/vi/guide/deploy-coding-agent#deploy-an-agent). Hai thiết lập của trang đó được giải thích ở đây:
 
-| Thẻ | Bạn thiết lập |
-|---|---|
-| **Ứng dụng** | Tên ứng dụng. |
-| **Đăng nhập** | Key của nhà cung cấp, hoặc đăng nhập bằng gói sau khi triển khai (với Pi xem [Nhà cung cấp model cho Pi](/vi/guide/agent-pi-providers)). |
-| **Cấu hình** | CPU, bộ nhớ và **Tự động ngủ khi không hoạt động**. |
-| **Truy cập mạng** | Chế độ mạng: chỉ nhà cung cấp (mặc định), phát triển, hoặc Internet công khai không giới hạn. |
-| **Kho mã (không bắt buộc)** | Kho GitHub để checkout. |
-| **Nâng cao: phiên bản, model và biến môi trường** | Phiên bản, model và biến môi trường riêng của bạn. Mặc định được thu gọn. |
-
-Trang tính giá kế hoạch ngay khi bạn nhập và hiển thị chi phí cùng các vấn đề chặn cạnh nút **Triển khai** duy nhất. **Triển khai** duyệt đúng kế hoạch bạn đang thấy rồi cài đặt. Chỉ chủ sở hữu hoặc quản trị viên workspace mới duyệt được; với người khác, trang hiển thị kế hoạch để gửi cho họ. Phí tính toán được tính theo giờ khi agent chạy, còn phí dùng model do nhà cung cấp tính, không phải TOSE.
-
-Cách này thay cho trình hướng dẫn nhiều bước trước đây (tạo kế hoạch, duyệt, cài đặt). Các route kế hoạch, duyệt và cài đặt vẫn còn trong API.
+- **Biến môi trường**, trong thẻ **Nâng cao: phiên bản, model và biến môi trường**: xem [Biến môi trường riêng của bạn](#your-own-environment-variables).
+- **Tự động ngủ khi không hoạt động**, trong thẻ **Cấu hình**: xem [Tự động ngủ cho agent nhàn rỗi](#auto-sleep-for-idle-agents).
 
 ## Biến môi trường riêng của bạn {#your-own-environment-variables}
 
@@ -58,7 +48,7 @@ Danh sách **Environment Variables** của ứng dụng đã cài dùng cùng qu
 Script thiết lập tùy chọn chạy một lần cho agent chưa được cung cấp. Yêu cầu có script, lệnh khởi động hoặc hook sẽ bị từ chối như một trường không xác định.
 :::
 
-## Tự động ngủ cho agent nhàn rỗi
+## Tự động ngủ cho agent nhàn rỗi {#auto-sleep-for-idle-agents}
 
 Đóng trình duyệt không dừng agent: phiên của nó vẫn chạy và phí tính toán vẫn tiếp tục. Tự động ngủ dừng tài nguyên tính toán sau khi agent nhàn rỗi trong khoảng thời gian bạn chọn.
 
@@ -72,8 +62,8 @@ Thiết lập là `auto_sleep_minutes`: **Tắt** (`0`, mặc định), **15**, 
 
 Agent chỉ ngủ sau khi TOSE quan sát thấy nó nhàn rỗi suốt cả khoảng thời gian: không có thao tác bàn phím hay đầu ra terminal, không có lệnh đang chạy, không cài đặt hay khởi tạo. Đóng tab không bao giờ được tính. Nếu TOSE không thể xác định an toàn, agent vẫn thức và trang nêu lý do.
 
-::: warning Hiện chưa bản phát hành nào ngủ được
-Tự động ngủ cần image có bộ dò hoạt động. Các bản **1.0.0**, những bản duy nhất đã phát hành, không có, nên agent của chúng vẫn thức và trang hiển thị lý do. Agent chỉ ngủ được khi có bản phát hành mang bộ dò.
+::: warning Bản phát hành nào ngủ được
+Tự động ngủ cần image có bộ dò hoạt động (`tose-agent-console activity`). **Codex 1.0.0**, **Claude Code 1.0.0** và **Pi 1.0.0** không có bộ dò này, nên agent của chúng vẫn thức và trang hiển thị lý do. **Pi 1.1.0**, bản phát hành mặc định của Pi, được build từ một commit của tose-app đã có bộ dò, nên agent Pi chạy bản 1.1.0 sẽ ngủ khi bật tự động ngủ. Bản phát hành đã xuất bản là bất biến: agent 1.0.0 không được nâng cấp tại chỗ, nên hãy cài một ứng dụng mới để dùng bản phát hành ngủ được.
 :::
 
 ### Khi đang ngủ

@@ -1,23 +1,13 @@
-# Deploy a coding agent: environment variables and auto-sleep
+# Coding agents: environment variables and auto-sleep
 
-The dashboard deploys the curated coding agents (**Codex**, **Pi** and **Claude Code**) from **one page**. This page explains that form, the environment variables you can add to an agent, and auto-sleep for idle agents.
+This page explains the environment variables you can add to a curated coding agent (**Codex**, **Pi** or **Claude Code**), and auto-sleep for idle agents.
 
-## The one-page deploy
+## On the deploy page
 
-Open **Template catalog**, pick the agent, and fill in one form. It has these cards:
+The dashboard deploys these agents from one page. Its cards, the live plan and the **Deploy** button are described in [Deploy a coding agent](https://docs.tose.sh/guide/deploy-coding-agent#deploy-an-agent). Two of its settings are explained here:
 
-| Card | What you set |
-|---|---|
-| **App** | The app name. |
-| **Sign in** | The provider key, or the plan sign-in you finish after deploy (see [Pi model providers](/guide/agent-pi-providers) for Pi). |
-| **Size** | CPU, memory and **Auto-sleep after idle**. |
-| **Network access** | The network mode: provider only (default), development, or the unrestricted public Internet. |
-| **Repository (optional)** | A GitHub repository to check out. |
-| **Advanced: release, model and environment variables** | The release, the model and your own environment variables. Collapsed by default. |
-
-The page prices the plan as you type and shows the cost and any blockers next to the single **Deploy** button. **Deploy** approves exactly the plan you see and installs it. Only a workspace owner or admin can approve; for anyone else the page shows the plan to send to one. Compute is charged hourly while the agent runs, and model usage is billed by the provider, not by TOSE.
-
-This replaces the earlier multi-step wizard (create a plan, approve, install). The same plan, approval and install routes still exist in the API.
+- **Environment variables**, in the **Advanced: release, model and environment variables** card: see [Your own environment variables](#your-own-environment-variables).
+- **Auto-sleep after idle**, in the **Size** card: see [Auto-sleep for idle agents](#auto-sleep-for-idle-agents).
 
 ## Your own environment variables
 
@@ -72,8 +62,8 @@ The setting is `auto_sleep_minutes`: **Off** (`0`, the default), **15**, **30**,
 
 An agent sleeps only after TOSE observed it idle for the whole interval: no keyboard input or terminal output, no command running, and no install or bootstrap. A closed tab never counts. If TOSE cannot tell safely, the agent stays awake and the page says why.
 
-::: warning No current release can sleep yet
-Sleep needs an image that carries the activity probe. The **1.0.0** releases, the only ones published today, do not, so their agents stay awake and the page shows the reason. Agents can sleep once a release that carries the probe is published.
+::: warning Which releases can sleep
+Sleep needs an image that carries the activity probe (`tose-agent-console activity`). **Codex 1.0.0**, **Claude Code 1.0.0** and **Pi 1.0.0** do not have it, so their agents stay awake and the page shows the reason. **Pi 1.1.0**, the default Pi release, was built from a tose-app commit that contains the probe, so a Pi agent on 1.1.0 sleeps when auto-sleep is on. Published releases are immutable: a 1.0.0 agent is not upgraded in place, so install a new app to get a release that can sleep.
 :::
 
 ### While it sleeps
