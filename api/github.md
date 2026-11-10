@@ -30,14 +30,19 @@ GET /api/github/repos?workspace_slug={slug}
 
 Repositories the TOSE GitHub App can read, de-duplicated by `full_name`. With `workspace_slug`, only installations attached to that workspace are searched, and you must be a member of it. Add `installation_id` to list a single installation; it must be one the caller can use (`403` otherwise), and a GitHub failure is then reported with a [`github_*` code](/api/errors#github-upstream-codes). Without it, an installation that fails to load is skipped. A non-numeric or non-positive `installation_id` is ignored.
 
+Add `fork_of=owner/repo` to get only the repositories GitHub reports as forks of that repository, either directly (`parent_full_name`) or further up the fork network (`source_full_name`). The owner is letters, digits and single inner hyphens (at most 39 characters). The repository name is 1 to 100 letters, digits, dots, underscores and hyphens, other than `.` and `..`. An empty `fork_of` counts as absent; any other malformed value returns `400`. Each installation's forks are read one by one, those named like the target first, at most 10 per installation; a fork that cannot be read is left out. A fork's origin is cached by repository ID for up to 6 hours, so after an upstream rename or transfer the answer can lag by that long. With `fork_of` and `workspace_slug`, and no `installation_id`, only the installations attached to the workspace now are searched. Fork lookups are throttled per user, at a burst of 20 and then 1 per second; past the limit the answer is `429` without a `Retry-After` header.
+
 | Field | Type | Description |
 |-------|------|-------------|
 | `full_name` | string | `owner/repo`. Use it as `repo_full_name` when connecting |
 | `private` | boolean | Whether the repository is private |
+| `fork` | boolean | Whether GitHub reports the repository as a fork |
 | `default_branch` | string | Default branch |
 | `description`, `language` | string | Repository metadata |
 | `html_url`, `clone_url` | string | GitHub links |
 | `installation_id` | integer | Installation that exposes it. Omitted when `0` |
+| `parent_full_name` | string | Only in a `fork_of` answer: the repository this fork was made from |
+| `source_full_name` | string | Only in a `fork_of` answer: the root of this fork's network |
 
 ### List branches
 

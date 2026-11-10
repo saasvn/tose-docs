@@ -30,6 +30,9 @@ Muốn kết nối workspace khác thì thêm connector lần nữa và chọn w
 | `apply_project_env_update` | Lưu các thay đổi bạn đã duyệt trong TOSE. Chỉ nhận project và approval token. Cần scope `env:write`. | **Có**, cần phê duyệt |
 | `deploy_project` | Build và deploy commit đầu của branch đã kết nối, đúng commit hiển thị trong kế hoạch. | **Có**, cần phê duyệt |
 | `rollback_deployment` | Đưa image của một deployment cũ lên chạy lại. | **Có**, cần phê duyệt |
+| `plan_runbook` | Lập kế hoạch restart hoặc rollback chỉ-đọc và trả về `approval_url`. | Không |
+| `execute_runbook` | Chạy kế hoạch bạn đã duyệt, một lần cho mỗi `idempotency_key`. | **Có**, cần phê duyệt khi đã đăng nhập |
+| `get_runbook` | Đọc kế hoạch, trạng thái phê duyệt và kết quả đã xác minh. | Không |
 
 ### Tool ngân sách autoscaling
 
