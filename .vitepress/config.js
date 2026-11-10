@@ -4,6 +4,18 @@ export default defineConfig({
   title: 'TOSE CLI Documentation',
   description: 'Complete documentation for TOSE CLI - Deploy and manage your applications from the command line',
 
+  // Dark is the brand default; visitors can still switch to light.
+  appearance: 'dark',
+
+  head: [
+    ['link', { rel: 'preconnect', href: 'https://fonts.googleapis.com' }],
+    ['link', { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' }],
+    ['link', {
+      rel: 'stylesheet',
+      href: 'https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Unbounded:wght@500;600;700&display=swap&subset=vietnamese'
+    }]
+  ],
+
   // Maintainer files, not site pages.
   srcExclude: ['README.md', 'AGENTS.md'],
 
@@ -37,6 +49,7 @@ export default defineConfig({
               { text: 'tose up', link: '/commands/up' },
               { text: 'tose deploy / redeploy', link: '/commands/deploy' },
               { text: 'tose deployment', link: '/commands/deployment' },
+              { text: 'tose runbook', link: '/commands/runbook' },
               { text: 'tose status', link: '/commands/status' },
               { text: 'tose logs', link: '/commands/logs' },
               { text: 'tose down / restart', link: '/commands/down' },
@@ -45,6 +58,7 @@ export default defineConfig({
               { text: 'tose domain', link: '/commands/domain' },
               { text: 'tose db', link: '/commands/db' },
               { text: 'tose skills', link: '/commands/skills' },
+              { text: 'tose feedback', link: '/commands/feedback' },
               { text: 'tose desktop', link: '/commands/desktop' },
               { text: 'tose template', link: '/commands/template' },
               { text: 'tose disk / volumes / pricing', link: '/commands/disk' },
@@ -59,16 +73,22 @@ export default defineConfig({
               { text: 'Environment Variables', link: '/guide/environment' },
               { text: 'Git Integration', link: '/guide/git' },
               { text: 'Dockerfile Examples', link: '/guide/dockerfile' },
+              { text: 'CI impact selection', link: '/guide/ci-impact-selection' },
+              { text: 'CI usage and budget caps', link: '/guide/ci-usage-and-budgets' },
               { text: 'Persistent Disks', link: '/guide/persistent-disks' },
               { text: 'Autoscaling budgets', link: '/guide/autoscaling-budgets' },
               { text: 'Dewee Template Runbook', link: '/guide/dewee-template' },
               { text: 'Pi model providers', link: '/guide/agent-pi-providers' },
+              { text: 'Template directory', link: '/guide/template-directory' },
               { text: 'Pricing', link: '/guide/pricing' },
+              { text: 'CI in the dashboard', link: '/guide/ci-dashboard' },
               { text: 'Agent Runtime pricing', link: '/guide/agent-runtime-pricing' },
               { text: 'Self-hosting', link: '/guide/self-hosting' },
               { text: 'Referral program', link: '/guide/referral' },
               { text: 'Promo codes', link: '/guide/promo-codes' },
               { text: 'Link an earlier enquiry', link: '/guide/link-enquiry' },
+              { text: 'CI artifacts, reports and issue drafts', link: '/guide/ci-artifacts' },
+              { text: 'CI triggers and fork approval', link: '/guide/ci-triggers-and-forks' },
               { text: 'Blog and editorial MCP (planned)', link: '/guide/blog-and-editorial-mcp' }
             ]
           },
@@ -106,6 +126,8 @@ export default defineConfig({
               { text: 'Authentication', link: '/api/authentication' },
               { text: 'API Keys & Scopes', link: '/api/api-keys' },
               { text: 'Audit Log', link: '/api/audit' },
+              { text: 'Feedback', link: '/api/feedback' },
+              { text: 'Support assistant token', link: '/api/support-assistant' },
               { text: 'Promo codes', link: '/api/promo-codes' },
               { text: 'MCP Connector', link: '/mcp' },
               { text: 'Errors', link: '/api/errors' },
@@ -118,7 +140,11 @@ export default defineConfig({
               { text: 'Templates', link: '/api/templates' },
               { text: 'Template deploy and resume', link: '/api/template-deploy' },
               { text: 'Disks, Volumes & Pricing', link: '/api/disks' },
-              { text: 'Autoscaling budget', link: '/api/autoscaling-budget' }
+              { text: 'Autoscaling budget', link: '/api/autoscaling-budget' },
+              { text: 'CI suggestions', link: '/api/ci-suggestions' },
+              { text: 'CI usage and budget', link: '/api/ci-usage-budget' },
+              { text: 'CI artifacts and reports', link: '/api/ci-artifacts' },
+              { text: 'Disks, Volumes & Pricing', link: '/api/disks' }
             ]
           }
         ]
@@ -153,6 +179,7 @@ export default defineConfig({
               { text: 'tose up', link: '/vi/commands/up' },
               { text: 'tose deploy / redeploy', link: '/vi/commands/deploy' },
               { text: 'tose deployment', link: '/vi/commands/deployment' },
+              { text: 'tose runbook', link: '/vi/commands/runbook' },
               { text: 'tose status', link: '/vi/commands/status' },
               { text: 'tose logs', link: '/vi/commands/logs' },
               { text: 'tose down / restart', link: '/vi/commands/down' },
@@ -161,6 +188,7 @@ export default defineConfig({
               { text: 'tose domain', link: '/vi/commands/domain' },
               { text: 'tose db', link: '/vi/commands/db' },
               { text: 'tose skills', link: '/vi/commands/skills' },
+              { text: 'tose feedback', link: '/vi/commands/feedback' },
               { text: 'tose desktop', link: '/commands/desktop' },
               { text: 'tose template', link: '/vi/commands/template' },
               { text: 'tose disk / volumes / pricing', link: '/vi/commands/disk' },
@@ -175,16 +203,22 @@ export default defineConfig({
               { text: 'Biến môi trường', link: '/vi/guide/environment' },
               { text: 'Tích hợp Git', link: '/vi/guide/git' },
               { text: 'Ví dụ Dockerfile', link: '/vi/guide/dockerfile' },
+              { text: 'Chọn job CI theo ảnh hưởng', link: '/vi/guide/ci-impact-selection' },
+              { text: 'Mức sử dụng CI và hạn mức', link: '/vi/guide/ci-usage-and-budgets' },
               { text: 'Ổ đĩa bền vững', link: '/vi/guide/persistent-disks' },
               { text: 'Ngân sách autoscaling', link: '/vi/guide/autoscaling-budgets' },
               { text: 'Runbook template Dewee', link: '/vi/guide/dewee-template' },
               { text: 'Nhà cung cấp model cho Pi', link: '/vi/guide/agent-pi-providers' },
+              { text: 'Thư mục template', link: '/vi/guide/template-directory' },
               { text: 'Bảng giá', link: '/vi/guide/pricing' },
+              { text: 'CI trong dashboard', link: '/vi/guide/ci-dashboard' },
               { text: 'Giá Agent Runtime', link: '/vi/guide/agent-runtime-pricing' },
               { text: 'Tự host', link: '/vi/guide/self-hosting' },
               { text: 'Chương trình giới thiệu', link: '/vi/guide/referral' },
               { text: 'Mã khuyến mãi', link: '/vi/guide/promo-codes' },
               { text: 'Liên kết yêu cầu trước đó', link: '/vi/guide/link-enquiry' },
+              { text: 'Artifact CI, báo cáo và bản nháp issue', link: '/vi/guide/ci-artifacts' },
+              { text: 'Trigger CI và duyệt fork', link: '/vi/guide/ci-triggers-and-forks' },
               { text: 'Blog và MCP biên tập (dự kiến)', link: '/vi/guide/blog-and-editorial-mcp' }
             ]
           },
@@ -221,6 +255,8 @@ export default defineConfig({
               { text: 'Xác thực', link: '/vi/api/authentication' },
               { text: 'API key & Scope', link: '/vi/api/api-keys' },
               { text: 'Audit log', link: '/vi/api/audit' },
+              { text: 'Feedback', link: '/vi/api/feedback' },
+              { text: 'Support token của trợ lý', link: '/vi/api/support-assistant' },
               { text: 'Mã khuyến mãi', link: '/vi/api/promo-codes' },
               { text: 'MCP Connector', link: '/vi/mcp' },
               { text: 'Mã lỗi', link: '/vi/api/errors' },
@@ -232,7 +268,11 @@ export default defineConfig({
               { text: 'Attribution khi đăng ký', link: '/vi/api/signup-attribution' },
               { text: 'Deploy và resume template', link: '/vi/api/template-deploy' },
               { text: 'Ổ đĩa, Volume & Bảng giá', link: '/vi/api/disks' },
-              { text: 'API ngân sách autoscaling', link: '/vi/api/autoscaling-budget' }
+              { text: 'API ngân sách autoscaling', link: '/vi/api/autoscaling-budget' },
+              { text: 'Gợi ý CI', link: '/vi/api/ci-suggestions' },
+              { text: 'Mức sử dụng CI và hạn mức', link: '/vi/api/ci-usage-budget' },
+              { text: 'Artifact và báo cáo CI', link: '/vi/api/ci-artifacts' },
+              { text: 'Ổ đĩa, Volume & Bảng giá', link: '/vi/api/disks' }
             ]
           }
         ],

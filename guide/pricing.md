@@ -86,6 +86,19 @@ An instance being deleted counts until its docker host is gone.
 
 Creating an instance and waking its docker host need a positive wallet balance.
 
+## CI jobs {#ci-jobs}
+
+::: info Availability
+TOSE CI is not generally available yet. This section describes how its jobs are billed once CI is enabled for your workspace.
+:::
+
+A CI job is billed from the workspace wallet at the base [compute](#compute) rates, 2.0 cents per vCPU-hour and 1.0 cent per GiB-hour of reserved memory, for the seconds its container ran. It is prepaid only: a job is refused before it starts when its worst case (requested CPU and memory for the full timeout), plus the worst case of the workspace's other running jobs, does not fit the balance after subtracting usage not yet billed and the CI carry below.
+
+- **Sub-cent carry.** Each job is charged in whole cents. The fraction of a cent left over goes into a separate CI carry on the wallet and is charged once it adds up to a whole cent, so a short job is not free just because it costs less than one cent. For example, a job with 1 vCPU and 2 GiB that runs for about 10 minutes costs about 0.667 cent: it charges nothing on its own, and two such jobs together charge 1 cent.
+- **Never more than the balance.** A job never charges more than the wallet balance. Compute that the balance could not pay is forgiven, not carried as debt.
+- **Forgiven at zero.** When the wallet balance reaches zero, by any debit, the CI carry is cleared. It is never collected after a later top-up.
+- **One transaction per job.** A job that charges at least one cent writes one `usage` wallet transaction with the reference type `ci_job`; a job that charges nothing writes none. Settling a job is idempotent, so a retry never charges it twice.
+
 ## When the balance is zero {#when-the-balance-is-zero}
 
 TOSE refuses every deploy while your workspace wallet balance is zero or negative. What you see depends on where the deploy started:
