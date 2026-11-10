@@ -41,7 +41,7 @@ Creating, changing and deleting an instance needs the workspace **admin** role. 
 
 ### Dashboard
 
-1. Open **Templates** in your workspace and choose **Dewee**.
+1. Open **Installed apps** in your workspace (under **Apps & agents**), select **New Template** and choose **Dewee**.
 2. Pay the unlock fee if asked.
 3. Pick CPU and RAM, then create.
 4. Open **Environment** and set the three required variables (below).
@@ -72,7 +72,9 @@ The three required variables are:
 
 The `DEWEE_*` spellings (for example `DEWEE_GATEWAY_TOKEN`) are accepted as aliases and copied to the `GOCLAW_*` name at startup when the `GOCLAW_*` one is empty. Set one spelling, not both.
 
-`tose template env list` masks values it recognizes as credentials (names containing `token`, `secret`, `password`, `api_key` and similar), which covers `GOCLAW_GATEWAY_TOKEN`. It does **not** mask `GOCLAW_POSTGRES_DSN` or `GOCLAW_ENCRYPTION_KEY` when you set them from a file or stdin, so those two values can be printed in plain text. Set them with the masked prompt instead (`tose template env set my-dewee GOCLAW_ENCRYPTION_KEY`) and avoid running `env list` on a shared screen or in CI logs. A fix is tracked in [tose-cli#40](https://github.com/saasvn/tose-cli/issues/40). See [`tose template`](/commands/template) for the full command reference.
+`tose template env set` sends `GOCLAW_POSTGRES_DSN`, `GOCLAW_ENCRYPTION_KEY` and `GOCLAW_GATEWAY_TOKEN` as secrets, and `tose template env list` masks their values (`********`). The `SECRET` column shows `yes` for them. Names containing `token`, `secret`, `password`, `api_key`, `dsn`, `encryption_key` or `connection_string` are treated the same way.
+
+Values saved with an older CLI may still be stored as not secret. They show as `SECRET no` with a masked value. Set them again to store them as secrets, using `--env-file` or `--env-stdin` (or the masked prompt, for example `tose template env set my-dewee GOCLAW_ENCRYPTION_KEY`), then check that `env list` shows `SECRET yes`. Avoid running `env list` on a shared screen or in CI logs anyway. See [`tose template`](/commands/template) for the full command reference.
 
 ## Security contract
 
@@ -135,8 +137,31 @@ This is the Dewee instance's own MCP server. For the connector to TOSE itself, s
 
 What the statuses mean:
 
-- `running` means the pod is ready as Kubernetes counts readiness. The template container has no startup, readiness or liveness probe yet, and the start script waits up to 90 seconds for the backend `/health`, then starts nginx even if the backend never answered. So `running` does **not** prove that the API responds ([tose-app#274](https://github.com/saasvn/tose-app/issues/274)).
-- The container image has its own Docker `HEALTHCHECK` on `http://127.0.0.1:18790/health`. This checks the backend, not the public route through nginx.
+- For a probed Dewee deployment (built or catalog image, probes enabled), the deployment is recorded `running` only after the rollout, the ingress step and a public `/health` check on the default domain succeed ([tose-app#290](https://github.com/saasvn/tose-app/pull/290)). A template with no public route is recorded `running` as `unverified`, and deployments that are not probed (see below) get no such check.
+- **Probes.** For Dewee deployments from built or catalog images, Kubernetes runs startup and readiness probes on `/health` and a liveness probe on `/livez`, through the template's port (`3000` for Dewee). The startup budget is 30 minutes, so a slow database migration does not cause a restart loop. Deployments of a `custom` image, rollback deploys and other templates (for example GoClaw) get no probes and no public check, because TOSE does not know the layout of a custom image.
+- **Container.** The start script exits nonzero if the backend never becomes healthy or dies later, never leaves Nginx running without the backend, and stops both cleanly on `SIGTERM`. So a broken backend restarts the pod instead of serving `502`.
+- The image also has its own Docker `HEALTHCHECK` on `http://127.0.0.1:18790/health`. This checks the backend, not the public route through Nginx.
+
+### Deployment health state {#health-state}
+
+When the public check fails, the deployment gets `status=failed` with `error_message` starting `Health verification failed`, but it is not rolled back and the template stays `running`, so billing, suspension and live logs keep working. The deployment record carries these fields (see [Deployment](/api/templates#deployment)):
+
+| `health_state` | Meaning |
+|----------------|---------|
+| `healthy` | The public `/health` check on the default domain succeeded |
+| `unhealthy` | The check failed. `health_message` says why (for example a non-2xx answer) and an ops event is recorded |
+| `unverified` | TOSE could not check it because the template has no public route |
+| empty | No check ran: probes are off, or the deployment was a `custom` image, a rollback or another template |
+
+`health_checked_at` records when the check ran.
+
+If a deployment is `unhealthy`:
+
+1. Read `health_message` with `tose template info my-dewee --json` or the deployments API.
+2. Read the live log (`tose template logs my-dewee -f`) for a crash, a bad `GOCLAW_POSTGRES_DSN` or a failed migration.
+3. Fix the cause and redeploy. If the previous image was fine, roll back with `tose template deploy --rollback <deployment_id>`. TOSE never rolls back by itself, a rollback does not revert the database ([Upgrades](#versions-and-upgrades)), and a rollback deploy is not health-verified, so check `/health` yourself afterwards.
+
+Operators of a self-hosted API can turn the probes and the public check off with `TEMPLATE_PROBES_ENABLED=false`. See [Self-hosting](/guide/self-hosting#template-probes).
 
 Check an instance yourself:
 
@@ -152,23 +177,51 @@ curl -s -o /dev/null -w '%{http_code}\n' https://<your-instance-host>/health
 | `502` from the public host | Backend is not up behind nginx. Read the live log for crashes, a bad `GOCLAW_POSTGRES_DSN`, or a failed migration |
 | `/health` fine but the web UI cannot connect | `/ws` upgrade blocked by a proxy in front of TOSE, or a wrong token |
 | Log ends with `Database upgrade failed` | The migration failed and the container exits. See [Upgrades](#versions-and-upgrades) |
-| `Backend ready after Ns` never appears | The backend did not come up within 90 seconds. Check the database reachability |
+| `Backend ready after Ns` never appears | The backend did not become healthy within 10 minutes and the container exits so the pod restarts. Check the database reachability |
+| Deployment shows `health_state: unhealthy` | The public `/health` check failed. See [Deployment health state](#health-state) |
 | First sign-in | Open the dashboard link and complete the one-time bootstrap sign-in. The CLI never prints the bootstrap credential |
 | Create refused with HTTP `402` | Unlock fee unpaid or wallet balance too low. See [Pricing](/guide/pricing) |
+| Instance is `suspended` | Top up the wallet, then run `tose template resume my-dewee --wait`. See [Resume a suspended instance](#resume-a-suspended-instance) |
+
+### Resume a suspended instance {#resume-a-suspended-instance}
+
+An instance suspended for an empty wallet refuses `tose template deploy` and `tose template resume` with `402 INSUFFICIENT_BALANCE` (CLI exit code `9`) until the wallet has credit. After you top up, `tose template resume my-dewee --wait` issues a gateway token and resumes it.
+
+After a resume, clients must use the new gateway token and existing sessions end, so update your API clients and sign in again. See [`tose template resume`](/commands/template#tose-template-resume).
 
 ## Versions and upgrades
 
 - **Image.** An instance runs the image stored on it. A plain `tose template deploy` (`image` mode) keeps that image and does not upgrade you. `tose template info` shows the deployed, configured and available images and whether an update exists. Move to the catalog version only with `tose template deploy --upgrade`, and pass `--expected-image` (the `Configured:` line) so the deploy fails if the image changed meanwhile. `--mode build` does not replace the image.
-- **Tags are not digests.** A tag can be re-pushed. For a reproducible record, resolve the digest of the image you run and store it with your own notes.
+- **The recorded digest is not a pin.** Each image deploy records in its receipt (`image_digest`) the digest the registry served for the tag when the deploy ran; a reference pinned with `@sha256:…` keeps its digest. The deploy still runs the tag, and `--rollback` re-runs the tag of the earlier deployment, so a re-pushed tag can differ from the recorded digest. To run exactly one build, pin the image to a digest. If the lookup fails (private image without credentials, not found, registry unreachable), the deploy continues, the receipt has no digest and the deploy log says why. See [the deploy receipt](/api/templates#image-digest-in-the-receipt).
 - **Auto-upgrade is on by default.** On every start with `GOCLAW_POSTGRES_DSN` set, the container runs `dewee upgrade` and refuses to start if it fails. Set `GOCLAW_AUTO_UPGRADE=false` if you want to run the upgrade yourself in a window you choose.
 - **Back up first.** Your PostgreSQL is yours: TOSE does not snapshot it. Before any version change, take a backup and restore it to a scratch database once to prove it works. Back up the persistent disk data you need too.
 - **Rollback is not symmetric.** `tose template deploy --rollback <deployment_id>` runs an earlier image again, but it does **not** revert the database schema or data. A migration that has run may be incompatible with the older image. To go back safely, restore the database backup together with the older image.
 - **Downtime.** The template runs one replica on a disk that one pod can mount, and redeploys replace the pod. Expect an interruption during a deploy. TOSE does not promise zero downtime for this template.
 - **Opt-in.** Upgrade only when you choose to (`--upgrade`), from a backup, outside peak use. A catalog change does not upgrade you.
 
+### Upgrade and roll back from the dashboard {#dashboard-upgrade-and-rollback}
+
+The template page in the dashboard has an **Image** section with the same controls as the CLI. It shows three images: **Last deployment** (what runs now), **Configured** (the image stored on the template, used by the next plain deploy) and **Available** (the catalog version). An **Update available** badge appears when the catalog version differs from what you run, and **Up to date** when it does not.
+
+Three separate actions never do each other's job:
+
+| Action | What it sends | Result |
+|--------|---------------|--------|
+| **Deploy** | `image_source=custom` | Redeploys the stored image. It does not upgrade. With no stored image yet, it deploys the catalog version and stores it |
+| **Upgrade to available version** | `image_source=catalog` | Deploys the catalog version and replaces the stored image |
+| **Roll back to an earlier version** | `rollback_to=<deployment id>` | Runs the image of an earlier deployment and stores it |
+
+The dialog for each action names the image it will run. Every request also sends `expected_image` (the **Configured** image you were looking at) whenever an image is stored. If someone changed the image since you opened the page, the request is refused with `409`; reload the page and decide again. While another deployment is in progress the actions are disabled.
+
+Rolling back shows a warning before you confirm: **rolling back the image does not roll back the database schema or data.** If the newer version migrated them, the older image may fail or misread them, so restore a database backup first. See [Back up first](#versions-and-upgrades).
+
+The rollback list offers only earlier deployments that ran successfully (status `running` or `stopped`, and finished), newest first, one entry per image, up to eight, and without the image you run now. A failed build is never offered because its image was never pushed. The API applies the same rule and returns `404` for any other deployment ID. See [Template deploy API](/api/templates#rollback).
+
 ## Release gate and compatibility
 
 TOSE publishes a Dewee version as verified only after an end-to-end run passes against a staging cluster: create, authenticate over the public domain, WebSocket, MCP, persisted data after restart, redeploy and rollback, plus the negative cases above ([tose-app#276](https://github.com/saasvn/tose-app/issues/276)).
+
+This gate covers the curated Dewee template only. Installing from the registry has its own fail-closed security gate, which stays gated until the live hardened-host and real-cluster checks finish ([tose-app#142](https://github.com/saasvn/tose-app/issues/142)); see [Install security gate](/guide/template-registry#install-security-gate-gated).
 
 | Field | Current value |
 |-------|---------------|
@@ -179,6 +232,8 @@ TOSE publishes a Dewee version as verified only after an end-to-end run passes a
 | Support level | **Experimental** |
 
 When a verified run exists, this table gains the digest, commit, TOSE revision, date and the word *verified*. Do not treat a template as one-click verified before that.
+
+When the public status endpoint is on, [`GET /api/public/template-releases`](/api/templates#public-release-status) reports the same state for each template: `verified` (with `version` and `last_validated_at`), `experimental`, `deprecated`, or `unavailable` when the flag is off. The release gate in `templates/verified-images.json` decides `verified`, and nothing is verified until a real staging run promotes an image.
 
 ## Staged rollout checklist
 
@@ -192,6 +247,7 @@ When a verified run exists, this table gains the digest, commit, TOSE revision, 
 ## Related
 
 - [`tose template`](/commands/template)
+- [Registry templates: probes, upgrade and rollback](/guide/template-upgrades)
 - [Environment Variables](/guide/environment)
 - [Persistent Disks](/guide/persistent-disks)
 - [Pricing](/guide/pricing)

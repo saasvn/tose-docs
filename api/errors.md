@@ -63,6 +63,8 @@ never uses the secret. Send the API key in the `X-API-Key` header, or a session 
 
 `402`. The workspace wallet does not have enough balance for the action. Add funds, then retry. Creating a project with an empty wallet returns `402` with the code `INSUFFICIENT_BALANCE`; it used to return `403`, so a client that treated a `403` there as a balance problem must now read `402`.
 
+An agent request that would exceed a hard budget, or find the wallet empty, returns `402` with the code `budget_exhausted`. Raise the budget or add funds, then retry. See [Agent usage and budgets API](/api/agent-usage#budgets).
+
 ### `forbidden` {#forbidden}
 
 `403`. The credential is valid but may not do this. An API key works only for its own workspace,
@@ -98,6 +100,10 @@ project is running.
 ### `payload_too_large` {#payload_too_large}
 
 `413`. The request body is larger than the API accepts.
+
+### `unsupported_media_type` {#unsupported_media_type}
+
+`415`. The route takes a JSON body, and the request sent one without `Content-Type: application/json`. The CI write routes answer this way. Send the header and repeat the request. A JSON body with unknown fields or trailing data is `400 invalid_request`. Approving or rejecting an autoscaling budget plan uses the upper-case [`UNSUPPORTED_MEDIA_TYPE`](#UNSUPPORTED_MEDIA_TYPE) instead.
 
 ### `validation_failed` {#validation_failed}
 
@@ -135,6 +141,32 @@ Retryable.
 
 Any other error status uses the code `http_<status>`.
 
+## GitHub upstream codes
+
+Routes that call GitHub on your behalf report a failure with one of these codes instead of the generic `upstream_error` or `unavailable`. The response never carries GitHub's own error text, which can hold URLs and installation IDs. Branch on `code` and `details.reason`. They apply to `GET /api/github/repos` (with `installation_id`), `GET /api/github/repos/{owner}/{repo}/branches`, and the repository check when you create a project or connect Git. See [GitHub API](/api/github).
+
+### `github_not_found` {#github_not_found}
+
+`404`. `details.reason` says which fix applies. `installation_not_found`: the GitHub App installation no longer exists, so reinstall the TOSE GitHub App and attach it to the workspace again. `repository_not_found`: the repository does not exist or the App was not granted access to it, so grant the App access to the repository. Not retryable.
+
+### `github_forbidden` {#github_forbidden}
+
+`403`. GitHub denied the request, for example because the TOSE GitHub App lacks a permission the action needs. Check the App's permissions. Sending the same request again does not help. Not retryable.
+
+### `github_rate_limited` {#github_rate_limited}
+
+`429`. GitHub rate limited the request. Wait the number of seconds in the `Retry-After` header, then retry. Retryable.
+
+### `github_unavailable` {#github_unavailable}
+
+`503`. GitHub did not answer. Retry shortly with backoff. Retryable.
+
+### `github_app_misconfigured` {#github_app_misconfigured}
+
+`500`. GitHub rejected TOSE's own GitHub App credentials. This is a server configuration problem you cannot fix from the client. Contact support and quote `request_id`. Not retryable.
+
+When the failure happens while validating the repository in create project or connect Git, the status is `400` for every code above, `retryable` is `false`, and the `message` starts with `Cannot access repository <owner/repo>` for older clients. Use `code` and `details.reason`, not the message.
+
 ## Deploy action codes
 
 `POST .../deploy` and `POST .../deployments/{id}/rollback` report their own code in UPPER_SNAKE_CASE, not a code derived from the HTTP status. `POST .../redeploy` does so only for `INSUFFICIENT_BALANCE`; its other errors keep the snake_case codes above. Access errors on all three routes (`not_found`, `forbidden`) are snake_case too. The MCP tools `deploy_project` and `rollback_deployment` report the same codes. The envelope is unchanged, so the `doc_url` of each error ends in the anchor below, for example `https://docs.tose.sh/api/errors#INSUFFICIENT_BALANCE`.
@@ -145,6 +177,14 @@ Clients that compared `code` with `payment_required`, `unavailable`, `invalid_re
 
 `402`. The workspace wallet is empty (zero or negative balance) or missing, so the deployment was refused and none was created. A workspace owner tops up the wallet in the billing page, then repeats the request. Not retryable until the balance is positive. See [Pricing](/guide/pricing).
 
+When [autoscaling budgets](/guide/autoscaling-budgets) are on, the same code also means an increase would break the 72-hour floor reserve. The response then carries `details`:
+
+```json
+{ "project_slug": "api", "reason": "floor_reserve", "reserve_target_nano_usd": 1440000000, "coverage_hours": 40 }
+```
+
+Top up the wallet, or lower the project floors, then repeat the request.
+
 ### `UNAVAILABLE` {#UNAVAILABLE}
 
 `503`. The GitHub App is not configured on this TOSE instance, so the head commit cannot be read. `retryable` is `true`. Nothing was created. Retry later; on a self-hosted instance, configure the GitHub App.
@@ -152,6 +192,8 @@ Clients that compared `code` with `payment_required`, `unavailable`, `invalid_re
 ### `NO_GIT_CONNECTION` {#NO_GIT_CONNECTION}
 
 `400`. The project has no Git repository connected, so there is nothing to build. Connect a repository, then deploy again.
+
+The [CLI](/commands/deploy) reads `NO_GIT_CONNECTION` and `INSUFFICIENT_BALANCE` from the stable `code` field of the response body, whether it is flat or nested under `error`. It matches the message only when the code is missing or generic (for example `payment_required` on a `402`), so do not rely on the message text.
 
 ### `NO_SERVER` {#NO_SERVER}
 
@@ -167,7 +209,7 @@ Clients that compared `code` with `payment_required`, `unavailable`, `invalid_re
 
 ### `NOT_FOUND` {#NOT_FOUND}
 
-`404`. Rollback only: the deployment id does not exist in this project. A project or workspace you cannot see uses the snake_case `not_found` instead.
+`404`. Rollback only: the deployment id does not exist in this project. A project or workspace you cannot see uses the snake_case `not_found` instead. The [autoscaling budget routes](/api/autoscaling-budget) also return `NOT_FOUND` for a project or plan that does not exist in the workspace.
 
 ### `UPSTREAM_ERROR` {#UPSTREAM_ERROR}
 
@@ -180,6 +222,61 @@ Clients that compared `code` with `payment_required`, `unavailable`, `invalid_re
 ### `ROLLBACK_FAILED` {#ROLLBACK_FAILED}
 
 `500`. Rollback only: starting the earlier image failed. The message carries the reason; it can come from the cluster or from a step before it, such as reading the server, project secrets or disk. Read the message, fix the cause, then try again or pick another deployment.
+
+## Autoscaling budget codes
+
+These come from the [autoscaling budget](/guide/autoscaling-budgets) routes and from the endpoints that raise an allocation. They exist only on platforms that have budgets turned on. The route shapes are in the [budget API](/api/autoscaling-budget).
+
+### `BUDGET_CAP` {#BUDGET_CAP}
+
+`402`. The change would take spend over a budget cap, so it was refused and nothing changed. Project update, deploy, redeploy, rollback, image deploy, environment apply and runbook scale can return it. `details` names the cap and the numbers:
+
+```json
+{
+  "cap": "workspace_hourly",
+  "limit_nano_usd": 50000000,
+  "projected_nano_usd": 60000000,
+  "project_slug": "api"
+}
+```
+
+`cap` is `deployment_hourly`, `deployment_monthly`, `workspace_hourly` or `workspace_monthly`. Money is in nano-USD. Not retryable as is: lower the allocation, or ask an owner or admin to raise the cap.
+
+### `PRECONDITION_FAILED` {#PRECONDITION_FAILED}
+
+`412`. The `If-Match` of a budget `PUT` does not match the current revision, so someone changed the budget after you read it. Nothing was written. Read the budget again and repeat the change.
+
+### `HUMAN_APPROVAL_REQUIRED` {#HUMAN_APPROVAL_REQUIRED}
+
+`403`. Approving or rejecting a budget plan was tried with an API key. Approval needs a person's signed-in session, in practice the dashboard. Give the `approval_url` of the plan to an owner or admin. Anything holding a person's session token or password can approve as them, so give agents an API key or the MCP connector, never a login.
+
+### `CROSS_SITE_REQUEST` {#CROSS_SITE_REQUEST}
+
+`403`. A `POST`, `PUT`, `PATCH` or `DELETE` was authenticated only with the session cookie, from a browser origin other than the dashboard or the API itself, or from a page marked cross-site. Nothing changed. Every signed-in route under `/api` can return it, not only the budget routes. See [Cookie writes from other sites](/api/authentication#cross-site-cookie-writes). Make the change from the dashboard itself. Requests with an API key or an `Authorization: Bearer` token are not checked.
+
+### `UNSUPPORTED_MEDIA_TYPE` {#UNSUPPORTED_MEDIA_TYPE}
+
+`415`. Approving or rejecting a budget plan needs `Content-Type: application/json` and a body of exactly one object, `{"plan_hash": "..."}`. Send the header and repeat the request. Trailing data after the object is `400 INVALID_ARGUMENT`.
+
+### `PLAN_STALE` {#PLAN_STALE}
+
+`409`. The budget changed after the plan was made, so approving it could undo that change. `details` holds `base_revision` and `current_revision`. Make a new plan from the current budget.
+
+### `PLAN_HASH_MISMATCH` {#PLAN_HASH_MISMATCH}
+
+`409`. The `plan_hash` sent with an approval or a rejection does not match the plan. Nothing was applied. Read the plan again and send its own hash.
+
+### `PLAN_EXPIRED` {#PLAN_EXPIRED}
+
+`410`. The plan is past its 30-minute life and can no longer be approved. Make a new plan.
+
+### `PLAN_CLOSED` {#PLAN_CLOSED}
+
+`409`. The plan was already applied or rejected. `details.status` says which. A closed plan cannot be reopened; make a new one if the change is still needed.
+
+### Budget codes from the MCP tools {#mcp-budget-codes}
+
+`deploy_project` and `deploy_image` check the budget like the REST routes and return `BUDGET_CAP` or `INSUFFICIENT_BALANCE`. If the budget cannot be checked (a database error), they start nothing and return [`UNAVAILABLE`](#UNAVAILABLE) with no HTTP status. It is retryable: try again shortly. `autoscaling_budget_get` and `autoscaling_budget_plan` return `INVALID_ARGUMENT` and `NOT_FOUND`.
 
 ## MCP tool errors
 

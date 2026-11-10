@@ -48,6 +48,10 @@ string with `400 credentials_in_url`, and its access log records the path withou
 string. If your reverse proxy or load balancer logs full URLs, those logs are outside the API's
 control, so disable query logging there too. See [Authentication](/api/authentication).
 
+## Template health probes {#template-probes}
+
+By default the API adds Kubernetes startup, readiness (`/health`) and liveness (`/livez`) probes to Dewee template deployments and runs a public `/health` check before it records a probed deployment `running` (up to 3 minutes, on the default domain). Set `TEMPLATE_PROBES_ENABLED=false` on the API to turn both off. The start script's supervision stays active because it ships inside every Dewee image. `custom` images, rollback deploys and other templates are never probed. See [Deployment health state](/guide/dewee-template#health-state).
+
 ## Optional operator settings {#optional-operator-settings}
 
 Both settings are off unless you set them.
@@ -63,6 +67,37 @@ Retention deletes old sent `ops_outbox` rows, standalone `info` events and resol
 
 The API serves its OpenAPI spec at `/api/openapi.yaml`, so a self-hosted instance documents
 itself. Generate clients against your own base URL. See the [REST API reference](/api/reference).
+
+## Project thumbnails
+
+A project thumbnail is a screenshot of the project's public https page, taken after a deploy. The API never
+runs a browser in its own pod. Each capture is one short-lived pod plus one NetworkPolicy in the
+`tose-thumbnail` namespace of the project's cluster, and both are deleted when the capture ends.
+
+What bounds the capture pod:
+
+- **Network.** Egress is allowed only to the address the API resolved and pinned, as `<ip>/32` on TCP 443.
+  There is no DNS, no ingress, and no route to cluster ranges or the metadata endpoint.
+- **Identity.** The pod has no service-account token and no Secret.
+- **Browser.** Chromium's sandbox stays on and the worker refuses to run as root.
+
+To turn thumbnails on for a self-hosted API:
+
+1. Apply `deploy/thumbnail` from [`saasvn/tose-app`](https://github.com/saasvn/tose-app) to the cluster. It creates the
+   namespace, a default-deny policy, a quota and a Role. Bind the Role to the identity in the API's kubeconfig.
+2. Publish the image built from `images/thumbnail-shot` and set `THUMBNAIL_IMAGE` on the API.
+3. If your container runtime's default seccomp profile blocks user namespaces (containerd does for a pod
+   without capabilities), install a node-local profile that allows them and set `THUMBNAIL_SECCOMP_PROFILE`
+   to its path under the kubelet seccomp directory.
+
+If `THUMBNAIL_IMAGE` is not set, captures are skipped and logged with the `[screenshot]` prefix. Deploys are not
+affected. If the image is set but the namespace or Role is missing, each deploy logs failed capture attempts and
+still succeeds.
+
+Clusters owned by a workspace do not produce thumbnails today.
+
+Operational details, including the pod limits and how to verify the policy, are in `docs/operations.md`
+(section "Project thumbnails") and `deploy/thumbnail/README.md` in `saasvn/tose-app`.
 
 ## Related documentation
 

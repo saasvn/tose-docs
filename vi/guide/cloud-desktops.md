@@ -16,7 +16,8 @@ Các trường hợp sử dụng điển hình:
 ::: warning Trạng thái: Coming soon
 Cloud Desktop đã được xây dựng xong và các lệnh `tose desktop` có trong CLI 0.1.3, nhưng tính năng
 này chưa được bật trên production. Tính năng được bật theo từng bản cài đặt TOSE: nếu các endpoint
-`desktops` trả về 404 cho workspace của bạn, tính năng chưa được bật.
+`desktops` trả về 404 cho workspace của bạn, tính năng chưa được bật. Khi đó dashboard ẩn mục
+**Desktop đám mây** khỏi thanh bên.
 :::
 
 ## Cách hoạt động

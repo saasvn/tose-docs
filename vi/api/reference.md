@@ -57,6 +57,13 @@ Xem [Xác thực](/vi/api/authentication) về API key, session token và quy t�
 Mọi lỗi JSON đều có cùng một envelope với `code` ổn định. Hãy xử lý theo `code`, đừng dựa vào nội
 dung `message`. Xem [Mã lỗi](/vi/api/errors) để có danh sách đầy đủ, gồm cả mã lỗi của các tool MCP.
 
+## Tính năng của nền tảng {#platform-features}
+
+`GET /api/public/features` (tag `Platform`) không cần xác thực và không chứa dữ liệu tài khoản hay
+workspace. Endpoint trả về `{"ci": bool, "desktops": bool, "autoscaling_budget": bool}`, cho biết nền tảng đang phục vụ phần
+tùy chọn nào. Response được cache 60 giây. Dashboard dùng nó để ẩn **CI**, **Desktop đám mây** và
+mục **Autoscaling** (xem [Ngân sách autoscaling](/vi/guide/autoscaling-budgets)).
+
 ## Request ID
 
 Mọi response có header `X-Request-ID`. Gửi ID của bạn để server trả lại nguyên giá trị. Body lỗi
@@ -115,4 +122,5 @@ Stop phản hồi trong khoảng 100 giây. Khi gặp `503`, chờ số giây tr
 - [Xác thực](/vi/api/authentication)
 - [Mã lỗi](/vi/api/errors)
 - [Ổ đĩa, Volume & Bảng giá](/vi/api/disks)
+- [API ngân sách autoscaling](/vi/api/autoscaling-budget)
 - [Tự host](/vi/guide/self-hosting)

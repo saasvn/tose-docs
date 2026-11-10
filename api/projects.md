@@ -40,19 +40,55 @@ Changes take effect on the next deployment. A project with a [persistent disk](/
 | `400` | `status` is not one of the allowed values, the slug is malformed, the project has a persistent disk and you raise `replicas` above `1` or change `server_id`, or the server is not valid for the workspace |
 | `409` | The slug is already taken in the workspace |
 
+## Process limit {#process-limit}
+
+```http
+GET /api/workspaces/{slug}/projects/{project_slug}/status
+```
+
+The status response carries a `resources` object with the project's CPU and memory limits. When an operator has declared a per-Pod process (PID) limit, it also carries `resources.pids.limit`:
+
+```json
+{ "resources": { "pids": { "limit": 4096 } } }
+```
+
+- **Per Pod, shared.** The number is one budget for the whole Pod: the project's container and every sidecar count against it together. It is not a per-container or per-project setting.
+- **A declaration, not a measurement.** The value is whatever the operator of the TOSE deployment configured after confirming the node setting (`PROJECT_POD_PIDS_LIMIT`). TOSE does not read it back from the nodes, so it can be stale if the nodes change, and limits can differ between nodes.
+- **Absent means unknown.** The field appears only when the operator configured a confirmed value. A missing `pids` object does not mean the limit is unlimited; it means TOSE does not know the limit.
+- **Reporting only.** The field does not set or enforce a limit and no API call changes it. Enforcement is a node-level kubelet setting (`podPidsLimit`) outside this API.
+
 ## Restart a project
 
 ```http
 POST /api/workspaces/{slug}/projects/{project_slug}/restart
 ```
 
-Triggers a rolling restart of the running deployment without building a new image. The call returns once the restart is requested, not when the new pods are ready; poll the project status to see it come back.
+Restarts the running deployment without building a new image. The restart is a recovery runbook (`restart`): TOSE plans it, records the approval and runs it. The caller must be a workspace owner or admin; an API key also needs the `deployments:execute` scope.
+
+**Signed in (dashboard session).** Your call is the approval, so TOSE plans, approves and runs the restart at once and answers `200`:
 
 ```json
-{ "success": true, "message": "Project restarting", "restarted_pods": 1 }
+{ "success": true, "message": "Project restarting", "restarted_pods": 1, "runbook": { "id": "...", "status": "executed", "execution": { "status": "started" } } }
 ```
 
-`restarted_pods` is the replica count of the deployment that was restarted. A project with no server assigned returns `400`, and a project that was never deployed returns `404`.
+`restarted_pods` is the planned replica count. `runbook` is the plan with its run. The call returns once the restart has started, not when the new pods are ready; read the plan again with `GET .../runbooks/{plan_id}` to see the run finish.
+
+**API key.** A key cannot approve a runbook. The call only stores the plan and answers `409 APPROVAL_REQUIRED` with the plan in `runbook`, plus `approval_url` and `details.runbook_id` when the server knows its public URL. A workspace owner or admin approves the plan while signed in, then the key runs it with `POST .../runbooks/restart/{plan_id}/execute`.
+
+Send an optional `Idempotency-Key` header (8 to 128 characters, `[A-Za-z0-9._:-]`). A retry with the same key returns the first run with the `Idempotent-Replayed: true` header instead of restarting again.
+
+| Status | Code | Meaning |
+|--------|------|---------|
+| `400` | `NO_SERVER` | The project has no server assigned |
+| `403` | `FORBIDDEN`, `INSUFFICIENT_SCOPE` | You are not an owner or admin, or the key lacks `deployments:execute` |
+| `409` | `APPROVAL_REQUIRED` | Called with an API key. The plan is stored and waits for a signed-in owner or admin |
+| `409` | `DEPLOY_IN_PROGRESS` | A deployment of the project is still running. Wait until it finishes |
+| `409` | `NOT_RUNNING` | The project is scaled to zero, so there is nothing to restart |
+| `409` | `NO_WORKLOAD` | The project has no live workload in the cluster. Deploy it instead |
+| `409` | `RUNBOOK_FAILED` or a more specific code | The run started but the cluster refused the change. The body has `runbook` |
+| `409` | `CONFLICT` | Another operation on the project holds its lock. Try again shortly |
+| `409` | (no code) | In a workspace with environments, the move guard refused the call: another write to the project is running, or the project is the retained source of a move (`Source is retained for a move. Restore it before making changes.`). The body has only `message` |
+| `503` | `UNAVAILABLE` | TOSE could not read the cluster, take the project lock or check your membership. Nothing was changed |
 
 ## Delete a project
 
@@ -165,7 +201,7 @@ The call creates a push webhook. If the webhook cannot be created, the connectio
 
 | Status | Meaning |
 |--------|---------|
-| `400` | `repo_full_name` is missing or not `owner/repo`, the repository is not reachable through the installation, the branch does not exist, or no attached installation can reach the repository |
+| `400` | `repo_full_name` is missing or not `owner/repo`, the repository is not reachable through the installation, the branch does not exist, or no attached installation can reach the repository. A failure caused by GitHub has a [`github_*` code](/api/errors#github-upstream-codes) and is not retryable |
 | `403` | `installation_id` is not attached to this workspace |
 | `409` | The project already has a Git connection |
 | `503` | The GitHub App is not configured on this deployment |
@@ -185,6 +221,56 @@ DELETE /api/workspaces/{slug}/projects/{project_slug}/git
 ```
 
 Removes the connection and deletes its GitHub webhook, unless another project still uses that webhook. Existing deployments keep running. **Response:** `200` with `{ "message": "..." }`.
+
+## Environment variables and apply {#environment-variables}
+
+The environment variable routes are in the [OpenAPI spec](https://api.tose.sh/api/openapi.yaml):
+`POST`, `PUT` and `DELETE` on `/api/workspaces/{slug}/projects/{project_slug}/env[/{env_id}]`, and
+`PUT .../env/bulk`. By default a change is only saved; running pods pick it up on the next deploy or
+`POST .../redeploy`.
+
+### Save and apply
+
+Add `?apply=true` to save the change and then roll it out right away. The rollout is the same as
+`POST /api/workspaces/{slug}/projects/{project_slug}/redeploy`: the last successful image with the
+current variables and resource limits, **no rebuild**.
+
+```bash
+curl -X PUT "https://api.tose.sh/api/workspaces/$WS/projects/web/env/bulk?apply=true" \
+  -H "X-API-Key: $TOSE_API_KEY" -H "Content-Type: application/json" \
+  -d '{"variables": {"LOG_LEVEL": "debug"}, "merge": true}'
+```
+
+The response carries an `apply` object next to the usual result. The change is saved whatever it reports.
+
+```json
+{ "applied": true, "deployment_id": "dep_123", "status": "running" }
+```
+
+```json
+{ "applied": false, "code": "NO_DEPLOYMENT", "reason": "The project has no successful deployment yet. The change was saved and applies with the next deploy." }
+```
+
+| Field | Description |
+|-------|-------------|
+| `applied` | `true` when the change was rolled out to the running pods |
+| `deployment_id`, `status` | The deployment the rollout recorded, when applied |
+| `code`, `reason` | Why it was not applied: `NO_DEPLOYMENT` (no successful deployment yet), `NO_SERVER`, `INSUFFICIENT_BALANCE`, `ROLLOUT_FAILED` and similar. Redeploy to retry |
+
+Apply needs the same rights as a redeploy: the `owner` or `admin` role, the `deployments:execute`
+scope for an API key, approval for a connected OAuth app, and a positive wallet balance. When one is
+missing, the request is refused before anything is saved:
+
+| Status | Meaning |
+|--------|---------|
+| `402` | The wallet balance is not positive (`INSUFFICIENT_BALANCE`). Nothing is saved |
+| `403` | The key lacks `deployments:execute`, or an OAuth app needs approval (`approval_required`). Nothing is saved |
+
+### Detect pending changes
+
+`GET /api/workspaces/{slug}/projects/{project_slug}` returns `env_pending`: `true` when the saved
+variables differ from the ones the running deployment was rolled out with. It is `false` when nothing
+runs, for deployments made before this field existed, and after a runbook rollback.
 
 ## Related
 

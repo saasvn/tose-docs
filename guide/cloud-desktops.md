@@ -14,7 +14,8 @@ Typical uses:
 ::: warning Status: Coming soon
 Cloud Desktops are built, and the `tose desktop` commands ship in CLI 0.1.3, but the feature is
 not switched on in production yet. It is enabled per TOSE installation: if the `desktops`
-endpoints return 404 for your workspace, the feature is not enabled.
+endpoints return 404 for your workspace, the feature is not enabled. The dashboard then hides
+**Cloud desktops** from the sidebar.
 :::
 
 ## How it works

@@ -121,7 +121,7 @@ API_KEY=****** (đã che)
 
 ### Giá trị bị che với member của workspace
 
-`member` của workspace không nhận được giá trị biến môi trường: API trả `********` (danh sách env của project) hoặc `***` (danh sách env của template) thay cho giá trị. Chỉ `admin` và `owner` mới thấy giá trị. CLI không bao giờ ghi hoặc gửi các placeholder này như một giá trị thật:
+`member` của workspace không nhận được giá trị biến môi trường: API trả `********` (danh sách env của project) hoặc `***` (danh sách env của template) thay cho giá trị. Chỉ `admin` và `owner` mới thấy giá trị. Dashboard theo cùng quy tắc: ở trang dự án và trang template, member thấy "Hidden" thay cho placeholder, và các thao tác thêm, sửa, xóa, export, copy bị ẩn. Chỉ owner và admin mới xem hoặc đổi được giá trị env. CLI không bao giờ ghi hoặc gửi các placeholder này như một giá trị thật:
 
 - `tose env pull` bỏ qua các key bị che (hiện trong `skipped_masked` khi dùng `--json`), giữ nguyên giá trị mà file local đã có cho các key đó, và thất bại mà không ghi file khi mọi giá trị đều bị che (`FORBIDDEN`, mã thoát `1`).
 - `tose env push`, `tose env set` và `tose template env set` từ chối giá trị là placeholder đã che và không gửi gì (`VALIDATION_ERROR`, mã thoát `2`).
@@ -274,6 +274,35 @@ tose up
 3. Vào **Settings** > **Environment Variables**
 4. Sửa biến thủ công
 
+## Áp dụng thay đổi không cần build lại {#apply-without-a-rebuild}
+
+Lưu biến môi trường không làm thay đổi các pod đang chạy. Để áp dụng, hãy redeploy: TOSE triển khai lại
+image thành công gần nhất với các biến hiện tại và **không build lại**.
+
+```bash
+tose env set NODE_ENV=production
+tose redeploy
+```
+
+Khi các biến đã lưu khác với biến mà deployment đang chạy được triển khai cùng, dự án ở trạng thái
+**chờ áp dụng** (pending).
+
+- **Dashboard:** một banner trên dự án báo trạng thái chờ áp dụng, kèm nút **Áp dụng**. Khi sửa biến,
+  nút **Lưu & áp dụng** lưu và triển khai chỉ trong một lần bấm.
+- **API:** thêm `?apply=true` vào `POST`, `PUT` hoặc `DELETE` trên
+  `/api/workspaces/{slug}/projects/{project_slug}/env[/{env_id}]`, hoặc vào `PUT .../env/bulk`.
+  Thay đổi được lưu rồi triển khai qua cùng đường với `POST .../redeploy`. Xem
+  [Biến môi trường và apply](/vi/api/projects#environment-variables).
+- **CLI:** `tose redeploy` áp dụng các biến đã lưu. CLI chưa có cờ để lưu và áp dụng trong một lệnh.
+
+Áp dụng cần cùng quyền với redeploy: vai trò `owner` hoặc `admin` của workspace, scope
+`deployments:execute` với API key (ứng dụng OAuth được kết nối cần được phê duyệt), và số dư ví dương.
+Nếu thiếu một điều kiện, yêu cầu bị từ chối (`402` khi ví hết tiền, các trường hợp khác `403`) và
+**không có gì được lưu**.
+
+Nếu dự án chưa có server hoặc chưa có deployment thành công, thay đổi vẫn được lưu và phản hồi báo
+`applied: false` kèm `NO_DEPLOYMENT`. Thay đổi có hiệu lực ở lần deploy tiếp theo.
+
 ## Khắc phục sự cố
 
 ### Không tìm thấy file .env
@@ -294,7 +323,7 @@ Nếu biến không hoạt động:
 
 1. Kiểm tra file đã được chọn khi triển khai
 2. Xác minh tên biến đúng
-3. Triển khai lại để áp dụng thay đổi:
+3. Nếu đã lưu biến mà chưa áp dụng, hãy áp dụng (xem [Áp dụng thay đổi không cần build lại](#apply-without-a-rebuild)) hoặc triển khai lại:
    ```bash
    tose up
    # Chọn "Triển khai lại"
