@@ -14,7 +14,7 @@ Displays detailed status information for your project, including:
 
 - Project status (active, stopped, etc.)
 - Pod health (ready count, individual pod status, restarts, age)
-- Resource limits (CPU and memory)
+- Resource limits (CPU and memory), plus the per-Pod process (PID) limit when the operator has declared one
 - Latest deployment info with time-ago formatting
 
 ## Arguments
@@ -68,6 +68,22 @@ Latest deployment:
   Time:    1d ago
 ```
 
+### Process limit line
+
+When the operator of your TOSE deployment has declared a per-Pod process (PID) limit, the text output adds a line after `Memory:`:
+
+```
+CPU:     2000m
+Memory:  4Gi
+PIDs:    4096 per Pod (operator-declared, shared by the Pod's containers; not verified live)
+```
+
+- **Operator-declared, not verified.** The number is a value the operator configured, not a live reading from the nodes.
+- **Shared by the whole Pod.** The project container and all sidecars count against the same budget; it is not a per-container limit.
+- **No line means unknown, not unlimited.** If the `PIDs:` line is missing, TOSE does not know the limit. Do not read that as "no limit".
+- **Older servers.** A server that does not send the field leaves the line out, and the CLI prints nothing extra.
+- **Not a guarantee.** TOSE does not enforce this limit yet, so do not rely on it to contain a runaway process.
+
 ## Status Values
 
 | Status | Description |
@@ -108,7 +124,8 @@ $ tose status --json
     },
     "resources": {
       "cpu": { "used": "100m", "limit": "2000m" },
-      "memory": { "used": "500Mi", "limit": "4Gi" }
+      "memory": { "used": "500Mi", "limit": "4Gi" },
+      "pids": { "limit": 4096 }
     },
     "latestDeployment": {
       "id": "dep_abc123",
@@ -119,6 +136,8 @@ $ tose status --json
   }
 }
 ```
+
+`resources.pids.limit` appears only when the operator has declared a per-Pod PID limit. When the field is absent the limit is unknown, not unlimited. See [Process limit](#process-limit-line) and the [Projects API](/api/projects#status).
 
 ## Use Cases
 

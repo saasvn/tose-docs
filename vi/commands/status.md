@@ -56,6 +56,24 @@ Sức khỏe:
   Kiểm tra cuối: 30 giây trước
 ```
 
+### Dòng giới hạn tiến trình {#process-limit-line}
+
+Khi bên vận hành hệ thống TOSE đã khai báo giới hạn tiến trình (PID) theo Pod, đầu ra dạng văn bản thêm một dòng sau `Memory:`:
+
+```
+CPU:     2000m
+Memory:  4Gi
+PIDs:    4096 per Pod (operator-declared, shared by the Pod's containers; not verified live)
+```
+
+- **Do bên vận hành khai báo, không kiểm tra trực tiếp.** Con số là giá trị bên vận hành cấu hình, không phải số đọc trực tiếp từ node.
+- **Dùng chung cho cả Pod.** Container của dự án và mọi sidecar cùng dùng một ngân sách; đây không phải giới hạn theo từng container.
+- **Không có dòng nghĩa là chưa biết, không phải không giới hạn.** Nếu thiếu dòng `PIDs:`, TOSE không biết giới hạn. Đừng hiểu đó là "không giới hạn".
+- **Server cũ.** Server không gửi trường này thì dòng bị bỏ qua và CLI không in thêm gì.
+- **Không phải cam kết.** TOSE chưa thực thi giới hạn này, nên đừng dựa vào nó để chặn một tiến trình chạy mất kiểm soát.
+
+Với `tose status --json`, giá trị nằm ở `data.resources.pids.limit`, và chỉ xuất hiện khi đã có khai báo. Xem thêm [API dự án](/vi/api/projects#status).
+
 ## Các giai đoạn trạng thái
 
 | Giai đoạn | Icon | Mô tả |

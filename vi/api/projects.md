@@ -40,6 +40,24 @@ Thay đổi có hiệu lực ở lần deploy tiếp theo. Dự án có [ổ đ�
 | `400` | `status` không hợp lệ, slug sai định dạng, dự án có ổ đĩa bền vững mà bạn tăng `replicas` trên `1` hoặc đổi `server_id`, hoặc server không hợp lệ với workspace |
 | `409` | Slug đã được dùng trong workspace |
 
+## Đọc trạng thái dự án {#status}
+
+```http
+GET /api/workspaces/{slug}/projects/{project_slug}/status
+```
+
+Phản hồi có đối tượng `resources` chứa giới hạn CPU và bộ nhớ của dự án. Khi bên vận hành đã khai báo giới hạn tiến trình (PID) theo Pod, phản hồi còn có `resources.pids.limit`:
+
+```json
+{ "resources": { "pids": { "limit": 4096 } } }
+```
+
+- **Do bên vận hành khai báo, không kiểm tra trực tiếp.** Giá trị do bên vận hành hệ thống TOSE cấu hình. TOSE không đọc lại từ node nên có thể lỗi thời.
+- **Theo Pod, dùng chung.** Container của dự án và mọi sidecar cùng dùng một con số; đây không phải cài đặt theo từng container.
+- **Thiếu nghĩa là chưa biết.** Không có đối tượng `pids` nghĩa là TOSE không biết giới hạn, không có nghĩa là không giới hạn.
+- **Server cũ.** Server cũ bỏ qua trường này; khi đó `tose status` không in dòng `PIDs:`.
+- **Chỉ để báo cáo.** Hiện chưa có gì được thực thi, nên đừng coi giá trị này là cam kết.
+
 ## Restart dự án {#restart}
 
 ```http

@@ -40,6 +40,24 @@ Changes take effect on the next deployment. A project with a [persistent disk](/
 | `400` | `status` is not one of the allowed values, the slug is malformed, the project has a persistent disk and you raise `replicas` above `1` or change `server_id`, or the server is not valid for the workspace |
 | `409` | The slug is already taken in the workspace |
 
+## Read project status {#status}
+
+```http
+GET /api/workspaces/{slug}/projects/{project_slug}/status
+```
+
+The response carries a `resources` object with the project's CPU and memory limits. When an operator has declared a per-Pod process (PID) limit, it also carries `resources.pids.limit`:
+
+```json
+{ "resources": { "pids": { "limit": 4096 } } }
+```
+
+- **Operator-declared, not verified.** The value is what the operator of the TOSE deployment configured. TOSE does not read it back from the nodes, so it can be stale.
+- **Per Pod, shared.** The project container and every sidecar count against the same number. It is not a per-container setting.
+- **Absent means unknown.** A missing `pids` object means TOSE does not know the limit; it does not mean the limit is unlimited.
+- **Older servers.** They omit the field; `tose status` then prints no `PIDs:` line.
+- **Reporting only.** Nothing is enforced yet, so do not treat the value as a guarantee.
+
 ## Restart a project
 
 ```http
