@@ -16,11 +16,11 @@ Unlike most endpoints, these live under `/api/github`, not under a workspace. Pa
 | `POST /api/github/workspace-installations` | yes | refused with `403` |
 | `DELETE /api/github/workspace-installations/{installation_id}` | yes | refused with `403` |
 
-An API key that names a workspace other than its own in `workspace_slug` gets `403`. An API key that omits it falls back to the installations linked to the key creator's account. The three write endpoints change the user's account or the workspace's trust, so they work only with a signed-in user session, never an API key or a connected app. See [Authentication](/api/authentication).
+An API key that names a workspace other than its own in `workspace_slug` gets `403`. An API key that omits it uses its own workspace; it never falls back to the key creator's account. The three write endpoints change the user's account or the workspace's trust, so they work only with a signed-in user session, never an API key or a connected app. See [Authentication](/api/authentication).
 
 ## Read endpoints
 
-All return a bare JSON array, possibly empty, except that `GET /api/github/repos` returns `400` when no GitHub App installation is accessible. A `503` means the GitHub App is not configured on this deployment.
+All return a bare JSON array, possibly empty, except that `GET /api/github/repos` returns `400` when no GitHub App installation is accessible. A `503` can mean the GitHub App is not configured on this deployment, or GitHub did not answer.
 
 ### List repositories
 
@@ -28,7 +28,7 @@ All return a bare JSON array, possibly empty, except that `GET /api/github/repos
 GET /api/github/repos?workspace_slug={slug}
 ```
 
-Repositories the TOSE GitHub App can read, de-duplicated by `full_name`. With `workspace_slug`, only installations attached to that workspace are searched, and you must be a member of it. Add `installation_id` to list a single installation; a failure then returns `500`. Without it, an installation that fails to load is skipped.
+Repositories the TOSE GitHub App can read, de-duplicated by `full_name`. With `workspace_slug`, only installations attached to that workspace are searched, and you must be a member of it. Add `installation_id` to list a single installation; it must be one the caller can use (`403` otherwise), and a GitHub failure is then reported with a [`github_*` code](/api/errors#github-upstream-codes). Without it, an installation that fails to load is skipped. A non-numeric or non-positive `installation_id` is ignored.
 
 | Field | Type | Description |
 |-------|------|-------------|
@@ -45,7 +45,7 @@ Repositories the TOSE GitHub App can read, de-duplicated by `full_name`. With `w
 GET /api/github/repos/{owner}/{repo}/branches?workspace_slug={slug}
 ```
 
-Branches of a repository, read through an installation: `installation_id` when given; otherwise, with `workspace_slug`, the workspace's only attached installation (`400` when it has none or several); otherwise the account's default installation. Results may come from a short cache. Each item has `name`, `protected` and a `commit` object.
+Branches of a repository, read through an installation: `installation_id` when given; otherwise, with `workspace_slug`, the workspace's only attached installation (`400` when it has none or several); otherwise the account's default installation. Results may come from a short cache. A GitHub failure is reported with a [`github_*` code](/api/errors#github-upstream-codes). Each item has `name`, `protected` and a `commit` object.
 
 ### List installations
 
@@ -53,7 +53,7 @@ Branches of a repository, read through an installation: `installation_id` when g
 GET /api/github/installations?workspace_slug={slug}
 ```
 
-Installations attached to the workspace or used by its projects. Each item has `id`, `account_name`, `avatar_url` and `type` (`User` or `Organization`). Without `workspace_slug`, you see the installations linked to your own account.
+Installations attached to the workspace or used by its projects. Each item has `id`, `account_name`, `avatar_url` and `type` (`User` or `Organization`). Without `workspace_slug`, a user session sees the installations linked to its own account, and an API key sees those of its own workspace.
 
 ### List installations you can attach
 
@@ -61,7 +61,19 @@ Installations attached to the workspace or used by its projects. Each item has `
 GET /api/github/available-installations?workspace_slug={slug}
 ```
 
-The workspace's installations plus those linked to your account, each flagged `attached`. Use it to pick an `installation_id` to attach.
+The workspace's installations plus those linked to your account, each flagged `attached`. Use it to pick an `installation_id` to attach. An API key gets only the installations attached to its own workspace, never the ones linked to the key creator's account.
+
+### Errors from GitHub
+
+Repository and branch reads, and the repository check in create project and connect Git, never return GitHub's own error text. They return a stable `code`; see [GitHub upstream codes](/api/errors#github-upstream-codes).
+
+| Code | Status | Retry |
+|------|--------|-------|
+| [`github_not_found`](/api/errors#github_not_found) | `404`, `details.reason` is `installation_not_found` or `repository_not_found` | no |
+| [`github_forbidden`](/api/errors#github_forbidden) | `403` | no |
+| [`github_rate_limited`](/api/errors#github_rate_limited) | `429` with `Retry-After` | yes |
+| [`github_unavailable`](/api/errors#github_unavailable) | `503` | yes |
+| [`github_app_misconfigured`](/api/errors#github_app_misconfigured) | `500` | no |
 
 ## Install and attach (user session only)
 

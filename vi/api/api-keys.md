@@ -97,7 +97,7 @@ Một số route tác động lên tài khoản của một người hoặc hạ
 | `GET /api/mcp/connections`, `DELETE /api/mcp/connections/{family_id}`, `GET /api/mcp/tasks`, `GET /api/mcp/audit` | Kết nối thuộc về người tạo ra nó, nên chỉ người đó xem và thu hồi được. |
 | `POST` và `DELETE /api/servers`, `PUT /api/servers/{id}/development`, `POST` và `DELETE /api/registries`, `GET /api/registries` | Server và registry là hạ tầng nền tảng dùng chung. |
 
-Một vài route đọc cấp tài khoản vẫn nhận key, nhưng chỉ trong workspace của key: `GET /api/workspaces` chỉ liệt kê workspace của key, `GET /api/workspaces/available-templates` trả về catalog template, còn `GET /api/servers` và các route đọc `GET /api/github/...` kiểm tra workspace mà key đang gắn. Các route đọc GitHub còn cần scope `projects:read`.
+Một vài route đọc cấp tài khoản vẫn nhận key, nhưng chỉ trong workspace của key: `GET /api/workspaces` chỉ liệt kê workspace của key, `GET /api/workspaces/available-templates` trả về catalog template, còn `GET /api/servers` và các route đọc `GET /api/github/...` kiểm tra workspace mà key đang gắn. Các route đọc GitHub còn cần scope `projects:read`. Key bỏ `workspace_slug` ở các route này sẽ dùng workspace của chính nó, không bao giờ dùng tài khoản của người tạo key, nên `available-installations` chỉ trả các installation đã gắn vào workspace đó. Nêu workspace khác thì nhận `403`. Xem [GitHub API](/vi/api/github).
 
 ### Thay đổi hành vi: `POST /api/upload` không còn nhận API key
 
