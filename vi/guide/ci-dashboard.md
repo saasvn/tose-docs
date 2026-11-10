@@ -1,10 +1,10 @@
 # CI trong dashboard
 
-Dashboard của workspace có các trang CI cho pipeline, kế hoạch chạy, trạng thái run, log của job, chẩn đoán, mức sử dụng và hạn mức ngân sách. Các trang này gọi cùng các route CI của workspace như một API key, nhưng dưới danh nghĩa bạn đang đăng nhập, nên máy chủ vẫn kiểm tra vai trò của bạn ở mỗi thao tác và dashboard không làm được gì mà API không cho phép. Route và công cụ MCP được mô tả trong [tài liệu tham chiếu TOSE CI](https://github.com/saasvn/tose-app/blob/master/docs/ci.md#workspace-ci-api).
+Dashboard của workspace có các trang CI cho pipeline, kế hoạch chạy, trạng thái run, log của job, chẩn đoán, phê duyệt run từ fork, chính sách của pipeline, gợi ý tác động, mức sử dụng và hạn mức ngân sách. Các trang này gọi cùng các route CI của workspace như một API key, nhưng dưới danh nghĩa bạn đang đăng nhập, nên máy chủ vẫn kiểm tra vai trò của bạn ở mỗi thao tác và dashboard không làm được gì mà API không cho phép. Route và công cụ MCP được mô tả trong [tài liệu tham chiếu TOSE CI](https://github.com/saasvn/tose-app/blob/master/docs/ci.md#workspace-ci-api).
 
 ## Mở CI {#open}
 
-Chọn **CI** ở thanh bên của workspace (`/w/{slug}/ci`). Các tab là **Pipeline**, **Mức dùng**, **Hạn mức chi** và **Hồ sơ agent**. Hồ sơ agent được đánh dấu "Sắp có": trang này cho biết tính năng chưa khả dụng.
+Chọn **CI** ở thanh bên của workspace (`/w/{slug}/ci`). Các tab là **Pipeline**, **Phê duyệt**, **Mức dùng**, **Hạn mức chi** và **Hồ sơ agent**. Hồ sơ agent được đánh dấu "Sắp có": trang này cho biết tính năng chưa khả dụng.
 
 ## Pipeline {#pipelines}
 
@@ -16,7 +16,36 @@ Mở một pipeline để xem:
 
 - **Kế hoạch của lần chạy thủ công tiếp theo.** Có chạy được không, các lý do chặn nếu không, CPU, bộ nhớ, timeout và chi phí trường hợp xấu nhất của từng job, tổng cộng và số dư ví của bạn.
 - **Hạn mức của pipeline** cùng trạng thái và liên kết để chỉnh sửa.
+- **Liên kết tới gợi ý tác động** của pipeline, kèm số gợi ý đang mở.
+- **Chính sách của pipeline.** Xem [Chính sách](#policies).
 - **Các run của pipeline**, có nút **Tải thêm**.
+
+## Chính sách {#policies}
+
+Mục **Chính sách** trên trang pipeline chứa các quy tắc TOSE áp dụng cho pipeline. Chúng được đặt ở đây, không bao giờ do cấu hình trong repository quyết định.
+
+- **Pull request từ fork.** **Không bao giờ chạy** (mặc định: run bị bỏ qua kèm giải thích) hoặc **Chạy sau khi phê duyệt** (mỗi run chờ ở tab [Phê duyệt](#approvals)). Khi chuyển sang **Chạy sau khi phê duyệt**, dashboard xin xác nhận.
+- **Số lần chạy cùng lúc** và **số job cùng lúc** cho toàn repository. Để trống là không giới hạn; tối đa 100 lần chạy và 20 job.
+- **Quy tắc theo nhánh.** Tối đa 20 mẫu nhánh (`main`, `release/*`), mỗi mẫu có giới hạn lần chạy và job riêng. Run của pull request được tính cho nhánh mà nó nhắm tới.
+
+Lưu sẽ thay thế toàn bộ chính sách của pipeline. Run đang chạy vẫn tiếp tục; run đang chờ theo chính sách mới.
+
+| Vai trò của bạn | Việc bạn làm được |
+|-----------------|-------------------|
+| Thành viên | Xem chính sách. |
+| Chủ sở hữu hoặc quản trị viên | Xem và chỉnh sửa. |
+
+## Phê duyệt {#approvals}
+
+Tab **Phê duyệt** (`/w/{slug}/ci/approvals`) liệt kê các run của pull request từ fork đang chờ một người quyết định, khi chính sách fork của pipeline là **Chạy sau khi phê duyệt**. Mỗi mục hiển thị repository, pull request, commit và các nhánh, kèm liên kết tới pull request trên GitHub và tới trang run.
+
+Mọi thành viên của workspace đều có thể **Phê duyệt và chạy** hoặc **Từ chối** (kèm lý do nếu muốn). Cả hai đều xin xác nhận. Run được phê duyệt không nhận secret nào và dùng cấu hình CI của nhánh đích. Run bị từ chối kết thúc ở trạng thái đã hủy và không đoạn code nào của nó được chạy. Mỗi lần push mới lên pull request cần phê duyệt lại. API key và ứng dụng đã kết nối không thể phê duyệt hay từ chối run.
+
+## Gợi ý tác động {#suggestions}
+
+Trang gợi ý của một pipeline (`/w/{slug}/ci/p/{id}/suggestions`) liệt kê các đề xuất TOSE rút ra từ lịch sử CI của pipeline để bớt chạy những job không cần thiết trên pull request: thêm chọn job theo tác động, gắn job với target, thêm đường dẫn target, tách job, sửa lỗi sót của đồ thị hoặc đánh dấu job chập chờn. Mỗi gợi ý có một thay đổi đề xuất cho `.tose/ci.yml` với nút **Sao chép**, kèm bằng chứng. Lọc theo **Đang mở**, **Đã chấp nhận**, **Đã bỏ qua** hoặc **Tất cả**.
+
+Gợi ý chỉ là bản ghi. TOSE chỉ đọc được repository, nên chấp nhận một gợi ý không thay đổi gì: bạn tự sửa `.tose/ci.yml`. Không gợi ý nào xóa test. Chủ sở hữu và quản trị viên có thể **Chấp nhận** hoặc **Bỏ qua** gợi ý kèm ghi chú tùy chọn; thành viên chỉ xem.
 
 ## Chạy thủ công {#run}
 
