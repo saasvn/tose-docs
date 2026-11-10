@@ -39,6 +39,7 @@ Hãy chọn đúng sản phẩm khớp với key và gói bạn có.
 - Đây **không phải secret**. Nó gồm 32 ký tự thập lục phân viết thường.
 - Kế hoạch bắt buộc có nó với nhà cung cấp này và từ chối nó với mọi nhà cung cấp khác.
 - Nó được lưu trong kế hoạch đã duyệt và trong cài đặt, giống lựa chọn nhà cung cấp. Đổi nó nghĩa là có kế hoạch mới và phải duyệt lại.
+- Với `tose templates --curated pi`, đặt nó trong `variables` của `deploy.yaml`; CLI kiểm tra định dạng và bản phát hành trước ([chi tiết](/vi/commands/templates#curated-pi-providers)).
 - Biến môi trường riêng của bạn là phần khác: xem [biến môi trường và tự động ngủ](/vi/guide/agent-environment-and-auto-sleep#your-own-environment-variables).
 
 ## Công cụ lập trình và mạng

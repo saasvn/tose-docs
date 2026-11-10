@@ -66,6 +66,10 @@ The **Claude plan** panel is offered where the server enables `CURATED_SUBSCRIPT
 
 Codex receives its tokens from OpenAI directly and keeps them on the agent's disk. TOSE receives no token, cookie or authorization code, and never asks you to send one; it only relays the one-time device code to you. Operators enable this with `CURATED_SUBSCRIPTION_LOGIN_ENABLED=true`; the product owner allowed it in production on 2026-11-09. On a server where it is off, the provider is marked "not available on this server" and cannot be chosen. Any owner or admin who can open the console can use the connected ChatGPT session, and OpenAI may restrict accounts that sign in this way, so connect an account you are comfortable using for this.
 
+## Deploy from the CLI
+
+`tose templates plan|deploy --curated <name>` plans and installs the same agents from a terminal. For Pi, the CLI checks the provider before it plans: a provider newer than the newest Pi release is refused with the list of offered ones, and `cloudflare-workers-ai` needs `CLOUDFLARE_ACCOUNT_ID` in `variables`. See [Curated Pi providers](/commands/templates#curated-pi-providers).
+
 ## Open the console
 
 **Open console** opens the agent in a new tab. The console has no public address: only signed-in workspace owners and admins can open it, a session lasts up to 8 hours, and it closes when the app stops or you lose access. API keys and connected apps cannot open it.

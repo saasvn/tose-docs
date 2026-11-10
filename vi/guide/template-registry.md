@@ -21,7 +21,7 @@ Registry đã được phát hành (tose-app [#388](https://github.com/saasvn/to
 | Nâng cấp và rollback tại chỗ một bản cài từ registry (tose-app [#483](https://github.com/saasvn/tose-app/pull/483)) | Đã xây dựng, đi qua cùng loại plan và cùng cổng bảo mật |
 | Công cụ MCP cho registry: `search_templates`, `get_template`, `validate_template`, `create_template_draft`, `publish_template`, `plan_template_deployment`, `get_template_deployment`, `deploy_template` | Có. Không công cụ nào phê duyệt plan, và lần deploy gặp cùng cổng bảo mật |
 | Mẫu Pi, Claude Code và Codex tuyển chọn: triển khai trên một trang, cài đặt và console riêng tư | Đã phát hành: Codex 1.0.0, Claude Code 1.0.0, Pi 1.0.0 và 1.1.0 (mặc định cho Pi). Xem [bên dưới](#curated-agent-templates) |
-| CLI `tose templates ...` | Chưa có |
+| CLI `tose templates ...` | Có: [kiểm tra và push manifest, lập kế hoạch, triển khai và agent curated](/vi/commands/templates) |
 
 Template 1-click có sẵn (GoClaw, Dewee) không bị registry thay đổi. Chúng giữ nguyên [catalog, deploy và billing riêng](/vi/guide/dewee-template). Bản cài không đến từ registry không gắn với template version nào và được coi là bản cài legacy.
 
