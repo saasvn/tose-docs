@@ -64,6 +64,8 @@ credential hợp lệ.
 
 `402`. Ví của workspace không đủ số dư cho hành động này. Hãy nạp tiền rồi thử lại.
 
+Yêu cầu của agent làm vượt hạn mức cứng, hoặc khi ví đã hết tiền, trả `402` với mã `budget_exhausted`. Hãy nâng hạn mức hoặc nạp tiền rồi thử lại. Xem [API usage và hạn mức của agent](/vi/api/agent-usage#budgets).
+
 ### `forbidden` {#forbidden}
 
 `403`. Credential hợp lệ nhưng không được phép làm việc này. API key chỉ dùng được cho workspace

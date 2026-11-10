@@ -119,5 +119,6 @@ Thao tác tương tự có ở `POST /api/workspaces/{slug}/templates/{template_
 
 - [Ổ đĩa bền vững](/vi/guide/persistent-disks)
 - [Cloud Harness](/vi/guide/cloud-harness)
+- [Giá và hạn mức của Agent Runtime](/vi/guide/agent-runtime-pricing)
 - [`tose pricing` / `tose volumes`](/vi/commands/disk)
 - [API ổ đĩa, volume & bảng giá](/vi/api/disks)

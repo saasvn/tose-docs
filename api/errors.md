@@ -63,6 +63,8 @@ never uses the secret. Send the API key in the `X-API-Key` header, or a session 
 
 `402`. The workspace wallet does not have enough balance for the action. Add funds, then retry.
 
+An agent request that would exceed a hard budget, or find the wallet empty, returns `402` with the code `budget_exhausted`. Raise the budget or add funds, then retry. See [Agent usage and budgets API](/api/agent-usage#budgets).
+
 ### `forbidden` {#forbidden}
 
 `403`. The credential is valid but may not do this. An API key works only for its own workspace,
