@@ -102,6 +102,8 @@ For a key with `projects:write` but not `deployments:execute`:
 | Create a project with a `git` block | Succeeds and returns `deploy_skipped` instead of `deployment_id` and `build_logs_url`. |
 | Turn `auto_deploy` on, or move the branch of an auto-deploying connection | Fails with `403 insufficient_scope` and `required_scope: deployments:execute`. |
 
+The CLI follows the same rule: `tose up` with such a key connects Git, starts no deployment and exits with `INSUFFICIENT_SCOPE`. Run [`tose deploy`](/commands/deploy) with a key that has `deployments:execute`. See [`tose up`](/commands/up#api-key-without-deployments-execute).
+
 Add `deployments:execute` to the key, or use a session, when Git pushes should deploy automatically.
 
 ## WebSockets

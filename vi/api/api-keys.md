@@ -66,6 +66,7 @@ Lưu ý:
 - `deployments:read` đã bao gồm đọc project, log và workspace, nên key chỉ-đọc cho một dashboard trạng thái chỉ cần đúng scope này.
 - Đọc giá trị biến môi trường (`env.reveal`) cần `env:read`. Hãy coi `env:read` như một secret.
 - `deployments:write` chỉ dành cho [MCP connector](/vi/mcp) và không cấp được cho API key.
+- `tose up` với key có `projects:write` nhưng không có `deployments:execute` sẽ kết nối Git với tự động triển khai tắt, không bắt đầu lần triển khai nào và thoát với `INSUFFICIENT_SCOPE` (`details.required_scope: deployments:execute`, `details.git_connected: true`, `details.deploy_skipped: true`). Hãy chạy `tose deploy` với key có `deployments:execute`. Xem [`tose up`](/vi/commands/up#api-key-khong-co-deployments-execute).
 - Scope giới hạn key, không giới hạn con người. Dù có scope, request vẫn có thể bị từ chối nếu vai trò workspace của người tạo key quá thấp cho thao tác đó.
 
 ## Key toàn quyền
