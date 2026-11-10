@@ -4,7 +4,7 @@ Thêm server URL hosted `https://app.tose.sh/mcp` vào client; instance tự v�
 
 ## Đã kiểm chứng với client thật
 
-**Chưa có client nào.** Ma trận chỉ đánh dấu một client là đã kiểm chứng sau khi có người kết nối thật và ghi lại ngày cùng phiên bản. Kiểm thử tự động của TOSE không chạy client agent thật nào, nên không client nào được ghi là đã kiểm chứng. Claude, ChatGPT, Cursor, VS Code và MCP Inspector đều được kỳ vọng hoạt động dựa trên tài liệu của nhà cung cấp, không phải dựa trên một bài kiểm thử TOSE.
+**Chưa có client nào.** Ma trận chỉ đánh dấu một client là đã kiểm chứng sau khi có người kết nối thật và ghi lại ngày cùng phiên bản. Kiểm thử tự động của TOSE không chạy client agent thật nào, nên không client nào được ghi là đã kiểm chứng. Claude, ChatGPT, Cursor, VS Code và MCP Inspector đều được kỳ vọng hoạt động dựa trên tài liệu của nhà cung cấp, không phải dựa trên một bài kiểm thử TOSE. Kiểm thử của server có xác nhận metadata công khai của Claude và luồng token trên PostgreSQL, nhưng chưa có ứng dụng desktop nào được kết nối thật để xác nhận.
 
 Kết quả được maintainer của TOSE ghi vào ma trận, kèm ngày và phiên bản client.
 
@@ -16,7 +16,9 @@ Những mục này được kiểm thử tự động trên server, không phả
 |-----------|------------|
 | Streamable HTTP, stateless | Có |
 | Revision 2026-07-28 cùng các revision 2025 và 2024-11-05 | Có |
-| Client ID Metadata Document và đăng ký động | Có |
+| Client ID Metadata Document (`none` hoặc `private_key_jwt` kèm JWKS) và đăng ký động | Có |
+| Callback `http` loopback đổi cổng khi URI đã đăng ký không nêu cổng | Có |
+| Callback desktop của Cursor và Antigravity, và danh sách `grant_types` có `authorization_code` cùng grant phụ như JWT bearer | Có |
 | Step-up `insufficient_scope` | Có |
 | [Tasks](./tasks) cho deploy và rollback | Có, nhưng không có thông báo trạng thái task |
 | View [Apps](./apps) | Có |
