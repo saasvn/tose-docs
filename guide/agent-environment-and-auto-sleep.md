@@ -4,7 +4,7 @@ This page explains the environment variables you can add to a curated coding age
 
 ## On the deploy page
 
-The dashboard deploys these agents from one page. Its cards, the live plan and the **Deploy** button are described in [Deploy a coding agent](https://docs.tose.sh/guide/deploy-coding-agent#deploy-an-agent). Two of its settings are explained here:
+The dashboard deploys these agents from one page. Its cards, the live plan and the **Deploy** button are described in [Deploy a coding agent](/guide/deploy-coding-agent#deploy-an-agent). Two of its settings are explained here:
 
 - **Environment variables**, in the **Advanced: release, model and environment variables** card: see [Your own environment variables](#your-own-environment-variables).
 - **Auto-sleep after idle**, in the **Size** card: see [Auto-sleep for idle agents](#auto-sleep-for-idle-agents).

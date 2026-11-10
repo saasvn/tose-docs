@@ -59,7 +59,7 @@ Development (restricted) narrows the agent's reach. It does not make the agent s
 
 - **The allow is by name, not by site.** The cluster allows the addresses a name resolves to and does not check the TLS server name. Other sites served from the same shared CDN addresses (for example Cloudflare or Fastly) may still answer. Provider only has the same exposure through its provider hosts.
 - **Some listed hosts accept uploads.** `github.com` and `registry.npmjs.org` accept uploads. The agent holds no GitHub or npm credential of its own, but a token you paste into the session, or one planted by a prompt injection, lets it `git push` or `npm publish` data out.
-- **Private repositories use repository checkout, not this mode.** GitHub repository checkout has shipped: a plan can pin one repository of the workspace, private or public, and TOSE clones it into `/workspace` without giving the agent a GitHub token. See [GitHub repository checkout](https://docs.tose.sh/guide/agent-repository-checkout).
+- **Private repositories use repository checkout, not this mode.** GitHub repository checkout has shipped: a plan can pin one repository of the workspace, private or public, and TOSE clones it into `/workspace` without giving the agent a GitHub token. See [GitHub repository checkout](/guide/agent-repository-checkout).
 - The agent does receive your model provider key or sign-in, so treat anything the agent can read as something it could send to an allowed host.
 
 ## Related
