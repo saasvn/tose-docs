@@ -6,7 +6,7 @@ Endpoint của template nằm dưới `/api/workspaces/{slug}/templates` và dù
 
 [Spec OpenAPI](https://api.tose.sh/api/openapi.yaml) là nguồn chuẩn cho từng trường. Trang này giải thích hành vi xung quanh.
 
-## Template chọn image như thế nào
+## Template chọn image như thế nào {#how-a-template-picks-its-image}
 
 Một template lưu tối đa một **custom image**. Deploy bằng image chạy đúng image đã lưu đó và không bao giờ tự thay bằng image mặc định của catalog.
 
@@ -26,7 +26,31 @@ Khi template chưa lưu image nào, deploy bằng image chạy image mặc đị
 GET /api/workspaces/available-templates
 ```
 
-Mọi người dùng đã xác thực đều đọc được. `available-templates` là route cố định, không phải slug workspace. Các mục có `name`, `key`, `description`, `source`, `branch`, `default_port`, `default_cpu`, `default_ram`, `default_image`, `required_envs` và `unlock_fee_vnd`. Một số mục khác: mục Cloud Harness không có `default_image` và thêm `release`, `max_instances`, `pricing`. Hãy đọc danh sách trường của từng mục từ phản hồi hoặc spec OpenAPI. Dùng `key` làm `template_name` khi tạo template.
+Mọi người dùng đã xác thực đều đọc được. `available-templates` là route cố định, không phải slug workspace. Mỗi mục có `name`, `key`, `description`, `source`, `branch`, `default_port`, `default_cpu`, `default_ram`, `default_image`, `required_envs` và `unlock_fee_vnd` (chỉ có khi phí lớn hơn 0), cùng các trường dưới đây lấy từ manifest đã được kiểm tra của template. Mục Cloud Harness không lấy từ manifest: không có `source`, `branch`, `default_image` hay các trường manifest trong bảng dưới, và thêm `release`, `max_instances`, `pricing`. Hãy đọc danh sách trường đầy đủ từ phản hồi hoặc spec OpenAPI. Dùng `key` làm `template_name` khi tạo template.
+
+| Trường | Ý nghĩa với bạn |
+|--------|-----------------|
+| `schema_version` | Phiên bản định dạng manifest, hiện là `1`. |
+| `category`, `icon` | Nhãn tùy chọn để nhóm và hiển thị template. Rỗng nếu template không đặt. |
+| `min_cpu`, `min_ram` | vCPU và RAM (GB) nhỏ nhất mà lệnh tạo hoặc đổi cấu hình chấp nhận. Rỗng nếu template không có mức tối thiểu. |
+| `mounts` | Danh sách `{path, sub_path}`. Mỗi `path` trong container được lưu ở `sub_path` trên đĩa bền của instance, nên chỉ các đường dẫn này còn nguyên sau khi deploy lại. Dữ liệu ghi ở chỗ khác sẽ mất khi container khởi động lại. |
+| `disk_size_gib` | Dung lượng đĩa bền tính bằng GiB (2 nếu template không đặt kích thước khác). |
+| `secrets` | Các biến môi trường template cần: `key`, `mode`, `sensitive`, `label` và `placeholder`. Xem bên dưới. |
+| `network_egress` | `internet` hoặc `none`. Mô tả quyền truy cập mạng ra ngoài dự kiến, hiện chưa được áp dụng cưỡng chế. |
+
+`mode` của một secret cho biết ai cung cấp giá trị:
+
+| `mode` | Ai cung cấp |
+|--------|-------------|
+| `required` | Bạn, trong biểu mẫu thiết lập. Cũng có trong `required_envs`. |
+| `optional` | Bạn, hoặc để trống. Cũng có trong `required_envs`. |
+| `generated` | TOSE tạo một lần khi instance được tạo và lưu dạng mã hóa. TOSE không bao giờ tạo lại giá trị này. Nó bị che trong danh sách biến môi trường và catalog không trả giá trị; owner hoặc admin vẫn xem, ghi đè hoặc xóa được như biến khác, nhưng dữ liệu của instance có thể đã được mã hóa bằng nó nên đừng đổi. Không nằm trong `required_envs`. |
+
+`sensitive` đánh dấu giá trị mà dashboard ẩn đi. Catalog không bao giờ trả giá trị secret, chỉ trả các khai báo này.
+
+Tạo template hoặc đổi cấu hình xuống dưới `min_cpu` hay `min_ram` bị từ chối với `400` và thông báo `<name> needs at least <n> vCPU` hoặc `<name> needs at least <n> GB RAM`. Template chỉ cho phép kích thước cố định giữ thông báo hiện có, `<name> supports up to <n> vCPU` và `<name> supports <a> GB or <b> GB RAM`. Hiện chưa template nào trong catalog đặt mức tối thiểu, nên `min_cpu` và `min_ram` đang rỗng.
+
+Manifest không chứa container image. Image, quy trình nâng cấp và rollback vẫn như mô tả trong [Template chọn image như thế nào](#how-a-template-picks-its-image), [Deploy Template](#deploy-template) và [hướng dẫn Dewee](/vi/guide/dewee-template#versions-and-upgrades).
 
 ### Tạo template {#create-a-template}
 
