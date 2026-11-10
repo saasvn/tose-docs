@@ -161,6 +161,8 @@ PUT /api/workspaces/{slug}/templates/{template_slug}
 
 Chỉ gửi các trường muốn đổi: `name`, `port`, `cpu`, `ram`, `replicas` và `custom_image`. Template chạy một replica, nên `replicas` lớn hơn `1` bị từ chối. Đặt `custom_image` khác sẽ ghi `image_source=custom`. Gửi `""` để xóa.
 
+Image tùy chỉnh phải pull được công khai. Nền tảng không gắn thông tin đăng nhập registry cho image không thuộc sở hữu của template, nên image private sẽ pull thất bại. Image private ở registry khác chưa được hỗ trợ.
+
 | Trạng thái | Ý nghĩa |
 |------------|---------|
 | `400` | Tham chiếu image sai định dạng, body không hợp lệ, `cpu` hoặc `ram` không phải kích thước hợp lệ cho template, hoặc `replicas` lớn hơn `1` |

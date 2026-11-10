@@ -266,10 +266,43 @@ PORT=3000
   "success": true,
   "data": {
     "pulled": 8,
-    "file": ".env"
+    "file": ".env",
+    "skipped_masked": []
   }
 }
 ```
+
+## Masked values for workspace members
+
+Only workspace `admin` and `owner` can read environment values. For a `member`, the API returns the placeholder `********` instead of each value in the project env listing (and `***` in the template env listing). The CLI recognises these placeholders and never treats them as real values:
+
+| Command | Behavior when values are masked |
+|---------|---------------------------------|
+| `tose env list` | Shows the placeholders as the API returns them |
+| `tose env pull` | Skips masked keys and lists them in `skipped_masked` with `--json`. A value the local file already holds for a masked key is kept. If every value is masked, it fails without writing the file (`FORBIDDEN`, exit `1`) |
+| `tose env push`, `tose env set`, `tose template env set` | Refuse a value that is a masked placeholder and send nothing (`VALIDATION_ERROR`, exit `2`) |
+| `tose up` | When you choose to push an env file at its prompt, stops before sending any value if the file holds a masked placeholder (`VALIDATION_ERROR`, exit `2`). Without a terminal, `tose up` does not push env files |
+
+The refusal protects you from overwriting a real value with a placeholder, for example after copying a listing into an env file. Replace the placeholders with the real values, or ask a workspace `admin` or `owner` to run the command.
+
+```bash
+$ tose env pull
+Pulled 6 variables to .env
+Skipped 2 masked variable(s) (API_KEY, JWT_SECRET): workspace members cannot read env values.
+```
+
+```json
+{
+  "success": true,
+  "data": {
+    "pulled": 6,
+    "file": ".env",
+    "skipped_masked": ["API_KEY", "JWT_SECRET"]
+  }
+}
+```
+
+---
 
 ## Workflow Examples
 

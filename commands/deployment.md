@@ -7,8 +7,32 @@ Deployment IDs double as task IDs. You get the ID from `tose deploy`, `tose stat
 | Command | What it does | Confirmation |
 |---------|--------------|--------------|
 | `tose deployment wait <id>` | Resume waiting for a deployment until it is live and healthy | None |
-| `tose deployment cancel <id>` | Cancel a deployment that is still building | `--yes` |
+| `tose deployment cancel <id> [project]` | Cancel a deployment that is still building | `--yes` |
 | `tose deployment rollback <id> [project]` | Roll back to the image of an earlier deployment | `--yes` |
+
+## tose deployment cancel
+
+Cancel a deployment that has not reached deploy yet.
+
+### Synopsis
+
+```bash
+tose deployment cancel <id> [project] --yes
+```
+
+### Behavior
+
+- Only a deployment that is still in progress (`pending`, `cloning`, `building`, `pushing`, `deploying`) can be cancelled. Any other status is refused with exit code `1` (`CONFLICT`). To stop a `running` project, use [`tose down`](/commands/down).
+- It is destructive, so it follows the same confirmation rules as rollback: a prompt in a terminal (declining exits with code `5`), and `--yes` without a terminal or with `--json` (otherwise exit code `4`).
+- It uses the same retry and final-status check as `tose down`. A `503` with `Retry-After` is retried up to 4 times (each wait is the `Retry-After` time, at most 60 s, or 5 s if absent); after that it fails with `OPERATION_FAILED` (exit code `8`, retryable) and says the stop did not happen. A Stop request that runs past about 100 s fails with `TIMEOUT` (exit code `7`) and an unknown outcome.
+- After the stop, the deployment is re-read. If it is not `stopped` (for example it ended `running` again), the command fails with `OPERATION_FAILED` and the `error_message` instead of printing `cancelled`; if it is still `deploying` it fails with `TIMEOUT`.
+
+```bash
+$ tose deployment cancel dep_abc123 --yes
+Deployment dep_abc123 cancelled.
+```
+
+See [`tose down`](/commands/down#retries-and-timeouts) for the retry details and exit codes.
 
 ## tose deployment rollback
 

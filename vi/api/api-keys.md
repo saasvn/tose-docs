@@ -8,7 +8,7 @@ Cách gửi key kèm request nằm ở trang [Xác thực](/vi/api/authenticatio
 
 - Key thuộc **một workspace**, chính là workspace đã tạo ra nó. Key đọc và thay đổi được workspace đó, không làm được gì ngoài workspace.
 - Key không bao giờ có quyền cấp tài khoản hay cấp nền tảng, kể cả khi người tạo key là platform admin. Xem [Route từ chối API key](#route-tu-choi-api-key).
-- TOSE kiểm tra tư cách thành viên của người tạo key ở mỗi request. Nếu người đó bị xóa khỏi workspace hoặc bị hạ vai trò, key của họ mất quyền tương ứng ngay lập tức.
+- TOSE kiểm tra tư cách thành viên của người tạo key ở mỗi request. Nếu người đó bị hạ vai trò, key của họ mất quyền tương ứng ngay lập tức. Nếu người đó bị xóa khỏi workspace, các key họ tạo trong workspace đó bị thu hồi. Key vẫn bị thu hồi kể cả khi người đó được mời lại, nên mọi thứ từng dùng key (ví dụ một job CI) cần key mới.
 - Request tới workspace khác bị từ chối với `403`.
 
 ## Tạo key
