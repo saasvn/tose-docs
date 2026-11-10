@@ -40,6 +40,23 @@ Thay đổi có hiệu lực ở lần deploy tiếp theo. Dự án có [ổ đ�
 | `400` | `status` không hợp lệ, slug sai định dạng, dự án có ổ đĩa bền vững mà bạn tăng `replicas` trên `1` hoặc đổi `server_id`, hoặc server không hợp lệ với workspace |
 | `409` | Slug đã được dùng trong workspace |
 
+## Giới hạn tiến trình {#process-limit}
+
+```http
+GET /api/workspaces/{slug}/projects/{project_slug}/status
+```
+
+Phản hồi trạng thái có đối tượng `resources` chứa giới hạn CPU và bộ nhớ của dự án. Khi bên vận hành đã khai báo giới hạn tiến trình (PID) theo Pod, phản hồi còn có `resources.pids.limit`:
+
+```json
+{ "resources": { "pids": { "limit": 4096 } } }
+```
+
+- **Theo Pod, dùng chung.** Con số là một ngân sách cho cả Pod: container của dự án và mọi sidecar cùng tính vào đó. Đây không phải cài đặt theo từng container hay từng dự án.
+- **Là khai báo, không phải số đo.** Giá trị do bên vận hành hệ thống TOSE cấu hình (`PROJECT_POD_PIDS_LIMIT`) sau khi đã xác nhận cấu hình trên node. TOSE không đọc lại giá trị từ node, nên có thể lỗi thời nếu node thay đổi, và giới hạn có thể khác nhau giữa các node.
+- **Vắng mặt nghĩa là chưa biết.** Trường chỉ xuất hiện khi bên vận hành đã cấu hình một giá trị được xác nhận. Không có đối tượng `pids` không có nghĩa là không giới hạn; nó nghĩa là TOSE không biết giới hạn.
+- **Chỉ để báo cáo.** Trường này không đặt hay thực thi giới hạn, và không có lệnh gọi API nào thay đổi nó. Việc thực thi là cấu hình kubelet ở cấp node (`podPidsLimit`), nằm ngoài API này.
+
 ## Restart dự án {#restart}
 
 ```http
@@ -132,6 +149,56 @@ DELETE /api/workspaces/{slug}/projects/{project_slug}/git
 ```
 
 Gỡ kết nối và xóa webhook GitHub của nó, trừ khi dự án khác vẫn dùng webhook đó. Các deployment hiện có tiếp tục chạy. **Phản hồi:** `200` kèm `{ "message": "..." }`.
+
+## Biến môi trường và apply {#environment-variables}
+
+Các route biến môi trường nằm trong [spec OpenAPI](https://api.tose.sh/api/openapi.yaml):
+`POST`, `PUT` và `DELETE` trên `/api/workspaces/{slug}/projects/{project_slug}/env[/{env_id}]`, và
+`PUT .../env/bulk`. Mặc định thay đổi chỉ được lưu; các pod đang chạy nhận thay đổi ở lần deploy tiếp
+theo hoặc `POST .../redeploy`.
+
+### Lưu và áp dụng
+
+Thêm `?apply=true` để lưu thay đổi rồi triển khai ngay. Cách triển khai giống
+`POST /api/workspaces/{slug}/projects/{project_slug}/redeploy`: image thành công gần nhất với các biến
+và giới hạn tài nguyên hiện tại, **không build lại**.
+
+```bash
+curl -X PUT "https://api.tose.sh/api/workspaces/$WS/projects/web/env/bulk?apply=true" \
+  -H "X-API-Key: $TOSE_API_KEY" -H "Content-Type: application/json" \
+  -d '{"variables": {"LOG_LEVEL": "debug"}, "merge": true}'
+```
+
+Phản hồi có thêm đối tượng `apply` bên cạnh kết quả thông thường. Thay đổi luôn được lưu dù `apply` báo gì.
+
+```json
+{ "applied": true, "deployment_id": "dep_123", "status": "running" }
+```
+
+```json
+{ "applied": false, "code": "NO_DEPLOYMENT", "reason": "The project has no successful deployment yet. The change was saved and applies with the next deploy." }
+```
+
+| Trường | Mô tả |
+|--------|-------|
+| `applied` | `true` khi thay đổi đã được triển khai tới các pod đang chạy |
+| `deployment_id`, `status` | Deployment mà lần triển khai ghi nhận, khi đã áp dụng |
+| `code`, `reason` | Lý do chưa áp dụng: `NO_DEPLOYMENT` (chưa có deployment thành công), `NO_SERVER`, `INSUFFICIENT_BALANCE`, `ROLLOUT_FAILED` và tương tự. Hãy redeploy để thử lại |
+
+Apply cần cùng quyền với redeploy: vai trò `owner` hoặc `admin`, scope `deployments:execute` với API
+key, phê duyệt với ứng dụng OAuth được kết nối, và số dư ví dương. Nếu thiếu một điều kiện, yêu cầu bị
+từ chối trước khi lưu bất cứ thứ gì:
+
+| Trạng thái | Ý nghĩa |
+|------------|---------|
+| `402` | Số dư ví không dương (`INSUFFICIENT_BALANCE`). Không có gì được lưu |
+| `403` | Key thiếu `deployments:execute`, hoặc ứng dụng OAuth cần phê duyệt (`approval_required`). Không có gì được lưu |
+
+### Phát hiện thay đổi chờ áp dụng
+
+`GET /api/workspaces/{slug}/projects/{project_slug}` trả về `env_pending`: `true` khi các biến đã lưu
+khác với biến mà deployment đang chạy được triển khai cùng. Giá trị là `false` khi chưa có gì chạy, với
+deployment tạo trước khi có trường này, và sau khi rollback bằng runbook.
 
 ## Liên quan
 
