@@ -88,8 +88,9 @@ Run 'tose up' to connect your repository first.
 ### Error: Insufficient Wallet Balance
 
 When the workspace wallet balance is zero or negative, the API refuses `deploy`, `redeploy` and
-`rollback` with `402` and the code `INSUFFICIENT_BALANCE`. No deployment is created. The CLI exits
-with code `9`.
+`rollback` with `402` and the code `INSUFFICIENT_BALANCE`. No deployment is created. Creating a
+project (`tose up`, `tose init`) with an empty wallet is refused the same way, with `402` instead of
+the earlier `403`, and no project is created. The CLI exits with code `9`.
 
 ```bash
 $ tose deploy
@@ -190,6 +191,12 @@ $ tose redeploy --json
 `tose redeploy` and `tose rollback` are refused the same way as `tose deploy`: exit code `9`,
 `error.code: "INSUFFICIENT_BALANCE"` and a `next_actions` entry with the top-up `url`. Top up the
 wallet, then run the command again.
+
+### Error: Redeploy or Rollback Failed
+
+If the redeploy fails, in the cluster or in a step before it such as reading the server, secrets or disk, the API answers `500` with `Redeploy failed. See the server log for details.`. The message is generic on purpose: the cluster error can contain infrastructure detail, so it stays in the server log. Run the command again, and quote the `request_id` to support if it keeps failing.
+
+`tose rollback` goes through a recovery runbook. With an API key the API stores the plan and answers `409 APPROVAL_REQUIRED` with an `approval_url`: a workspace owner or admin opens it while signed in and approves the plan, then run it with `tose runbook execute <plan_id>`. A run that fails answers `409` with the run's code (`RUNBOOK_FAILED`, or the code of the step that failed, such as `PLAN_STALE`) and the plan in `runbook`. See [`ROLLBACK_FAILED`](/api/errors#ROLLBACK_FAILED).
 
 ## deploy vs redeploy
 

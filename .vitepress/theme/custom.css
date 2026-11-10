@@ -1,0 +1,156 @@
+/* tose.sh design tokens ("mission control"), mapped onto VitePress variables.
+   Dark is the brand default; light mode keeps the same structure with darker
+   green accents so text and links stay WCAG AA. */
+
+:root {
+  --bg-0: #0d0f10; --bg-1: #121416; --bg-2: #1a1c1f; --bg-3: #23262a;
+  --line: rgba(255, 255, 255, .08); --line-2: rgba(255, 255, 255, .14);
+  --text: #eceeea; --muted: #a9afab; --dim: #8d948f;
+  --g1: #98D25A; --g2: #54B67C; --g-soft: #b6e283;
+  --grad: linear-gradient(90deg, #98D25A, #54B67C);
+  --amber: #E3B341;
+  --soon: #b3b8b5;
+  --f-display: "Unbounded", system-ui, sans-serif;
+  --f-body: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --ease: cubic-bezier(.16, 1, .3, 1);
+
+  --vp-font-family-base: var(--f-body);
+  --vp-font-family-mono: var(--f-mono);
+}
+
+/* Dark (default) */
+:root.dark {
+  --vp-c-bg: var(--bg-0);
+  --vp-c-bg-alt: var(--bg-1);
+  --vp-c-bg-soft: var(--bg-2);
+  --vp-c-bg-elv: var(--bg-3);
+
+  --vp-c-divider: var(--line);
+  --vp-c-border: var(--line-2);
+  --vp-c-gutter: var(--bg-0);
+
+  --vp-c-text-1: var(--text);
+  --vp-c-text-2: var(--muted);
+  --vp-c-text-3: var(--dim);
+
+  --vp-c-brand-1: var(--g1);
+  --vp-c-brand-2: var(--g2);
+  --vp-c-brand-3: var(--g-soft);
+  --vp-c-brand-soft: rgba(152, 210, 90, .14);
+
+  --vp-c-warning-1: var(--amber);
+  --vp-c-warning-2: var(--amber);
+  --vp-c-warning-3: var(--amber);
+  --vp-c-warning-soft: rgba(227, 179, 65, .14);
+
+  --vp-button-brand-text: #0b0d0c;
+  --vp-button-brand-bg: var(--grad);
+  --vp-button-brand-border: transparent;
+  --vp-button-brand-hover-text: #0b0d0c;
+  --vp-button-brand-hover-bg: linear-gradient(90deg, #b6e283, #6fc994);
+  --vp-button-brand-hover-border: transparent;
+  --vp-button-brand-active-text: #0b0d0c;
+  --vp-button-brand-active-bg: linear-gradient(90deg, #88c04c, #48a56e);
+  --vp-button-brand-active-border: transparent;
+
+  --vp-code-block-bg: var(--bg-1);
+  --vp-code-bg: var(--bg-3);
+  --vp-code-color: var(--g-soft);
+  --vp-code-line-highlight-color: rgba(255, 255, 255, .05);
+
+  --vp-custom-block-info-bg: var(--bg-2);
+  --vp-custom-block-info-border: var(--line-2);
+}
+
+/* Light (kept readable, AA contrast, brand green accents) */
+:root:not(.dark) {
+  --vp-c-bg: #ffffff;
+  --vp-c-bg-alt: #f6f8f5;
+  --vp-c-bg-soft: #eef2ec;
+  --vp-c-bg-elv: #ffffff;
+
+  --vp-c-divider: rgba(13, 15, 16, .1);
+  --vp-c-border: rgba(13, 15, 16, .16);
+
+  --vp-c-text-1: #121416;
+  --vp-c-text-2: #3f4642;
+  --vp-c-text-3: #5c635f;
+
+  --vp-c-brand-1: #3f7a1a;
+  --vp-c-brand-2: #2f7a52;
+  --vp-c-brand-3: #4f8f27;
+  --vp-c-brand-soft: rgba(84, 182, 124, .16);
+
+  --vp-c-warning-1: #8a6500;
+  --vp-c-warning-2: #8a6500;
+  --vp-c-warning-3: #a67900;
+  --vp-c-warning-soft: rgba(227, 179, 65, .18);
+
+  --vp-button-brand-text: #0b0d0c;
+  --vp-button-brand-bg: var(--grad);
+  --vp-button-brand-border: transparent;
+  --vp-button-brand-hover-text: #0b0d0c;
+  --vp-button-brand-hover-bg: linear-gradient(90deg, #b6e283, #6fc994);
+  --vp-button-brand-hover-border: transparent;
+  --vp-button-brand-active-text: #0b0d0c;
+  --vp-button-brand-active-bg: linear-gradient(90deg, #88c04c, #48a56e);
+  --vp-button-brand-active-border: transparent;
+
+  --vp-code-color: #2f6b12;
+}
+
+/* Hero name uses the brand gradient */
+:root {
+  --vp-home-hero-name-color: transparent;
+  --vp-home-hero-name-background: var(--grad);
+  --vp-home-hero-image-background-image: linear-gradient(-45deg, #98D25A 30%, #54B67C 70%);
+  --vp-home-hero-image-filter: blur(44px);
+}
+
+/* Headings in the display face, code and labels in mono */
+.vp-doc h1, .vp-doc h2, .vp-doc h3, .vp-doc h4,
+.VPHero .name, .VPHero .text, .VPFeature .title,
+.VPNavBarTitle .title, .VPDocAsideOutline .outline-title {
+  font-family: var(--f-display);
+  letter-spacing: -.01em;
+}
+.vp-doc h1 { font-size: 30px; line-height: 1.25; }
+.vp-doc h2 { font-size: 22px; line-height: 1.3; }
+.vp-doc h3 { font-size: 18px; line-height: 1.35; }
+.vp-doc h4 { font-size: 16px; }
+.VPHero .name, .VPHero .text { font-weight: 700; }
+
+.vp-doc .custom-block-title, .vp-doc .badge, .vp-doc th,
+.VPSidebarItem.level-0 > .item .text, .VPDocAsideOutline .outline-title,
+.VPLocalSearchBox .result .title {
+  font-family: var(--f-mono);
+}
+.vp-doc th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+
+/* Radii in use: 6, 8, 10, 12 */
+.vp-doc div[class*='language-'], .vp-doc .custom-block { border-radius: 10px; }
+.vp-doc :not(pre) > code { border-radius: 6px; }
+.VPButton { border-radius: 999px; transition: filter .2s var(--ease), transform .2s var(--ease); }
+.VPFeature { border-radius: 12px; border: 1px solid var(--vp-c-divider); }
+.VPFeature:hover { border-color: var(--vp-c-border); }
+.VPLocalSearchBox .search-box, .VPLocalSearchBox .result > a { border-radius: 8px; }
+
+/* Primary button: gradient background needs background shorthand */
+.VPButton.brand { background: var(--vp-button-brand-bg); color: var(--vp-button-brand-text); }
+.VPButton.brand:hover { background: var(--vp-button-brand-hover-bg); color: var(--vp-button-brand-hover-text); }
+.VPButton.brand:active { background: var(--vp-button-brand-active-bg); color: var(--vp-button-brand-active-text); }
+
+/* Focus ring: 2px brand green, offset 3px */
+:focus-visible {
+  outline: 2px solid var(--vp-c-brand-1);
+  outline-offset: 3px;
+}
+
+/* Search modal on dark surfaces */
+.dark .VPLocalSearchBox .shell { background: var(--bg-2); border: 1px solid var(--line-2); }
+.dark .VPLocalSearchBox .search-bar { background: var(--bg-1); border-color: var(--line-2); }
+
+@media (prefers-reduced-motion: reduce) {
+  .VPButton { transition: none; }
+}

@@ -13,10 +13,15 @@ TOSE CLI cung cấp các lệnh chính sau để quản lý triển khai của b
 | [`tose disk`](/vi/commands/disk) | Quản lý ổ đĩa bền vững của dự án | Lưu file upload, SQLite, dữ liệu cần giữ qua các lần triển khai |
 | [`tose volumes`](/vi/commands/disk#tose-volumes-list) | Liệt kê và mở rộng mọi ổ đĩa trong workspace | Kiểm tra dung lượng và chi phí lưu trữ |
 | [`tose pricing`](/vi/commands/disk#tose-pricing) | Xem bảng giá compute và lưu trữ | Ước tính chi phí |
+| [`tose autoscaling budget`](/vi/commands/autoscaling) | Xem và đề xuất trần chi phí và floor của workspace hoặc project; chỉ có khi nhà vận hành nền tảng đã bật ngân sách | Giới hạn chi tiêu compute; một người duyệt kế hoạch trên dashboard |
 | [`tose deployment rollback`](/vi/commands/deployment#tose-deployment-rollback) | Rollback về một triển khai trước (cần `--yes`) | Khôi phục sau bản phát hành lỗi |
 | [`tose ci`](/vi/commands/ci) | Đọc và khởi chạy CI: `plan`, `run`, `dispatch`, `status`, `events`, `logs`, `report`, `cancel` | Chạy kiểm thử trên máy chủ và chờ kết quả, kể cả từ agent |
+
+| [`tose runbook`](/vi/commands/runbook) | Lập kế hoạch, xem lại và chạy restart hoặc rollback do người duyệt trong trình duyệt | Khôi phục có kiểm soát |
 | [`tose db create`](/vi/commands/db#tose-db-create) | Tạo database (`--type`, `--server`) | Postgres, pgvector, MySQL, Redis, MongoDB |
 | [`tose skills`](/vi/commands/skills) | Liệt kê và cài skill cho agent | Dạy agent dùng TOSE an toàn |
+| [`tose export`](/vi/commands/export) | In danh mục chỉ đọc, không chứa secret, của một dự án | Lập kế hoạch chuyển nền tảng (không phải backup) |
+| [`tose feedback`](/vi/commands/feedback) | Báo lỗi hoặc đề xuất tính năng, không cần tài khoản GitHub | Gửi phản hồi cho đội TOSE ngay từ terminal |
 
 ## Cấu trúc lệnh
 
@@ -26,7 +31,7 @@ Tất cả lệnh TOSE CLI theo mẫu này:
 tose <lệnh> [tùy chọn]
 ```
 
-### Tùy chọn toàn cục
+### Tùy chọn toàn cục {#global-options}
 
 Các tùy chọn này hoạt động với tất cả lệnh:
 
@@ -191,6 +196,7 @@ Với `--json`, stdout chỉ có đúng một tài liệu JSON; tiến trình v�
 | `6` | `NOT_FOUND` | Workspace, dự án hoặc tài nguyên không tồn tại |
 | `7` | `TIMEOUT` | Chờ quá lâu; thao tác vẫn có thể hoàn tất |
 | `8` | `OPERATION_FAILED` | Một deploy, build hoặc thao tác desktop kết thúc ở trạng thái lỗi |
+| `9` | `INSUFFICIENT_BALANCE` | Số dư ví của workspace bằng 0 hoặc âm nên deploy, redeploy hoặc rollback bị từ chối |
 
 ### API key không bao giờ nằm trong URL
 
@@ -330,7 +336,7 @@ export TOSE_API_KEY=$(cat ~/.secrets/tose-key)
 TOSE_API_KEY="ws_123..."  # Đừng làm thế này
 ```
 
-## Mã thoát
+## Mã thoát {#exit-codes}
 
 | Mã | Tên | Ý nghĩa |
 |----|-----|---------|

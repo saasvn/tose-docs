@@ -29,10 +29,11 @@ owner before you publish it. Do not copy a claim from an older page.
 - **Pricing** has one canonical page:
   [`guide/pricing.md`](guide/pricing.md), mirrored in
   [`vi/guide/pricing.md`](vi/guide/pricing.md). The rates come from tose-app.
-  Compute tiers are in `internal/services/billing/billing.go`. The storage
+  The standard compute rate is in `internal/services/billing/billing.go` (`HourlyRates`)
+  and the top-up bonus bands are in `internal/services/billing/topup_bonus.go`. The storage
   tariff is in `internal/services/storage/storage.go`, with its configured
-  default in `internal/config/config.go`. Both are served by the public pricing
-  route in `internal/handlers/volume.go`. Other pages should link to the
+  default in `internal/config/config.go`. All of them are served by the public
+  `/api/pricing` and `/api/billing/topup-bonus` routes in `internal/handlers/volume.go`. Other pages should link to the
   pricing page instead of restating rates. The pricing copy on the
   [saasvn/tose-web](https://github.com/saasvn/tose-web) landing page must match
   the canonical page. When a price changes, update tose-app first, then this

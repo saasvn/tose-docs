@@ -29,7 +29,7 @@ The rates and thresholds are policy values held by the backend. Do not hard-code
 
 ### What counts
 
-- Only **completed Polar and SePay payments** earn a commission. Promotional credit, admin adjustments and the legacy signup bonus never do.
+- Only **completed Polar and SePay payments** earn a commission. A payment that used a [promo code](/guide/promo-codes#rules) earns none. Promotional credit, admin adjustments and the legacy signup bonus never do.
 - The commission is `payment amount × rate`, calculated in cents and rounded down. A result of zero cents creates no commission.
 - Each payment produces **at most one** commission. A webhook that arrives twice does not credit twice.
 - A user has **one** referrer. A second code does not replace the first.
@@ -119,5 +119,5 @@ For TOSE administrators and moderators.
 
 ## See also
 
-- [Blog, widgets and editorial MCP (status)](./blog-and-editorial-mcp)
+- [Blog publishing through MCP](./blog-and-editorial-mcp)
 - [Pricing](./pricing)
