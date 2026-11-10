@@ -219,7 +219,7 @@ GET /api/workspaces/{slug}/templates/{template_slug}
 | `configured` | string | The stored custom image that image deploys run. Empty when none is set |
 | `source` | string | `custom`, `catalog` or `rollback` |
 | `available` | string | The catalog default image. Empty when the template has no catalog version |
-| `update_available` | boolean | The catalog image is different from the configured one |
+| `update_available` | boolean | The catalog image is different from the configured one. `false` when nothing is stored (`configured` is empty), as for a build-mode or Cloud Harness template, because there is no image to upgrade |
 | `rollback_warning` | string | The caveat about rolling back; show it next to any rollback action |
 
 ## Update Template
@@ -255,6 +255,10 @@ POST /api/workspaces/{slug}/templates/{template_slug}/deploy
 | `expected_image` | string | The image you last saw as `image.configured`. If the stored image differs, the deploy is refused with `409`. An empty value turns the check off |
 
 `image_source` must be `custom` or `catalog`. When `rollback_to` is set it takes precedence and `image_source` is not checked. Any `mode` other than `image` runs a build, and the image fields are ignored.
+
+::: warning Cloud Harness templates
+A Cloud Harness pod is built from the release manifest. There is no image to run and none to roll back to, so `rollback_to`, `image_source` and `expected_image` are refused with `400` on these templates, whatever `mode` says. Before, they were silently ignored. Send an empty body (or only `mode`) instead.
+:::
 
 ```bash
 # Run the stored image (the default)
@@ -306,7 +310,7 @@ The image is restored, but the data is not. Back up the template's database and 
 
 | Status | Meaning |
 |--------|---------|
-| `400` | The image reference is malformed, `image_source` is not `custom` or `catalog`, there is no image to deploy (no custom image and no catalog version), no cluster server is configured for the template, or Cloud Harness is not enabled |
+| `400` | The image reference is malformed, `image_source` is not `custom` or `catalog`, there is no image to deploy (no custom image and no catalog version), no cluster server is configured for the template, Cloud Harness is not enabled, or the template is a Cloud Harness template and the body has `rollback_to`, `image_source` or `expected_image` (`rollback_to, image_source and expected_image are not supported for Cloud Harness templates`) |
 | `404` | `rollback_to` does not name a deployment of this template that ran |
 | `409` | Another build or image deploy of this template is in flight, or `expected_image` does not match the stored image, the image changed while the request was starting, or the template is being deleted |
 
