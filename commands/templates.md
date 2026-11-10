@@ -27,9 +27,9 @@ The same plan, approve and install flow as the dashboard and MCP. A published ve
 
 ```bash
 tose templates search "agent" --category ai-agents --tag llm --sort -updated --json
-tose templates info my-agent --version 1.0.0 --json
-tose templates plan my-agent --version 1.0.0 --config deploy.yaml --json     # read-only: creates nothing
-tose templates deploy my-agent --version 1.0.0 --config deploy.yaml --plan-hash sha256:<hash> --wait --yes --json
+tose templates info my-agent --template-version 1.0.0 --json
+tose templates plan my-agent --template-version 1.0.0 --config deploy.yaml --json     # read-only: creates nothing
+tose templates deploy my-agent --template-version 1.0.0 --config deploy.yaml --plan-hash sha256:<hash> --wait --yes --json
 tose templates wait <installation-id> --json                 # resume after a timeout or a lost terminal
 tose templates installs --json
 ```

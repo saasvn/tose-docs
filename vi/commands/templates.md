@@ -27,9 +27,9 @@ Cùng luồng lập kế hoạch, duyệt và cài như dashboard và MCP. Versi
 
 ```bash
 tose templates search "agent" --category ai-agents --tag llm --sort -updated --json
-tose templates info my-agent --version 1.0.0 --json
-tose templates plan my-agent --version 1.0.0 --config deploy.yaml --json     # chỉ đọc: không tạo gì
-tose templates deploy my-agent --version 1.0.0 --config deploy.yaml --plan-hash sha256:<hash> --wait --yes --json
+tose templates info my-agent --template-version 1.0.0 --json
+tose templates plan my-agent --template-version 1.0.0 --config deploy.yaml --json     # chỉ đọc: không tạo gì
+tose templates deploy my-agent --template-version 1.0.0 --config deploy.yaml --plan-hash sha256:<hash> --wait --yes --json
 tose templates wait <installation-id> --json                 # tiếp tục sau khi hết thời gian chờ hoặc mất terminal
 tose templates installs --json
 ```
