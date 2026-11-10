@@ -53,6 +53,17 @@ hãy tắt việc ghi query ở đó. Xem [Xác thực](/vi/api/authentication).
 
 Theo mặc định, API thêm startup, readiness (`/health`) và liveness (`/livez`) probe của Kubernetes vào deployment template Dewee, và chạy kiểm tra `/health` công khai (tối đa 3 phút, trên domain mặc định) trước khi ghi một deployment có probe là `running`. Đặt `TEMPLATE_PROBES_ENABLED=false` trên API để tắt cả hai. Cơ chế giám sát của script khởi động vẫn hoạt động vì nó nằm trong mọi image Dewee. Image `custom`, deploy rollback và các template khác không bao giờ bị probe. Xem [Trạng thái health của deployment](/vi/guide/dewee-template#health-state).
 
+## Cài đặt tùy chọn cho operator {#optional-operator-settings}
+
+Cả hai cài đặt đều tắt nếu bạn không đặt.
+
+| Biến | Mặc định | Tác dụng |
+|------|----------|----------|
+| `POST_DEPLOY_HEALTH_GATE_ENABLED` | `false` | Đặt `true` để kiểm tra độ sẵn sàng Kubernetes của image vừa deploy trong 10 giây sau mỗi rollout build-and-deploy thành công (rollback và deploy template không được kiểm tra). Kết quả được lưu vào deployment và phát thành ops event. Kiểm tra thất bại không bao giờ rollback hay dừng deployment. Xem [Health gate sau deploy](/vi/api/projects#health-gate) |
+| `OPS_RETENTION_DAYS` | không đặt (giữ mãi) | Số ngày nguyên dương của lịch sử ops đã hoàn tất cần giữ. `0` hoặc không đặt thì không xóa gì; giá trị không hợp lệ làm API dừng khi khởi động |
+
+Retention xóa các dòng `ops_outbox` đã gửi, event `info` đứng riêng và incident đã giải quyết cùng timeline của chúng. Nó giữ incident đang mở, event `warning` và `critical` đứng riêng, và mọi incident có mục, event hoặc thông báo chưa xử lý gần đây. Lần chạy đầu sau khi khởi động 10 phút, rồi mỗi giờ, theo lô tối đa 500 dòng. Tăng giá trị về sau không khôi phục được lịch sử đã xóa, nên hãy chọn khoảng thời gian và sao lưu database trước. Xem `[ops-retention]` trong log backend để biết đã chạy gì. Xóa workspace cũng xóa lịch sử ops của nó trong cùng transaction.
+
 ## Công bố hợp đồng API
 
 API phục vụ spec OpenAPI tại `/api/openapi.yaml`, nên một instance tự host tự có tài liệu. Hãy sinh

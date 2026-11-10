@@ -104,6 +104,59 @@ Dự án, deployment, biến môi trường, domain, uptime monitor và kết n�
 
 **Phản hồi:** `200` kèm `{ "message": "..." }`. `502` nghĩa là không xóa được ổ đĩa bền vững: hãy gọi lại.
 
+## Đọc dự án và deployment {#read}
+
+```http
+GET /api/workspaces/{slug}/projects/{project_slug}
+GET /api/workspaces/{slug}/projects/{project_slug}/status
+```
+
+Khác với phần còn lại của trang này, mọi thành viên workspace đều được đọc.
+
+- **`endpoint` của server luôn rỗng.** Đối tượng `server` trong chi tiết dự án có `endpoint: ""`, nên chi tiết dự án không chứa URL control-plane Kubernetes. Hãy dùng `server.id` và `server.name`.
+- **`latest_deployment`.** Phản hồi status trả deployment gần nhất ở khóa `latest_deployment` (`id`, `status`, `created_at`, tùy chọn `service_url`) và bỏ khóa này khi dự án chưa từng deploy. Khóa camelCase cũ `latestDeployment` vẫn được gửi với cùng giá trị; code mới hãy đọc `latest_deployment`.
+- **Credential registry.** Đối tượng `registry` của dự án có `id`, `name`, `provider`, `namespace`, `url`, `status`, `created_at` và `updated_at`. Username và mật khẩu registry không bao giờ nằm trong phản hồi nào.
+
+## Health gate sau deploy {#health-gate}
+
+Mặc định một deployment chuyển sang `running` ngay khi rollout thành công. Operator có thể bật kiểm tra độ sẵn sàng tùy chọn bằng `POST_DEPLOY_HEALTH_GATE_ENABLED=true` (xem [Tự vận hành](/vi/guide/self-hosting#optional-operator-settings)); mặc định là tắt. Gate theo dõi độ sẵn sàng Kubernetes của image vừa deploy trong 10 giây sau rollout build-and-deploy thành công (rollback và deploy template không qua gate) và ghi kết quả vào deployment:
+
+| Trường | Mô tả |
+|--------|-------|
+| `health_gate_status` | `passed`, `failed`, `skipped_stopped` (deployment bị dừng trong lúc kiểm tra) hoặc `skipped_superseded` (một rollout mới đã thay thế). Không có khi gate không chạy |
+| `health_gate_reason` | Giải thích ngắn, an toàn. Không bao giờ chứa lỗi Kubernetes hay secret |
+| `health_gate_checked_at` | Thời điểm ghi kết quả (ISO 8601) |
+
+Gate chỉ quan sát workload, không gửi HTTP request tới ứng dụng của bạn. Kết quả `failed` **không** đổi trạng thái deployment, nên nó vẫn `running` và vẫn bị tính phí, và TOSE không bao giờ tự rollback. Build log có dòng `Post-deploy health gate: failed (...)`, và một ops event `deployment.health_gate_failed` (mức `warning`) đề xuất rollback để người dùng duyệt. Hãy xem build log và event, rồi tự [rollback](/vi/commands/deployment) hoặc redeploy.
+
+## Stream log {#log-streams}
+
+Endpoint log build và log runtime là WebSocket. Frame là văn bản; frame từ client bị bỏ qua.
+
+- **Log build.** Khi deployment thất bại, server gửi `[ERROR] Deployment failed` trước `[END]`. Lý do nằm ở `error_message` của `GET .../deployments/{id}`, không nằm trong frame.
+- **Log runtime.** Stream mở đến khi bạn ngắt kết nối hoặc stream log của pod kết thúc. Khi server kết thúc, nó gửi `[END]`. Nếu không mở được stream hoặc stream kết thúc vì lỗi, server gửi trước `[ERROR] ` kèm lý do, rồi `[END]`.
+- **Handshake thất bại** (không phải WebSocket hợp lệ, hoặc origin bị từ chối) trả JSON `{ "error": "Invalid WebSocket handshake" }`, không phải văn bản thuần.
+
+## Uptime monitor {#uptime}
+
+```http
+GET /api/workspaces/{slug}/projects/{project_slug}/uptime
+PUT /api/workspaces/{slug}/projects/{project_slug}/uptime
+```
+
+Mọi thành viên workspace đều đọc được; `PUT` cần vai trò `admin` hoặc `owner`. Monitor kiểm tra URL của dự án và báo qua email và/hoặc Discord webhook. URL Discord webhook đã lưu là credential nên không bao giờ được trả về: `discord_webhook_url` luôn rỗng và `discord_webhook_configured` cho biết đã lưu hay chưa. Thành viên đọc được trạng thái mà không nhận credential.
+
+Với `PUT`, `discord_webhook_url` có ba cách hoạt động:
+
+| Yêu cầu | Kết quả |
+|---------|---------|
+| Bỏ `discord_webhook_url` | Giữ webhook đã lưu |
+| Gửi URL Discord webhook (`https://discord.com/api/webhooks/...`) | Thay thế webhook đã lưu. URL khác trả `400` |
+| Gửi chuỗi rỗng `""` | Webhook đã lưu bị **xóa**, giống `clear_discord_webhook` |
+| Gửi `"clear_discord_webhook": true` | Xóa webhook đã lưu |
+
+`GET` luôn trả `discord_webhook_url` là chuỗi rỗng, nên đừng gửi lại nguyên body của `GET` vào `PUT`: làm vậy sẽ xóa webhook đã lưu. `PUT` thay thế toàn bộ các cài đặt khác (`enabled`, `check_interval_sec`, `notify_email`), nên hãy gửi đủ; `notify_email` bị bỏ sẽ bị xóa và `check_interval_sec` giới hạn trong 60-3600 giây. Gửi đồng thời URL thay thế và `clear_discord_webhook: true` trả `400`. Với `enabled: true`, phải còn ít nhất một trong webhook Discord (đã lưu hoặc mới) và `notify_email`, nếu không trả `400`.
+
 ## Kết nối Git {#git-connection}
 
 Kết nối repository GitHub để mỗi lần push có thể deploy. Workspace cần có GitHub App installation trước; xem [API GitHub](/vi/api/github). Quy trình được mô tả ở [Tích hợp Git](/vi/guide/git).

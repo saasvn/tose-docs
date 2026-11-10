@@ -183,10 +183,10 @@ GET /api/workspaces/{slug}/templates/{template_slug}/deployments/{id}/logs
 GET /api/workspaces/{slug}/templates/{template_slug}/live-logs
 ```
 
-Cả hai là WebSocket, cùng quy tắc xác thực và origin với stream log của dự án. Frame từ client bị bỏ qua, server chỉ gửi text frame. Lỗi phát hiện trước khi nâng cấp kết nối (template hoặc deployment không tồn tại, thiếu quyền thành viên) là phản hồi lỗi JSON bình thường.
+Cả hai là WebSocket, cùng quy tắc xác thực và origin với stream log của dự án. Frame từ client bị bỏ qua, server chỉ gửi text frame. Lỗi phát hiện trước khi nâng cấp kết nối (template hoặc deployment không tồn tại, thiếu quyền thành viên) là phản hồi lỗi JSON bình thường, và handshake thất bại cũng trả JSON `error`.
 
-- **Log build** (`deployments/{id}/logs`): mỗi frame một dòng log build. Với deployment đã kết thúc (`running`, `failed` hoặc `stopped`), log đã lưu được phát lại rồi gửi `[END]` và đóng kết nối. Nếu chưa, dòng mới được đẩy khi build chạy và `[END]` đóng kết nối. `[END]` là frame điều khiển duy nhất, nên hãy đọc trạng thái cuối từ `GET .../deployments/{id}`.
-- **Log runtime** (`live-logs`): theo dõi stdout và stderr của pod, bắt đầu từ 200 dòng cuối. Template phải ở trạng thái `running` (nếu không trả `400`). Mỗi frame là một khối thô tối đa 4096 byte, không căn theo dòng. Stream kết thúc bằng `[END]`. Nếu không mở được stream log, server gửi một frame bắt đầu bằng `[ERROR] ` rồi đóng mà không có `[END]`; lỗi đọc giữa chừng gửi `[ERROR] ` rồi `[END]`. Hãy xử lý cả hai.
+- **Log build** (`deployments/{id}/logs`): mỗi frame một dòng log build. Với deployment đã kết thúc (`running`, `failed` hoặc `stopped`), log đã lưu được phát lại rồi gửi `[END]` và đóng kết nối. Nếu chưa, dòng mới được đẩy khi build chạy và `[END]` đóng kết nối. Khi deployment thất bại, `[ERROR] Deployment failed` được gửi trước `[END]`; hãy đọc lý do từ `GET .../deployments/{id}`.
+- **Log runtime** (`live-logs`): theo dõi stdout và stderr của pod, bắt đầu từ 200 dòng cuối. Template phải ở trạng thái `running` (nếu không trả `400`). Mỗi frame là một khối thô tối đa 4096 byte, không căn theo dòng. Stream kết thúc bằng `[END]`. Nếu không mở được stream log, hoặc gặp lỗi đọc, server gửi một frame bắt đầu bằng `[ERROR] ` rồi `[END]`.
 
 ## Đọc template {#get-template}
 

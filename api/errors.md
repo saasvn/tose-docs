@@ -61,7 +61,7 @@ never uses the secret. Send the API key in the `X-API-Key` header, or a session 
 
 ### `payment_required` {#payment_required}
 
-`402`. The workspace wallet does not have enough balance for the action. Add funds, then retry.
+`402`. The workspace wallet does not have enough balance for the action. Add funds, then retry. Creating a project with an empty wallet returns `402` with the code `INSUFFICIENT_BALANCE`; it used to return `403`, so a client that treated a `403` there as a balance problem must now read `402`.
 
 An agent request that would exceed a hard budget, or find the wallet empty, returns `402` with the code `budget_exhausted`. Raise the budget or add funds, then retry. See [Agent usage and budgets API](/api/agent-usage#budgets).
 

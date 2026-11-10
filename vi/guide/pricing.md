@@ -101,6 +101,20 @@ Job CI được trừ vào ví của workspace theo giá [compute](#compute) cơ
 - **Xóa khi về 0.** Khi số dư ví về 0, bởi bất kỳ khoản trừ nào, khoản cộng dồn CI bị xóa. Khoản này không bao giờ bị thu sau khi nạp tiền.
 - **Một giao dịch mỗi job.** Job bị trừ ít nhất một cent ghi một giao dịch ví `usage` với loại tham chiếu `ci_job`; job không bị trừ gì thì không ghi giao dịch. Việc tính phí job là idempotent, nên thử lại không bao giờ trừ tiền hai lần.
 
+## Cloud desktop {#cloud-desktops}
+
+[Cloud desktop](/vi/guide/cloud-desktops) được tính phí **theo từng giây khi đang chạy**, theo giá compute ở trên cho CPU và RAM của nó. Desktop đang ngủ không tốn phí compute; ổ đĩa của nó được tính như [lưu trữ](#storage). Số tiền được đo bằng nano-USD (1 USD = 1.000.000.000), nên một lần chạy ngắn không bị làm tròn lên cả giờ hay cả cent: phần dư dưới 1 cent được cộng dồn sang kỳ sau như mô tả ở [Số tiền dưới 1 cent](#sub-cent-amounts). Compute đo được khi số dư bằng 0 được bỏ qua, không bị tính sau.
+
+Đánh thức desktop cần số dư ví lớn hơn 0. Xem [Cloud desktop](/vi/guide/cloud-desktops#retention).
+
+## Báo cáo chi phí {#cost-reports}
+
+```http
+GET /api/workspaces/{slug}/wallet/costs?days=30
+```
+
+Chia chi phí đã đo của `days` ngày gần nhất (mặc định 30) theo dự án, theo tài nguyên và theo ngày UTC, từ sổ usage. Số tiền tính bằng nano-USD (`compute_nano_usd`, `storage_nano_usd`, `total_nano_usd`). Mỗi mục trong `resources` có `type`: `project`, `template`, `database`, `desktop`, `runtime`, `volume`, `ci_cache` (cache phụ thuộc của CI) hoặc `other`. [Runtime Cloud Harness](/vi/guide/cloud-harness) được liệt kê là `runtime` với tên của runtime và chi phí compute riêng của nó, còn ổ đĩa của dự án được cộng vào dự án đó. Báo cáo là usage đã đo: compute đo trong giờ bắt đầu với số dư bằng 0 vẫn được liệt kê nhưng chưa từng bị tính phí.
+
 ## Khi số dư bằng 0 {#when-the-balance-is-zero}
 
 TOSE từ chối mọi deploy khi số dư ví của workspace bằng 0 hoặc âm. Bạn thấy gì tuỳ vào nơi bắt đầu deploy:

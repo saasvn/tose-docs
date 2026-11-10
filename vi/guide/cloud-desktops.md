@@ -213,13 +213,14 @@ số.
 - Các thay đổi vòng đời được ghi vào [nhật ký sự kiện](/commands/desktop#tose-desktop-events) của
   desktop.
 
-## Lưu giữ dữ liệu
+## Lưu giữ dữ liệu {#retention}
 
 - **Desktop không bao giờ bị xóa tự động.** Desktop và ổ đĩa của nó chỉ bị xóa khi admin của
   workspace chủ động xóa và xác nhận bằng tên desktop.
+- **Tính phí theo từng giây.** Desktop đang chạy bị tính cho từng giây pod hoạt động, với độ chính xác nano-USD, theo giá compute trong [Bảng giá](/vi/guide/pricing#cloud-desktops). Desktop đang ngủ không tốn phí compute, chỉ tốn phí ổ đĩa.
 - **Số dư thấp chỉ khiến desktop ngủ.** Nếu workspace hết tiền, các desktop đang chạy sẽ được cho
-  ngủ để dừng phí tính toán. Ổ đĩa được giữ lại, và bạn có thể đánh thức desktop sau khi nạp thêm
-  tiền.
+  ngủ để dừng phí tính toán. Ổ đĩa được giữ lại. Đánh thức desktop cần số dư ví lớn hơn 0 (nếu không trả `402`), nên hãy nạp
+  tiền trước rồi mới đánh thức.
 - Không thể xóa workspace khi vẫn còn desktop bên trong. Hãy xóa các desktop trước.
 
 ## Liên quan
