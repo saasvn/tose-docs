@@ -1,9 +1,10 @@
 # API analytics của workspace
 
 Analytics chỉ đọc cho một workspace: chi phí, tài nguyên, sức khỏe dịch vụ và deployment. Mỗi câu trả lời cho biết
-dữ liệu đầy đủ đến đâu, và dữ liệu thiếu không bao giờ được báo là 0 hay là khỏe. Schema đầy đủ
+dữ liệu đầy đủ đến đâu, và giá trị không đo được không bao giờ được báo là 0 hay là khỏe. Schema của response
 (`AnalyticsOverview`, `AnalyticsCosts`, `AnalyticsResources`, `AnalyticsReliability`, `AnalyticsMeta`) nằm trong
-[OpenAPI spec](https://api.tose.sh/api/openapi.yaml) dưới tag `Analytics`.
+[OpenAPI spec](https://api.tose.sh/api/openapi.yaml) dưới tag `Analytics`; trang này mô tả các trường lồng nhau chi
+tiết hơn spec.
 
 Các route này không ghi gì, không phát cảnh báo và không thay đổi billing.
 
@@ -24,27 +25,31 @@ Mọi đường dẫn nằm dưới `/api/workspaces/{slug}/analytics`.
 | `GET /resources` | `projects:read` | CPU và RAM cấu hình và cấp phát theo workload, bộ nhớ quan sát được, pod |
 | `GET /reliability` | `deployments:read` | Incident, lần kiểm tra uptime mới nhất của mỗi dự án, deployment |
 
-Mọi thành viên workspace đăng nhập dashboard đều đọc được tất cả route. API key hoặc OAuth grant cần scope trong
-bảng; xem [API key & Scope](/vi/api/api-keys#scope). `deployments:read` cũng cấp `workspace:read` và
+Mọi thành viên workspace đăng nhập dashboard đều đọc được tất cả route. API key cần scope trong bảng (key tạo
+không kèm `scopes` có toàn quyền trên workspace của nó); xem [API key và scope](/vi/api/api-keys#scope). `deployments:read` cũng cấp `workspace:read` và
 `projects:read`, nên key chỉ có `deployments:read` đọc được overview, resources và reliability, nhưng không đọc
 được costs.
 
-Một scope không bao giờ để lộ khu vực khác. `projects:read` không trả về con số billing nào, kể cả trong overview:
-dữ liệu billing luôn cần `billing:read`.
+Không scope nào ngoài `billing:read` (hoặc `billing:write`, vốn bao gồm nó) trả về con số billing, kể cả trong
+overview. `projects:read` và `deployments:read` không bao giờ để lộ chi phí.
 
 | Status | Khi nào |
 |--------|---------|
 | `200` | Câu trả lời |
 | `400` | `window` không phải `24h`, `7d` hay `30d` (`{"error":"window must be one of 24h, 7d, 30d"}`) |
 | `401` | Không có credential hợp lệ |
-| `403` | Credential thiếu scope của route (`code: insufficient_scope`) |
-| `404` | Analytics đang tắt, workspace không tồn tại, bạn không phải thành viên, hoặc API key thuộc workspace khác |
-| `500` | Không đọc được một nguồn dữ liệu (`{"error":"Failed to load analytics"}`). Mỗi truy vấn giới hạn 10 giây |
+| `403` | API key thiếu scope của route (`code: insufficient_scope`, kèm `required_scope`), hoặc key thuộc workspace khác hay gắn với một runtime (`code: forbidden`) |
+| `404` | Analytics đang tắt, workspace không tồn tại, hoặc bạn không phải thành viên |
+| `500` | Không đọc được một nguồn dữ liệu (`"Failed to load analytics"`). Mỗi request giới hạn 10 giây |
+| `503` | Không chạy được bước kiểm tra quyền (`"Authorization is temporarily unavailable"`); hãy thử lại |
+
+Bảng trên chỉ ghi trường `error`; body lỗi đầy đủ được mô tả trong [Mã lỗi](/vi/api/errors). Key của workspace khác
+nhận `403` dù slug có tồn tại hay không, nên không dò được slug.
 
 ## Bộ lọc `window`
 
 Mọi route nhận `?window=24h|7d|30d`, một khoảng thời gian kết thúc ở hiện tại. Mặc định là `24h`. Lịch sử giới hạn
-30 ngày; các dòng cũ hơn không bị xóa để áp giới hạn này, chỉ đơn giản là không bao giờ được đọc.
+khoảng 30 ngày (window `30d` bắt đầu từ đầu ngày UTC đầu tiên của nó); các dòng cũ hơn không bị xóa để áp giới hạn này, chỉ đơn giản là không bao giờ được đọc.
 
 Kích thước bucket theo window và theo nguồn:
 
@@ -65,18 +70,20 @@ curl "https://api.tose.sh/api/workspaces/$WS/analytics/costs?window=7d" \
 
 ## Dữ liệu thiếu và `meta`
 
-Dữ liệu thiếu là `null` hoặc `unavailable`. Nó không bao giờ là 0, và dự án không có bằng chứng không bao giờ được
-tính là khỏe hay đang up.
+Giá trị không đo được (số tiền, bộ nhớ, pod sẵn sàng, tỉ lệ, thời lượng) là `null`, và phần không tính được là
+`unavailable`. Nó không bao giờ là 0, và dự án không có bằng chứng không bao giờ được tính là khỏe hay đang up. Các
+số đếm như `workloads` hay `pods` trong bucket không có mẫu nào là `0`; dùng `meta.coverage` để phân biệt bucket trống
+với bucket đã đo.
 
 Mọi câu trả lời chi tiết, và mọi phần `ok` của overview, đều có `meta`:
 
 | Trường | Ý nghĩa |
 |--------|---------|
 | `observed_at` | Thời điểm tính câu trả lời |
-| `from`, `to` | Window đã làm tròn |
+| `from`, `to` | `from` được làm tròn xuống đầu bucket đầu tiên; `to` là thời điểm quan sát |
 | `window`, `granularity` | `24h`/`7d`/`30d` và `15m`/`1h`/`1d` |
 | `source` | Các bảng mà số liệu lấy từ đó |
-| `complete` | `false` khi một bucket đã đóng không có dữ liệu hoặc bằng chứng đã cũ |
+| `complete` | `false` khi một bucket đã đóng không có dữ liệu hoặc không bucket nào có dữ liệu. Với reliability, là `false` khi có dự án được giám sát ở trạng thái `stale` hoặc `unknown` (`coverage.ratio` của nó luôn là 1, vì bản ghi deployment và incident là đầy đủ) |
 | `coverage` | `expected_points`, `observed_points`, `ratio`, `first_at` và `last_at` của các bucket |
 | `units` | Đơn vị của từng loại số, ví dụ `{"cost":"nano_usd","balance":"usd_cents"}` |
 | `notes` | Các câu nêu rõ số liệu có và không có nghĩa gì |
@@ -87,14 +94,14 @@ Mọi câu trả lời chi tiết, và mọi phần `ok` của overview, đều 
 GET /api/workspaces/{slug}/analytics/overview?window=24h
 ```
 
-Câu trả lời có `observed_at`, `window`, `from`, `to` và ba phần `costs`, `resources`, `reliability`. Mỗi phần có
+Câu trả lời có `observed_at`, `window`, `from`, `to` (window trước khi làm tròn) và ba phần `costs`, `resources`, `reliability`. Mỗi phần có
 `status`:
 
 | `status` | `data` |
 |----------|--------|
 | `ok` | Tóm tắt của phần đó |
 | `forbidden` | `null`. Credential thiếu scope của phần đó (`billing:read`, `projects:read` hoặc `deployments:read`); `reason` cho biết dữ liệu nào không đọc được |
-| `unavailable` | `null`. Không đọc được nguồn của phần đó; các phần khác vẫn được trả lời |
+| `unavailable` | `null`. Không đọc được nguồn của phần đó. Route vẫn trả `200` cùng các phần khác; ba phần dùng chung một giới hạn 10 giây, nên khi timeout có thể nhiều phần cùng là `unavailable` |
 
 Các bản tóm tắt gồm: `costs` có `meta`, `totals`, `prepaid`, `budget_status` và `unavailable`; `resources` có
 `meta`, `totals` và `latest_memory_bytes` (bucket mới nhất có bộ nhớ quan sát được, hoặc `null`); `reliability` có
@@ -125,7 +132,7 @@ Số tiền tính bằng **nano-USD** (1 USD = 1.000.000.000), trừ khi tên tr
 | `series` | Một điểm mỗi bucket: `at` và `actual_nano_usd`. Bucket không có dòng sổ cái là `null`, không phải `0` |
 | `totals` | `actual_nano_usd` (các kỳ sổ cái đã kết thúc), `live_nano_usd` (kỳ đang diễn ra), `compute_nano_usd` và `storage_nano_usd` (phần chia của `actual`) |
 | `projects` | Chi phí theo dự án: `id`, `name`, `compute_nano_usd`, `storage_nano_usd`, `total_nano_usd` |
-| `resources`, `resources_truncated` | Các tài nguyên tốn nhiều nhất (`type`, `id`, `name`, ba số tiền, `usage_records`), và có tài nguyên nào bị lược bớt không |
+| `resources`, `resources_truncated` | Các tài nguyên tốn nhiều nhất (`type`, `id`, `name`, `project_id` với ổ đĩa của một dự án, ba số tiền, `usage_records`), và có tài nguyên nào bị lược bớt không |
 | `prepaid` | `balance_cents`, `unbilled_nano_usd`, `monthly_budget_cents`, `runway_days`, `depletes_at` |
 | `forecast` | Dự báo, tách riêng khỏi số đã đo: chi tiêu compute và storage mỗi ngày, chi tiêu dự kiến, `compute_runway_days`, `depletes_at` |
 | `budget` | `monthly_budget_cents`, `month_to_date_nano_usd`, `projected_month_end_nano_usd`, `status` (`none`, `ok`, `at_risk`, `over`) và `note` |
@@ -153,17 +160,17 @@ Resources tách cấu hình khỏi quan sát:
 
 | Trường | Ý nghĩa |
 |--------|---------|
-| `series` | Mỗi bucket: `at`, `workloads`, `memory_workloads`, `memory_bytes` (`null` khi không quan sát được gì), `pods`, `ready_pods` |
-| `totals` | Với các workload đang chạy: `workloads`, `running`, `replicas`, `allocated_cpu_cores`, `allocated_ram_gib`, và `no_samples` (workload đang chạy nhưng không có mẫu nào trong window) |
+| `series` | Mỗi bucket: `at`, `workloads`, `memory_workloads`, `memory_bytes` (tổng, qua các workload, của trung bình số đo một pod của từng workload trong bucket; `null` khi không quan sát được gì), `pods`, `ready_pods` |
+| `totals` | `workloads` (mọi dự án và template được liệt kê), rồi với các workload đang chạy và có replica: `running`, `replicas`, `allocated_cpu_cores`, `allocated_ram_gib`, và `no_samples` (workload đang chạy nhưng không có mẫu nào trong window) |
 | `workloads`, `workloads_truncated` | Các workload lớn nhất theo RAM cấp phát, và có workload nào bị lược bớt không |
 
 Mỗi workload có `type` (`project` hoặc `template`), `id`, `name`, `status`, `replicas`, kích thước cấu hình và cấp
-phát, `samples`, `observed_memory_bytes_last`, `observed_memory_bytes_avg`, `observed_memory_bytes_max`,
+phát, `sampled` (có cần mẫu hay không), `samples`, `observed_memory_bytes_last`, `observed_memory_bytes_avg`, `observed_memory_bytes_max`,
 `last_sample_at`, `pods`, `ready_pods` và `state`:
 
 | `state` | Ý nghĩa |
 |---------|---------|
-| `observed` | Collector có số đo trong window |
+| `observed` | Collector có ít nhất một mẫu trong window (các trường bộ nhớ vẫn có thể là `null` nếu mọi số đo đều bằng 0) |
 | `no_samples` | Đang chạy và có replica, nhưng collector không ghi được gì trong window |
 | `not_sampled` | Đã dừng hoặc không có replica, nên không cần mẫu |
 
@@ -178,7 +185,7 @@ GET /api/workspaces/{slug}/analytics/reliability?window=7d
 
 | Trường | Ý nghĩa |
 |--------|---------|
-| `incidents` | `open` và `open_by_severity` hiện tại, `opened_in_window`, `resolved_in_window`, và `mttr_seconds` (thời gian xử lý trung bình, `null` khi chưa có incident nào được giải quyết) |
+| `incidents` | `open` và `open_by_severity` hiện tại, `opened_in_window`, `resolved_in_window`, và `mttr_seconds` (thời gian khắc phục trung bình, MTTR; `null` khi không có incident nào được giải quyết trong window) |
 | `uptime` | Theo dự án, từ lần kiểm tra mới nhất của monitor: `projects`, `up`, `down`, `unknown`, `stale`, `not_monitored` |
 | `deployments` | `total`, `succeeded`, `failed`, `in_flight`, `other`, `success_ratio`, `duration_avg_seconds`, `duration_p95_seconds`, và `series` (`at`, `succeeded`, `failed` mỗi bucket) |
 
@@ -189,8 +196,9 @@ Deployment là các deployment dự án được tạo trong window. Incident v�
 - Một deployment **thành công** (succeeded) khi rollout đã xong, status không phải `failed` và không mang lỗi nào.
   Việc dừng hay rollback sau đó không làm mất kết quả này.
 - Nó **thất bại** (failed) khi status là `failed`.
-- Deployment đang chạy, kể cả rollback đang chờ xác minh, được đếm vào `in_flight`. Deployment bị dừng hoặc rollback
-  trước khi rollout xong được đếm vào `other`. Cả hai đều không tính là thành công hay thất bại.
+- Deployment đang chạy, kể cả rollback đang chờ xác minh, được đếm vào `in_flight`. Mọi deployment còn lại là
+  `other`: ví dụ bị dừng hoặc rollback trước khi rollout xong, hoặc đã xong nhưng mang lỗi mà không bị đánh dấu
+  `failed`. Cả hai đều không tính là thành công hay thất bại.
 - `success_ratio` là succeeded / (succeeded + failed), một tỉ lệ từ 0 đến 1, và là `null` khi chưa có deployment nào
   kết thúc.
 - Thời lượng tính từ lúc bắt đầu build (hoặc lúc tạo) đến khi rollout xong, chỉ trên các deployment thành công.
@@ -224,7 +232,7 @@ Lệnh CLI, tool MCP và adapter WebMCP cho analytics chưa được phát hành
 
 ## Tài liệu liên quan
 
-- [API key & Scope](/vi/api/api-keys)
+- [API key và scope](/vi/api/api-keys)
 - [Mã lỗi](/vi/api/errors)
 - [Mức sử dụng CI và hạn mức](/vi/api/ci-usage-budget)
 - [Usage và hạn mức agent](/vi/api/agent-usage)
