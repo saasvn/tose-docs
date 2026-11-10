@@ -56,13 +56,24 @@ Two desktop apps use a custom URL scheme instead of loopback. TOSE accepts exact
 | `logs:read` | `read_logs` | No |
 | `deployments:execute` | `deploy_project` | Yes |
 | `deployments:rollback` | `rollback_deployment` | Yes |
+| `env:read` | `list_project_env_keys`, `inspect_project_env`: variable names and whether each is set. Never a value. Off by default, see [Env metadata](#env-metadata-env-read). | No |
 
-- Any other scope, including members, billing, environment variables, databases and infrastructure, is refused with `invalid_scope`.
+- Any other scope, including members, billing, `env:write`, databases and infrastructure, is refused with `invalid_scope`. `env:read` is the one environment scope that exists.
 - A write scope is granted only when a workspace owner or admin ticks it on the consent page. It is removed on the next refresh if that person is demoted.
 - A refresh can narrow the scopes but never widen them.
-- `tools/list` shows only the tools your scopes allow: four read tools for a read-only connection, plus deploy and rollback with write scope.
+- `tools/list` shows only the tools your scopes allow: four read tools for a read-only connection, plus deploy and rollback with write scope. The two env tools appear only with `env:read`.
 
 Even with a write scope, every deploy and rollback still waits for you to approve the plan in your browser.
+
+### Env metadata (`env:read`)
+
+`env:read` lets a client tell a missing setting from a wrong one without ever seeing a value.
+
+- It is off by default. The consent page shows it with its own checkbox, and the connection gets it only when you tick that box. Leave the box unticked and the connection has no env access.
+- It is not part of `deployments:read` or `deployments:write`, so a deploy grant never carries it and existing connections do not gain it.
+- A refresh can narrow it but never add it. To add it later, connect again and tick the box.
+- Any workspace member can grant it for their own connection. Owners and admins see the real state of each variable; members see `unknown` (see [Env metadata tools](/mcp#env-metadata-tools)).
+- Membership is checked on every call, so losing your place in the workspace stops the connection at the next call.
 
 ## `insufficient_scope` step-up
 

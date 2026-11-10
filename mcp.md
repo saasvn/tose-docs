@@ -24,6 +24,8 @@ To connect another workspace, add the connector again and pick the other workspa
 | `get_deployment_status` | Status of one deployment, or the latest one, plus the 5 most recent deployments. | No |
 | `inspect_deployment` | Commit, branch, author, image, trigger, timings, URL and error of one deployment. | No |
 | `read_logs` | `source=build` reads a deployment's build log. `source=runtime` reads recent application logs (up to 24 hours back, optional `level`). Returns at most 500 lines and 64 KB. | No |
+| `list_project_env_keys` | Lists the names of a project's environment variables and whether each is set. Needs the `env:read` scope. Never returns a value. | No |
+| `inspect_project_env` | The same metadata for one variable name. Needs the `env:read` scope. Never returns a value. | No |
 | `deploy_project` | Builds and deploys the head commit of the project's connected branch, as shown in the plan. | **Yes**, needs approval |
 | `rollback_deployment` | Puts the image of an earlier deployment live again. | **Yes**, needs approval |
 
@@ -51,7 +53,24 @@ An agent can never approve its own budget plan: no MCP tool approves, and approv
 
 With budgets on, `deploy_project` refuses a start that would break a cap (`BUDGET_CAP`) or the floor reserve (`INSUFFICIENT_BALANCE`). If the budget cannot be checked, nothing is started and the tool returns the retryable `UNAVAILABLE`; try again shortly. See [Errors](/api/errors#mcp-budget-codes).
 
-There is no generic API tool. The connector cannot read or change environment variables, domains, databases, billing or members.
+There is no generic API tool. The connector cannot read or change the value of an environment variable, and it cannot reach domains, databases, billing or members. Changing environment variables over MCP (a plan, your approval in the browser, then apply) is not available yet.
+
+### Env metadata tools
+
+`list_project_env_keys` and `inspect_project_env` answer "is this variable configured?" without a value ever leaving TOSE. Use them to tell a missing setting such as `S3_ENDPOINT` from a wrong one instead of guessing from logs.
+
+- **Scope:** both tools need `env:read`. It is off by default and granted only when you tick its own box on the consent page. Without it, `tools/list` does not show the tools. See [Scopes](/mcp/oauth#env-metadata-env-read).
+- **What you get for each variable:** the name, a `state`, whether it is a secret (`is_secret`), when it last changed, and `changed_since_deploy` when the project has a running deployment. There is never a value, a length or a prefix.
+- **`state` values:**
+  - `set`: a non-empty value is stored.
+  - `empty`: the variable is stored with an empty value.
+  - `undecryptable`: TOSE could not decrypt the stored value.
+  - `unknown`: TOSE does not tell this caller. Members always see `unknown`; only owners and admins get the real `set` or `empty`.
+  - `unset`: no variable has that name (`inspect_project_env` only).
+- **Listings:** `list_project_env_keys` returns at most 100 names per page, with `total`, `redeploy_required` and an opaque `next_cursor`. Pass the cursor back to get the next page. A cursor works only for the project that issued it.
+- **Names that look like values:** if a stored name looks like a pasted value, for example it contains `=` or `://`, the list shows `[withheld]` instead of the name. `inspect_project_env` refuses such a name, an empty one and an over-long one with `INVALID_ARGUMENT`.
+- **Other workspaces:** a project in another workspace answers `NOT_FOUND`, the same as a missing project.
+- **Redeploy:** changing a variable never deploys by itself. A variable changed after the running deployment needs a redeploy.
 
 ### How approval works
 
@@ -101,7 +120,7 @@ Failed tool calls return text that starts with a stable code:
 
 ## Data and privacy
 
-- **What the connector reads:** projects, deployments, build logs and runtime logs of the workspace you picked, and nothing else.
+- **What the connector reads:** projects, deployments, build logs and runtime logs of the workspace you picked. With `env:read`, also the names and set state of a project's environment variables, never a value.
 - **What it never returns:** environment variable values, database credentials, registry or cluster credentials, and API keys. Before logs, commit messages and error messages are returned, TOSE removes the project's environment variable values and common credential patterns (URLs with passwords, bearer tokens, private keys, cloud and GitHub tokens, JWTs). Redaction is best effort. Do not print secrets in application logs.
 - **What TOSE stores:**
   - The registered client: name and redirect URIs.

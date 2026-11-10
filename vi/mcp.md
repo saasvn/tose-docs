@@ -24,6 +24,8 @@ Muốn kết nối workspace khác thì thêm connector lần nữa và chọn w
 | `get_deployment_status` | Trạng thái của một deployment (hoặc deployment mới nhất) và 5 deployment gần nhất. | Không |
 | `inspect_deployment` | Commit, branch, tác giả, image, trigger, thời gian, URL và lỗi của một deployment. | Không |
 | `read_logs` | `source=build` đọc build log của một deployment. `source=runtime` đọc log ứng dụng gần đây (tối đa 24 giờ, có thể lọc theo `level`). Trả về tối đa 500 dòng và 64 KB. | Không |
+| `list_project_env_keys` | Liệt kê tên các biến môi trường của project và trạng thái đã đặt hay chưa. Cần scope `env:read`. Không bao giờ trả giá trị. | Không |
+| `inspect_project_env` | Cùng metadata cho một tên biến. Cần scope `env:read`. Không bao giờ trả giá trị. | Không |
 | `deploy_project` | Build và deploy commit đầu của branch đã kết nối, đúng commit hiển thị trong kế hoạch. | **Có**, cần phê duyệt |
 | `rollback_deployment` | Đưa image của một deployment cũ lên chạy lại. | **Có**, cần phê duyệt |
 
@@ -51,7 +53,24 @@ Agent không bao giờ tự duyệt được kế hoạch ngân sách của mìn
 
 Khi bật ngân sách, `deploy_project` từ chối lần khởi chạy làm vượt trần (`BUDGET_CAP`) hoặc làm quỹ dự phòng floor thiếu tiền (`INSUFFICIENT_BALANCE`). Nếu không kiểm tra được ngân sách, không có gì được khởi chạy và tool trả `UNAVAILABLE` có thể thử lại; hãy thử lại sau ít phút. Xem [Lỗi](/vi/api/errors#mcp-budget-codes).
 
-Connector không có tool gọi API tùy ý. Nó không đọc hay sửa được biến môi trường, domain, database, thanh toán hay thành viên.
+Connector không có tool gọi API tùy ý. Nó không đọc hay sửa được giá trị của biến môi trường, và không truy cập được domain, database, thanh toán hay thành viên. Việc thay đổi biến môi trường qua MCP (kế hoạch, bạn duyệt trong trình duyệt, rồi áp dụng) chưa khả dụng.
+
+### Tool metadata env
+
+`list_project_env_keys` và `inspect_project_env` trả lời câu hỏi "biến này đã được cấu hình chưa?" mà không có giá trị nào rời khỏi TOSE. Dùng chúng để phân biệt một cấu hình bị thiếu như `S3_ENDPOINT` với một cấu hình bị sai, thay vì đoán từ log.
+
+- **Scope:** cả hai tool cần `env:read`. Scope mặc định tắt và chỉ được cấp khi bạn tick ô riêng của nó trên trang consent. Không có scope thì `tools/list` không hiển thị hai tool. Xem [Scope](/vi/mcp/oauth#metadata-bien-moi-truong-env-read).
+- **Mỗi biến trả về:** tên, `state`, có phải secret hay không (`is_secret`), lần thay đổi gần nhất, và `changed_since_deploy` khi project có deployment đang chạy. Không bao giờ có giá trị, độ dài hay tiền tố.
+- **Các giá trị `state`:**
+  - `set`: đã lưu một giá trị không rỗng.
+  - `empty`: biến được lưu với giá trị rỗng.
+  - `undecryptable`: TOSE không giải mã được giá trị đã lưu.
+  - `unknown`: TOSE không cho người gọi này biết. Thành viên luôn thấy `unknown`; chỉ owner và admin mới thấy `set` hoặc `empty` thật.
+  - `unset`: không có biến nào mang tên đó (chỉ với `inspect_project_env`).
+- **Danh sách:** `list_project_env_keys` trả tối đa 100 tên mỗi trang, kèm `total`, `redeploy_required` và `next_cursor` (chuỗi mờ). Gửi lại cursor để lấy trang kế tiếp. Cursor chỉ dùng được cho project đã cấp ra nó.
+- **Tên trông như giá trị:** nếu một tên đã lưu trông như giá trị bị dán nhầm, ví dụ chứa `=` hoặc `://`, danh sách hiển thị `[withheld]` thay cho tên. `inspect_project_env` từ chối tên như vậy, tên rỗng và tên quá dài bằng `INVALID_ARGUMENT`.
+- **Workspace khác:** project của workspace khác trả `NOT_FOUND`, giống như project không tồn tại.
+- **Redeploy:** đổi biến không bao giờ tự deploy. Biến đổi sau deployment đang chạy cần redeploy.
 
 ### Cơ chế phê duyệt
 
@@ -101,7 +120,7 @@ Khi tool lỗi, nội dung trả về bắt đầu bằng một mã cố định
 
 ## Dữ liệu và quyền riêng tư
 
-- **Connector đọc gì:** project, deployment, build log và runtime log của workspace bạn đã chọn, ngoài ra không đọc gì khác.
+- **Connector đọc gì:** project, deployment, build log và runtime log của workspace bạn đã chọn. Với `env:read`, còn đọc tên và trạng thái đã đặt của biến môi trường trong project, không bao giờ đọc giá trị.
 - **Không bao giờ trả về:** giá trị biến môi trường, thông tin đăng nhập database, registry hay cluster, và API key.
   - Trước khi trả log, commit message và thông báo lỗi, TOSE xóa giá trị biến môi trường của project và các dạng credential phổ biến: URL có mật khẩu, bearer token, private key, token cloud và GitHub, JWT.
   - Việc xóa này chỉ là best effort, vì vậy đừng in secret ra log ứng dụng.
