@@ -51,6 +51,8 @@ tose redeploy
 
 If the workspace is not enabled, the API answers `SIDECARS_DISABLED` (exit code `3`). Validation refusals keep their API code, for example `SIDECAR_ENV_MISSING`, `SIDECAR_DISK_MISSING` or `SIDECAR_IMAGE_FORBIDDEN`.
 
+A change that would push one replica (project plus sidecars) over the workspace quota of 16 cores and 16 GiB of limits is refused with `422 SIDECARS_EXCEED_WORKSPACE_QUOTA`. The change is refused, not saved: the saved settings stay as they were. Several replicas or other projects can still exhaust the quota together, which fails the rollout instead.
+
 ## tose sidecars rm
 
 Remove every saved sidecar (sends an explicit empty list). Always allowed, including in workspaces where sidecars are disabled.
