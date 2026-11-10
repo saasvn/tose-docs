@@ -206,7 +206,7 @@ Adding a release is a reviewed change to the definition, compiled into the TOSE 
 
 ### Deploy from the dashboard {#deploy-from-the-dashboard}
 
-Open **Templates** in the workspace sidebar, then **Deploy**. Curated agents are listed first, under **Agent templates by TOSE**. Choose **Deploy** on Codex, Pi or Claude Code: the agent deploys from **one page** (tose-app [#598](https://github.com/saasvn/tose-app/pull/598)) with these cards:
+Open **Template catalog** in the workspace sidebar (**Apps & agents**). Curated agents are listed first, under **Agent templates by TOSE**. Choose **Deploy** on Codex, Pi or Claude Code: the agent deploys from **one page** (tose-app [#598](https://github.com/saasvn/tose-app/pull/598)) with these cards:
 
 - **App**: the app name.
 - **Sign in**: the provider (for Pi, one of its providers) and, when it needs one, your API key right there. A plan sign-in (ChatGPT or Claude plan) needs no key and happens after the deploy.
