@@ -1,6 +1,6 @@
 # GitHub repository for coding agents
 
-A curated coding agent (**Pi**, **Codex** or **Claude Code**) can start with one of your GitHub repositories, private or public, already in its persistent `/workspace`. You pick the repository and the branch in the install wizard. You never paste a URL, a personal access token or an SSH key, and the agent never receives a credential.
+A curated coding agent (**Pi**, **Codex** or **Claude Code**) can start with one of your GitHub repositories, private or public, already in its persistent `/workspace`. You pick the repository and the branch in the **Repository (optional)** card of the one-page deploy. You never paste a URL, a personal access token or an SSH key, and the agent never receives a credential.
 
 To install an agent, open **Template catalog** in the dashboard ([dashboard overview](/guide/getting-started#find-your-way-around-the-dashboard)).
 
@@ -14,20 +14,20 @@ The checkout is implemented and covered by tests, but it has not yet been proven
 - A workspace **owner** or **admin** role. Anyone else who sends a repository gets `403 REPOSITORY_REQUIRES_ADMIN`.
 - A curated agent plan. Registry template plans and upgrades take no repository.
 
-## Choose a repository in the wizard
+## Choose a repository on the deploy page
 
-The **Configure** step has an optional **Repository** section. Leave it out and the agent starts with an empty workspace.
+The agent's deploy page has a **Repository (optional)** card. Choose **Add a GitHub repository** to open it. Leave it out and the agent starts with an empty workspace.
 
-1. If no GitHub account is connected to the workspace, choose **Connect GitHub**. GitHub opens in a new tab: install the TOSE app on the account that owns the repository and allow that repository. Come back to the wizard tab and choose **Check again**. Your answers on the page are kept.
-2. If your GitHub account is connected but not to this workspace, choose **Attach** next to the account. Only an owner or admin can attach an account.
+1. If no GitHub account is connected to the workspace, choose **Connect GitHub**. GitHub opens in a new tab: install the TOSE app on the account that owns the repository and allow that repository, then come back to this tab and choose **Check again**. Your answers on this page are kept.
+2. If your GitHub account is connected but not to this workspace, choose **Attach** followed by the account's name. Only an owner or admin can attach an account.
 3. Choose a **Repository** from the list (use the filter to search by `owner/name`; each entry shows **Private** or **Public**), then a **Branch**.
-4. The wizard shows "`<repo>` on branch `<branch>` will be checked out." Choose **Remove repository** to go back to an empty workspace.
+4. The card shows "`<repo>` on branch `<branch>` will be checked out." Choose **Remove repository** to go back to an empty workspace.
 
 There is no free-form URL. A repository that is not in the list is refused.
 
 ## What the plan shows
 
-When you create the plan, TOSE reads the repository through the installation with a token limited to read-only access to that one repository's contents. The token is used once and revoked. On **Review and approve**, the **Repository** section shows:
+When the page plans your inputs, TOSE reads the repository through the installation with a token limited to read-only access to that one repository's contents. The token is used once and revoked. The plan summary next to **Deploy** is then priced with the repository and lists any repository blocker before you deploy. The full plan, which a plan link opens (for example the link a member sends to an owner or admin), has a **Repository** section with:
 
 | Field | Meaning |
 |-------|---------|
@@ -61,7 +61,7 @@ The plan's `curated.repository` section carries the same data: `installation_id`
 
 ## Status and failure states
 
-**Approve** and **install** check the repository again. If anything below is true they refuse with `409 PLAN_BLOCKED`, and a new plan with the same problem is stored as blocked:
+Approving and installing, the two things **Deploy** does, check the repository again. If anything below is true they refuse with `409 PLAN_BLOCKED`, and a new plan with the same problem is stored as blocked:
 
 | Code | Why |
 |------|-----|

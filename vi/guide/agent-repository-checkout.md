@@ -1,6 +1,6 @@
 # Kho mã GitHub cho coding agent
 
-Một coding agent được TOSE tuyển chọn (**Pi**, **Codex** hoặc **Claude Code**) có thể khởi động với một kho mã GitHub của bạn, riêng tư hoặc công khai, đã nằm sẵn trong `/workspace` bền vững của agent. Bạn chọn kho mã và nhánh trong wizard cài đặt. Bạn không bao giờ phải dán URL, personal access token hay SSH key, và agent không bao giờ nhận credential nào.
+Một coding agent được TOSE tuyển chọn (**Pi**, **Codex** hoặc **Claude Code**) có thể khởi động với một kho mã GitHub của bạn, riêng tư hoặc công khai, đã nằm sẵn trong `/workspace` bền vững của agent. Bạn chọn kho mã và nhánh trong thẻ **Kho mã (không bắt buộc)** của trang triển khai. Bạn không bao giờ phải dán URL, personal access token hay SSH key, và agent không bao giờ nhận credential nào.
 
 Để cài một agent, mở **Kho mẫu** trong dashboard ([tổng quan dashboard](/vi/guide/getting-started)).
 
@@ -14,20 +14,20 @@ Tính năng checkout đã được triển khai và có test, nhưng chưa đư�
 - Vai trò **owner** hoặc **admin** của workspace. Người khác gửi `repository` sẽ nhận `403 REPOSITORY_REQUIRES_ADMIN`.
 - Một plan của agent được tuyển chọn. Plan template từ registry và nâng cấp không nhận kho mã.
 
-## Chọn kho mã trong wizard
+## Chọn kho mã trên trang triển khai
 
-Bước **Cấu hình** có mục **Kho mã (không bắt buộc)**. Bỏ qua mục này thì agent bắt đầu với workspace trống.
+Trang triển khai của agent có thẻ **Kho mã (không bắt buộc)**. Chọn **Thêm kho mã GitHub** để mở thẻ. Bỏ qua mục này thì agent bắt đầu với workspace trống.
 
-1. Nếu workspace chưa kết nối tài khoản GitHub nào, chọn **Kết nối GitHub**. GitHub mở trong thẻ mới: cài ứng dụng TOSE trên tài khoản sở hữu kho mã và cho phép kho mã đó. Quay lại thẻ wizard và chọn **Kiểm tra lại**. Các câu trả lời của bạn trên trang vẫn được giữ.
-2. Nếu tài khoản GitHub của bạn đã kết nối nhưng chưa gắn với workspace này, chọn **Gắn** bên cạnh tài khoản. Chỉ owner hoặc admin mới gắn được tài khoản.
+1. Nếu workspace chưa kết nối tài khoản GitHub nào, chọn **Kết nối GitHub**. GitHub mở trong thẻ mới: cài ứng dụng TOSE trên tài khoản sở hữu kho mã và cho phép kho mã đó, sau đó quay lại thẻ trình duyệt này và chọn **Kiểm tra lại**. Các câu trả lời của bạn trên trang này được giữ nguyên.
+2. Nếu tài khoản GitHub của bạn đã kết nối nhưng chưa gắn với workspace này, chọn **Gắn** kèm tên tài khoản. Chỉ owner hoặc admin mới gắn được tài khoản.
 3. Chọn một **Kho mã** trong danh sách (dùng bộ lọc để tìm theo `chủ sở hữu/tên`; mỗi mục hiện **Riêng tư** hoặc **Công khai**), rồi chọn **Nhánh**.
-4. Wizard hiện "`<repo>` ở nhánh `<branch>` sẽ được tải về." Chọn **Bỏ kho mã** để quay lại workspace trống.
+4. Thẻ hiện "`<repo>` ở nhánh `<branch>` sẽ được tải về." Chọn **Bỏ kho mã** để quay lại workspace trống.
 
 Không có ô nhập URL tự do. Kho mã không có trong danh sách sẽ bị từ chối.
 
 ## Plan hiển thị những gì
 
-Khi bạn tạo plan, TOSE đọc kho mã qua installation bằng một token chỉ có quyền đọc nội dung của đúng kho mã đó. Token được dùng một lần rồi thu hồi. Ở bước **Xem và duyệt**, mục **Kho mã** hiển thị:
+Khi trang lập plan từ các ô bạn nhập, TOSE đọc kho mã qua installation bằng một token chỉ có quyền đọc nội dung của đúng kho mã đó. Token được dùng một lần rồi thu hồi. Phần tóm tắt plan bên cạnh nút **Triển khai** khi đó được tính giá cùng kho mã và liệt kê mọi lý do chặn liên quan tới kho mã trước khi bạn triển khai. Bản plan đầy đủ, mở được từ liên kết plan (ví dụ liên kết mà thành viên gửi cho owner hoặc admin), có mục **Kho mã** với:
 
 | Trường | Ý nghĩa |
 |--------|---------|
@@ -61,7 +61,7 @@ Mục `curated.repository` của plan chứa cùng dữ liệu: `installation_id
 
 ## Trạng thái và các trường hợp lỗi
 
-**Duyệt** và **cài đặt** kiểm tra lại kho mã. Nếu một điều dưới đây xảy ra, chúng từ chối với `409 PLAN_BLOCKED`, và plan mới có cùng vấn đề được lưu ở trạng thái bị chặn:
+Duyệt và cài đặt, hai việc mà **Triển khai** thực hiện, đều kiểm tra lại kho mã. Nếu một điều dưới đây xảy ra, chúng từ chối với `409 PLAN_BLOCKED`, và plan mới có cùng vấn đề được lưu ở trạng thái bị chặn:
 
 | Mã | Lý do |
 |----|-------|
