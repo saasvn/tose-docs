@@ -57,6 +57,13 @@ Xem [Xác thực](/vi/api/authentication) về API key, session token và quy t�
 Mọi lỗi JSON đều có cùng một envelope với `code` ổn định. Hãy xử lý theo `code`, đừng dựa vào nội
 dung `message`. Xem [Mã lỗi](/vi/api/errors) để có danh sách đầy đủ, gồm cả mã lỗi của các tool MCP.
 
+## Tính năng của nền tảng {#platform-features}
+
+`GET /api/public/features` (tag `Platform`) không cần xác thực và không chứa dữ liệu tài khoản hay
+workspace. Endpoint trả về `{"ci": bool, "desktops": bool, "autoscaling_budget": bool}`, cho biết nền tảng đang phục vụ phần
+tùy chọn nào. Response được cache 60 giây. Dashboard dùng nó để ẩn **CI**, **Desktop đám mây** và
+mục **Autoscaling** (xem [Ngân sách autoscaling](/vi/guide/autoscaling-budgets)).
+
 ## Request ID
 
 Mọi response có header `X-Request-ID`. Gửi ID của bạn để server trả lại nguyên giá trị. Body lỗi
@@ -106,6 +113,7 @@ Yêu cầu vai trò owner hoặc admin. Trạng thái khác `pending`, `cloning`
 | Trạng thái | Ý nghĩa |
 |--------|---------|
 | `400` | Triển khai không ở trạng thái có thể dừng |
+| `502` | Cụm không đưa ứng dụng về 0 replica nên chưa có gì được ghi là `stopped`. Message là `Failed to stop deployment. See the server log for details.` và không bao giờ chứa lỗi của cụm. Hãy thử lại |
 | `503` | Chưa có gì bị dừng: không lấy được khoá workload của dự án trong 60 giây vì một bước deploy đang kết thúc, hoặc không kết nối được cơ sở dữ liệu. Phản hồi có header `Retry-After` |
 
 Stop phản hồi trong khoảng 100 giây. Khi gặp `503`, chờ số giây trong `Retry-After` rồi gửi lại yêu cầu. Việc thử lại là an toàn vì chưa có gì bị dừng.
@@ -115,4 +123,5 @@ Stop phản hồi trong khoảng 100 giây. Khi gặp `503`, chờ số giây tr
 - [Xác thực](/vi/api/authentication)
 - [Mã lỗi](/vi/api/errors)
 - [Ổ đĩa, Volume & Bảng giá](/vi/api/disks)
+- [API ngân sách autoscaling](/vi/api/autoscaling-budget)
 - [Tự host](/vi/guide/self-hosting)
