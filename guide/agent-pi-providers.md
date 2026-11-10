@@ -39,6 +39,7 @@ Pick the product that matches the key and plan you hold.
 - It is **not a secret**. It is 32 lower-case hexadecimal characters.
 - The plan requires it for this provider and refuses it for every other provider.
 - It is stored in the approved plan and the installation, like the provider choice. Changing it means a new plan and a new approval.
+- With `tose templates --curated pi`, set it under `variables` in `deploy.yaml`; the CLI checks the format and the release first ([details](/commands/templates#curated-pi-providers)).
 - Your own variables are separate: see [environment variables and auto-sleep](/guide/agent-environment-and-auto-sleep#your-own-environment-variables).
 
 ## Developer tools and network

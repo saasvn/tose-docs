@@ -21,7 +21,7 @@ The registry has shipped (tose-app [#388](https://github.com/saasvn/tose-app/pul
 | In-place upgrade and rollback of a registry installation (tose-app [#483](https://github.com/saasvn/tose-app/pull/483)) | Built, through the same plans and the same security gate |
 | Registry MCP tools: `search_templates`, `get_template`, `validate_template`, `create_template_draft`, `publish_template`, `plan_template_deployment`, `get_template_deployment`, `deploy_template` | Available. No tool approves a plan, and deploys meet the same security gate |
 | Curated Pi, Claude Code and Codex templates: one-page deploy, install and private console | Released: Codex 1.0.0, Claude Code 1.0.0, Pi 1.0.0 and 1.1.0 (the default for Pi). See [below](#curated-agent-templates) |
-| `tose templates ...` CLI | Not available |
+| `tose templates ...` CLI | Available: [manifest check and push, plan, deploy and curated agents](/commands/templates) |
 
 The curated 1-click templates (GoClaw, Dewee) are not changed by the registry. They keep their own [catalog, deploy and billing path](/guide/dewee-template). An installation that does not come from the registry has no template version attached, and is treated as a legacy installation.
 
@@ -206,6 +206,8 @@ Adding a release is a reviewed change to the definition, compiled into the TOSE 
 
 ### Deploy from the dashboard {#deploy-from-the-dashboard}
 
+Each agent card in the catalog (tose-app [#576](https://github.com/saasvn/tose-app/pull/576)) shows what you need to choose: the vendor logo, the agent name and its vendor with a **Ready** or **Not available yet** badge, **Sign in with** (the providers; one this server does not offer is struck through, with the reason on hover), **Size** (the default and the largest vCPU and GiB), **Release** (the TOSE release and its upstream version, or "Not released yet") and **Source** (the upstream project and its license). The card is a summary of the server's listing and does not replace the workspace checks made when you plan: a card that says **Ready** can still be blocked for your workspace.
+
 Open **Template catalog** in the workspace sidebar (**Apps & agents**). Curated agents are listed first, under **Agent templates by TOSE**. Choose **Deploy** on Codex, Pi or Claude Code: the agent deploys from **one page** (tose-app [#598](https://github.com/saasvn/tose-app/pull/598)) with these cards:
 
 - **App**: the app name.
@@ -220,6 +222,10 @@ As you change the inputs, the page plans them and shows the live plan: the cost 
 Only a workspace **owner or admin** can approve a deploy. A member gets a link to the plan to send to an owner or admin.
 
 The same flow works through the API: `POST /template-deployment-plans` with `curated_template`, a person approves the plan hash, then `POST /template-installations` with an `Idempotency-Key`. A replay of the same key and plan returns the same installation. See the [API reference](/api/template-registry#curated-agent-templates).
+
+### Source shown on an installed app
+
+An app installed from a registry version shows its **Template Source**. For an image-based version (every curated agent) that is the pinned image reference, `…@sha256:<digest>`, not a Git URL; a build from Git keeps its repository URL, and an empty source shows `—` (tose-app [#568](https://github.com/saasvn/tose-app/pull/568)). The field is a display of where the app came from; it does not change what runs. The API returns the same `template_source` value (an image reference or a Git URL, and `""` when empty; `—` is only how the page displays an empty value), so do not parse it as a URL.
 
 ### The private console
 
