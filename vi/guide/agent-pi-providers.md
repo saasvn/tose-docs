@@ -39,7 +39,7 @@ Hãy chọn đúng sản phẩm khớp với key và gói bạn có.
 - Đây **không phải secret**. Nó gồm 32 ký tự thập lục phân viết thường.
 - Kế hoạch bắt buộc có nó với nhà cung cấp này và từ chối nó với mọi nhà cung cấp khác.
 - Nó được lưu trong kế hoạch đã duyệt và trong cài đặt, giống lựa chọn nhà cung cấp. Đổi nó nghĩa là có kế hoạch mới và phải duyệt lại.
-- Agent tuyển chọn không có trình chỉnh sửa biến môi trường tổng quát.
+- Biến môi trường riêng của bạn là phần khác: xem [biến môi trường và tự động ngủ](/vi/guide/agent-environment-and-auto-sleep#biến-môi-trường-riêng-của-bạn).
 
 ## Thanh toán và model
 

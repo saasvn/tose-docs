@@ -39,7 +39,7 @@ Pick the product that matches the key and plan you hold.
 - It is **not a secret**. It is 32 lower-case hexadecimal characters.
 - The plan requires it for this provider and refuses it for every other provider.
 - It is stored in the approved plan and the installation, like the provider choice. Changing it means a new plan and a new approval.
-- There is no general environment editor for curated agents.
+- Your own variables are separate: see [environment variables and auto-sleep](/guide/agent-environment-and-auto-sleep#your-own-environment-variables).
 
 ## Billing and models
 
