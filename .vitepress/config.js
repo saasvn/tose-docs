@@ -84,6 +84,7 @@ export default defineConfig({
               { text: 'Self-hosting', link: '/guide/self-hosting' },
               { text: 'Referral program', link: '/guide/referral' },
               { text: 'Link an earlier enquiry', link: '/guide/link-enquiry' },
+              { text: 'CI artifacts, reports and issue drafts', link: '/guide/ci-artifacts' },
               { text: 'Blog and editorial MCP (planned)', link: '/guide/blog-and-editorial-mcp' }
             ]
           },
@@ -136,7 +137,9 @@ export default defineConfig({
               { text: 'Disks, Volumes & Pricing', link: '/api/disks' },
               { text: 'Autoscaling budget', link: '/api/autoscaling-budget' },
               { text: 'CI suggestions', link: '/api/ci-suggestions' },
-              { text: 'CI usage and budget', link: '/api/ci-usage-budget' }
+              { text: 'CI usage and budget', link: '/api/ci-usage-budget' },
+              { text: 'CI artifacts and reports', link: '/api/ci-artifacts' },
+              { text: 'Disks, Volumes & Pricing', link: '/api/disks' }
             ]
           }
         ]
@@ -206,6 +209,7 @@ export default defineConfig({
               { text: 'Tự host', link: '/vi/guide/self-hosting' },
               { text: 'Chương trình giới thiệu', link: '/vi/guide/referral' },
               { text: 'Liên kết yêu cầu trước đó', link: '/vi/guide/link-enquiry' },
+              { text: 'Artifact CI, báo cáo và bản nháp issue', link: '/vi/guide/ci-artifacts' },
               { text: 'Blog và MCP biên tập (dự kiến)', link: '/vi/guide/blog-and-editorial-mcp' }
             ]
           },
@@ -256,7 +260,9 @@ export default defineConfig({
               { text: 'Ổ đĩa, Volume & Bảng giá', link: '/vi/api/disks' },
               { text: 'API ngân sách autoscaling', link: '/vi/api/autoscaling-budget' },
               { text: 'Gợi ý CI', link: '/vi/api/ci-suggestions' },
-              { text: 'Mức sử dụng CI và hạn mức', link: '/vi/api/ci-usage-budget' }
+              { text: 'Mức sử dụng CI và hạn mức', link: '/vi/api/ci-usage-budget' },
+              { text: 'Artifact và báo cáo CI', link: '/vi/api/ci-artifacts' },
+              { text: 'Ổ đĩa, Volume & Bảng giá', link: '/vi/api/disks' }
             ]
           }
         ],
