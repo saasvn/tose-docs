@@ -63,7 +63,6 @@ export default defineConfig({
               { text: 'tose template', link: '/commands/template' },
               { text: 'tose disk / volumes / pricing', link: '/commands/disk' },
               { text: 'tose export', link: '/commands/export' },
-
               { text: 'tose autoscaling', link: '/commands/autoscaling' },
               { text: 'tose generate', link: '/commands/generate' }
             ]
@@ -82,7 +81,6 @@ export default defineConfig({
               { text: 'Deploy a coding agent', link: '/guide/deploy-coding-agent' },
               { text: 'Autoscaling budgets', link: '/guide/autoscaling-budgets' },
               { text: 'Recovery runbooks', link: '/guide/recovery-runbooks' },
-
               { text: 'Project Sidecars', link: '/guide/project-sidecars' },
               { text: 'Dewee Template Runbook', link: '/guide/dewee-template' },
               { text: 'Template registry (early access)', link: '/guide/template-registry' },
@@ -207,7 +205,6 @@ export default defineConfig({
               { text: 'tose template', link: '/vi/commands/template' },
               { text: 'tose disk / volumes / pricing', link: '/vi/commands/disk' },
               { text: 'tose export', link: '/vi/commands/export' },
-
               { text: 'tose autoscaling', link: '/vi/commands/autoscaling' },
               { text: 'tose generate', link: '/vi/commands/generate' }
             ]
@@ -226,7 +223,6 @@ export default defineConfig({
               { text: 'Triển khai coding agent', link: '/vi/guide/deploy-coding-agent' },
               { text: 'Ngân sách autoscaling', link: '/vi/guide/autoscaling-budgets' },
               { text: 'Runbook khôi phục', link: '/vi/guide/recovery-runbooks' },
-
               { text: 'Sidecar của dự án', link: '/vi/guide/project-sidecars' },
               { text: 'Runbook template Dewee', link: '/vi/guide/dewee-template' },
               { text: 'Template registry (truy cập sớm)', link: '/vi/guide/template-registry' },
