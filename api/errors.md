@@ -63,6 +63,8 @@ never uses the secret. Send the API key in the `X-API-Key` header, or a session 
 
 `402`. The workspace wallet does not have enough balance for the action. Add funds, then retry.
 
+An agent request that would exceed a hard budget, or find the wallet empty, returns `402` with the code `budget_exhausted`. Raise the budget or add funds, then retry. See [Agent usage and budgets API](/api/agent-usage#budgets).
+
 ### `forbidden` {#forbidden}
 
 `403`. The credential is valid but may not do this. An API key works only for its own workspace,
@@ -98,6 +100,10 @@ project is running.
 ### `payload_too_large` {#payload_too_large}
 
 `413`. The request body is larger than the API accepts.
+
+### `unsupported_media_type` {#unsupported_media_type}
+
+`415`. The route takes a JSON body, and the request sent one without `Content-Type: application/json`. The CI write routes answer this way. Send the header and repeat the request. A JSON body with unknown fields or trailing data is `400 invalid_request`. Approving or rejecting an autoscaling budget plan uses the upper-case [`UNSUPPORTED_MEDIA_TYPE`](#UNSUPPORTED_MEDIA_TYPE) instead.
 
 ### `validation_failed` {#validation_failed}
 
@@ -145,6 +151,14 @@ Clients that compared `code` with `payment_required`, `unavailable`, `invalid_re
 
 `402`. The workspace wallet is empty (zero or negative balance) or missing, so the deployment was refused and none was created. A workspace owner tops up the wallet in the billing page, then repeats the request. Not retryable until the balance is positive. See [Pricing](/guide/pricing).
 
+When [autoscaling budgets](/guide/autoscaling-budgets) are on, the same code also means an increase would break the 72-hour floor reserve. The response then carries `details`:
+
+```json
+{ "project_slug": "api", "reason": "floor_reserve", "reserve_target_nano_usd": 1440000000, "coverage_hours": 40 }
+```
+
+Top up the wallet, or lower the project floors, then repeat the request.
+
 ### `UNAVAILABLE` {#UNAVAILABLE}
 
 `503`. The GitHub App is not configured on this TOSE instance, so the head commit cannot be read. `retryable` is `true`. Nothing was created. Retry later; on a self-hosted instance, configure the GitHub App.
@@ -169,7 +183,7 @@ The [CLI](/commands/deploy) reads `NO_GIT_CONNECTION` and `INSUFFICIENT_BALANCE`
 
 ### `NOT_FOUND` {#NOT_FOUND}
 
-`404`. Rollback only: the deployment id does not exist in this project. A project or workspace you cannot see uses the snake_case `not_found` instead.
+`404`. Rollback only: the deployment id does not exist in this project. A project or workspace you cannot see uses the snake_case `not_found` instead. The [autoscaling budget routes](/api/autoscaling-budget) also return `NOT_FOUND` for a project or plan that does not exist in the workspace.
 
 ### `UPSTREAM_ERROR` {#UPSTREAM_ERROR}
 
@@ -182,6 +196,61 @@ The [CLI](/commands/deploy) reads `NO_GIT_CONNECTION` and `INSUFFICIENT_BALANCE`
 ### `ROLLBACK_FAILED` {#ROLLBACK_FAILED}
 
 `500`. Rollback only: starting the earlier image failed. The message carries the reason; it can come from the cluster or from a step before it, such as reading the server, project secrets or disk. Read the message, fix the cause, then try again or pick another deployment.
+
+## Autoscaling budget codes
+
+These come from the [autoscaling budget](/guide/autoscaling-budgets) routes and from the endpoints that raise an allocation. They exist only on platforms that have budgets turned on. The route shapes are in the [budget API](/api/autoscaling-budget).
+
+### `BUDGET_CAP` {#BUDGET_CAP}
+
+`402`. The change would take spend over a budget cap, so it was refused and nothing changed. Project update, deploy, redeploy, rollback, image deploy, environment apply and runbook scale can return it. `details` names the cap and the numbers:
+
+```json
+{
+  "cap": "workspace_hourly",
+  "limit_nano_usd": 50000000,
+  "projected_nano_usd": 60000000,
+  "project_slug": "api"
+}
+```
+
+`cap` is `deployment_hourly`, `deployment_monthly`, `workspace_hourly` or `workspace_monthly`. Money is in nano-USD. Not retryable as is: lower the allocation, or ask an owner or admin to raise the cap.
+
+### `PRECONDITION_FAILED` {#PRECONDITION_FAILED}
+
+`412`. The `If-Match` of a budget `PUT` does not match the current revision, so someone changed the budget after you read it. Nothing was written. Read the budget again and repeat the change.
+
+### `HUMAN_APPROVAL_REQUIRED` {#HUMAN_APPROVAL_REQUIRED}
+
+`403`. Approving or rejecting a budget plan was tried with an API key. Approval needs a person's signed-in session, in practice the dashboard. Give the `approval_url` of the plan to an owner or admin. Anything holding a person's session token or password can approve as them, so give agents an API key or the MCP connector, never a login.
+
+### `CROSS_SITE_REQUEST` {#CROSS_SITE_REQUEST}
+
+`403`. A `POST`, `PUT`, `PATCH` or `DELETE` was authenticated only with the session cookie, from a browser origin other than the dashboard or the API itself, or from a page marked cross-site. Nothing changed. Every signed-in route under `/api` can return it, not only the budget routes. See [Cookie writes from other sites](/api/authentication#cross-site-cookie-writes). Make the change from the dashboard itself. Requests with an API key or an `Authorization: Bearer` token are not checked.
+
+### `UNSUPPORTED_MEDIA_TYPE` {#UNSUPPORTED_MEDIA_TYPE}
+
+`415`. Approving or rejecting a budget plan needs `Content-Type: application/json` and a body of exactly one object, `{"plan_hash": "..."}`. Send the header and repeat the request. Trailing data after the object is `400 INVALID_ARGUMENT`.
+
+### `PLAN_STALE` {#PLAN_STALE}
+
+`409`. The budget changed after the plan was made, so approving it could undo that change. `details` holds `base_revision` and `current_revision`. Make a new plan from the current budget.
+
+### `PLAN_HASH_MISMATCH` {#PLAN_HASH_MISMATCH}
+
+`409`. The `plan_hash` sent with an approval or a rejection does not match the plan. Nothing was applied. Read the plan again and send its own hash.
+
+### `PLAN_EXPIRED` {#PLAN_EXPIRED}
+
+`410`. The plan is past its 30-minute life and can no longer be approved. Make a new plan.
+
+### `PLAN_CLOSED` {#PLAN_CLOSED}
+
+`409`. The plan was already applied or rejected. `details.status` says which. A closed plan cannot be reopened; make a new one if the change is still needed.
+
+### Budget codes from the MCP tools {#mcp-budget-codes}
+
+`deploy_project` and `deploy_image` check the budget like the REST routes and return `BUDGET_CAP` or `INSUFFICIENT_BALANCE`. If the budget cannot be checked (a database error), they start nothing and return [`UNAVAILABLE`](#UNAVAILABLE) with no HTTP status. It is retryable: try again shortly. `autoscaling_budget_get` and `autoscaling_budget_plan` return `INVALID_ARGUMENT` and `NOT_FOUND`.
 
 ## MCP tool errors
 
