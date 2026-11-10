@@ -1005,6 +1005,36 @@ CMD ["nginx", "-g", "daemon off;"]
 
 ---
 
+## Build layer cache
+
+TOSE reuses Docker layers from the previous build of the same project and branch. When the early steps of your Dockerfile did not change (for example `apt-get install`, browser installs or `pnpm install`), a rebuild skips them and only runs the steps after the first change.
+
+- **Each project and branch has its own cache.** Other projects never share it, even in the same workspace, so two projects with the same Dockerfile each start cold the first time.
+- **The first build of a new branch starts cold.** There is nothing to reuse until that branch has built once.
+- **A cache problem never fails a build.** If the cache cannot be used, TOSE builds again without it.
+
+### Build log lines
+
+`tose logs --build` shows what the cache did:
+
+| Log line | Meaning |
+|----------|---------|
+| `Build cache: reusing N MB from the previous build` | A cache from an earlier build of this project and branch was found and is being used. |
+| `Build cache: no cache from an earlier build yet` | Cold build: this project and branch has no earlier cache. |
+| `Build cache: N steps reused` | N Dockerfile steps were skipped because their layers were reused. |
+| `Build cache: the cache could not be used; ... building again without cache` | The cache failed to load, so the build ran again from scratch. The build still continues and is not marked failed because of the cache. |
+
+### Get more cache hits
+
+Order Dockerfile steps from least to most frequently changing. Copy the lockfile and install dependencies **before** copying the source, so a code change does not invalidate the install step:
+
+```dockerfile
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
+COPY . .
+RUN pnpm build
+```
+
 ## Best Practices
 
 ### 1. Use Multi-Stage Builds
