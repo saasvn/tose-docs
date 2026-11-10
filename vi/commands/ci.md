@@ -17,6 +17,10 @@ API key cần `ci:read` để đọc và `ci:execute` để khởi chạy hoặc
 | `tose ci report <run_id> [--format md\|json]` | Báo cáo có phiên bản: kết luận, hash log, hash báo cáo | Không |
 | `tose ci cancel <run_id>` | Dừng một lần chạy | `--yes` |
 | `tose ci usage [--group-by day\|run\|pipeline\|job\|kind]` | Mức dùng CI trong một khoảng ngày | Không |
+| `tose ci approvals [--limit n]` | Liệt kê run từ pull request của fork đang chờ người duyệt. Chỉ đọc | Không |
+| `tose ci suggestions <pipeline_id> [--status open\|accepted\|dismissed]` | Liệt kê gợi ý tác động. Chỉ là lời khuyên | Không |
+| `tose ci artifacts <run_id>` | Liệt kê metadata artifact của run: tên, kích thước, SHA-256, che bí mật, thời hạn lưu | Không |
+| `tose ci artifact <artifact_id> [--content [--output file]]` | Xem metadata của một artifact, hoặc nội dung văn bản đã che bí mật | Không |
 
 ## Khởi chạy
 
@@ -79,6 +83,15 @@ tose ci cancel <run_id> --yes
 ```
 
 Job đang chờ sẽ không bao giờ bắt đầu, job đang chạy bị tính tiền theo số giây đã chạy. Áp dụng [quy tắc xác nhận](/vi/commands/overview) thông thường: hỏi trong terminal, `--yes` khi không có terminal hoặc với `--json`.
+
+## Phê duyệt, gợi ý và artifact
+
+Bốn lệnh này chỉ đọc và cần `ci:read`.
+
+- `tose ci approvals` chỉ liệt kê các run từ pull request của fork đang chờ người duyệt. Phê duyệt hoặc từ chối là bước của người đã đăng nhập trong dashboard, và máy chủ từ chối API key.
+- `tose ci suggestions` liệt kê gợi ý tác động, có thể lọc bằng `--status`. Đây chỉ là lời khuyên: CLI không thể chấp nhận hay bỏ qua gợi ý.
+- `tose ci artifacts <run_id>` chỉ liệt kê metadata: tên, kích thước, SHA-256, trạng thái che bí mật và thời hạn lưu.
+- `tose ci artifact <artifact_id>` hiển thị metadata của một artifact. Với `--content` nó in văn bản đã che bí mật sau khi kiểm tra các byte với SHA-256 đã ghi nhận; nếu không khớp thì không ghi gì và thoát với mã `8`. `--output <file>` tạo file mới với quyền 600 và không bao giờ ghi đè. Artifact chưa che bí mật (nhị phân) bị từ chối, vì máy chủ chỉ phục vụ nó cho admin đã đăng nhập.
 
 ## Chưa có
 

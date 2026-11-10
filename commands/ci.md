@@ -17,6 +17,10 @@ An API key needs `ci:read` to read, and `ci:execute` to start or cancel a run. D
 | `tose ci report <run_id> [--format md\|json]` | The versioned report: verdict, log hashes, report hash | None |
 | `tose ci cancel <run_id>` | Stop a run | `--yes` |
 | `tose ci usage [--group-by day\|run\|pipeline\|job\|kind]` | CI usage for a date window | None |
+| `tose ci approvals [--limit n]` | List fork pull request runs waiting for a person. Read-only | None |
+| `tose ci suggestions <pipeline_id> [--status open\|accepted\|dismissed]` | List impact suggestions. Advice only | None |
+| `tose ci artifacts <run_id>` | List a run's artifact metadata: name, size, SHA-256, redaction, retention | None |
+| `tose ci artifact <artifact_id> [--content [--output file]]` | Show one artifact's metadata, or its redacted text | None |
 
 ## Starting a run
 
@@ -79,6 +83,15 @@ tose ci cancel <run_id> --yes
 ```
 
 Queued jobs never start and running jobs are billed for the seconds they ran. It follows the usual [confirmation rules](/commands/overview): a prompt in a terminal, `--yes` without one or with `--json`.
+
+## Approvals, suggestions and artifacts
+
+These four commands only read; they need `ci:read`.
+
+- `tose ci approvals` only lists the fork pull request runs waiting for a person. Approving or rejecting is a signed-in person's step in the dashboard, and the server refuses API keys.
+- `tose ci suggestions` lists impact suggestions, optionally filtered with `--status`. They are advice only: the CLI cannot accept or dismiss one.
+- `tose ci artifacts <run_id>` lists metadata only: name, size, SHA-256, redaction and retention.
+- `tose ci artifact <artifact_id>` shows one artifact's metadata. With `--content` it prints the redacted text, after checking the bytes against the recorded SHA-256; on a mismatch nothing is written and the exit code is `8`. `--output <file>` creates a new file with mode 600 and never overwrites an existing one. An unredacted (binary) artifact is refused, because the server serves it only to a signed-in admin.
 
 ## Not available yet
 
