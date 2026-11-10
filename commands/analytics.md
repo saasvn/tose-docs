@@ -24,7 +24,7 @@ Every view takes `--window 24h|7d|30d`, ending now (default `24h`). Any other va
 
 ## Server switch
 
-The server keeps analytics off unless `ANALYTICS_ENABLED` is set. While it is off, and for a workspace outside your API key, every view fails with `NOT_FOUND` (exit code `6`). A key that lacks the view's scope still gets `INSUFFICIENT_SCOPE`, because the permission check runs first.
+The server keeps analytics off unless `ANALYTICS_ENABLED` is set. While it is off every view fails with `NOT_FOUND` (exit code `6`), as it does when your account is no longer a member of the workspace. A workspace other than your API key's fails with `API_KEY_WORKSPACE_SCOPED` (exit code `3`). A key that lacks the view's scope still gets `INSUFFICIENT_SCOPE`, because the permission check runs first.
 
 ## Scopes
 

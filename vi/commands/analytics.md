@@ -24,7 +24,7 @@ Mọi view nhận `--window 24h|7d|30d`, tính đến hiện tại (mặc địn
 
 ## Công tắc phía máy chủ
 
-Máy chủ tắt analytics trừ khi đặt `ANALYTICS_ENABLED`. Khi đang tắt, và với một workspace nằm ngoài API key của bạn, mọi view đều lỗi `NOT_FOUND` (mã thoát `6`). Key thiếu scope của view vẫn nhận `INSUFFICIENT_SCOPE`, vì kiểm tra quyền chạy trước.
+Máy chủ tắt analytics trừ khi đặt `ANALYTICS_ENABLED`. Khi đang tắt, mọi view đều lỗi `NOT_FOUND` (mã thoát `6`), giống như khi tài khoản của bạn không còn là thành viên của workspace. Một workspace khác với workspace của API key sẽ lỗi `API_KEY_WORKSPACE_SCOPED` (mã thoát `3`). Key thiếu scope của view vẫn nhận `INSUFFICIENT_SCOPE`, vì kiểm tra quyền chạy trước.
 
 ## Scope
 
