@@ -143,7 +143,7 @@ tose template deploy <slug> [--mode <mode>] [--upgrade | --rollback <deployment_
 - `--upgrade`, `--rollback` và `--expected-image` cần `--mode image`. Dùng cùng `--mode build` thì lệnh thoát với mã `2` và không thay đổi gì.
 - Không thể kết hợp `--upgrade` với `--rollback`.
 - `--rollback` nhận ID của một lần deploy của template này đã chạy, ví dụ dòng `Deployment ID:` do một lần `tose template deploy` trước in ra, hoặc danh sách trong [API template](/vi/api/templates#deployments). ID rỗng bị từ chối.
-- Một số template bỏ qua các tùy chọn này. Nếu API không áp dụng một tùy chọn, CLI báo lỗi nêu tên tùy chọn và lần deploy đã được khởi chạy, thay vì nói tùy chọn đã hoạt động.
+- Template Cloud Harness không có image để chạy hay rollback. `--upgrade`, `--rollback` và `--expected-image` bị từ chối với `400` và không có gì được deploy; hãy dùng `tose template deploy` thường. Với template khác, nếu API không áp dụng một tùy chọn, CLI báo lỗi nêu tên tùy chọn và lần deploy đã được khởi chạy, thay vì nói tùy chọn đã hoạt động.
 - Cảnh báo từ API được in ra. Với `--json` chúng nằm ở `data.warnings`.
 
 ```bash

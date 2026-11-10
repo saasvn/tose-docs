@@ -43,6 +43,7 @@ These options are available on **all** commands:
 | [`tose down`](/commands/down) | Stop current deployment |
 | [`tose restart`](/commands/down#tose-restart) | Restart pods without redeploying |
 | [`tose deployment rollback`](/commands/deployment#tose-deployment-rollback) | Roll back to an earlier deployment (needs `--yes`) |
+| [`tose runbook`](/commands/runbook) | Plan, review and run a restart or rollback that a person approves in the browser |
 
 ### Monitoring
 
