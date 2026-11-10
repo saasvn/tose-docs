@@ -53,6 +53,7 @@ These options are available on **all** commands:
 | [`tose ci run`, `dispatch`](/commands/ci#starting-a-run) | Start a manual or `workflow_dispatch` run, optionally `--wait` |
 | [`tose ci status`, `events`, `logs`, `report`](/commands/ci#events) | Inspect a run |
 | [`tose ci cancel`](/commands/ci#cancel) | Stop a run (needs `--yes`) |
+| [`tose ci approvals`, `suggestions`, `artifacts`, `artifact`](/commands/ci#approvals-suggestions-and-artifacts) | Read waiting fork runs, impact suggestions and artifacts (read-only) |
 
 ### Monitoring
 
