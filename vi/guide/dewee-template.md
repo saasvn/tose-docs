@@ -161,12 +161,30 @@ curl -s -o /dev/null -w '%{http_code}\n' https://<host-instance-cua-ban>/health
 ## Phiên bản và nâng cấp {#versions-and-upgrades}
 
 - **Image.** Instance chạy image được lưu trên nó. `tose template deploy` thông thường (chế độ `image`) giữ nguyên image đó và không tự nâng cấp. `tose template info` hiển thị image đã deploy, đã cấu hình và khả dụng, cùng việc có bản cập nhật hay không. Chỉ chuyển sang phiên bản catalog bằng `tose template deploy --upgrade`, và truyền `--expected-image` (dòng `Configured:`) để deploy thất bại nếu image đã đổi trong lúc đó. `--mode build` không thay image.
-- **Tag không phải digest.** Tag có thể bị push lại. Để có bản ghi tái lập được, hãy lấy digest của image bạn đang chạy và lưu cùng ghi chú của bạn.
+- **Digest được ghi không phải là ghim.** Mỗi lần deploy image ghi vào biên nhận (`image_digest`) digest registry trả về cho tag lúc deploy chạy; tham chiếu ghim bằng `@sha256:…` giữ digest của nó. Deploy vẫn chạy tag, và `--rollback` chạy lại tag của deployment trước, nên tag bị push lại có thể khác digest đã ghi. Để chạy đúng một bản build, hãy ghim image theo digest. Nếu tra cứu thất bại (image private không có credential, không tìm thấy, registry không kết nối được), deploy vẫn tiếp tục, biên nhận không có digest và log deploy nêu lý do. Xem [biên nhận deploy](/vi/api/templates#image-digest-in-the-receipt).
 - **Tự động nâng cấp được bật mặc định.** Mỗi lần khởi động khi có `GOCLAW_POSTGRES_DSN`, container chạy `dewee upgrade` và từ chối khởi động nếu lệnh lỗi. Đặt `GOCLAW_AUTO_UPGRADE=false` nếu bạn muốn tự chạy nâng cấp vào thời điểm bạn chọn.
 - **Sao lưu trước.** PostgreSQL là của bạn: TOSE không snapshot nó. Trước mọi thay đổi phiên bản, hãy sao lưu và khôi phục thử một lần vào database tạm để chứng minh bản sao lưu dùng được. Sao lưu cả dữ liệu ổ đĩa bền vững mà bạn cần.
 - **Rollback không đối xứng.** `tose template deploy --rollback <deployment_id>` chạy lại image cũ, nhưng **không** quay lại schema hay dữ liệu database. Migration đã chạy có thể không tương thích với image cũ. Để quay lại an toàn, hãy khôi phục bản sao lưu database cùng với image cũ.
 - **Gián đoạn.** Template chạy một replica trên ổ đĩa chỉ một pod mount được, và deploy lại sẽ thay pod. Hãy dự kiến có gián đoạn khi deploy. TOSE không hứa zero-downtime cho template này.
 - **Chủ động nâng cấp.** Chỉ nâng cấp khi bạn chọn (`--upgrade`), từ một bản sao lưu, ngoài giờ cao điểm. Thay đổi của catalog không tự nâng cấp cho bạn.
+
+### Nâng cấp và quay lại từ dashboard {#dashboard-upgrade-and-rollback}
+
+Trang template trong dashboard có mục **Image** với các thao tác giống CLI. Mục này hiển thị ba image: **Lần triển khai gần nhất** (đang chạy), **Đã cấu hình** (image lưu trên template, dùng cho lần deploy thông thường kế tiếp) và **Có sẵn** (phiên bản catalog). Huy hiệu **Có bản cập nhật** xuất hiện khi phiên bản catalog khác với bản bạn đang chạy, và **Mới nhất** khi giống nhau.
+
+Ba thao tác tách biệt, không thay nhiệm vụ của nhau:
+
+| Thao tác | Gửi | Kết quả |
+|----------|-----|---------|
+| **Deploy** | `image_source=custom` | Triển khai lại image đã lưu, không nâng cấp. Nếu chưa lưu image nào, triển khai phiên bản catalog và lưu lại |
+| **Nâng cấp lên bản có sẵn** | `image_source=catalog` | Triển khai phiên bản catalog và thay image đã lưu |
+| **Quay lại phiên bản trước** | `rollback_to=<deployment id>` | Chạy image của một lần triển khai trước đó và lưu nó |
+
+Hộp thoại của mỗi thao tác nêu rõ image sẽ chạy. Mọi yêu cầu còn gửi `expected_image` (image **Đã cấu hình** mà bạn đang xem) khi đã có image được lưu. Nếu có người đổi image kể từ lúc bạn mở trang, yêu cầu bị từ chối với `409`; hãy tải lại trang rồi quyết định lại. Khi đang có một lần triển khai khác, các thao tác bị vô hiệu hóa.
+
+Khi quay lại, trang hiển thị cảnh báo trước khi bạn xác nhận: **quay lại image không khôi phục schema hay dữ liệu database.** Nếu phiên bản mới đã migrate chúng, image cũ có thể lỗi hoặc đọc sai, nên hãy khôi phục bản sao lưu database trước. Xem [Sao lưu trước](#versions-and-upgrades).
+
+Danh sách quay lại chỉ đưa ra các lần triển khai trước đó đã chạy thành công (trạng thái `running` hoặc `stopped`, và đã kết thúc), mới nhất trước, mỗi image một mục, tối đa tám mục, không gồm image bạn đang chạy. Bản build lỗi không bao giờ được đưa ra vì image của nó chưa từng được push. API áp dụng cùng quy tắc và trả `404` cho mọi deployment ID khác. Xem [API deploy template](/api/templates#rollback).
 
 ## Release gate và bảng tương thích {#release-gate-and-compatibility}
 
@@ -181,6 +199,8 @@ TOSE chỉ công bố một phiên bản Dewee là đã xác minh sau khi một 
 | Mức hỗ trợ | **Thử nghiệm (experimental)** |
 
 Khi có một lần chạy đã xác minh, bảng này sẽ có thêm digest, commit, revision TOSE, ngày và chữ *verified*. Đừng coi template là one-click đã xác minh trước thời điểm đó.
+
+Khi endpoint trạng thái công khai đang bật, [`GET /api/public/template-releases`](/vi/api/templates#public-release-status) báo cùng trạng thái này cho từng template: `verified` (kèm `version` và `last_validated_at`), `experimental`, `deprecated`, hoặc `unavailable` khi cờ tắt. Release gate trong `templates/verified-images.json` quyết định `verified`, và chưa có gì được xác minh cho tới khi một lần chạy staging thật nâng cấp một image.
 
 ## Checklist triển khai theo giai đoạn {#staged-rollout-checklist}
 

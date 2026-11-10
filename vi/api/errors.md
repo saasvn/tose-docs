@@ -141,6 +141,32 @@ thử lại.
 
 Mọi status lỗi khác dùng mã `http_<status>`.
 
+## Mã lỗi upstream của GitHub
+
+Các route gọi GitHub thay bạn báo lỗi bằng một trong các mã dưới đây, thay cho `upstream_error` hoặc `unavailable` chung chung. Phản hồi không bao giờ chứa nội dung lỗi gốc của GitHub vì nó có thể có URL và ID installation. Hãy rẽ nhánh theo `code` và `details.reason`. Chúng áp dụng cho `GET /api/github/repos` (khi có `installation_id`), `GET /api/github/repos/{owner}/{repo}/branches`, và bước kiểm tra repository khi tạo project hoặc kết nối Git. Xem [GitHub API](/vi/api/github).
+
+### `github_not_found` {#github_not_found}
+
+`404`. `details.reason` cho biết cách sửa. `installation_not_found`: installation của GitHub App không còn tồn tại, hãy cài lại GitHub App của TOSE và gắn lại vào workspace. `repository_not_found`: repository không tồn tại hoặc App chưa được cấp quyền truy cập, hãy cấp cho App quyền vào repository. Không thể thử lại.
+
+### `github_forbidden` {#github_forbidden}
+
+`403`. GitHub từ chối yêu cầu, ví dụ vì GitHub App của TOSE thiếu quyền mà thao tác cần. Hãy kiểm tra quyền của App. Gửi lại y nguyên không giúp ích. Không thể thử lại.
+
+### `github_rate_limited` {#github_rate_limited}
+
+`429`. GitHub giới hạn tốc độ yêu cầu. Chờ số giây trong header `Retry-After` rồi thử lại. Có thể thử lại.
+
+### `github_unavailable` {#github_unavailable}
+
+`503`. GitHub không trả lời. Hãy thử lại sau ít lâu với backoff. Có thể thử lại.
+
+### `github_app_misconfigured` {#github_app_misconfigured}
+
+`500`. GitHub từ chối thông tin xác thực của chính GitHub App của TOSE. Đây là lỗi cấu hình phía máy chủ, bạn không sửa được từ client. Hãy liên hệ hỗ trợ và gửi kèm `request_id`. Không thể thử lại.
+
+Khi lỗi xảy ra lúc kiểm tra repository ở bước tạo project hoặc kết nối Git, trạng thái là `400` cho mọi mã trên, `retryable` là `false`, và `message` bắt đầu bằng `Cannot access repository <owner/repo>` cho client cũ. Hãy dùng `code` và `details.reason`, không dùng message.
+
 ## Mã lỗi của hành động deploy
 
 `POST .../deploy` và `POST .../deployments/{id}/rollback` trả mã riêng của hành động theo dạng UPPER_SNAKE_CASE, không phải mã suy ra từ HTTP status. `POST .../redeploy` chỉ làm vậy với `INSUFFICIENT_BALANCE`; các lỗi khác của redeploy giữ mã snake_case ở trên. Lỗi quyền truy cập ở cả ba route (`not_found`, `forbidden`) cũng là snake_case. Tool MCP `deploy_project` và `rollback_deployment` báo cùng các mã này. Envelope không đổi, nên `doc_url` của mỗi lỗi kết thúc bằng anchor bên dưới, ví dụ `https://docs.tose.sh/api/errors#INSUFFICIENT_BALANCE`.
