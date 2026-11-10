@@ -157,6 +157,13 @@ curl -s -o /dev/null -w '%{http_code}\n' https://<host-instance-cua-ban>/health
 | Không bao giờ thấy `Backend ready after Ns` | Backend không lên trong 90 giây. Kiểm tra kết nối tới database |
 | Đăng nhập lần đầu | Mở liên kết dashboard và hoàn tất đăng nhập bootstrap một lần. CLI không bao giờ in credential bootstrap |
 | Tạo bị từ chối với HTTP `402` | Chưa trả phí mở khóa hoặc số dư ví quá thấp. Xem [Bảng giá](/vi/guide/pricing) |
+| Instance ở trạng thái `suspended` | Nạp tiền vào ví, rồi chạy `tose template resume my-dewee --wait`. Xem [Resume instance đang bị suspend](#resume-instance-dang-bi-suspend) |
+
+### Resume instance đang bị suspend {#resume-instance-dang-bi-suspend}
+
+Instance bị suspend vì ví hết tiền từ chối `tose template deploy` và `tose template resume` với `402 INSUFFICIENT_BALANCE` (CLI thoát với mã `9`) cho đến khi ví có credit. Sau khi nạp tiền, `tose template resume my-dewee --wait` cấp gateway token và resume instance.
+
+Sau khi resume, client phải dùng gateway token mới và các phiên hiện có sẽ kết thúc, nên hãy cập nhật các API client và đăng nhập lại. Xem [`tose template resume`](/vi/commands/template#tose-template-resume).
 
 ## Phiên bản và nâng cấp {#versions-and-upgrades}
 
