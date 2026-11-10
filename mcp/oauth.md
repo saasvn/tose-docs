@@ -59,7 +59,7 @@ Two desktop apps use a custom URL scheme instead of loopback. TOSE accepts exact
 | `env:read` | `list_project_env_keys`, `inspect_project_env`: variable names and whether each is set. Never a value. Off by default, see [Env metadata](#env-metadata-env-read). | No |
 | `env:write` | `plan_project_env_update`, `apply_project_env_update`: change variables after you supply the values and approve in TOSE. Off by default, owners and admins only, see [Env updates](#env-updates-env-write). | Yes |
 
-- Any other scope, including members, billing, databases and infrastructure, is refused with `invalid_scope`. `env:read` and `env:write` are the two environment scopes, and each is granted on its own.
+- Any other scope, including members, billing, databases and infrastructure, is refused with `invalid_scope`. `env:read` and `env:write` are the two environment scopes, and each is granted on its own. Platform administrators can also grant `blog:write` (see [Blog publishing through MCP](/guide/blog-and-editorial-mcp)).
 - A write scope is granted only when a workspace owner or admin ticks it on the consent page. It is removed on the next refresh if that person is demoted.
 - A refresh can narrow the scopes but never widen them.
 - `tools/list` shows only the tools your scopes allow: four read tools for a read-only connection, plus deploy and rollback with write scope. The two env metadata tools appear only with `env:read`, and the two env update tools only with `env:write`.

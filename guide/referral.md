@@ -119,5 +119,5 @@ For TOSE administrators and moderators.
 
 ## See also
 
-- [Blog, widgets and editorial MCP (status)](./blog-and-editorial-mcp)
+- [Blog publishing through MCP](./blog-and-editorial-mcp)
 - [Pricing](./pricing)
