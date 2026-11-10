@@ -83,4 +83,5 @@ Rollback is also available through the MCP connector, where it needs your approv
 
 - [`tose deploy`](/commands/deploy) - Start a deployment
 - [`tose status`](/commands/status) - Find deployment IDs
+- [`tose runbook`](/commands/runbook) - Plan a rollback that a person approves in the browser
 - [`tose skills install safe-rollback`](/commands/skills) - Teach an agent the safe rollback flow
