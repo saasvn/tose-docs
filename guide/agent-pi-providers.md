@@ -2,8 +2,8 @@
 
 **Pi** is one of the curated coding agents in the TOSE **Template catalog**. It works with your own account at a model provider: you give it a provider API key (or use your provider plan), and the provider bills you directly. This page lists the providers Pi can use, what each one needs, and the differences between providers that have similar names.
 
-::: warning Not available yet
-Seven of the ten providers below start with Pi release **1.1.0**, which is **not published yet**. Until it is, the dashboard offers only Anthropic, OpenAI and Google for Pi, and a plan that asks for any other provider is refused. Published releases are immutable, so **existing Pi installations are not upgraded automatically**; to use a new provider, install a new app once the release is out.
+::: info Release 1.1.0
+All ten providers below are available from Pi release **1.1.0**, the default release for new Pi agents. Release 1.0.0 stays listed and offers only Anthropic, OpenAI and Google. Published releases are immutable, so **existing Pi installations are not upgraded automatically**; to use a new provider, install a new app.
 :::
 
 ## Providers
@@ -39,7 +39,12 @@ Pick the product that matches the key and plan you hold.
 - It is **not a secret**. It is 32 lower-case hexadecimal characters.
 - The plan requires it for this provider and refuses it for every other provider.
 - It is stored in the approved plan and the installation, like the provider choice. Changing it means a new plan and a new approval.
-- There is no general environment editor for curated agents.
+
+## Developer tools and network
+
+From release 1.1.0 the Pi image includes **Node.js with npm** and **uv for Python**, and `/AGENTS.md` describes the container to Pi.
+
+The **Development (restricted)** network mode (`development`) for Pi opens the hosts of git, npm and PyPI as well as the provider, the same as for Codex and Claude Code, so `git clone`, `npm install` and `uv pip install` work. **Provider only** (the default) still reaches the provider's host alone. Release 1.0.0 has no developer tools, so the mode opens those hosts for it without the tools.
 
 ## Billing and models
 

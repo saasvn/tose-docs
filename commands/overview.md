@@ -43,6 +43,7 @@ These options are available on **all** commands:
 | [`tose down`](/commands/down) | Stop current deployment |
 | [`tose restart`](/commands/down#tose-restart) | Restart pods without redeploying |
 | [`tose deployment rollback`](/commands/deployment#tose-deployment-rollback) | Roll back to an earlier deployment (needs `--yes`) |
+| [`tose runbook`](/commands/runbook) | Plan, review and run a restart or rollback that a person approves in the browser |
 
 ### Monitoring
 
@@ -125,6 +126,7 @@ Budgets work only where the platform operator has turned them on.
 
 | Command | Description |
 |---------|-------------|
+| [`tose feedback`](/commands/feedback) | Report a bug or request a feature, no GitHub account needed |
 | [`tose generate`](/commands/generate) | Generate Dockerfile using AI |
 
 ## Quick Start

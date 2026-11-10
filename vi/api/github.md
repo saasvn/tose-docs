@@ -16,11 +16,11 @@ Khác với đa số endpoint, các endpoint này nằm dưới `/api/github`, k
 | `POST /api/github/workspace-installations` | có | bị từ chối `403` |
 | `DELETE /api/github/workspace-installations/{installation_id}` | có | bị từ chối `403` |
 
-API key nêu workspace khác workspace của chính nó trong `workspace_slug` nhận `403`. API key bỏ tham số này sẽ dùng các installation gắn với tài khoản của người tạo key. Ba endpoint ghi thay đổi tài khoản của người dùng hoặc mức tin cậy của workspace, nên chỉ dùng được với user session đã đăng nhập, không dùng với API key hay connected app. Xem [Xác thực](/vi/api/authentication).
+API key nêu workspace khác workspace của chính nó trong `workspace_slug` nhận `403`. API key bỏ tham số này sẽ dùng workspace của chính nó và không bao giờ quay về tài khoản của người tạo key. Ba endpoint ghi thay đổi tài khoản của người dùng hoặc mức tin cậy của workspace, nên chỉ dùng được với user session đã đăng nhập, không dùng với API key hay connected app. Xem [Xác thực](/vi/api/authentication).
 
 ## Endpoint đọc
 
-Tất cả trả mảng JSON thuần, có thể rỗng, trừ `GET /api/github/repos` trả `400` khi không có GitHub App installation nào truy cập được. `503` nghĩa là GitHub App chưa được cấu hình trên hệ thống này.
+Tất cả trả mảng JSON thuần, có thể rỗng, trừ `GET /api/github/repos` trả `400` khi không có GitHub App installation nào truy cập được. `503` có thể nghĩa là GitHub App chưa được cấu hình trên hệ thống này, hoặc GitHub không trả lời.
 
 ### Liệt kê repository {#repos}
 
@@ -28,7 +28,7 @@ Tất cả trả mảng JSON thuần, có thể rỗng, trừ `GET /api/github/r
 GET /api/github/repos?workspace_slug={slug}
 ```
 
-Các repository mà GitHub App của TOSE đọc được, loại trùng theo `full_name`. Với `workspace_slug`, tìm trong các installation đã gắn vào workspace đó, cộng với những installation mà dự án của nó đang dùng, và bạn phải là thành viên. Thêm `installation_id` để liệt kê một installation; khi đó lỗi trả `500`. Nếu không có, installation nào tải lỗi sẽ bị bỏ qua.
+Các repository mà GitHub App của TOSE đọc được, loại trùng theo `full_name`. Với `workspace_slug`, chỉ tìm trong các installation đã gắn vào workspace đó và bạn phải là thành viên. Thêm `installation_id` để liệt kê một installation; đó phải là installation mà người gọi dùng được (nếu không thì `403`), và lỗi từ GitHub khi đó được báo bằng [mã `github_*`](/vi/api/errors#ma-loi-upstream-cua-github). Nếu không có, installation nào tải lỗi sẽ bị bỏ qua. `installation_id` không phải số hoặc không dương sẽ bị bỏ qua.
 
 Thêm `fork_of=owner/repo` để chỉ nhận các repository mà GitHub báo là fork của repository đó, trực tiếp (`parent_full_name`) hoặc xa hơn trong mạng fork (`source_full_name`). Owner gồm chữ cái, chữ số và dấu gạch ngang đơn ở giữa (tối đa 39 ký tự). Tên repository gồm 1 đến 100 chữ cái, chữ số, dấu chấm, dấu gạch dưới và dấu gạch ngang, trừ `.` và `..`. `fork_of` rỗng được coi như không có; mọi giá trị sai định dạng khác trả `400`. Các fork của mỗi installation được đọc lần lượt từng cái, những fork có tên giống repository đích được đọc trước, tối đa 10 fork cho mỗi installation; fork không đọc được sẽ bị bỏ qua. Nguồn gốc của một fork được lưu đệm theo ID repository tối đa 6 giờ, nên sau khi repository gốc bị đổi tên hoặc chuyển chủ, kết quả có thể chậm đến chừng đó. Với `fork_of` và `workspace_slug`, không có `installation_id`, chỉ các installation đang gắn vào workspace được tìm. Việc tra fork bị giới hạn tốc độ theo từng người dùng, burst 20 rồi 1 lần mỗi giây; vượt giới hạn trả `429` và không có header `Retry-After`.
 
@@ -50,7 +50,7 @@ Thêm `fork_of=owner/repo` để chỉ nhận các repository mà GitHub báo l�
 GET /api/github/repos/{owner}/{repo}/branches?workspace_slug={slug}
 ```
 
-Các branch của repository, đọc qua một installation: `installation_id` nếu có; nếu không, với `workspace_slug` thì dùng installation duy nhất đã gắn vào workspace (`400` khi workspace không có hoặc có nhiều); nếu không nữa thì dùng installation mặc định của tài khoản. Kết quả có thể lấy từ cache ngắn hạn. Mỗi mục có `name`, `protected` và object `commit`.
+Các branch của repository, đọc qua một installation: `installation_id` nếu có; nếu không, với `workspace_slug` thì dùng installation duy nhất đã gắn vào workspace (`400` khi workspace không có hoặc có nhiều); nếu không nữa thì dùng installation mặc định của tài khoản. Kết quả có thể lấy từ cache ngắn hạn. Lỗi từ GitHub được báo bằng [mã `github_*`](/vi/api/errors#ma-loi-upstream-cua-github). Mỗi mục có `name`, `protected` và object `commit`.
 
 ### Liệt kê installation {#installations}
 
@@ -58,7 +58,7 @@ Các branch của repository, đọc qua một installation: `installation_id` n
 GET /api/github/installations?workspace_slug={slug}
 ```
 
-Các installation đã gắn vào workspace hoặc đang được dự án của nó dùng. Mỗi mục có `id`, `account_name`, `avatar_url` và `type` (`User` hoặc `Organization`). Không có `workspace_slug`, bạn thấy các installation gắn với tài khoản của mình.
+Các installation đã gắn vào workspace hoặc đang được dự án của nó dùng. Mỗi mục có `id`, `account_name`, `avatar_url` và `type` (`User` hoặc `Organization`). Không có `workspace_slug`, user session thấy các installation gắn với tài khoản của mình, còn API key thấy các installation của workspace của nó.
 
 ### Liệt kê installation có thể gắn {#available-installations}
 
@@ -66,7 +66,19 @@ Các installation đã gắn vào workspace hoặc đang được dự án của
 GET /api/github/available-installations?workspace_slug={slug}
 ```
 
-Các installation của workspace cùng các installation gắn với tài khoản của bạn, mỗi mục có cờ `attached`. Dùng để chọn `installation_id` cần gắn.
+Các installation của workspace cùng các installation gắn với tài khoản của bạn, mỗi mục có cờ `attached`. Dùng để chọn `installation_id` cần gắn. API key chỉ nhận các installation đã gắn vào workspace của chính nó, không bao giờ nhận các installation gắn với tài khoản của người tạo key.
+
+### Lỗi từ GitHub
+
+Các route đọc repository và branch, cùng bước kiểm tra repository khi tạo project và kết nối Git, không bao giờ trả nội dung lỗi gốc của GitHub. Chúng trả `code` ổn định; xem [Mã lỗi upstream của GitHub](/vi/api/errors#ma-loi-upstream-cua-github).
+
+| Mã | Trạng thái | Thử lại |
+|----|-----------|---------|
+| [`github_not_found`](/vi/api/errors#github_not_found) | `404`, `details.reason` là `installation_not_found` hoặc `repository_not_found` | không |
+| [`github_forbidden`](/vi/api/errors#github_forbidden) | `403` | không |
+| [`github_rate_limited`](/vi/api/errors#github_rate_limited) | `429` kèm `Retry-After` | có |
+| [`github_unavailable`](/vi/api/errors#github_unavailable) | `503` | có |
+| [`github_app_misconfigured`](/vi/api/errors#github_app_misconfigured) | `500` | không |
 
 ## Cài đặt và gắn (chỉ user session)
 

@@ -64,6 +64,8 @@ credential hợp lệ.
 
 `402`. Ví của workspace không đủ số dư cho hành động này. Hãy nạp tiền rồi thử lại.
 
+Yêu cầu của agent làm vượt hạn mức cứng, hoặc khi ví đã hết tiền, trả `402` với mã `budget_exhausted`. Hãy nâng hạn mức hoặc nạp tiền rồi thử lại. Xem [API usage và hạn mức của agent](/vi/api/agent-usage#budgets).
+
 ### `forbidden` {#forbidden}
 
 `403`. Credential hợp lệ nhưng không được phép làm việc này. API key chỉ dùng được cho workspace
@@ -139,6 +141,32 @@ thử lại.
 
 Mọi status lỗi khác dùng mã `http_<status>`.
 
+## Mã lỗi upstream của GitHub
+
+Các route gọi GitHub thay bạn báo lỗi bằng một trong các mã dưới đây, thay cho `upstream_error` hoặc `unavailable` chung chung. Phản hồi không bao giờ chứa nội dung lỗi gốc của GitHub vì nó có thể có URL và ID installation. Hãy rẽ nhánh theo `code` và `details.reason`. Chúng áp dụng cho `GET /api/github/repos` (khi có `installation_id`), `GET /api/github/repos/{owner}/{repo}/branches`, và bước kiểm tra repository khi tạo project hoặc kết nối Git. Xem [GitHub API](/vi/api/github).
+
+### `github_not_found` {#github_not_found}
+
+`404`. `details.reason` cho biết cách sửa. `installation_not_found`: installation của GitHub App không còn tồn tại, hãy cài lại GitHub App của TOSE và gắn lại vào workspace. `repository_not_found`: repository không tồn tại hoặc App chưa được cấp quyền truy cập, hãy cấp cho App quyền vào repository. Không thể thử lại.
+
+### `github_forbidden` {#github_forbidden}
+
+`403`. GitHub từ chối yêu cầu, ví dụ vì GitHub App của TOSE thiếu quyền mà thao tác cần. Hãy kiểm tra quyền của App. Gửi lại y nguyên không giúp ích. Không thể thử lại.
+
+### `github_rate_limited` {#github_rate_limited}
+
+`429`. GitHub giới hạn tốc độ yêu cầu. Chờ số giây trong header `Retry-After` rồi thử lại. Có thể thử lại.
+
+### `github_unavailable` {#github_unavailable}
+
+`503`. GitHub không trả lời. Hãy thử lại sau ít lâu với backoff. Có thể thử lại.
+
+### `github_app_misconfigured` {#github_app_misconfigured}
+
+`500`. GitHub từ chối thông tin xác thực của chính GitHub App của TOSE. Đây là lỗi cấu hình phía máy chủ, bạn không sửa được từ client. Hãy liên hệ hỗ trợ và gửi kèm `request_id`. Không thể thử lại.
+
+Khi lỗi xảy ra lúc kiểm tra repository ở bước tạo project hoặc kết nối Git, trạng thái là `400` cho mọi mã trên, `retryable` là `false`, và `message` bắt đầu bằng `Cannot access repository <owner/repo>` cho client cũ. Hãy dùng `code` và `details.reason`, không dùng message.
+
 ## Mã lỗi của hành động deploy
 
 `POST .../deploy` và `POST .../deployments/{id}/rollback` trả mã riêng của hành động theo dạng UPPER_SNAKE_CASE, không phải mã suy ra từ HTTP status. `POST .../redeploy` chỉ làm vậy với `INSUFFICIENT_BALANCE`; các lỗi khác của redeploy giữ mã snake_case ở trên. Lỗi quyền truy cập ở cả ba route (`not_found`, `forbidden`) cũng là snake_case. Tool MCP `deploy_project` và `rollback_deployment` báo cùng các mã này. Envelope không đổi, nên `doc_url` của mỗi lỗi kết thúc bằng anchor bên dưới, ví dụ `https://docs.tose.sh/api/errors#INSUFFICIENT_BALANCE`.
@@ -164,6 +192,8 @@ Hãy nạp tiền vào ví, hoặc giảm floor của các project, rồi gửi 
 ### `NO_GIT_CONNECTION` {#NO_GIT_CONNECTION}
 
 `400`. Project chưa kết nối repository Git nào nên không có gì để build. Hãy kết nối repository rồi deploy lại.
+
+[CLI](/vi/commands/deploy) đọc `NO_GIT_CONNECTION` và `INSUFFICIENT_BALANCE` từ trường `code` ổn định trong body phản hồi, dù nó nằm phẳng hay lồng trong `error`. CLI chỉ khớp theo nội dung message khi code bị thiếu hoặc chung chung (ví dụ `payment_required` ở mã `402`), nên đừng dựa vào nội dung message.
 
 ### `NO_SERVER` {#NO_SERVER}
 

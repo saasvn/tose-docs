@@ -63,6 +63,8 @@ never uses the secret. Send the API key in the `X-API-Key` header, or a session 
 
 `402`. The workspace wallet does not have enough balance for the action. Add funds, then retry.
 
+An agent request that would exceed a hard budget, or find the wallet empty, returns `402` with the code `budget_exhausted`. Raise the budget or add funds, then retry. See [Agent usage and budgets API](/api/agent-usage#budgets).
+
 ### `forbidden` {#forbidden}
 
 `403`. The credential is valid but may not do this. An API key works only for its own workspace,
@@ -139,6 +141,32 @@ Retryable.
 
 Any other error status uses the code `http_<status>`.
 
+## GitHub upstream codes
+
+Routes that call GitHub on your behalf report a failure with one of these codes instead of the generic `upstream_error` or `unavailable`. The response never carries GitHub's own error text, which can hold URLs and installation IDs. Branch on `code` and `details.reason`. They apply to `GET /api/github/repos` (with `installation_id`), `GET /api/github/repos/{owner}/{repo}/branches`, and the repository check when you create a project or connect Git. See [GitHub API](/api/github).
+
+### `github_not_found` {#github_not_found}
+
+`404`. `details.reason` says which fix applies. `installation_not_found`: the GitHub App installation no longer exists, so reinstall the TOSE GitHub App and attach it to the workspace again. `repository_not_found`: the repository does not exist or the App was not granted access to it, so grant the App access to the repository. Not retryable.
+
+### `github_forbidden` {#github_forbidden}
+
+`403`. GitHub denied the request, for example because the TOSE GitHub App lacks a permission the action needs. Check the App's permissions. Sending the same request again does not help. Not retryable.
+
+### `github_rate_limited` {#github_rate_limited}
+
+`429`. GitHub rate limited the request. Wait the number of seconds in the `Retry-After` header, then retry. Retryable.
+
+### `github_unavailable` {#github_unavailable}
+
+`503`. GitHub did not answer. Retry shortly with backoff. Retryable.
+
+### `github_app_misconfigured` {#github_app_misconfigured}
+
+`500`. GitHub rejected TOSE's own GitHub App credentials. This is a server configuration problem you cannot fix from the client. Contact support and quote `request_id`. Not retryable.
+
+When the failure happens while validating the repository in create project or connect Git, the status is `400` for every code above, `retryable` is `false`, and the `message` starts with `Cannot access repository <owner/repo>` for older clients. Use `code` and `details.reason`, not the message.
+
 ## Deploy action codes
 
 `POST .../deploy` and `POST .../deployments/{id}/rollback` report their own code in UPPER_SNAKE_CASE, not a code derived from the HTTP status. `POST .../redeploy` does so only for `INSUFFICIENT_BALANCE`; its other errors keep the snake_case codes above. Access errors on all three routes (`not_found`, `forbidden`) are snake_case too. The MCP tools `deploy_project` and `rollback_deployment` report the same codes. The envelope is unchanged, so the `doc_url` of each error ends in the anchor below, for example `https://docs.tose.sh/api/errors#INSUFFICIENT_BALANCE`.
@@ -164,6 +192,8 @@ Top up the wallet, or lower the project floors, then repeat the request.
 ### `NO_GIT_CONNECTION` {#NO_GIT_CONNECTION}
 
 `400`. The project has no Git repository connected, so there is nothing to build. Connect a repository, then deploy again.
+
+The [CLI](/commands/deploy) reads `NO_GIT_CONNECTION` and `INSUFFICIENT_BALANCE` from the stable `code` field of the response body, whether it is flat or nested under `error`. It matches the message only when the code is missing or generic (for example `payment_required` on a `402`), so do not rely on the message text.
 
 ### `NO_SERVER` {#NO_SERVER}
 
