@@ -85,5 +85,5 @@ tose redeploy
 
 ## Lệnh liên quan
 
-- [`tose env set`](/commands/env#tose-env-set) - Đặt connection URL làm biến môi trường
+- [`tose env set`](/vi/commands/env#tose-env-set) - Đặt connection URL làm biến môi trường
 - [`tose redeploy`](/commands/deploy) - Áp dụng thay đổi env

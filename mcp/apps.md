@@ -8,7 +8,16 @@ Hosts that support MCP Apps (`io.modelcontextprotocol/ui`) show an interactive v
 |------|-----------|----------|
 | Deployment timeline | `get_deployment_status` | Deployment stages, refreshed every 5 seconds until the deployment finishes. Recent deployments, and the build log on request. |
 | Deployment plan | `deploy_project`, `rollback_deployment` | The plan, its estimated cost, and a button that opens the approval page. After you approve, the deployment status. |
-| Diagnostics | `inspect_deployment` | Deployment details, the redacted error, likely causes and next steps for a failed deployment. |
+| Diagnostics | `inspect_deployment` | Deployment details, the redacted error, likely causes with the evidence behind each, and next steps for a failed deployment. |
+
+## Diagnosis evidence
+
+For a failed deployment, `inspect_deployment` returns a `diagnosis`. Its likely causes are hypotheses, not proof, and each one names the evidence it rests on:
+
+- `findings` lists each `cause` with its `evidence_ids`.
+- `evidence` lists the observations: `id`, `source` (`deployment`, `deployment_error`, `runtime_log`, `ops_event` or `resource_metric`), `observed_at` and a generic `summary`.
+
+Raw log and event text is never copied into the diagnosis. To read the source behind an id, use the pointer in its `summary`: a `runtime_log` item names the `read_logs` call to make (runtime logs from the last 24 hours only, where the cited line is marked `#<entry-id>`), and an `ops_event` item names the incident for `inspect_incident`. Pod metrics are context, not proof of a cause. A rollback is only ever suggested for you to approve.
 
 ## Which hosts support them
 
@@ -16,7 +25,7 @@ Support depends on the host and its version. The [client matrix](https://github.
 
 ## Cost in the plan is an estimate
 
-The cost shown in a plan is the **price-list rate** for your workspace's balance band, multiplied by the configured CPU, RAM and number of replicas. It is shown in US cents per hour and US dollars per 30 days (720 hours). **It is an estimate.** Real charges are metered hourly. See [pricing](/guide/pricing).
+The cost shown in a plan is the **price-list rate** (the standard rate, the same for every workspace), multiplied by the configured CPU, RAM and number of replicas. It is shown in US cents per hour and US dollars per 30 days (720 hours). **It is an estimate.** Real charges are metered hourly. See [pricing](/guide/pricing).
 
 ## What a view can and cannot do
 

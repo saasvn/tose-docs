@@ -117,7 +117,7 @@ Long values (>50 chars) are also truncated with `...`.
 
 ### Masked values for workspace members
 
-Workspace `member`s do not receive environment values: the API returns `********` (project env listing) or `***` (template env listing) instead. Only `admin` and `owner` see them. The CLI never writes or sends these placeholders as values:
+Workspace `member`s do not receive environment values: the API returns `********` (project env listing) or `***` (template env listing) instead. Only `admin` and `owner` see them. The dashboard follows the same rule: on the project and template pages a member sees "Hidden" instead of the placeholder, and the add, edit, delete, export and copy actions are not shown. Only owners and admins can see or change env values. The CLI never writes or sends these placeholders as values:
 
 - `tose env pull` skips masked keys (`skipped_masked` with `--json`), keeps any value the local file already holds for them, and fails without writing when every value is masked.
 - `tose env push`, `tose env set` and `tose template env set` refuse a value that is a masked placeholder and send nothing.
@@ -163,12 +163,39 @@ tose env set \
 
 ### Apply Changes
 
-After changing environment variables, redeploy to apply:
+Saving an environment variable does not change the pods that are already running. Apply it with a
+redeploy, which rolls out the last successful image with the current variables and **does not
+rebuild**:
 
 ```bash
 tose env set NODE_ENV=production
 tose redeploy
 ```
+
+You can also save and apply in one step, from the dashboard, the API or the CLI. See
+[Apply without a rebuild](#apply-without-a-rebuild).
+
+## Apply without a rebuild {#apply-without-a-rebuild}
+
+When the saved variables differ from the ones the running deployment was rolled out with, the project
+is **pending**.
+
+- **Dashboard:** a banner on the project shows the pending state with an **Áp dụng** (Apply)
+  button. When you edit variables, **Lưu & áp dụng** (Save & apply) saves and rolls out in one click.
+- **API:** add `?apply=true` to `POST`, `PUT` or `DELETE` on
+  `/api/workspaces/{slug}/projects/{project_slug}/env[/{env_id}]`, or to `PUT .../env/bulk`.
+  The change is saved, then rolled out through the same path as `POST .../redeploy`. See
+  [Environment variables and apply](/api/projects#environment-variables).
+- **CLI:** add `--apply` to `tose env set`, `tose env rm` or `tose env push` to save and roll out in one
+  command, or run `tose redeploy` to apply variables you already saved. See
+  [Saving and applying changes](/commands/env#saving-and-applying-changes).
+
+Apply needs what a redeploy needs: the workspace `owner` or `admin` role, the `deployments:execute`
+scope for an API key (approval for a connected OAuth app), and a positive wallet balance. If one is
+missing the request is refused (`402` for an empty wallet, `403` otherwise) and **nothing is saved**.
+
+If the project has no server or no successful deployment yet, the change is still saved and the
+response reports `applied: false` with `NO_DEPLOYMENT`. It then takes effect with the next deploy.
 
 ## File Organization
 
