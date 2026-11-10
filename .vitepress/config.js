@@ -4,6 +4,18 @@ export default defineConfig({
   title: 'TOSE CLI Documentation',
   description: 'Complete documentation for TOSE CLI - Deploy and manage your applications from the command line',
 
+  // Dark is the brand default; visitors can still switch to light.
+  appearance: 'dark',
+
+  head: [
+    ['link', { rel: 'preconnect', href: 'https://fonts.googleapis.com' }],
+    ['link', { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' }],
+    ['link', {
+      rel: 'stylesheet',
+      href: 'https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Unbounded:wght@500;600;700&display=swap&subset=vietnamese'
+    }]
+  ],
+
   // Maintainer files, not site pages.
   srcExclude: ['README.md', 'AGENTS.md'],
 
@@ -37,6 +49,7 @@ export default defineConfig({
               { text: 'tose up', link: '/commands/up' },
               { text: 'tose deploy / redeploy', link: '/commands/deploy' },
               { text: 'tose deployment', link: '/commands/deployment' },
+              { text: 'tose runbook', link: '/commands/runbook' },
               { text: 'tose status', link: '/commands/status' },
               { text: 'tose logs', link: '/commands/logs' },
               { text: 'tose down / restart', link: '/commands/down' },
@@ -107,6 +120,7 @@ export default defineConfig({
               { text: 'API Keys & Scopes', link: '/api/api-keys' },
               { text: 'Audit Log', link: '/api/audit' },
               { text: 'Feedback', link: '/api/feedback' },
+              { text: 'Support assistant token', link: '/api/support-assistant' },
               { text: 'MCP Connector', link: '/mcp' },
               { text: 'Errors', link: '/api/errors' },
               { text: 'Sign-up Attribution', link: '/api/signup-attribution' },
@@ -154,6 +168,7 @@ export default defineConfig({
               { text: 'tose up', link: '/vi/commands/up' },
               { text: 'tose deploy / redeploy', link: '/vi/commands/deploy' },
               { text: 'tose deployment', link: '/vi/commands/deployment' },
+              { text: 'tose runbook', link: '/vi/commands/runbook' },
               { text: 'tose status', link: '/vi/commands/status' },
               { text: 'tose logs', link: '/vi/commands/logs' },
               { text: 'tose down / restart', link: '/vi/commands/down' },
@@ -223,6 +238,7 @@ export default defineConfig({
               { text: 'API key & Scope', link: '/vi/api/api-keys' },
               { text: 'Audit log', link: '/vi/api/audit' },
               { text: 'Feedback', link: '/vi/api/feedback' },
+              { text: 'Support token của trợ lý', link: '/vi/api/support-assistant' },
               { text: 'MCP Connector', link: '/vi/mcp' },
               { text: 'Mã lỗi', link: '/vi/api/errors' },
               { text: 'Runtimes', link: '/vi/api/runtimes' },
