@@ -15,7 +15,7 @@ Registry đã được phát hành (tose-app [#388](https://github.com/saasvn/to
 | Xuất bản một version bên trong workspace (bất biến từ đó), kèm `expected_manifest_hash` | Có. Xuất bản không liệt kê version ở nơi nào khác |
 | Lưu lượt validate cho từng version | Có. Manifest hợp lệ vẫn trả `security_gate: pending` |
 | Thu hồi version đã xuất bản | Có, cho owner và admin của workspace; admin nền tảng có thể gỡ một listing. `deprecated` được dành sẵn và chưa được đặt |
-| Thư mục template công khai: tìm kiếm, gửi duyệt, TOSE phê duyệt (tose-app [#487](https://github.com/saasvn/tose-app/pull/487)) | Đã xây dựng, đang tắt trên production: cần bật cả `TEMPLATE_DIRECTORY_ENABLED` và `COMMUNITY_TEMPLATES_ENABLED` |
+| [Thư mục template](/vi/guide/template-directory) công khai: tìm kiếm, gửi duyệt, TOSE phê duyệt (tose-app [#487](https://github.com/saasvn/tose-app/pull/487)) | Đã xây dựng, đang tắt trên production: cần bật cả `TEMPLATE_DIRECTORY_ENABLED` và `COMMUNITY_TEMPLATES_ENABLED` |
 | Plan deploy, phê duyệt và cài template của workspace và của thư mục | Đã xây dựng. Trên TOSE được lưu trữ, mọi plan loại này bị chặn bởi `COMMUNITY_TEMPLATES_DISABLED` và `IMAGE_SCANNER_NOT_CONFIGURED` (nguồn Git còn bởi `BUILD_SANDBOX_NOT_HARDENED` và `PUSH_CREDENTIALS_NOT_SCOPED`) |
 | Cài từ registry (build và chạy) | Bị chặn (gated). [Security gate](#install-security-gate-gated) fail-closed; tắt trừ khi operator bật community template (mặc định tắt) |
 | Nâng cấp và rollback tại chỗ một bản cài từ registry (tose-app [#483](https://github.com/saasvn/tose-app/pull/483)) | Đã xây dựng, đi qua cùng loại plan và cùng cổng bảo mật |
@@ -128,7 +128,7 @@ Chi tiết, scope, mã lỗi và ví dụ nằm ở [tham chiếu API registry](
 - Validate chỉ kiểm tra cú pháp manifest và định dạng ghim. Nó không quét hay build mã nguồn. Phản hồi luôn ghi `security_gate: pending` kể cả khi manifest hợp lệ, và manifest không đáng tin sẽ không được đưa cho builder cho đến khi có và đạt một security gate riêng.
 - Ghim vào commit hoặc digest bảo vệ người dùng khỏi nguồn bị đổi sau khi review. Nó không chứng minh mã nguồn an toàn.
 - Không đặt giá trị bí mật trong manifest. Hãy khai báo tên biến với `secret: true`; người deploy sẽ cung cấp giá trị.
-- Xuất bản giữ version riêng tư trong workspace. Thư mục công khai, với bước TOSE duyệt, các tín hiệu tin cậy, báo cáo và gỡ bỏ, đã được xây dựng nhưng đang tắt trên production; trang này sẽ mô tả nó khi được bật.
+- Xuất bản giữ version riêng tư trong workspace. Thư mục công khai, với bước TOSE duyệt, các tín hiệu tin cậy, báo cáo và gỡ bỏ, đã được xây dựng nhưng đang tắt trên production; xem [Thư mục template](/vi/guide/template-directory).
 
 ## Security gate khi cài đặt (đang bị chặn) {#install-security-gate-gated}
 

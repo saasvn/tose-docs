@@ -15,7 +15,7 @@ The registry has shipped (tose-app [#388](https://github.com/saasvn/tose-app/pul
 | Publish a version inside the workspace (immutable from then on), with `expected_manifest_hash` | Available. Publishing does not list the version anywhere else |
 | Validation runs recorded per version | Available. A valid manifest still reports `security_gate: pending` |
 | Revoke a published version | Available to the workspace's owners and admins; platform admins can take a listing down. `deprecated` is reserved and not set yet |
-| Public template directory: search, submit for review, approval by TOSE (tose-app [#487](https://github.com/saasvn/tose-app/pull/487)) | Built, off in production: it needs both `TEMPLATE_DIRECTORY_ENABLED` and `COMMUNITY_TEMPLATES_ENABLED` |
+| Public [template directory](/guide/template-directory): search, submit for review, approval by TOSE (tose-app [#487](https://github.com/saasvn/tose-app/pull/487)) | Built, off in production: it needs both `TEMPLATE_DIRECTORY_ENABLED` and `COMMUNITY_TEMPLATES_ENABLED` |
 | Deploy plans, approval and install of workspace and directory templates | Built. On hosted TOSE every such plan is blocked by `COMMUNITY_TEMPLATES_DISABLED` and `IMAGE_SCANNER_NOT_CONFIGURED` (Git sources also by `BUILD_SANDBOX_NOT_HARDENED` and `PUSH_CREDENTIALS_NOT_SCOPED`) |
 | Registry installs (build and run) | Gated. Fail-closed [security gate](#install-security-gate-gated); off unless the operator enables community templates (default off) |
 | In-place upgrade and rollback of a registry installation (tose-app [#483](https://github.com/saasvn/tose-app/pull/483)) | Built, through the same plans and the same security gate |
@@ -126,7 +126,7 @@ Details, scopes, error codes and examples are in the [registry API reference](/a
 - Validation only checks the manifest syntax and the pin format. It does not scan or build your source. The response says `security_gate: pending` even for a valid manifest, and an untrusted manifest is never given to a builder until a separate security gate exists and passes.
 - Pinning to a commit or digest protects users from a source that changes after review. It does not prove the code is safe.
 - Do not put secret values in a manifest. Declare the variable name with `secret: true`; the person who deploys supplies the value.
-- Publishing keeps a version private to the workspace. The public directory, with review by TOSE, trust signals, reporting and takedown, is built but off in production; it will be documented here when it is turned on.
+- Publishing keeps a version private to the workspace. The public directory, with review by TOSE, trust signals, reporting and takedown, is built but off in production; see [Template directory](/guide/template-directory).
 
 ## Install security gate (gated)
 
