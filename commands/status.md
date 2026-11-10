@@ -14,7 +14,8 @@ Displays detailed status information for your project, including:
 
 - Project status (active, stopped, etc.)
 - Pod health (ready count, individual pod status, restarts, age)
-- Resource limits (CPU and memory)
+- Resource limits (CPU and memory) of the project's own container
+- With [sidecars](/guide/project-sidecars): every container of each pod (readiness, restarts, state and reason such as `CrashLoopBackOff`), the per-replica total, and the saved sidecar settings
 - Latest deployment info with time-ago formatting
 
 ## Arguments
@@ -45,6 +46,24 @@ Latest deployment:
   Status:  running
   Time:    2h ago
   URL:     https://my-app.tose.sh
+```
+
+### Project with Sidecars
+
+`CPU` and `Memory` stay the project container's own limits. `pod total` is one replica including its sidecars, the amount billed per replica. A pod counts as ready only when all of its containers are. Saved sidecars are configuration that applies at the next deployment; the container rows show what runs.
+
+```bash
+$ tose status
+
+Pods:    0/1 ready
+  pod-abc-1  Running  restarts=3  age=5m
+    - my-app  ready  state=running  restarts=0
+    - otel-collector  not ready  state=waiting (CrashLoopBackOff)  restarts=3
+CPU:     0.5  (project container; pod total 0.75 incl. sidecars, billed per replica)
+Memory:  1  (project container; pod total 1.25 GB incl. sidecars, billed per replica)
+
+Saved sidecars: (apply at the next deployment)
+  otel-collector: 0.25 vCPU / 0.25 GB, ghcr.io/acme/collector:1.4@sha256:…
 ```
 
 ### Check Specific Project
@@ -107,8 +126,8 @@ $ tose status --json
       ]
     },
     "resources": {
-      "cpu": { "used": "100m", "limit": "2000m" },
-      "memory": { "used": "500Mi", "limit": "4Gi" }
+      "cpu": { "limit": "2", "pod_total": "2" },
+      "memory": { "limit": "4", "pod_total": "4" }
     },
     "latestDeployment": {
       "id": "dep_abc123",
@@ -119,6 +138,10 @@ $ tose status --json
   }
 }
 ```
+
+### Process limit
+
+When the operator of your TOSE deployment has declared a per-Pod process (PID) limit, `tose status --json` includes it as `data.resources.pids.limit`. The text output does not print it. The limit is shared by the project container and its sidecars, is a declaration rather than a live check, and a missing field means the limit is unknown, not necessarily unlimited. See [Projects API](/api/projects#process-limit).
 
 ## Use Cases
 

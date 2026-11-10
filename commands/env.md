@@ -60,7 +60,7 @@ Set one or more environment variables.
 ### Synopsis
 
 ```bash
-tose env set <KEY=VALUE...>
+tose env set <KEY=VALUE...> [--apply]
 ```
 
 ### Usage
@@ -80,6 +80,12 @@ $ tose env set DATABASE_URL=postgres://... API_KEY=secret PORT=3000
 
 ✓ Set 3 variable(s)
 ```
+
+### Options
+
+| Option | Description |
+|--------|-------------|
+| `--apply` | Also roll the change out now. See [Saving and applying changes](#saving-and-applying-changes) |
 
 ### Behavior
 
@@ -109,8 +115,15 @@ Remove one or more environment variables.
 ### Synopsis
 
 ```bash
-tose env rm <KEY...>
+tose env rm <KEY...> [--yes] [--apply]
 ```
+
+### Options
+
+| Option | Description |
+|--------|-------------|
+| `--yes` | Confirm the removal. Required without a terminal or with `--json` |
+| `--apply` | Also roll the change out now. See [Saving and applying changes](#saving-and-applying-changes) |
 
 ### Usage
 
@@ -144,7 +157,7 @@ Push a local .env file to the project.
 ### Synopsis
 
 ```bash
-tose env push [file] [--replace]
+tose env push [file] [--replace] [--apply]
 ```
 
 ### Arguments
@@ -157,7 +170,8 @@ tose env push [file] [--replace]
 
 | Option | Description |
 |--------|-------------|
-| `--replace` | Replace all existing vars (default: merge) |
+| `--replace` | Replace all existing vars (default: merge). Needs `--yes` without a terminal or with `--json` |
+| `--apply` | Also roll the change out now. See [Saving and applying changes](#saving-and-applying-changes) |
 
 ### Usage
 
@@ -272,6 +286,63 @@ PORT=3000
 }
 ```
 
+## Saving and applying changes
+
+`tose env set`, `tose env rm` and `tose env push` **only save by default**. Running pods pick the change up with the next deployment.
+
+Add `--apply` to also roll the change out now. It uses the same rollout as [`tose redeploy`](/commands/deploy#tose-redeploy): the last successful image, with **no rebuild**.
+
+```bash
+tose env set LOG_LEVEL=debug --apply
+tose env push prod.env --apply
+tose env rm OLD_FLAG --yes --apply
+```
+
+The CLI sends `?apply=true` to the API and reports the outcome after the change is saved:
+
+| Outcome | Meaning | Exit code |
+|---------|---------|-----------|
+| `applied: true` | Saved and rolled out. The result carries the `deployment_id` and `status` | `0` |
+| `NO_DEPLOYMENT` or `NO_SERVER` | Saved. The project has no deployment or no server to roll out to, so the change applies with the next deploy | `0` |
+| `ROLLOUT_FAILED` and other codes | Saved, but the rollout did not happen. Run `tose redeploy` to retry | `8` |
+| `INSUFFICIENT_BALANCE` | Saved, but the wallet could not fund the rollout. Top up, then run `tose redeploy` | `9` |
+| No `apply` in the response | An older server that does not report an outcome. The change is saved only. With `--json`, `apply` is `{ "applied": false }`, which does not mean a failure | `0` |
+
+With `--json`, the result also carries `apply` (the API's outcome) and `apply_message` (one sentence describing it):
+
+```json
+{
+  "success": true,
+  "data": {
+    "created": 1,
+    "updated": 0,
+    "deleted": 0,
+    "apply": { "applied": true, "deployment_id": "dep_abc123", "status": "running" },
+    "apply_message": "Saved and applied: rolled out to the running project. Deployment dep_abc123 (running)."
+  }
+}
+```
+
+### Refusals
+
+Some conditions refuse the request. They are reported as errors and the API **saves nothing**:
+
+- The wallet balance is zero or negative (`INSUFFICIENT_BALANCE`, exit `9`).
+- The API key lacks the `deployments:execute` scope (`INSUFFICIENT_SCOPE`).
+- A connected app needs approval first.
+
+With `--apply`, the CLI never falls back to one request per variable after a refusal. If a command needs several writes and the last one is refused, the earlier writes stay saved, and the CLI says so.
+
+### One restart
+
+When variables are written one by one, or several keys are removed, only the **last** write or delete asks for the rollout. The project restarts once, not once per variable.
+
+Writing one by one only happens on an older server that has no bulk route. In that case `--json` returns `set` (for `env set`) or `pushed` (for `env push`) instead of the counts above, together with `apply` and `apply_message`. `tose env rm` does not request a rollout when none of the keys exist.
+
+Values stay masked as described in [Masked values for workspace members](#masked-values-for-workspace-members).
+
+---
+
 ## Masked values for workspace members
 
 Only workspace `admin` and `owner` can read environment values. For a `member`, the API returns the placeholder `********` instead of each value in the project env listing (and `***` in the template env listing). The CLI recognises these placeholders and never treats them as real values:
@@ -327,7 +398,8 @@ tose env set \
   DATABASE_URL=$DATABASE_URL \
   API_KEY=$API_KEY \
   --workspace my-ws \
-  --project my-app
+  --project my-app \
+  --apply
 ```
 
 ### Bulk Replace Environment
@@ -343,5 +415,5 @@ tose env list
 ## Related Commands
 
 - [`tose up`](/commands/up) - Deploy (auto-pushes env vars)
-- [`tose redeploy`](/commands/deploy#tose-redeploy) - Redeploy to apply env changes
+- [`tose redeploy`](/commands/deploy#tose-redeploy) - Redeploy to apply saved env changes (or use `--apply`)
 - [`tose status`](/commands/status) - Check project status

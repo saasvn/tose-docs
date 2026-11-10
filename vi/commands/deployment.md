@@ -82,4 +82,5 @@ Rollback cũng có qua connector MCP, nơi nó cần bạn duyệt trong trình 
 
 - [`tose deploy`](/commands/deploy) - Bắt đầu triển khai
 - [`tose status`](/vi/commands/status) - Tìm ID triển khai
+- [`tose runbook`](/vi/commands/runbook) - Lập kế hoạch rollback do người duyệt trong trình duyệt
 - [`tose skills install safe-rollback`](/vi/commands/skills) - Dạy agent quy trình rollback an toàn

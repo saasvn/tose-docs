@@ -49,10 +49,55 @@ từ chối giá trị `api_key`, `access_token` và `tose_sk_` trong query stri
 proxy hoặc load balancer của bạn ghi toàn bộ URL, các log đó nằm ngoài tầm kiểm soát của API, nên
 hãy tắt việc ghi query ở đó. Xem [Xác thực](/vi/api/authentication).
 
+## Probe health của template {#template-probes}
+
+Theo mặc định, API thêm startup, readiness (`/health`) và liveness (`/livez`) probe của Kubernetes vào deployment template Dewee, và chạy kiểm tra `/health` công khai (tối đa 3 phút, trên domain mặc định) trước khi ghi một deployment có probe là `running`. Đặt `TEMPLATE_PROBES_ENABLED=false` trên API để tắt cả hai. Cơ chế giám sát của script khởi động vẫn hoạt động vì nó nằm trong mọi image Dewee. Image `custom`, deploy rollback và các template khác không bao giờ bị probe. Xem [Trạng thái health của deployment](/vi/guide/dewee-template#health-state).
+
+## Cài đặt tùy chọn cho operator {#optional-operator-settings}
+
+Cả hai cài đặt đều tắt nếu bạn không đặt.
+
+| Biến | Mặc định | Tác dụng |
+|------|----------|----------|
+| `POST_DEPLOY_HEALTH_GATE_ENABLED` | `false` | Đặt `true` để kiểm tra độ sẵn sàng Kubernetes của image vừa deploy trong 10 giây sau mỗi rollout build-and-deploy thành công (rollback và deploy template không được kiểm tra). Kết quả được lưu vào deployment và phát thành ops event. Kiểm tra thất bại không bao giờ rollback hay dừng deployment. Xem [Health gate sau deploy](/vi/api/projects#health-gate) |
+| `OPS_RETENTION_DAYS` | không đặt (giữ mãi) | Số ngày nguyên dương của lịch sử ops đã hoàn tất cần giữ. `0` hoặc không đặt thì không xóa gì; giá trị không hợp lệ làm API dừng khi khởi động |
+
+Retention xóa các dòng `ops_outbox` đã gửi, event `info` đứng riêng và incident đã giải quyết cùng timeline của chúng. Nó giữ incident đang mở, event `warning` và `critical` đứng riêng, và mọi incident có mục, event hoặc thông báo chưa xử lý gần đây. Lần chạy đầu sau khi khởi động 10 phút, rồi mỗi giờ, theo lô tối đa 500 dòng. Tăng giá trị về sau không khôi phục được lịch sử đã xóa, nên hãy chọn khoảng thời gian và sao lưu database trước. Xem `[ops-retention]` trong log backend để biết đã chạy gì. Xóa workspace cũng xóa lịch sử ops của nó trong cùng transaction.
+
 ## Công bố hợp đồng API
 
 API phục vụ spec OpenAPI tại `/api/openapi.yaml`, nên một instance tự host tự có tài liệu. Hãy sinh
 client theo base URL của bạn. Xem [Tài liệu REST API](/vi/api/reference).
+
+## Thumbnail của project
+
+Thumbnail của project là ảnh chụp trang https công khai của project, được chụp sau mỗi lần deploy. API không bao
+giờ chạy trình duyệt trong pod của chính nó. Mỗi lần chụp là một pod tồn tại ngắn cùng một NetworkPolicy trong
+namespace `tose-thumbnail` trên cluster của project, và cả hai bị xóa khi chụp xong.
+
+Những gì giới hạn pod chụp ảnh:
+
+- **Mạng.** Egress chỉ được phép tới địa chỉ mà API đã phân giải và ghim, dạng `<ip>/32` trên TCP 443. Không có
+  DNS, không có ingress, và không có đường tới dải mạng của cluster hay metadata endpoint.
+- **Danh tính.** Pod không có service-account token và không có Secret.
+- **Trình duyệt.** Sandbox của Chromium luôn bật và worker từ chối chạy bằng root.
+
+Để bật thumbnail cho API tự host:
+
+1. Áp dụng `deploy/thumbnail` từ [`saasvn/tose-app`](https://github.com/saasvn/tose-app) lên cluster. Thư mục này tạo namespace,
+   policy default-deny, quota và một Role. Gán Role đó cho danh tính trong kubeconfig của API.
+2. Publish image build từ `images/thumbnail-shot` và đặt `THUMBNAIL_IMAGE` cho API.
+3. Nếu seccomp profile mặc định của container runtime chặn user namespace (containerd chặn với pod không có
+   capability), hãy cài một profile cục bộ trên node cho phép chúng và đặt `THUMBNAIL_SECCOMP_PROFILE` là đường dẫn
+   của profile đó trong thư mục seccomp của kubelet.
+
+Nếu chưa đặt `THUMBNAIL_IMAGE`, việc chụp bị bỏ qua và ghi log với tiền tố `[screenshot]`. Deploy không bị ảnh hưởng.
+Nếu đã đặt image nhưng thiếu namespace hoặc Role, mỗi lần deploy ghi log các lần chụp thất bại và vẫn thành công.
+
+Cluster do workspace sở hữu hiện không có thumbnail.
+
+Chi tiết vận hành, gồm giới hạn của pod và cách kiểm tra policy, nằm trong `docs/operations.md` (mục "Project
+thumbnails") và `deploy/thumbnail/README.md` của `saasvn/tose-app`.
 
 ## Tài liệu liên quan
 

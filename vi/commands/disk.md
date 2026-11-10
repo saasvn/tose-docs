@@ -104,7 +104,7 @@ Không thể giảm dung lượng; xem [Thay đổi dung lượng](/vi/guide/per
 
 ## tose pricing
 
-Hiển thị các bậc giá compute và giá lưu trữ hiện hành, lấy từ [`GET /api/pricing`](/vi/api/disks#get-pricing).
+Hiển thị mức giá compute tiêu chuẩn và giá lưu trữ hiện hành, lấy từ [`GET /api/pricing`](/vi/api/disks#get-pricing).
 
 ### Tóm tắt {#tose-pricing-synopsis}
 
