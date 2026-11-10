@@ -200,6 +200,8 @@ TOSE publishes a Dewee version as verified only after an end-to-end run passes a
 
 When a verified run exists, this table gains the digest, commit, TOSE revision, date and the word *verified*. Do not treat a template as one-click verified before that.
 
+When the public status endpoint is on, [`GET /api/public/template-releases`](/api/templates#public-release-status) reports the same state for each template: `verified` (with `version` and `last_validated_at`), `experimental`, `deprecated`, or `unavailable` when the flag is off. The release gate in `templates/verified-images.json` decides `verified`, and nothing is verified until a real staging run promotes an image.
+
 ## Staged rollout checklist
 
 1. Create an instance in a non-production workspace.
