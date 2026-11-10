@@ -55,7 +55,7 @@ Without the scope the command exits with `INSUFFICIENT_SCOPE` (exit code `3`) an
 
 ### What it never prints
 
-Environment values, API keys, registry credentials, kubeconfig, build logs and database passwords. The CLI also checks the response against the contract and prints only the fields in the table above, so an unexpected field from the server does not reach your terminal or your logs. If an API key shows up inside a documented field it is redacted.
+Environment values, API keys, registry credentials, kubeconfig, build logs and database passwords. The CLI also checks the response against the contract and prints only the fields in the table above, so an unexpected field from the server does not reach your terminal or your logs. If an API key shows up inside a documented field it is redacted, and control characters are removed from the human summary.
 
 ## What the CLI does not print {#not-printed}
 
@@ -129,9 +129,9 @@ With `--json`, stdout is exactly one envelope. `data` is the export, and `messag
 | Not allowed to read the project | `forbidden` | `3` |
 | Project missing or in another workspace | `not_found` | `6` |
 | `schema_version` is not `tose.dev/project-export/v1` | `ERROR` | `1` |
-| The response is malformed | `ERROR` | `1` |
+| The response is malformed: a field is missing or has the wrong type, `generated_at` is not a date-time, an `env_keys` entry is not a variable name, or `artifact.image_digest` is not an image pinned by OCI digest | `ERROR` | `1` |
 
-For an unsupported `schema_version` the message tells you to update the CLI (`npm i -g @tosesh/tose`). Nothing from the export is printed in that case. Every exit code is listed in the [commands overview](/commands/overview#exit-codes).
+For an unsupported `schema_version` the message tells you to update the CLI (`npm i -g @tosesh/tose`). Nothing from the export is printed in that case, and nothing is printed for a malformed response either: the CLI refuses it instead of showing part of it. Every exit code is listed in the [commands overview](/commands/overview#exit-codes).
 
 ## Related
 
