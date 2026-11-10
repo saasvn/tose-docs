@@ -1,10 +1,10 @@
 # Client compatibility
 
-The connector works with any client that supports remote MCP over Streamable HTTP with OAuth, because it depends on none of the optional features below. The full, maintained table is [`docs/mcp-client-matrix.md`](https://github.com/saasvn/tose-app/blob/master/docs/mcp-client-matrix.md) in tose-app.
+Add the hosted server URL `https://app.tose.sh/mcp` to your client; self-hosted instances use their own origin. The connector works with any client that supports remote MCP over Streamable HTTP with OAuth, because it depends on none of the optional features below. The full, maintained table is [`docs/mcp-client-matrix.md`](https://github.com/saasvn/tose-app/blob/master/docs/mcp-client-matrix.md) in tose-app.
 
 ## Verified against real clients
 
-**None.** The matrix marks a client as verified only after someone connects it and records the date and version. No real agent client runs in TOSE's automated tests, so none is listed as verified. Claude, ChatGPT, Cursor, VS Code and MCP Inspector are all expected to work from their vendors' documentation, not from a TOSE test.
+**None.** The matrix marks a client as verified only after someone connects it and records the date and version. No real agent client runs in TOSE's automated tests, so none is listed as verified. Claude, ChatGPT, Cursor, VS Code and MCP Inspector are all expected to work from their vendors' documentation, not from a TOSE test. The server's tests do check Claude's public metadata document and the token flow against PostgreSQL, but no desktop app has been connected to confirm it.
 
 A result is recorded in the matrix by a TOSE maintainer, with the date and client version.
 
@@ -16,7 +16,9 @@ These are checked by TOSE's automated tests against the server, not against a cl
 |---------|--------|
 | Streamable HTTP, stateless | Offered |
 | Protocol revisions 2026-07-28 and the 2025 and 2024-11-05 revisions | Offered |
-| Client ID Metadata Documents and dynamic registration | Offered |
+| Client ID Metadata Documents (`none` or `private_key_jwt` with a JWKS) and dynamic registration | Offered |
+| Loopback `http` callbacks that vary the port when the registered URI has none | Offered |
+| The Cursor and Antigravity desktop callbacks, and `grant_types` lists that include `authorization_code` plus extra grants such as JWT bearer | Offered |
 | `insufficient_scope` step-up | Offered |
 | [Tasks](./tasks) for deploy and rollback | Offered, with no task status notifications |
 | [Apps](./apps) views | Offered |
