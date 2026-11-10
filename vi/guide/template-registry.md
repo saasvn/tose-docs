@@ -208,7 +208,7 @@ Thêm bản phát hành là một thay đổi được rà soát trong định n
 
 ### Triển khai từ dashboard {#deploy-from-the-dashboard}
 
-Mỗi thẻ agent trong kho mẫu (tose-app [#576](https://github.com/saasvn/tose-app/pull/576)) hiển thị những gì bạn cần để chọn: logo và tên nhà cung cấp cùng nhãn **Sẵn sàng** hoặc **Chưa khả dụng**, **Đăng nhập bằng** (các nhà cung cấp; nhà cung cấp mà máy chủ này không cung cấp bị gạch ngang, lý do hiện khi rê chuột), **Cấu hình** (vCPU và GiB mặc định và lớn nhất), **Bản phát hành** (bản TOSE và phiên bản upstream, hoặc "Chưa phát hành") và **Nguồn** (dự án upstream và giấy phép). Thẻ chỉ tóm tắt danh sách của máy chủ và không thay thế các kiểm tra theo workspace khi bạn lập plan: thẻ ghi **Sẵn sàng** vẫn có thể bị chặn với workspace của bạn.
+Mỗi thẻ agent trong kho mẫu (tose-app [#576](https://github.com/saasvn/tose-app/pull/576)) hiển thị những gì bạn cần để chọn: logo, tên agent và nhà cung cấp cùng nhãn **Sẵn sàng** hoặc **Chưa sẵn sàng**, **Đăng nhập bằng** (các nhà cung cấp; nhà cung cấp mà máy chủ này không cung cấp bị gạch ngang, lý do hiện khi rê chuột), **Cấu hình** (vCPU và GiB mặc định và lớn nhất), **Phiên bản** (bản TOSE và phiên bản upstream, hoặc "Chưa phát hành") và **Mã nguồn** (dự án upstream và giấy phép). Thẻ chỉ tóm tắt danh sách của máy chủ và không thay thế các kiểm tra theo workspace khi bạn lập plan: thẻ ghi **Sẵn sàng** vẫn có thể bị chặn với workspace của bạn.
 
 Mở **Kho mẫu** ở thanh bên của workspace (nhóm **Ứng dụng & agent**). Agent tuyển chọn được liệt kê đầu tiên, ở mục **Mẫu agent do TOSE tuyển chọn**. Chọn **Triển khai** ở Codex, Pi hoặc Claude Code: agent được triển khai trên **một trang** (tose-app [#598](https://github.com/saasvn/tose-app/pull/598)) gồm các thẻ sau:
 
@@ -227,7 +227,7 @@ Cùng luồng này dùng được qua API: `POST /template-deployment-plans` v�
 
 ### Nguồn hiển thị trên ứng dụng đã cài
 
-Ứng dụng cài từ một version trong registry hiển thị **Nguồn template** của nó. Với version dựa trên image (mọi agent tuyển chọn), đó là tham chiếu image đã ghim, `…@sha256:<digest>`, không phải URL Git; bản build từ Git giữ URL repository, và nguồn rỗng hiển thị `—` (tose-app [#568](https://github.com/saasvn/tose-app/pull/568)). Trường này chỉ hiển thị nguồn gốc của ứng dụng, không đổi thứ được chạy. `template_source` trong phản hồi API theo cùng quy tắc, nên đừng parse nó như một URL.
+Ứng dụng cài từ một version trong registry hiển thị **Nguồn mẫu** của nó. Với version dựa trên image (mọi agent tuyển chọn), đó là tham chiếu image đã ghim, `…@sha256:<digest>`, không phải URL Git; bản build từ Git giữ URL repository, và nguồn rỗng hiển thị `—` (tose-app [#568](https://github.com/saasvn/tose-app/pull/568)). Trường này chỉ hiển thị nguồn gốc của ứng dụng, không đổi thứ được chạy. API trả về cùng giá trị `template_source` (tham chiếu image hoặc URL Git, và `""` khi rỗng; `—` chỉ là cách trang hiển thị giá trị rỗng), nên đừng parse nó như một URL.
 
 ### Console riêng tư
 

@@ -206,7 +206,7 @@ Adding a release is a reviewed change to the definition, compiled into the TOSE 
 
 ### Deploy from the dashboard {#deploy-from-the-dashboard}
 
-Each agent card in the catalog (tose-app [#576](https://github.com/saasvn/tose-app/pull/576)) shows what you need to choose: the vendor logo and name with a **Ready** or **Not available yet** badge, **Sign in with** (the providers; one this server does not offer is struck through, with the reason on hover), **Size** (the default and the largest vCPU and GiB), **Release** (the TOSE release and its upstream version, or "Not released yet") and **Source** (the upstream project and its licence). The card is a summary of the server's listing and does not replace the workspace checks made when you plan: a card that says **Ready** can still be blocked for your workspace.
+Each agent card in the catalog (tose-app [#576](https://github.com/saasvn/tose-app/pull/576)) shows what you need to choose: the vendor logo, the agent name and its vendor with a **Ready** or **Not available yet** badge, **Sign in with** (the providers; one this server does not offer is struck through, with the reason on hover), **Size** (the default and the largest vCPU and GiB), **Release** (the TOSE release and its upstream version, or "Not released yet") and **Source** (the upstream project and its license). The card is a summary of the server's listing and does not replace the workspace checks made when you plan: a card that says **Ready** can still be blocked for your workspace.
 
 Open **Template catalog** in the workspace sidebar (**Apps & agents**). Curated agents are listed first, under **Agent templates by TOSE**. Choose **Deploy** on Codex, Pi or Claude Code: the agent deploys from **one page** (tose-app [#598](https://github.com/saasvn/tose-app/pull/598)) with these cards:
 
@@ -225,7 +225,7 @@ The same flow works through the API: `POST /template-deployment-plans` with `cur
 
 ### Source shown on an installed app
 
-An app installed from a registry version shows its **Template Source**. For an image-based version (every curated agent) that is the pinned image reference, `…@sha256:<digest>`, not a Git URL; a build from Git keeps its repository URL, and an empty source shows `—` (tose-app [#568](https://github.com/saasvn/tose-app/pull/568)). The field is a display of where the app came from; it does not change what runs. `template_source` in API responses follows the same rule, so do not parse it as a URL.
+An app installed from a registry version shows its **Template Source**. For an image-based version (every curated agent) that is the pinned image reference, `…@sha256:<digest>`, not a Git URL; a build from Git keeps its repository URL, and an empty source shows `—` (tose-app [#568](https://github.com/saasvn/tose-app/pull/568)). The field is a display of where the app came from; it does not change what runs. The API returns the same `template_source` value (an image reference or a Git URL, and `""` when empty; `—` is only how the page displays an empty value), so do not parse it as a URL.
 
 ### The private console
 
