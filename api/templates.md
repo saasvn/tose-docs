@@ -337,9 +337,14 @@ GET /api/workspaces/{slug}/templates/{template_slug}/deployments/{id}
 | `trigger_type` | string | `manual`, or `image_only` for an image deploy |
 | `triggered_by` | string \| null | ID of the user who requested it |
 | `error_message` | string \| null | Why the deployment failed, if it did |
+| `health_state` | string | `healthy`, `unhealthy` or `unverified`: the last check of the deployed workload. Empty when no check ran, for example probes are off, a `custom` image, a rollback or another template |
+| `health_message` | string \| null | Why the deployment is not `healthy` |
+| `health_checked_at` | string (RFC 3339) \| null | When the check ran |
 | `created_at` / `updated_at` | string (RFC 3339) | Timestamps |
 
 These four receipt fields are recorded for image deploys only; build deploys leave them out. Together, `image_source`, `image_digest`, `previous_image`, `config_fingerprint` and `triggered_by` are the deploy receipt: what ran, what it replaced, and who asked.
+
+A probed Dewee deployment (built or catalog image, probes enabled) is recorded `running` only after the rollout, the ingress step and a public `/health` check on the default domain succeed; with no public route it is recorded `running` as `unverified`. If the check fails, the deployment gets `status=failed`, `error_message` starting `Health verification failed`, `health_state=unhealthy` and the reason in `health_message`, an ops event is recorded, and the template itself stays `running`. Nothing is rolled back automatically. See [Deployment health state](/guide/dewee-template#health-state).
 
 ### Image digest in the receipt {#image-digest-in-the-receipt}
 

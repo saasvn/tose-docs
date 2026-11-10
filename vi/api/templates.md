@@ -339,9 +339,14 @@ GET /api/workspaces/{slug}/templates/{template_slug}/deployments/{id}
 | `trigger_type` | string | `manual`, hoặc `image_only` với deploy bằng image |
 | `triggered_by` | string \| null | ID người dùng đã yêu cầu |
 | `error_message` | string \| null | Lý do deployment lỗi, nếu có |
+| `health_state` | string | `healthy`, `unhealthy` hoặc `unverified`: lần kiểm tra gần nhất của workload đã deploy. Rỗng khi không có kiểm tra nào chạy, ví dụ probe bị tắt, image `custom`, rollback hoặc template khác |
+| `health_message` | string \| null | Lý do deployment không `healthy` |
+| `health_checked_at` | string (RFC 3339) \| null | Thời điểm kiểm tra chạy |
 | `created_at` / `updated_at` | string (RFC 3339) | Mốc thời gian |
 
 Bốn trường biên nhận này chỉ được ghi với deploy bằng image; deploy kiểu build bỏ qua chúng. `image_source`, `image_digest`, `previous_image`, `config_fingerprint` và `triggered_by` hợp lại là biên nhận deploy: cái gì đã chạy, nó thay thế cái gì và ai yêu cầu.
+
+Một deployment Dewee có probe (image build hoặc image catalog, probe bật) chỉ được ghi `running` sau khi rollout, bước ingress và kiểm tra `/health` công khai trên domain mặc định thành công; không có route công khai thì được ghi `running` với `unverified`. Nếu kiểm tra thất bại, deployment có `status=failed`, `error_message` bắt đầu bằng `Health verification failed`, `health_state=unhealthy` kèm lý do trong `health_message`, một ops event được ghi lại, và bản thân template vẫn là `running`. Không có gì được rollback tự động. Xem [Trạng thái health của deployment](/vi/guide/dewee-template#health-state).
 
 ### Digest image trong biên nhận {#image-digest-in-the-receipt}
 
