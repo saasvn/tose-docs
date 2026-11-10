@@ -56,6 +56,24 @@ Sức khỏe:
   Kiểm tra cuối: 30 giây trước
 ```
 
+### Dự án có sidecar
+
+`CPU` và `Memory` vẫn là giới hạn của riêng container dự án. `pod total` là một replica tính cả các sidecar, tức lượng được tính phí cho mỗi replica. Một pod chỉ được tính là sẵn sàng khi mọi container của nó sẵn sàng. Sidecar đã lưu là cấu hình áp dụng ở lần triển khai tiếp theo; các dòng container cho biết cái đang chạy. Xem [sidecar của dự án](/vi/guide/project-sidecars).
+
+```bash
+$ tose status
+
+Pods:    0/1 ready
+  pod-abc-1  Running  restarts=3  age=5m
+    - my-app  ready  state=running  restarts=0
+    - otel-collector  not ready  state=waiting (CrashLoopBackOff)  restarts=3
+CPU:     0.5  (project container; pod total 0.75 incl. sidecars, billed per replica)
+Memory:  1  (project container; pod total 1.25 GB incl. sidecars, billed per replica)
+
+Saved sidecars: (apply at the next deployment)
+  otel-collector: 0.25 vCPU / 0.25 GB, ghcr.io/acme/collector:1.4@sha256:…
+```
+
 ## Các giai đoạn trạng thái
 
 | Giai đoạn | Icon | Mô tả |
