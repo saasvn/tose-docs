@@ -189,6 +189,8 @@ Với `--json`, `--non-interactive` hoặc khi không có terminal (CI, agent, p
 
 ### Thiếu thông tin: lỗi `INPUT_REQUIRED`
 
+API key thuộc về một workspace, nên `tose up` dùng workspace đó mà không hỏi; bạn chỉ cần `--workspace` (hoặc `TOSE_WORKSPACE`) khi API trả về nhiều workspace. Thông tin thường bị thiếu là dự án.
+
 Nếu không thể xác định workspace, dự án hoặc K8S server mà không hỏi, `tose up` thoát với mã `2` và mã lỗi `INPUT_REQUIRED`. Trường hợp server áp dụng khi có nhiều server đang hoạt động và dự án chưa được gán server nào.
 
 Khi đó không có gì được tạo hay ghi: không tạo dự án, không kết nối Git, không ghi `.tose.json`, không đặt workspace mặc định trong cấu hình người dùng. Bạn có thể bổ sung thông tin và chạy lại an toàn.
@@ -247,6 +249,8 @@ Git được kết nối nhưng không có lần triển khai nào bắt đầu;
   }
 }
 ```
+
+Khi thư mục có file `.env` nhưng bạn không truyền `--env-file`, không có gì được tải lên và kết quả báo rõ: `"env": { "status": "skipped", "reason": "env_files_found_no_consent" }`.
 
 ## Trường hợp sử dụng
 

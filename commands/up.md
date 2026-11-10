@@ -212,6 +212,8 @@ With `--json`, `--non-interactive`, or no terminal (CI, an agent, a pipe), `tose
 
 ### Missing input fails with `INPUT_REQUIRED`
 
+An API key belongs to one workspace, so `tose up` uses that workspace without asking; you only need `--workspace` (or `TOSE_WORKSPACE`) if the API returns several. A project is the usual missing input.
+
 If a workspace, a project, or a K8S server cannot be decided without asking, `tose up` exits with code `2` and error code `INPUT_REQUIRED`. The server case applies when several servers are active and none is assigned to the project.
 
 Nothing is created or written in that case: no project, no Git connection, no `.tose.json`, and no default workspace in your user config. You can fix the input and run again safely.
@@ -279,6 +281,8 @@ $ tose up --json -y
   }
 }
 ```
+
+When the directory has a `.env` file but you did not pass `--env-file`, nothing is uploaded and the result says so: `"env": { "status": "skipped", "reason": "env_files_found_no_consent" }`.
 
 ## Best Practices
 
