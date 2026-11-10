@@ -55,7 +55,11 @@ POST /pipelines/{pipeline_id}/dispatch
 - A commit whose configuration is unread, invalid or does not declare `on.workflow_dispatch` is `422 dispatch_not_available`.
 - The same `idempotency_key` (body or `Idempotency-Key` header) from the same user returns the first run with `200` and `Idempotent-Replay: true`. Reusing a key for different inputs, a different branch or a different commit is `409 idempotency_conflict`.
 - At most 10 manual and dispatch runs of a workspace may be unfinished at once (`429`, `Retry-After: 60`).
-- `402 INSUFFICIENT_BALANCE` and `402 CI_BUDGET_CAP_REACHED` apply as for a manual run (`ci_run` starts manual runs only; it takes no `ref` or `inputs`).
+- `402 INSUFFICIENT_BALANCE` and `402 CI_BUDGET_CAP_REACHED` apply as for a manual run.
+
+Connected apps use the MCP tool `ci_dispatch` (scope `ci:execute`), which is the same operation with `ref`, optional `head_sha`, `inputs` and `idempotency_key`. Its input values can be strings, booleans or numbers. It reports `INVALID_ARGUMENT`, `DISPATCH_NOT_AVAILABLE` and `IDEMPOTENCY_CONFLICT` for the cases above. `ci_run` starts manual runs only and takes no `ref` or `inputs`.
+
+The dashboard cannot start a `workflow_dispatch` run yet. Use the API or `ci_dispatch`.
 
 A rerun of a `workflow_dispatch` run keeps its event and inputs. Reruns are an operator action (`POST /admin/api/ci/runs/:id/rerun`); a rerun of a fork run needs a new approval.
 
@@ -116,6 +120,8 @@ A pull request from a fork is untrusted code. The server-side `fork_pull_request
 | `disabled` (default) | The run is `skipped`. A neutral `tose-ci` check explains why, but only when the base branch configuration runs CI for that pull request. With `require_approval`, a run is blocked only under the same condition. |
 | `require_approval` | The run is `blocked` with a `tose-ci` check "Waiting for approval". |
 
+List the runs waiting for approval with `GET /approvals?limit=` (`ci:read`). It returns fork pull request runs that are `blocked` with `approval_state` `pending`, oldest first, with `repo_full_name`, `pr_number` and `base_ref`.
+
 Approving or rejecting a blocked run:
 
 ```http
@@ -134,8 +140,8 @@ POST /runs/{run_id}/reject
 - Every run needs its own approval, including a rerun and every new commit of the pull request. A new commit replaces the waiting run.
 - Turning the policy off skips fork runs before their first job starts, even approved ones.
 
-::: warning Dashboard
-The dashboard policy and approval controls are a separate change and are not available yet. Until then, use the API with a signed-in session.
+::: tip Dashboard
+Owners and admins edit the policy in **Policies** on the pipeline page; members see it read-only. Waiting fork runs are listed on the **Approvals** tab (`/w/{slug}/ci/approvals`), where any member approves or rejects them.
 :::
 
 ## Audit and access

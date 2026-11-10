@@ -55,7 +55,11 @@ POST /pipelines/{pipeline_id}/dispatch
 - Commit có cấu hình chưa được đọc, không hợp lệ hoặc không khai báo `on.workflow_dispatch` trả `422 dispatch_not_available`.
 - Cùng `idempotency_key` (trong body hoặc header `Idempotency-Key`) từ cùng người dùng trả lại run đầu tiên với `200` và `Idempotent-Replay: true`. Dùng lại key cho input, nhánh hoặc commit khác trả `409 idempotency_conflict`.
 - Một workspace có tối đa 10 run manual và dispatch chưa kết thúc cùng lúc (`429`, `Retry-After: 60`).
-- `402 INSUFFICIENT_BALANCE` và `402 CI_BUDGET_CAP_REACHED` áp dụng như run manual (`ci_run` chỉ bắt đầu run manual; không nhận `ref` hay `inputs`).
+- `402 INSUFFICIENT_BALANCE` và `402 CI_BUDGET_CAP_REACHED` áp dụng như run manual.
+
+Ứng dụng kết nối dùng tool MCP `ci_dispatch` (scope `ci:execute`). Đây là cùng thao tác, nhận `ref`, `head_sha` (tùy chọn), `inputs` và `idempotency_key`. Giá trị input có thể là chuỗi, boolean hoặc số. Tool báo `INVALID_ARGUMENT`, `DISPATCH_NOT_AVAILABLE` và `IDEMPOTENCY_CONFLICT` cho các trường hợp ở trên. `ci_run` chỉ bắt đầu run manual và không nhận `ref` hay `inputs`.
+
+Dashboard chưa bắt đầu được run `workflow_dispatch`. Hãy dùng API hoặc `ci_dispatch`.
 
 Chạy lại một run `workflow_dispatch` giữ nguyên sự kiện và input. Chạy lại là thao tác của operator (`POST /admin/api/ci/runs/:id/rerun`); chạy lại run fork cần được duyệt lại.
 
@@ -116,6 +120,8 @@ Pull request từ fork là code không đáng tin. Policy `fork_pull_requests` p
 | `disabled` (mặc định) | Run bị `skipped`. Check `tose-ci` trung tính giải thích lý do, nhưng chỉ khi cấu hình ở nhánh đích chạy CI cho pull request đó. Với `require_approval`, run chỉ bị chặn trong cùng điều kiện đó. |
 | `require_approval` | Run bị `blocked` với check `tose-ci` "Waiting for approval". |
 
+Liệt kê các run đang chờ duyệt bằng `GET /approvals?limit=` (`ci:read`). Route trả các run của pull request từ fork đang `blocked` với `approval_state` là `pending`, cũ nhất trước, kèm `repo_full_name`, `pr_number` và `base_ref`.
+
 Duyệt hoặc từ chối run đang bị chặn:
 
 ```http
@@ -134,8 +140,8 @@ POST /runs/{run_id}/reject
 - Mỗi run cần được duyệt riêng, kể cả chạy lại và mỗi commit mới của pull request. Commit mới thay thế run đang chờ.
 - Tắt policy sẽ bỏ qua run fork trước khi job đầu tiên bắt đầu, kể cả run đã duyệt.
 
-::: warning Dashboard
-Các điều khiển policy và duyệt trên dashboard là một thay đổi riêng và chưa có. Trong lúc đó, hãy dùng API với session đã đăng nhập.
+::: tip Dashboard
+Owner và admin chỉnh policy ở mục **Chính sách** trên trang pipeline; thành viên chỉ xem. Các run fork đang chờ được liệt kê ở tab **Phê duyệt** (`/w/{slug}/ci/approvals`), nơi mọi thành viên có thể duyệt hoặc từ chối.
 :::
 
 ## Audit và quyền truy cập
