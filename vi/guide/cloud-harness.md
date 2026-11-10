@@ -48,7 +48,7 @@ Bạn cần:
 
 Trên dashboard:
 
-1. Mở **Mẫu** (Templates) trong workspace và chọn **Tạo mẫu**.
+1. Mở **Ứng dụng đã cài** (Installed apps, nhóm **Ứng dụng & agent**) trong workspace và chọn **Tạo mẫu**.
 2. Chọn **Cloud Harness**. Thẻ này hiển thị chi phí của instance theo bậc số dư ví của bạn và số
    instance workspace đang có.
 3. Nhập tên và chọn kích thước: 1 hoặc 2 vCPU, RAM 2 GB hoặc 4 GB. Cloud Harness chỉ chấp nhận các

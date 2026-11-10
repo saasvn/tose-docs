@@ -41,7 +41,7 @@ Creating, changing and deleting an instance needs the workspace **admin** role. 
 
 ### Dashboard
 
-1. Open **Templates** in your workspace and choose **Dewee**.
+1. Open **Installed apps** in your workspace (under **Apps & agents**), select **New Template** and choose **Dewee**.
 2. Pay the unlock fee if asked.
 3. Pick CPU and RAM, then create.
 4. Open **Environment** and set the three required variables (below).
@@ -72,7 +72,9 @@ The three required variables are:
 
 The `DEWEE_*` spellings (for example `DEWEE_GATEWAY_TOKEN`) are accepted as aliases and copied to the `GOCLAW_*` name at startup when the `GOCLAW_*` one is empty. Set one spelling, not both.
 
-`tose template env list` masks values it recognizes as credentials (names containing `token`, `secret`, `password`, `api_key` and similar), which covers `GOCLAW_GATEWAY_TOKEN`. It does **not** mask `GOCLAW_POSTGRES_DSN` or `GOCLAW_ENCRYPTION_KEY` when you set them from a file or stdin, so those two values can be printed in plain text. Set them with the masked prompt instead (`tose template env set my-dewee GOCLAW_ENCRYPTION_KEY`) and avoid running `env list` on a shared screen or in CI logs. A fix is tracked in [tose-cli#40](https://github.com/saasvn/tose-cli/issues/40). See [`tose template`](/commands/template) for the full command reference.
+`tose template env set` sends `GOCLAW_POSTGRES_DSN`, `GOCLAW_ENCRYPTION_KEY` and `GOCLAW_GATEWAY_TOKEN` as secrets, and `tose template env list` masks their values (`********`). The `SECRET` column shows `yes` for them. Names containing `token`, `secret`, `password`, `api_key`, `dsn`, `encryption_key` or `connection_string` are treated the same way.
+
+Values saved with an older CLI may still be stored as not secret. They show as `SECRET no` with a masked value. Set them again to store them as secrets, using `--env-file` or `--env-stdin` (or the masked prompt, for example `tose template env set my-dewee GOCLAW_ENCRYPTION_KEY`), then check that `env list` shows `SECRET yes`. Avoid running `env list` on a shared screen or in CI logs anyway. See [`tose template`](/commands/template) for the full command reference.
 
 ## Security contract
 
