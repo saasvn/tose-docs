@@ -4,6 +4,10 @@ TOSE publishes curated coding agents: **Pi**, **Codex** and **Claude Code**. Eac
 
 This page explains the three modes, what each one can and cannot reach, which toolchains the Development mode offers per agent, and the risk that remains. To install an agent, open **Template catalog** in the dashboard ([dashboard overview](/guide/getting-started#find-your-way-around-the-dashboard)).
 
+::: warning Availability and verification
+Development (restricted) is implemented and covered by policy and plan tests. It has not yet been proven on a live enforcing cluster, and TOSE has not finished accepting its [residual risk](#residual-risk) for general release. Which modes you can pick follows what the server reports for your workspace.
+:::
+
 ## The three modes
 
 | Mode | API value | The agent can reach | The agent cannot reach |
@@ -43,7 +47,7 @@ The mode and the destinations are part of the plan hash. Changing either one mea
 
 ## How it is enforced
 
-Before the disk and the pod exist, each installation gets a default-deny network policy. The cluster resolves the approved names and allows TCP 443 to the addresses it returned. Private and metadata ranges stay denied over any allow. A redirect to a host that is not listed, a name that resolves into a private range, and a literal IP address all stay blocked.
+Before the disk and the pod exist, each installation gets a default-deny network policy. The cluster resolves the approved names and allows TCP 443 to the addresses it returned. Private and metadata ranges stay denied over any allow. A redirect to a host that is not listed, a name that resolves into a private or metadata range, and a literal IP address all stay blocked.
 
 If the cluster cannot enforce the policy, the plan is blocked with `NETWORK_POLICY_NOT_ENFORCED`, so the deploy fails closed: nothing is created and nothing is billed.
 

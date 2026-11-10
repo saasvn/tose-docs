@@ -4,6 +4,10 @@ TOSE phát hành sẵn các coding agent được tuyển chọn: **Pi**, **Code
 
 Trang này giải thích ba chế độ, mỗi chế độ truy cập được và không truy cập được gì, chế độ Phát triển cung cấp những bộ công cụ nào cho từng agent, và rủi ro còn lại. Để cài một agent, mở **Template catalog** trong dashboard ([tổng quan dashboard](/vi/guide/getting-started#lam-quen-voi-dashboard)).
 
+::: warning Tình trạng và kiểm chứng
+Phát triển (giới hạn) đã được triển khai và có kiểm thử cho chính sách và kế hoạch. Chế độ này chưa được chứng minh trên cluster thật có thực thi, và TOSE chưa hoàn tất việc chấp nhận [rủi ro còn lại](#rui-ro-con-lai) cho bản phát hành rộng rãi. Bạn chọn được chế độ nào tùy theo những gì máy chủ báo cho workspace của bạn.
+:::
+
 ## Ba chế độ
 
 | Chế độ | Giá trị API | Agent truy cập được | Agent không truy cập được |
@@ -43,7 +47,7 @@ Chế độ và các đích nằm trong hash của kế hoạch. Đổi một tr
 
 ## Cách áp dụng
 
-Trước khi đĩa và pod được tạo, mỗi cài đặt nhận một chính sách mạng chặn mặc định. Cluster phân giải các tên đã duyệt và cho phép TCP 443 tới các địa chỉ nó trả về. Dải nội bộ và metadata luôn bị chặn, ưu tiên hơn mọi quy tắc cho phép. Chuyển hướng tới máy chủ không có trong danh sách, tên phân giải về dải nội bộ, và địa chỉ IP trực tiếp đều vẫn bị chặn.
+Trước khi đĩa và pod được tạo, mỗi cài đặt nhận một chính sách mạng chặn mặc định. Cluster phân giải các tên đã duyệt và cho phép TCP 443 tới các địa chỉ nó trả về. Dải nội bộ và metadata luôn bị chặn, ưu tiên hơn mọi quy tắc cho phép. Chuyển hướng tới máy chủ không có trong danh sách, tên phân giải về dải nội bộ hoặc metadata, và địa chỉ IP trực tiếp đều vẫn bị chặn.
 
 Nếu cluster không thể thực thi chính sách, kế hoạch bị chặn với `NETWORK_POLICY_NOT_ENFORCED`, nên việc triển khai từ chối an toàn: không tạo gì và không tính phí.
 
