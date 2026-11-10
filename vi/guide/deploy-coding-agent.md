@@ -74,6 +74,10 @@ Codex nhận token trực tiếp từ OpenAI và giữ chúng trên ổ đĩa c�
 
 **Mở console** mở agent trong một tab mới. Console không có địa chỉ công khai: chỉ owner và admin của workspace đã đăng nhập mới mở được, một phiên kéo dài tối đa 8 giờ, và nó đóng khi ứng dụng dừng hoặc bạn mất quyền truy cập. API key và ứng dụng được kết nối không thể mở console.
 
+## Giao tác vụ
+
+Ứng dụng được kết nối hoặc API key có thể giao tác vụ cho agent và đọc kết quả, sau khi owner hoặc admin bật **Accept tasks from connected apps and API keys** trên trang của agent. Xem [Giao tác vụ cho coding agent](/vi/guide/agent-tasks), gồm cả cảnh báo về thông tin đăng nhập của agent.
+
 ## Chi phí và quyền kiểm soát
 
 - Tính toán được tính phí khi agent chạy; lưu trữ (ổ `/workspace` 5 GiB và `/home/agent` 1 GiB) được tính phí khi ổ đĩa còn tồn tại, kể cả lúc agent đã dừng.

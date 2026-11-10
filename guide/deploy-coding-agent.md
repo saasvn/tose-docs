@@ -74,6 +74,10 @@ Codex receives its tokens from OpenAI directly and keeps them on the agent's dis
 
 **Open console** opens the agent in a new tab. The console has no public address: only signed-in workspace owners and admins can open it, a session lasts up to 8 hours, and it closes when the app stops or you lose access. API keys and connected apps cannot open it.
 
+## Delegate tasks
+
+A connected app or API key can give the agent a task and read its result, once an owner or admin turns on **Accept tasks from connected apps and API keys** on the agent's page. See [Delegate tasks to a coding agent](/guide/agent-tasks), including the warning about the agent's sign-in.
+
 ## Cost and control
 
 - Compute is billed while the agent runs, and storage (a 5 GiB `/workspace` and a 1 GiB `/home/agent` disk) while the disk exists, also when the agent is stopped.
