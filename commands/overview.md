@@ -108,6 +108,7 @@ production yet.
 
 | Command | Description |
 |---------|-------------|
+| [`tose sidecars get / set / rm`](/commands/sidecars) | Manage saved sidecar containers (workspace-gated, applied at the next deploy) |
 | [`tose disk get`](/commands/disk) | Show the project's persistent disk |
 | [`tose disk set`](/commands/disk#tose-disk-set) | Add, grow, or move a project disk |
 | [`tose disk delete`](/commands/disk#tose-disk-delete) | Delete a project disk and its data |
