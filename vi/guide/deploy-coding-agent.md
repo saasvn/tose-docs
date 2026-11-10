@@ -82,7 +82,7 @@ Codex nhận token trực tiếp từ OpenAI và giữ chúng trên ổ đĩa c�
 
 - Tính toán được tính phí khi agent chạy; lưu trữ (dung lượng `/workspace` bạn chọn, mặc định 5 GiB, cộng 1 GiB cho `/home/agent`) được tính phí khi ổ đĩa còn tồn tại, kể cả lúc agent đã dừng. Plan tính giá cả ổ đĩa vào mức trần chi phí.
 - Ổ đĩa giữ công việc của bạn qua các lần khởi động lại, ngủ và deploy lại. Dung lượng cố định khi cài, nên hãy chọn đủ chỗ cho kho mã và kết quả build.
-- Owner hoặc admin nào cũng có thể dừng hoặc xóa agent bất cứ lúc nào. Agent không giữ thông tin xác thực TOSE nên không thể tự thay đổi.
+- Owner hoặc admin nào cũng có thể dừng hoặc xóa agent bất cứ lúc nào. Agent không giữ thông tin xác thực API TOSE nào cho workspace (khi có push, chỉ có bí mật git proxy cho đúng một kho mã) nên không thể tự thay đổi.
 - Với API key, hãy đặt thêm giới hạn chi tiêu ở nhà cung cấp.
 
 Liên quan: [Bảng giá](/vi/guide/pricing), [Bắt đầu](/vi/guide/getting-started).

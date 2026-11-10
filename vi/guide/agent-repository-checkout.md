@@ -36,7 +36,7 @@ Khi trang lập plan từ các ô bạn nhập, TOSE đọc kho mã qua installa
 | **Commit** | SHA commit đầy đủ mà nhánh trỏ tới lúc plan được tạo. |
 | **Tải vào** | `/workspace/<repo>`. |
 | **Quyền của TOSE** | Chỉ đọc nội dung kho mã (`contents:read`), là quyền mà bước clone dùng. |
-| **Push** | Hiện khi bạn cho agent push: **Bật**, kèm các nhánh agent được push. |
+| **Push** | **Bật**, kèm các nhánh agent được push, hoặc **Tắt**. |
 | **Khi khởi động lần đầu** | Tác động của bước bootstrap, diễn đạt bằng lời. |
 
 Mục `curated.repository` của plan chứa cùng dữ liệu: `installation_id`, `repo_id`, `full_name`, `private`, `branch`, `commit_sha`, `path`, `access` (`contents:read`), `effects` và, khi agent được push, `push`, `push_branches`, `push_branch_pattern` và `push_remote` ([bên dưới](#plan-hien-thi-gi-khi-co-push)). Nó không bao giờ chứa token hay URL có credential.
@@ -121,7 +121,7 @@ Git hiển thị lần từ chối dưới dạng `remote error: <thông điệp
 | `INSTALLATION_NOT_RUNNING` | Agent đã dừng, đang ngủ, thất bại hoặc chưa được deploy. |
 | `INSTALLATION_DELETED`, `INSTALLATION_SUSPENDED` | Installation đang bị xóa, hoặc bị tạm ngưng. |
 | `SCOPE_REVOKED` | GitHub App installation không còn kết nối với workspace. |
-| `NO_INSTALLATION`, `PERMISSION_DENIED`, `REPO_REMOVED` | Như trong [Trạng thái và các trường hợp lỗi](#trang-thai-va-cac-truong-hop-loi). |
+| `NO_INSTALLATION`, `PERMISSION_DENIED`, `REPO_REMOVED` | Như trong [Trạng thái và các trường hợp lỗi](#trang-thai-va-cac-truong-hop-loi). `PERMISSION_DENIED` còn có nghĩa kho mã đã bị đổi tên hoặc chuyển giao trên GitHub; xem [Giới hạn](#gioi-han). |
 | `GITHUB_UNAVAILABLE` | Không kết nối được tới GitHub. Hãy thử lại. |
 
 Một lần push tối đa 1 GiB. Một checkout chạy được 4 yêu cầu git cùng lúc và gửi 60 yêu cầu mỗi phút; vượt quá thì git nhận `429` (`GIT_RATE_LIMITED`) và có thể thử lại sau.
@@ -135,10 +135,10 @@ Khi push bật, bất kỳ ai chạy được lệnh trong agent đều push đ�
 - Agent không giữ token GitHub nào, và bí mật proxy của nó chỉ mở được đúng một kho mã này qua TOSE.
 - Bí mật hết hiệu lực khi agent bị dừng, khi installation bị xóa và khi GitHub App installation bị ngắt khỏi workspace.
 
-### Giới hạn
+### Giới hạn {#gioi-han}
 
-- **Không đổi được push sau khi cài.** Muốn bật, tắt hoặc đổi nhánh, hãy triển khai lại agent với lựa chọn mới.
-- **Đổi tên kho mã làm proxy ngừng hoạt động.** Proxy dùng tên kho mã đã ghim khi triển khai. Sau khi đổi tên hoặc chuyển giao kho trên GitHub, hãy triển khai lại agent.
+- **Không đổi được push sau khi cài.** Deploy lại từ trang của agent vẫn giữ lựa chọn cũ. Muốn bật, tắt push hoặc đổi nhánh, hãy lập plan và cài một agent mới với lựa chọn mới. Đó là bản cài đặt mới với `/workspace` riêng, nên hãy push công việc trước hoặc chuyển sang bằng git.
+- **Đổi tên kho mã làm proxy ngừng hoạt động.** Proxy dùng tên kho mã đã ghim khi cài và không đi theo chuyển hướng của GitHub, nên sau khi đổi tên hoặc chuyển giao kho trên GitHub, git hiển thị `PERMISSION_DENIED`. Deploy lại không khắc phục được: hãy lập plan và cài một agent mới cho tên mới của kho.
 - **Agent không mở pull request.** Bạn tự mở trên GitHub từ nhánh mà agent đã push.
 
 ## Trạng thái và các trường hợp lỗi {#trang-thai-va-cac-truong-hop-loi}

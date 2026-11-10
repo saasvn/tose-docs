@@ -36,7 +36,7 @@ When the page plans your inputs, TOSE reads the repository through the installat
 | **Commit** | The full commit SHA the branch pointed to when the plan was created. |
 | **Checked out to** | `/workspace/<repo>`. |
 | **TOSE access** | Read-only access to the repository contents (`contents:read`), which is what the clone uses. |
-| **Push** | Shown when you let the agent push: **On**, with the branches it may push to. |
+| **Push** | **On**, with the branches the agent may push to, or **Off**. |
 | **On first start** | The effects of the bootstrap, in words. |
 
 The plan's `curated.repository` section carries the same data: `installation_id`, `repo_id`, `full_name`, `private`, `branch`, `commit_sha`, `path`, `access` (`contents:read`), `effects` and, when the agent may push, `push`, `push_branches`, `push_branch_pattern` and `push_remote` ([below](#what-the-plan-shows-with-push)). It never contains a token or a URL with credentials.
@@ -121,7 +121,7 @@ Git shows a refusal as `remote error: <message> (<code>)`:
 | `INSTALLATION_NOT_RUNNING` | The agent is stopped, asleep, failed or not deployed yet. |
 | `INSTALLATION_DELETED`, `INSTALLATION_SUSPENDED` | The installation is being deleted, or suspended. |
 | `SCOPE_REVOKED` | The GitHub App installation is no longer connected to the workspace. |
-| `NO_INSTALLATION`, `PERMISSION_DENIED`, `REPO_REMOVED` | As in [Status and failure states](#status-and-failure-states). |
+| `NO_INSTALLATION`, `PERMISSION_DENIED`, `REPO_REMOVED` | As in [Status and failure states](#status-and-failure-states). `PERMISSION_DENIED` also means the repository was renamed or transferred on GitHub; see [Limits](#limits). |
 | `GITHUB_UNAVAILABLE` | GitHub could not be reached. Try again. |
 
 A push is at most 1 GiB. One checkout may run 4 git requests at once and send 60 a minute; past that git gets `429` (`GIT_RATE_LIMITED`) and can retry later.
@@ -137,8 +137,8 @@ While push is on, anyone who can run commands in the agent can push to that repo
 
 ### Limits
 
-- **Push cannot be changed after install.** To turn it on or off, or to change the branches, deploy the agent again with the new choice.
-- **Renaming the repository breaks the proxy.** The proxy uses the repository name pinned at deploy. After a rename or transfer on GitHub, deploy the agent again.
+- **Push cannot be changed after install.** Redeploying from the agent's page keeps the choice. To turn push on or off, or to change the branches, plan and install a new agent with the new choice. It is a new installation with its own `/workspace`, so push your work first or move it over with git.
+- **Renaming the repository breaks the proxy.** The proxy uses the repository name pinned at install and does not follow GitHub's redirects, so after a rename or transfer on GitHub git shows `PERMISSION_DENIED`. A redeploy does not fix it: plan and install a new agent for the repository's new name.
 - **The agent does not open pull requests.** Open them yourself on GitHub from the branch the agent pushed.
 
 ## Status and failure states

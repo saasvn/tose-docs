@@ -82,7 +82,7 @@ A connected app or API key with `agents:execute` can give the agent a task and r
 
 - Compute is billed while the agent runs, and storage (the `/workspace` size you chose, 5 GiB by default, plus 1 GiB for `/home/agent`) while the disk exists, also when the agent is stopped. The plan prices the whole disk in its cost ceiling.
 - The disk keeps your work across restarts, sleep and redeploys. Its size is fixed at install, so choose room for your repositories and build output.
-- Any owner or admin can stop or delete the agent at any time. The agent holds no TOSE credential, so it cannot change itself.
+- Any owner or admin can stop or delete the agent at any time. The agent holds no TOSE API credential for the workspace (with push, only a git proxy secret for its one repository), so it cannot change itself.
 - With an API key, set a spending limit at the provider as well.
 
 Related: [Pricing](/guide/pricing), [Getting started](/guide/getting-started).

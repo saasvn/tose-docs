@@ -19,7 +19,7 @@ Mỗi agent chỉ chạy một tác vụ tại một thời điểm. Không có 
 Công tắc **Nhận tác vụ từ ứng dụng đã kết nối và khóa API** (Accept tasks from connected apps and API keys) trên trang của agent đã cài quyết định agent có nhận tác vụ hay không.
 
 - Công tắc **bật sẵn** cho bản cài đặt mới của bản phát hành có trình chạy tác vụ (Claude Code 1.1.0, Codex 1.1.0, Pi 1.2.0 hoặc mới hơn), kể từ tose-app [#701](https://github.com/saasvn/tose-app/pull/701). Khi đó ứng dụng được kết nối hoặc API key có `agents:execute` giao được tác vụ cho agent ngay từ lần khởi động đầu tiên.
-- Công tắc vẫn **tắt** với bản cài đặt đã có từ trước, và với mọi bản cài đặt của bản phát hành không có trình chạy tác vụ, cho tới khi có người bật.
+- Công tắc vẫn **tắt** với bản cài đặt đã có từ trước, cho tới khi owner hoặc admin bật. Bản phát hành không có trình chạy tác vụ thì không nhận tác vụ được: bật công tắc bị từ chối với `409 TASKS_UNSUPPORTED`.
 - Chỉ **owner hoặc admin** của workspace đã đăng nhập mới tắt hoặc bật được (`PUT .../task-delegation` với `{"enabled": false}` hoặc `true`). API key hay ứng dụng được kết nối không bao giờ đổi được công tắc này, dù có scope nào. Khi tắt, tác vụ bị từ chối với `403 TASKS_NOT_ALLOWED`.
 
 ::: warning Hãy đọc trước khi để bật

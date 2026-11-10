@@ -19,7 +19,7 @@ An agent runs one task at a time. There is no queue.
 The switch **Accept tasks from connected apps and API keys** on the installed agent's page says whether the agent accepts tasks.
 
 - It starts **on** for a new installation of a release with a task runner (Claude Code 1.1.0, Codex 1.1.0, Pi 1.2.0 or newer), since tose-app [#701](https://github.com/saasvn/tose-app/pull/701). A connected app or API key with `agents:execute` can then give the agent tasks from its first start.
-- It stays **off** for an installation that existed before, and for every installation of a release without a task runner, until someone turns it on.
+- It stays **off** for an installation that existed before, until an owner or admin turns it on. A release without a task runner cannot take tasks at all: turning the switch on is refused with `409 TASKS_UNSUPPORTED`.
 - Only a signed-in workspace **owner or admin** can turn it off or on (`PUT .../task-delegation` with `{"enabled": false}` or `true`). An API key or connected app can never change it, whatever its scopes. While it is off, tasks are refused with `403 TASKS_NOT_ALLOWED`.
 
 ::: warning Read this before you keep it on
