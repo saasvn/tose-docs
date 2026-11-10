@@ -55,11 +55,29 @@ Thiếu scope, lệnh thoát với `INSUFFICIENT_SCOPE` (mã thoát `3`) và `er
 
 ### Không bao giờ có
 
-Giá trị biến môi trường, API key, thông tin đăng nhập registry, kubeconfig, build log và mật khẩu database. CLI còn kiểm tra phản hồi theo contract và chỉ in các trường trong bảng trên, nên một trường lạ từ server không đến được terminal hay log của bạn. Nếu một API key xuất hiện trong trường được định nghĩa, nó bị che.
+Giá trị biến môi trường, API key, thông tin đăng nhập registry, kubeconfig, build log và mật khẩu database. CLI còn kiểm tra phản hồi theo contract và chỉ in các trường được mô tả trên trang này, nên một trường lạ từ server không đến được terminal hay log của bạn. Nếu một API key xuất hiện trong trường được định nghĩa, nó bị che, và ký tự điều khiển bị loại khỏi bản tóm tắt cho người đọc.
 
-## Những gì CLI không in {#not-printed}
+## Tham chiếu sao lưu, migration và checksum {#not-printed}
 
-Export từ API còn trả `env_refs`, `databases` cùng tham chiếu backup và checksum SHA-256, hợp đồng `migration` và header `X-Tose-Export-Sha256`. `tose export` chỉ in các trường trong bảng trên nên không hiển thị những mục này. Để xem tham chiếu backup, kiểm tra checksum hoặc ghi lại checksum của export, hãy gọi API trực tiếp. Xem [Tham chiếu backup](/vi/api/projects#backup-references) và [Bằng chứng chuyển dữ liệu](/vi/api/projects#migration-evidence). Chỉ admin được tải backup database, và TOSE không backup volume.
+Ngoài các trường trên, CLI còn in các phần sau của bản export API khi server gửi chúng:
+
+- `env_keys` và `env_refs`: **tên** biến, biến nào là secret, và `value_recoverable` (TOSE còn giải mã được giá trị đã lưu hay không). Giá trị không bao giờ được xuất.
+- `databases[].backup_refs` (và `volumes[].backup_refs`, luôn rỗng vì TOSE không sao lưu volume): ID, thời điểm, kích thước, SHA-256, định dạng, thời hạn giữ và `download_path` (chỉ admin). Không có khóa lưu trữ hay thông tin đăng nhập. Bản sao lưu không có `sha256` được tạo trước khi TOSE ghi checksum.
+- `migration`: kế hoạch `tose.dev/data-migration/v1` gồm năm bước và bằng chứng mỗi bước cần. Nguồn vẫn phục vụ và được giữ lại nếu một bước thất bại. `status` luôn là `not_started`; CLI từ chối export nói khác.
+
+Export từ server cũ không có các trường này vẫn dùng được; các trường đó chỉ vắng mặt.
+
+### Checksum làm bằng chứng
+
+API gửi `X-Tose-Export-Sha256`, là SHA-256 của nội dung phản hồi. Với `--json`, `data.export_checksum` cho biết hash CLI tính trên đúng các byte nhận được:
+
+| `status` | Ý nghĩa |
+|----------|---------|
+| `verified` | Khớp header của server. Có thể ghi làm bằng chứng `record_export`. |
+| `absent` | Server không gửi header. Hash chỉ tính cục bộ, **chưa** được server xác nhận. |
+| `malformed_header` | Header không phải SHA-256. Coi như chưa xác nhận. |
+
+`sha256` bao phủ đúng các byte server đã gửi, không phải `data` đã lọc mà CLI in ra. Muốn lưu tệp có hash khớp, hãy tải export trực tiếp từ API. Không khớp là lỗi (thoát mã `1`) và không in nội dung export.
 
 ## Blockers và rollback
 
@@ -129,9 +147,9 @@ Với `--json`, stdout chỉ có đúng một envelope. `data` là bản export 
 | Không được phép đọc dự án | `forbidden` | `3` |
 | Dự án không tồn tại hoặc thuộc workspace khác | `not_found` | `6` |
 | `schema_version` khác `tose.dev/project-export/v1` | `ERROR` | `1` |
-| Phản hồi sai định dạng | `ERROR` | `1` |
+| Phản hồi sai định dạng: thiếu trường hoặc sai kiểu, `generated_at` không phải date-time, một mục trong `env_keys` không phải tên biến, hoặc `artifact.image_digest` không phải image được ghim bằng OCI digest | `ERROR` | `1` |
 
-Với `schema_version` không được hỗ trợ, thông báo yêu cầu cập nhật CLI (`npm i -g @tosesh/tose`) và không in gì từ bản export. Toàn bộ mã thoát nằm trong [tổng quan các lệnh](/vi/commands/overview#ma-thoat).
+Với `schema_version` không được hỗ trợ, thông báo yêu cầu cập nhật CLI (`npm i -g @tosesh/tose`) và không in gì từ bản export; phản hồi sai định dạng cũng bị từ chối thay vì in một phần. Toàn bộ mã thoát nằm trong [tổng quan các lệnh](/vi/commands/overview#ma-thoat).
 
 ## Liên quan
 

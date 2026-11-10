@@ -10,6 +10,7 @@ TOSE CLI cung cấp các lệnh chính sau để quản lý triển khai của b
 | [`tose status`](/vi/commands/status) | Kiểm tra trạng thái triển khai | Giám sát tình trạng và tiến trình triển khai |
 | [`tose logs`](/vi/commands/logs) | Xem logs triển khai | Debug vấn đề, giám sát đầu ra ứng dụng |
 | [`tose down`](/vi/commands/down) | Dừng triển khai | Dừng các triển khai đang chạy |
+| [`tose export`](/vi/commands/export) | In bản kiểm kê chỉ đọc của dự án, kèm tham chiếu sao lưu và kế hoạch di chuyển | Lập kế hoạch chuyển nền tảng |
 | [`tose disk`](/vi/commands/disk) | Quản lý ổ đĩa bền vững của dự án | Lưu file upload, SQLite, dữ liệu cần giữ qua các lần triển khai |
 | [`tose sidecars`](/vi/commands/sidecars) | Quản lý sidecar đã lưu của dự án (bật theo workspace, áp dụng ở lần triển khai tiếp theo) | Chạy agent phụ cạnh ứng dụng |
 | [`tose volumes`](/vi/commands/disk#tose-volumes-list) | Liệt kê và mở rộng mọi ổ đĩa trong workspace | Kiểm tra dung lượng và chi phí lưu trữ |
@@ -21,7 +22,6 @@ TOSE CLI cung cấp các lệnh chính sau để quản lý triển khai của b
 | [`tose runbook`](/vi/commands/runbook) | Lập kế hoạch, xem lại và chạy restart hoặc rollback do người duyệt trong trình duyệt | Khôi phục có kiểm soát |
 | [`tose db create`](/vi/commands/db#tose-db-create) | Tạo database (`--type`, `--server`) | Postgres, pgvector, MySQL, Redis, MongoDB |
 | [`tose skills`](/vi/commands/skills) | Liệt kê và cài skill cho agent | Dạy agent dùng TOSE an toàn |
-| [`tose export`](/vi/commands/export) | In danh mục chỉ đọc, không chứa secret, của một dự án | Lập kế hoạch chuyển nền tảng (không phải backup) |
 | [`tose feedback`](/vi/commands/feedback) | Báo lỗi hoặc đề xuất tính năng, không cần tài khoản GitHub | Gửi phản hồi cho đội TOSE ngay từ terminal |
 
 ## Cấu trúc lệnh

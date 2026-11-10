@@ -120,7 +120,7 @@ production yet.
 
 | Command | Description |
 |---------|-------------|
-| [`tose export`](/commands/export) | Print a read-only, secret-free project inventory (not a backup) |
+| [`tose export`](/commands/export) | Print a read-only project inventory with backup references and the migration plan (not a backup) |
 
 ### Autoscaling budgets
 
