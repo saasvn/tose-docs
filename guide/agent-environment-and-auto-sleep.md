@@ -11,8 +11,8 @@ Open **Template catalog**, pick the agent, and fill in one form. It has these ca
 | **App** | The app name. |
 | **Sign in** | The provider key, or the plan sign-in you finish after deploy (see [Pi model providers](/guide/agent-pi-providers) for Pi). |
 | **Size** | CPU, memory and **Auto-sleep after idle**. |
-| **Network** | The network mode: provider only (default), development, or the unrestricted public Internet. |
-| **GitHub repository** | Optional. |
+| **Network access** | The network mode: provider only (default), development, or the unrestricted public Internet. |
+| **Repository (optional)** | A GitHub repository to check out. |
 | **Advanced: release, model and environment variables** | The release, the model and your own environment variables. Collapsed by default. |
 
 The page prices the plan as you type and shows the cost and any blockers next to the single **Deploy** button. **Deploy** approves exactly the plan you see and installs it. Only a workspace owner or admin can approve; for anyone else the page shows the plan to send to one. Compute is charged hourly while the agent runs, and model usage is billed by the provider, not by TOSE.
@@ -39,7 +39,7 @@ There are two kinds:
 - **Variables**: a name and a non-secret value, at most **32**. The plan shows them, so approving the plan approves exactly those values.
 - **Secret references**: a name only, at most **16**. The plan lists the names. The value is sent with the install request in `secrets`, like the provider key. It is encrypted at rest, given to the agent's process as an environment variable, and never returned by any read, plan, log or error. A secret reference can only name a value you type for this installation.
 
-In the form, tick **Secret** on a row to make it a secret reference.
+In the form, tick **Secret** on a row to make it a secret reference. The value field becomes a password field in the same row: the plan keeps only the name, and the value goes with the **Deploy** request.
 
 The limits and the reserved names come from `inputs.environment` of `GET /curated-templates`, so read them there instead of hard-coding them.
 
@@ -52,7 +52,7 @@ The limits and the reserved names come from `inputs.environment` of `GET /curate
 
 ### Changing them later
 
-The installed app's **Environment Variables** list uses the same rules. The agent reads its environment when it is deployed. A change never restarts a running agent: it keeps the values it started with until you redeploy it. The installation reports this as `environment.status`: `applied`, `restart_required` (a change is newer than the latest run) or `pending`.
+The installed app's **Environment Variables** list uses the same rules, except that a name that looks like a credential is not refused there: it is stored as a secret whatever the request says. The agent reads its environment when it is deployed. A change never restarts a running agent: it keeps the values it started with until you redeploy it. The installation reports this as `environment.status`: `applied`, `restart_required` (a change is newer than the latest run) or `pending` (the run has not read it yet). A variable removed through the API is not detected as a change, so do not rely on `restart_required` after a removal.
 
 ::: info Not available
 An optional setup script that runs once for an agent is not offered. A request with a script, a startup command or a hook is refused as an unknown field.
@@ -62,7 +62,7 @@ An optional setup script that runs once for an agent is not offered. A request w
 
 Closing the browser does not stop an agent: its session keeps running and compute keeps billing. Auto-sleep stops the compute after the agent has been idle for a time you choose.
 
-The setting is `auto_sleep_minutes`: **Off** (the default), **15**, **30**, **60** or **120** minutes. Existing installations never sleep unless you turn it on. Choose it:
+The setting is `auto_sleep_minutes`: **Off** (`0`, the default), **15**, **30**, **60** or **120** minutes. Existing installations never sleep unless you turn it on. Choose it:
 
 - in the **Size** card of the deploy page;
 - on the installed app's page, later;
@@ -72,8 +72,8 @@ The setting is `auto_sleep_minutes`: **Off** (the default), **15**, **30**, **60
 
 An agent sleeps only after TOSE observed it idle for the whole interval: no keyboard input or terminal output, no command running, and no install or bootstrap. A closed tab never counts. If TOSE cannot tell safely, the agent stays awake and the page says why.
 
-::: warning Release 1.0.0 stays awake
-Sleep needs an image that carries the activity probe. The **1.0.0** releases do not, so their agents never sleep and the page shows the reason. Use a newer release if you want auto-sleep.
+::: warning No current release can sleep yet
+Sleep needs an image that carries the activity probe. The **1.0.0** releases, the only ones published today, do not, so their agents stay awake and the page shows the reason. Agents can sleep once a release that carries the probe is published.
 :::
 
 ### While it sleeps
@@ -84,7 +84,7 @@ Sleep needs an image that carries the activity probe. The **1.0.0** releases do 
 
 ### Waking
 
-Only an explicit **Wake and open console** (`POST /api/workspaces/{slug}/template-installations/{id}/wake`) wakes the agent. Reading the app, polling and health checks never do. It needs a funded wallet (otherwise `402 INSUFFICIENT_BALANCE` and the agent stays asleep) and takes a cold start. `auto_sleep.last_wake.outcome` is `pending` until the agent answers, then `ok` or `failed`.
+Only an explicit **Wake and open console** (`POST /api/workspaces/{slug}/template-installations/{id}/wake`) wakes the agent. Reading the app, polling and health checks never do. It needs a funded wallet (otherwise `402 INSUFFICIENT_BALANCE` and the agent stays asleep) and takes a cold start. `auto_sleep.last_wake.outcome` is `pending` until the agent answers, then `ok`, `failed` or `insufficient_balance`.
 
 Setting and waking are for workspace owners and admins, or an API key with `deployments:execute`.
 
