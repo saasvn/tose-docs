@@ -20,7 +20,20 @@ A client can identify itself in either of two ways. TOSE accepts both:
 - **Client ID Metadata Document (CIMD), preferred.** The client uses an `https` URL as its `client_id`, and TOSE fetches the JSON document at that URL. The consent page names the domain that published it.
 - **Dynamic client registration.** Clients without a metadata document register with `POST /oauth/register`. The consent page shows these clients as unverified.
 
-Both flows use the authorization code grant with PKCE (S256 only). Clients that use a metadata document authenticate with `none`. Dynamically registered clients use `none` or a client secret (`client_secret_post` or `client_secret_basic`). Key-based client authentication such as `private_key_jwt` is not supported.
+Both flows use the authorization code grant with PKCE (S256 only), including for clients that sign an assertion. Dynamically registered clients authenticate with `none` or a client secret (`client_secret_post` or `client_secret_basic`).
+
+### Metadata clients and client assertions
+
+A client that uses a metadata document declares `token_endpoint_auth_method` as `none` or `private_key_jwt`. With `private_key_jwt`, the document also carries the client's public keys as a JWKS, and the client proves its identity at the token endpoint with a signed assertion.
+
+If a metadata document declares `private_key_jwt` and also allows `none`, the client can exchange an authorization code with PKCE alone. The two kinds of grant then behave differently afterwards:
+
+- A token family issued through that public PKCE exchange can be refreshed or revoked without a signature.
+- A token family issued with a signed assertion always needs an assertion to refresh or revoke it.
+
+### Redirect URIs on loopback
+
+A client that runs on your machine, such as a desktop app or a CLI, often listens on a random free port. For an `http` loopback callback, the port can differ from the registered one only when the registered URI has no port. The host, the encoded path and the query must still match exactly. A registered URI that names a port accepts only that port.
 
 ## Scopes
 
