@@ -81,16 +81,19 @@ secrets:
 
 ### Agent curated với repository GitHub {#curated-repository}
 
-Một agent curated có thể khởi động với một repository GitHub trong `/workspace` bền vững, clone chỉ-đọc tại commit đã ghim (xem [Checkout repository](/vi/guide/agent-repository-checkout)).
+Một agent curated có thể khởi động với một repository GitHub trong `/workspace` bền vững, clone tại commit đã ghim (xem [Checkout repository](/vi/guide/agent-repository-checkout)). Repository là chỉ-đọc trừ khi bạn truyền `--repo-push`.
 
 ```bash
 tose templates plan --curated codex --repo acme/app --config deploy.yaml --json
 tose templates plan --curated codex --repo acme/app --branch release --commit <40-hex-sha> --config deploy.yaml
+tose templates plan --curated codex --repo acme/app --repo-push --repo-push-branches agent --workspace-disk-gib 20 --config deploy.yaml
 tose templates retry-checkout <installation-id> --json     # sau khi clone lỗi
 ```
 
 - `--repo owner/name` phải nằm trong danh sách repository của kết nối GitHub của workspace. CLI không bao giờ nhận URL clone, token hay SSH key, và từ chối tên không có trong danh sách trước khi gửi bất cứ gì. `--github-installation <id>` dùng để chỉ rõ; `--commit` ghim một commit cũ hơn của nhánh.
-- Chỉ owner hoặc admin workspace được gửi repository (`REPOSITORY_REQUIRES_ADMIN`). Repository là một phần của plan hash, nên `deploy --plan` không lặp lại các cờ repository.
+- `--workspace-disk-gib 5|10|20|50` (chỉ agent curated, mặc định 5) đặt dung lượng ổ `/workspace` của agent. Kế hoạch ghim giá trị này và hiển thị ở dòng `Workspace:`; không đổi được sau khi cài, và dung lượng lưu trữ được tính phí khi ổ còn tồn tại, kể cả khi agent đã dừng. Giá trị khác bị từ chối trước khi gửi bất cứ gì.
+- `--repo-push` (đi cùng `--repo`) cho agent push qua git proxy của TOSE; agent không bao giờ giữ token GitHub. `--repo-push-branches all|agent` chọn nhánh: `all` (mặc định, gồm cả nhánh mặc định) hoặc `agent` (chỉ `tose/<slug installation>/...`). Kế hoạch hiển thị mẫu nhánh và remote của proxy. Push cần quyền `contents: write` của GitHub App (blocker `GITHUB_PERMISSION_MISSING`); máy chủ chưa có git proxy trả về `GIT_PROXY_NOT_CONFIGURED`, và CLI gợi ý lập kế hoạch lại không có push.
+- Chỉ owner hoặc admin workspace được gửi repository (`REPOSITORY_REQUIRES_ADMIN`). Repository, thiết lập push và dung lượng ổ là một phần của plan hash, nên `deploy --plan` không lặp lại các cờ đó và từ chối cờ mâu thuẫn với kế hoạch.
 - `retry-checkout` (owner hoặc admin, key có `deployments:execute`) đặt checkout `failed` về `pending`; hãy deploy lại sau đó.
 
 ## Liên quan
