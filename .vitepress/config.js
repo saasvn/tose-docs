@@ -49,6 +49,8 @@ export default defineConfig({
               { text: 'tose up', link: '/commands/up' },
               { text: 'tose deploy / redeploy', link: '/commands/deploy' },
               { text: 'tose deployment', link: '/commands/deployment' },
+              { text: 'tose ci', link: '/commands/ci' },
+
               { text: 'tose runbook', link: '/commands/runbook' },
               { text: 'tose status', link: '/commands/status' },
               { text: 'tose logs', link: '/commands/logs' },
@@ -57,13 +59,14 @@ export default defineConfig({
               { text: 'tose env', link: '/commands/env' },
               { text: 'tose domain', link: '/commands/domain' },
               { text: 'tose db', link: '/commands/db' },
+              { text: 'tose export', link: '/commands/export' },
               { text: 'tose skills', link: '/commands/skills' },
               { text: 'tose feedback', link: '/commands/feedback' },
               { text: 'tose desktop', link: '/commands/desktop' },
               { text: 'tose template', link: '/commands/template' },
+              { text: 'tose sidecars', link: '/commands/sidecars' },
               { text: 'tose templates', link: '/commands/templates' },
               { text: 'tose disk / volumes / pricing', link: '/commands/disk' },
-              { text: 'tose export', link: '/commands/export' },
               { text: 'tose autoscaling', link: '/commands/autoscaling' },
               { text: 'tose generate', link: '/commands/generate' }
             ]
@@ -192,6 +195,8 @@ export default defineConfig({
               { text: 'tose up', link: '/vi/commands/up' },
               { text: 'tose deploy / redeploy', link: '/vi/commands/deploy' },
               { text: 'tose deployment', link: '/vi/commands/deployment' },
+              { text: 'tose ci', link: '/vi/commands/ci' },
+
               { text: 'tose runbook', link: '/vi/commands/runbook' },
               { text: 'tose status', link: '/vi/commands/status' },
               { text: 'tose logs', link: '/vi/commands/logs' },
@@ -200,13 +205,14 @@ export default defineConfig({
               { text: 'tose env', link: '/vi/commands/env' },
               { text: 'tose domain', link: '/vi/commands/domain' },
               { text: 'tose db', link: '/vi/commands/db' },
+              { text: 'tose export', link: '/vi/commands/export' },
               { text: 'tose skills', link: '/vi/commands/skills' },
               { text: 'tose feedback', link: '/vi/commands/feedback' },
               { text: 'tose desktop', link: '/commands/desktop' },
               { text: 'tose template', link: '/vi/commands/template' },
+              { text: 'tose sidecars', link: '/vi/commands/sidecars' },
               { text: 'tose templates', link: '/vi/commands/templates' },
               { text: 'tose disk / volumes / pricing', link: '/vi/commands/disk' },
-              { text: 'tose export', link: '/vi/commands/export' },
               { text: 'tose autoscaling', link: '/vi/commands/autoscaling' },
               { text: 'tose generate', link: '/vi/commands/generate' }
             ]

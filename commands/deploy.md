@@ -88,8 +88,9 @@ Run 'tose up' to connect your repository first.
 ### Error: Insufficient Wallet Balance
 
 When the workspace wallet balance is zero or negative, the API refuses `deploy`, `redeploy` and
-`rollback` with `402` and the code `INSUFFICIENT_BALANCE`. No deployment is created. The CLI exits
-with code `9`.
+`rollback` with `402` and the code `INSUFFICIENT_BALANCE`. No deployment is created. Creating a
+project (`tose up`, `tose init`) with an empty wallet is refused the same way, with `402` instead of
+the earlier `403`, and no project is created. The CLI exits with code `9`.
 
 ```bash
 $ tose deploy

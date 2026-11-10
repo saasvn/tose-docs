@@ -45,6 +45,15 @@ These options are available on **all** commands:
 | [`tose deployment rollback`](/commands/deployment#tose-deployment-rollback) | Roll back to an earlier deployment (needs `--yes`) |
 | [`tose runbook`](/commands/runbook) | Plan, review and run a restart or rollback that a person approves in the browser |
 
+### CI
+
+| Command | Description |
+|---------|-------------|
+| [`tose ci pipelines`, `runs`, `plan`](/commands/ci) | List pipelines and runs, plan a manual run |
+| [`tose ci run`, `dispatch`](/commands/ci#starting-a-run) | Start a manual or `workflow_dispatch` run, optionally `--wait` |
+| [`tose ci status`, `events`, `logs`, `report`](/commands/ci#events) | Inspect a run |
+| [`tose ci cancel`](/commands/ci#cancel) | Stop a run (needs `--yes`) |
+
 ### Monitoring
 
 | Command | Description |
@@ -99,6 +108,7 @@ production yet.
 
 | Command | Description |
 |---------|-------------|
+| [`tose sidecars get / set / rm`](/commands/sidecars) | Manage saved sidecar containers (workspace-gated, applied at the next deploy) |
 | [`tose disk get`](/commands/disk) | Show the project's persistent disk |
 | [`tose disk set`](/commands/disk#tose-disk-set) | Add, grow, or move a project disk |
 | [`tose disk delete`](/commands/disk#tose-disk-delete) | Delete a project disk and its data |
@@ -110,7 +120,7 @@ production yet.
 
 | Command | Description |
 |---------|-------------|
-| [`tose export`](/commands/export) | Print a read-only, secret-free project inventory (not a backup) |
+| [`tose export`](/commands/export) | Print a read-only project inventory with backup references and the migration plan (not a backup) |
 
 ### Autoscaling budgets
 

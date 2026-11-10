@@ -176,6 +176,10 @@ Connection URL:
   postgresql://user:pass@db.tose.sh:5432/production-db
 ```
 
+### Who sees the credentials
+
+The API returns the connection URL and password only to workspace owners and admins. For other members these fields are absent. `tose db info` then prints a note to ask an owner or admin, and with `--json` the object carries `credentials_visible: false` and a `credentials_note`.
+
 ### JSON Output
 
 ```json
