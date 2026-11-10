@@ -78,12 +78,12 @@ Liên kết deploy có dạng `https://app.tose.sh/deploy?` theo sau là các th
 
 | Tham số | Áp dụng cho | Quy tắc | Ví dụ |
 |---------|-------------|---------|-------|
-| `repo` | Repository | `https://github.com/{owner}/{repo}`. Đuôi `.git` hoặc dấu `/` ở cuối bị bỏ qua. Chỉ GitHub, qua `https`, không có thêm đường dẫn, query hay fragment. Owner gồm chữ cái, chữ số và dấu gạch ngang đơn (tối đa 39 ký tự, không có gạch ngang ở đầu hoặc cuối). Tên repository gồm chữ cái, chữ số, `.`, `_` và `-` (tối đa 100 ký tự). | `repo=https://github.com/acme/shop` |
+| `repo` | Repository | `https://github.com/{owner}/{repo}`. Một đuôi `.git` viết thường và dấu `/` ở cuối bị bỏ qua. Tên vẫn kết thúc bằng `.git` ở bất kỳ kiểu chữ nào (`shop.git.git`, `shop.GIT`) là không hợp lệ, và tên không được là `.` hay `..`. Chỉ GitHub, qua `https`, không có thêm đường dẫn, query hay fragment. Owner gồm chữ cái, chữ số và dấu gạch ngang đơn (tối đa 39 ký tự, không có gạch ngang ở đầu hoặc cuối). Tên repository gồm chữ cái, chữ số, `.`, `_` và `-` (tối đa 100 ký tự). | `repo=https://github.com/acme/shop` |
 | `branch` | Repository | Tuỳ chọn. Branch được chọn sẵn. Gồm chữ cái, chữ số, `.`, `_`, `-` và `/`, tối đa 255 ký tự. Không được bắt đầu bằng `/`, `-` hoặc `.`, không được kết thúc bằng `/`, `.` hoặc `.lock`, và không được chứa `..`, `//` hay `/.`. | `branch=main` |
 | `name` | Repository | Tuỳ chọn. Tên project được điền sẵn. Chữ thường, chữ số và dấu gạch ngang, tối đa 63 ký tự, bắt đầu và kết thúc bằng chữ cái hoặc chữ số. | `name=shop` |
 | `env` | Repository | Tuỳ chọn. Danh sách tên biến cách nhau bằng dấu phẩy, được điền sẵn thành các dòng trống. Tên bắt đầu bằng chữ cái hoặc `_`, sau đó là chữ cái, chữ số hoặc `_`, tối đa 128 ký tự. Tối đa 50 tên, không lặp, không có khoảng trắng. **Chỉ tên, không bao giờ có giá trị.** | `env=DATABASE_URL,SESSION_SECRET` |
 | `template` | Template | Key của template: chữ thường, chữ số và dấu gạch ngang, tối đa 63 ký tự, bắt đầu và kết thúc bằng chữ cái hoặc chữ số. | `template=dewee` |
-| `version` | Template | Tuỳ chọn. Phiên bản template: bắt đầu bằng chữ cái hoặc chữ số, sau đó là chữ cái, chữ số, `.`, `_`, `+` hoặc `-`, tối đa 64 ký tự. Được chuyển cho wizard deploy template. | `version=1.4.0` |
+| `version` | Template | Tuỳ chọn. Phiên bản template: bắt đầu bằng chữ cái hoặc chữ số, sau đó là chữ cái, chữ số, `.`, `_`, `+` hoặc `-`, tối đa 64 ký tự. Hãy viết `+` thành `%2B` trong liên kết: dấu `+` thô nghĩa là khoảng trắng và làm liên kết không hợp lệ. Được chuyển cho wizard deploy template. | `version=1.4.0` |
 | `publisher` | Template | Tuỳ chọn. Key của publisher, cùng quy tắc với `template`. Được chuyển cho wizard deploy template. | `publisher=acme` |
 
 Các quy tắc khác:
@@ -91,7 +91,8 @@ Các quy tắc khác:
 - Liên kết repository chỉ nhận `repo`, `branch`, `name` và `env`. Liên kết template chỉ nhận `template`, `version` và `publisher`.
 - Tên tham số phân biệt chữ hoa chữ thường. Mỗi tham số xuất hiện tối đa một lần và không được để trống.
 - **Mọi tham số khác đều làm liên kết không hợp lệ**, kể cả tham số theo dõi như `utm_source`. Đừng thêm chúng.
-- Khi tự viết liên kết, hãy mã hoá phần trăm các giá trị (`:` thành `%3A`, `/` thành `%2F`, `,` thành `%2C`). Trang tạo nút làm việc này giúp bạn.
+- Khi tự viết liên kết, hãy mã hoá phần trăm các giá trị (`:` thành `%3A`, `/` thành `%2F`, `,` thành `%2C`, `+` thành `%2B`). Trang tạo nút làm việc này giúp bạn, kể cả dấu `+` trong version.
+- **Giới hạn độ dài.** Đường dẫn liên kết sau khi mã hoá (`/deploy?` cộng với query đã percent-encode) dài tối đa 2048 ký tự. Mỗi dấu phẩy trong `env` tính là 3 ký tự vì được viết thành `%2C`. Liên kết dài hơn bị từ chối, nên hãy liệt kê ít tên biến hơn hoặc rút ngắn giá trị.
 - Key template thuộc danh mục 1-click, như `dewee` hoặc `goclaw`, sẽ mở form deploy của danh mục khi liên kết không có `publisher`. Template khác, hoặc bất kỳ liên kết nào có `publisher`, mở wizard deploy template.
 
 ## Người truy cập thấy gì {#visitor-flow}
@@ -108,7 +109,7 @@ Các quy tắc khác:
 TOSE đọc repository thông qua TOSE GitHub App được cài trên tài khoản GitHub mà người truy cập đã kết nối với workspace. Form tìm repository trong liên kết trong số các repository TOSE đọc được, rồi tìm bản fork của người truy cập từ repository đó:
 
 - **Chính repository đó.** Nếu TOSE đọc được repository trong liên kết, chẳng hạn vì người truy cập là chủ sở hữu, repository được chọn sẵn.
-- **Bản fork của người truy cập.** Nếu không, TOSE hỏi GitHub xem repository nào trong số các repository đọc được là fork của repository trong liên kết. Bản fork được nhận ra dù mang tên gì. Nếu có một bản, nó được chọn sẵn và một ghi chú nêu đó là bản fork của người truy cập. Nếu có nhiều bản, chúng được đưa ra để chọn và không có gì được chọn sẵn cho đến khi người truy cập chọn.
+- **Bản fork của người truy cập.** Nếu không, TOSE hỏi GitHub xem repository nào trong số các repository đọc được là fork của repository trong liên kết. Bản fork được nhận ra dù mang tên gì. TOSE chỉ tìm qua các GitHub App installation đang được gắn vào workspace. Nếu có một bản, nó được chọn sẵn và một ghi chú nêu đó là bản fork của người truy cập. Nếu có nhiều bản, chúng được đưa ra để chọn và không có gì được chọn sẵn cho đến khi người truy cập chọn.
 - **Bản fork TOSE không xác nhận được.** Nếu GitHub không xác nhận được các bản fork, form có thể hỏi "đây có phải bản fork của bạn không?" về những repository là fork và trùng tên với repository trong liên kết. Không có gì được chọn sẵn, và người truy cập tự quyết định.
 
 Khi TOSE không tìm thấy kết quả nào khớp, form giải thích còn thiếu gì và đưa ra ba hành động:
@@ -117,7 +118,7 @@ Khi TOSE không tìm thấy kết quả nào khớp, form giải thích còn thi
 - **Install or configure the GitHub App** mở GitHub để người truy cập cấp cho TOSE GitHub App quyền truy cập vào tài khoản sở hữu bản fork.
 - **Check again** đọc lại các tài khoản GitHub đã kết nối mà không rời khỏi form, rồi tìm lại repository và bản fork một lần nữa.
 
-Việc tìm fork chỉ đọc tối đa 10 fork cho mỗi tài khoản GitHub, ưu tiên fork cùng tên; fork nằm ngoài giới hạn đó có thể không được tìm thấy. Việc tìm repository không thay đổi gì: form chỉ được gửi khi người truy cập bấm **Tạo dự án**.
+Việc tìm fork chỉ đọc tối đa 10 fork cho mỗi installation, ưu tiên fork cùng tên; fork nằm ngoài giới hạn đó có thể không được tìm thấy. Việc tìm được giới hạn tốc độ theo từng người dùng, và khi vượt giới hạn form quay về việc hỏi "đây có phải bản fork của bạn không?". TOSE lưu đệm nguồn gốc của một fork tối đa 6 giờ, nên sau khi repository gốc bị đổi tên hoặc chuyển chủ, việc nhận ra fork có thể chậm đến chừng đó. Việc tìm repository không thay đổi gì: form chỉ được gửi khi người truy cập bấm **Tạo dự án**.
 
 ### Chi phí và ví {#cost-and-wallet}
 
@@ -144,6 +145,8 @@ Liên kết vi phạm quy tắc sẽ mở trang **Link deploy này không hợp 
 |-----------|-------------------------|
 | Link cần có tham số repo hoặc template. | Thêm một trong hai. |
 | Link có cả repo lẫn template. | Giữ một. Mỗi link deploy một repository hoặc một template, không bao giờ cả hai. |
+| Link có một tham số không thuộc link deploy. | Tham số lạ có tên không phải 1 đến 32 chữ cái, chữ số, `_` hoặc `-` thì không thể hiển thị tên. Hãy xoá nó. |
+| Link quá dài: dạng đã mã hóa của nó (đường dẫn /deploy với mọi giá trị được percent-encode, nên mỗi dấu phẩy trong env tính là 3 ký tự) phải không quá {limit} ký tự. Hãy rút gọn link, ví dụ bớt tên biến trong env. | `{limit}` là 2048. Hãy liệt kê ít tên trong `env` hơn hoặc rút ngắn giá trị. |
 | "{param}" không phải là tham số của link deploy. | Xoá nó đi. Chỉ bảy tham số trong [bảng tham chiếu liên kết](#link-reference) được phép, tham số theo dõi thì không. |
 | "{param}" xuất hiện nhiều hơn một lần. | Chỉ giữ một bản. |
 | "{param}" đang để trống. | Điền giá trị hoặc xoá nó. |

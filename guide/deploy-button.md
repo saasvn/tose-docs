@@ -78,12 +78,12 @@ A deploy link has the form `https://app.tose.sh/deploy?` followed by parameters.
 
 | Parameter | Applies to | Rule | Example |
 |-----------|------------|------|---------|
-| `repo` | Repository | `https://github.com/{owner}/{repo}`. A trailing `.git` or `/` is ignored. GitHub only, over `https`, with no extra path, query or fragment. The owner is letters, digits and single hyphens (at most 39 characters, no hyphen at the start or end). The repository name is letters, digits, `.`, `_` and `-` (at most 100 characters). | `repo=https://github.com/acme/shop` |
+| `repo` | Repository | `https://github.com/{owner}/{repo}`. One lower-case trailing `.git` and a trailing `/` are ignored. A name that still ends in `.git` in any letter case (`shop.git.git`, `shop.GIT`) is invalid, and the name cannot be `.` or `..`. GitHub only, over `https`, with no extra path, query or fragment. The owner is letters, digits and single hyphens (at most 39 characters, no hyphen at the start or end). The repository name is letters, digits, `.`, `_` and `-` (at most 100 characters). | `repo=https://github.com/acme/shop` |
 | `branch` | Repository | Optional. The branch to preselect. Letters, digits, `.`, `_`, `-` and `/`, at most 255 characters. It cannot start with `/`, `-` or `.`, cannot end with `/`, `.` or `.lock`, and cannot contain `..`, `//` or `/.`. | `branch=main` |
 | `name` | Repository | Optional. The project name to prefill. Lower-case letters, digits and hyphens, at most 63 characters, starting and ending with a letter or digit. | `name=shop` |
 | `env` | Repository | Optional. Comma-separated variable names, prefilled as empty rows. A name starts with a letter or `_`, then letters, digits or `_`, at most 128 characters. At most 50 names, no repeats, no spaces. **Names only, never values.** | `env=DATABASE_URL,SESSION_SECRET` |
 | `template` | Template | The template key: lower-case letters, digits and hyphens, at most 63 characters, starting and ending with a letter or digit. | `template=dewee` |
-| `version` | Template | Optional. A template version: starts with a letter or digit, then letters, digits, `.`, `_`, `+` or `-`, at most 64 characters. Passed to the template deploy wizard. | `version=1.4.0` |
+| `version` | Template | Optional. A template version: starts with a letter or digit, then letters, digits, `.`, `_`, `+` or `-`, at most 64 characters. Write `+` as `%2B` in the link: a raw `+` means a space and makes the link invalid. Passed to the template deploy wizard. | `version=1.4.0` |
 | `publisher` | Template | Optional. The publisher key, with the same rule as `template`. Passed to the template deploy wizard. | `publisher=acme` |
 
 Further rules:
@@ -91,7 +91,8 @@ Further rules:
 - A repository link accepts only `repo`, `branch`, `name` and `env`. A template link accepts only `template`, `version` and `publisher`.
 - Parameter names are case-sensitive. Each appears at most once and none may be empty.
 - **Any other parameter makes the link invalid**, including tracking parameters such as `utm_source`. Do not add them.
-- Percent-encode values when you write the link by hand (`:` as `%3A`, `/` as `%2F`, `,` as `%2C`). The generator does this for you.
+- Percent-encode values when you write the link by hand (`:` as `%3A`, `/` as `%2F`, `,` as `%2C`, `+` as `%2B`). The generator does this for you, including the `+` in a version.
+- **Length limit.** The encoded link path (`/deploy?` plus the percent-encoded query) is at most 2048 characters. Each comma in `env` counts as 3 characters, because it is written `%2C`. A longer link is refused, so list fewer variable names or shorten the values.
 - A template key from the 1-click catalog, such as `dewee` or `goclaw`, opens the catalog's deploy form when the link has no `publisher`. Any other template, or any link with a `publisher`, opens the template deploy wizard.
 
 ## What a visitor sees {#visitor-flow}
@@ -108,7 +109,7 @@ Further rules:
 TOSE reads a repository through the TOSE GitHub App installed on a GitHub account the visitor has connected to the workspace. The form looks for the linked repository among the repositories TOSE can read, and then for the visitor's fork of it:
 
 - **The repository itself.** If TOSE can read the linked repository, for example because the visitor owns it, it is preselected.
-- **The visitor's fork.** Otherwise TOSE asks GitHub which of the readable repositories are forks of the linked repository. A fork is recognized under any name. When there is one, it is preselected and a note names it as the visitor's fork. When there are several, they are offered as choices and nothing is preselected until the visitor picks one.
+- **The visitor's fork.** Otherwise TOSE asks GitHub which of the readable repositories are forks of the linked repository. A fork is recognized under any name. TOSE looks only through the GitHub App installations that are attached to the workspace now. When there is one, it is preselected and a note names it as the visitor's fork. When there are several, they are offered as choices and nothing is preselected until the visitor picks one.
 - **A fork TOSE cannot confirm.** If GitHub cannot confirm the forks, the form may ask "is this your fork?" about repositories that are forks with the same name as the linked repository. Nothing is preselected, and the visitor decides.
 
 When TOSE finds no match, the form explains what is missing and offers three actions:
@@ -117,7 +118,7 @@ When TOSE finds no match, the form explains what is missing and offers three act
 - **Install or configure the GitHub App** opens GitHub so the visitor can give the TOSE GitHub App access to the account that owns the fork.
 - **Check again** reads the connected GitHub accounts again, without leaving the form, and looks for the repository and the fork once more.
 
-The fork lookup reads at most 10 forks per GitHub account, same-named forks first; a fork beyond that limit may not be found. Looking for a repository changes nothing: the form is submitted only when the visitor presses **Create Project**.
+The fork lookup reads at most 10 forks per installation, same-named forks first; a fork beyond that limit may not be found. Lookups are throttled per user, and past the limit the form falls back to asking "is this your fork?". TOSE caches where a fork came from for up to 6 hours, so after the upstream repository is renamed or transferred, recognition can lag by that long. Looking for a repository changes nothing: the form is submitted only when the visitor presses **Create Project**.
 
 ### Cost and the wallet {#cost-and-wallet}
 
@@ -144,6 +145,8 @@ A link that breaks a rule opens the **This deploy link is not valid** page (HTTP
 |---------|---------------|
 | The link needs a repo or a template parameter. | Add one of them. |
 | The link has both repo and template. | Keep one. A link deploys a repository or a template, never both. |
+| The link has a parameter that is not part of a deploy link. | An unknown parameter whose name is not 1 to 32 letters, digits, `_` or `-` cannot be shown by name. Remove it. |
+| The link is too long: its encoded form (the /deploy path with every value percent-encoded, so each comma in env counts as 3 characters) must be at most {limit} characters. Shorten it, for example by listing fewer env names. | `{limit}` is 2048. List fewer `env` names or shorten the values. |
 | "{param}" is not a parameter of a deploy link. | Remove it. Only the seven parameters in the [link reference](#link-reference) are allowed, and tracking parameters are not. |
 | "{param}" appears more than once. | Keep a single copy. |
 | "{param}" is empty. | Give it a value or remove it. |
