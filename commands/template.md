@@ -142,7 +142,7 @@ tose template deploy <slug> [--mode <mode>] [--upgrade | --rollback <deployment_
 - `--upgrade`, `--rollback` and `--expected-image` need `--mode image`. Combined with `--mode build` the command exits `2` and changes nothing.
 - `--upgrade` and `--rollback` cannot be combined.
 - `--rollback` takes the ID of a deployment of this template that ran, for example the `Deployment ID:` line printed by an earlier `tose template deploy`, or the list in the [Templates API](/api/templates#deployments). An empty ID is refused.
-- Some templates ignore these options. If the API did not apply one, the CLI reports an error naming the option and the deployment it started anyway, instead of saying the option worked.
+- Cloud Harness templates have no image to run or roll back to. `--upgrade`, `--rollback` and `--expected-image` are refused with `400` and nothing is deployed; use a plain `tose template deploy`. For other templates, if the API did not apply one, the CLI reports an error naming the option and the deployment it started anyway, instead of saying the option worked.
 - Warnings from the API are printed. With `--json` they are in `data.warnings`.
 
 ```bash

@@ -8,7 +8,7 @@ Cách gửi key kèm request nằm ở trang [Xác thực](/vi/api/authenticatio
 
 - Key thuộc **một workspace**, chính là workspace đã tạo ra nó. Key đọc và thay đổi được workspace đó, không làm được gì ngoài workspace.
 - Key không bao giờ có quyền cấp tài khoản hay cấp nền tảng, kể cả khi người tạo key là platform admin. Xem [Route từ chối API key](#route-tu-choi-api-key).
-- TOSE kiểm tra tư cách thành viên của người tạo key ở mỗi request. Nếu người đó bị xóa khỏi workspace hoặc bị hạ vai trò, key của họ mất quyền tương ứng ngay lập tức.
+- TOSE kiểm tra tư cách thành viên của người tạo key ở mỗi request. Nếu người đó bị hạ vai trò, key của họ mất quyền tương ứng ngay lập tức. Nếu người đó bị xóa khỏi workspace, các key họ tạo trong workspace đó bị thu hồi. Key vẫn bị thu hồi kể cả khi người đó được mời lại, nên mọi thứ từng dùng key (ví dụ một job CI) cần key mới.
 - Request tới workspace khác bị từ chối với `403`.
 
 ## Tạo key
@@ -66,6 +66,7 @@ Lưu ý:
 - `deployments:read` đã bao gồm đọc project, log và workspace, nên key chỉ-đọc cho một dashboard trạng thái chỉ cần đúng scope này.
 - Đọc giá trị biến môi trường (`env.reveal`) cần `env:read`. Hãy coi `env:read` như một secret.
 - `deployments:write` chỉ dành cho [MCP connector](/vi/mcp) và không cấp được cho API key.
+- `tose up` với key có `projects:write` nhưng không có `deployments:execute` sẽ kết nối Git với tự động triển khai tắt, không bắt đầu lần triển khai nào và thoát với `INSUFFICIENT_SCOPE` (`details.required_scope: deployments:execute`, `details.git_connected: true`, `details.deploy_skipped: true`). Hãy chạy `tose deploy` với key có `deployments:execute`. Xem [`tose up`](/vi/commands/up#api-key-khong-co-deployments-execute).
 - Scope giới hạn key, không giới hạn con người. Dù có scope, request vẫn có thể bị từ chối nếu vai trò workspace của người tạo key quá thấp cho thao tác đó.
 
 ## Key toàn quyền
@@ -96,7 +97,7 @@ Một số route tác động lên tài khoản của một người hoặc hạ
 | `GET /api/mcp/connections`, `DELETE /api/mcp/connections/{family_id}`, `GET /api/mcp/tasks`, `GET /api/mcp/audit` | Kết nối thuộc về người tạo ra nó, nên chỉ người đó xem và thu hồi được. |
 | `POST` và `DELETE /api/servers`, `PUT /api/servers/{id}/development`, `POST` và `DELETE /api/registries`, `GET /api/registries` | Server và registry là hạ tầng nền tảng dùng chung. |
 
-Một vài route đọc cấp tài khoản vẫn nhận key, nhưng chỉ trong workspace của key: `GET /api/workspaces` chỉ liệt kê workspace của key, `GET /api/workspaces/available-templates` trả về catalog template, còn `GET /api/servers` và các route đọc `GET /api/github/...` kiểm tra workspace mà key đang gắn. Các route đọc GitHub còn cần scope `projects:read`.
+Một vài route đọc cấp tài khoản vẫn nhận key, nhưng chỉ trong workspace của key: `GET /api/workspaces` chỉ liệt kê workspace của key, `GET /api/workspaces/available-templates` trả về catalog template, còn `GET /api/servers` và các route đọc `GET /api/github/...` kiểm tra workspace mà key đang gắn. Các route đọc GitHub còn cần scope `projects:read`. Key bỏ `workspace_slug` ở các route này sẽ dùng workspace của chính nó, không bao giờ dùng tài khoản của người tạo key, nên `available-installations` chỉ trả các installation đã gắn vào workspace đó. Nêu workspace khác thì nhận `403`. Xem [GitHub API](/vi/api/github).
 
 ### Thay đổi hành vi: `POST /api/upload` không còn nhận API key
 
