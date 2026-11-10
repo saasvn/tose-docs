@@ -71,7 +71,7 @@ export RUNTIME_ID=<runtime-id>
 | `last_error` | string | Last error message, if any |
 | `current_operation_id` | string | Operation in flight, or `null` |
 | `created_by` | string | User who created the runtime |
-| `compute_cents_per_hour` | number | Compute price in cents per hour while `ready`, at the workspace's current wallet balance tier |
+| `compute_cents_per_hour` | number | Compute price in cents per hour while `ready`, at the standard compute rate |
 | `created_at`, `updated_at` | string | Timestamps (ISO 8601) |
 
 ### Operation

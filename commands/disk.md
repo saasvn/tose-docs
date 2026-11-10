@@ -116,7 +116,7 @@ Shrinking is rejected; see [Resizing](/guide/persistent-disks#resizing).
 
 ## tose pricing
 
-Show current compute tiers and the storage rate, as served by [`GET /api/pricing`](/api/disks#get-pricing).
+Show the current compute rate and the storage rate, as served by [`GET /api/pricing`](/api/disks#get-pricing).
 
 ### Synopsis
 
