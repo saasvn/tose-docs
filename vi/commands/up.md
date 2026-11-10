@@ -160,6 +160,27 @@ Sau khi xác nhận:
   URL: https://my-app.tose.app
 ```
 
+### API key không có `deployments:execute`
+
+Kết nối Git và bắt đầu triển khai là hai quyền riêng. Với API key có `projects:write` nhưng không có `deployments:execute`, `tose up` vẫn kết nối Git, nhưng tắt tự động triển khai. Lệnh không bắt đầu lần triển khai nào và thoát với lỗi `INSUFFICIENT_SCOPE`:
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "INSUFFICIENT_SCOPE",
+    "message": "Git is connected, but no deployment was started: this API key lacks the `deployments:execute` scope. Run `tose deploy` with a key that includes it.",
+    "details": {
+      "required_scope": "deployments:execute",
+      "git_connected": true,
+      "deploy_skipped": true
+    }
+  }
+}
+```
+
+Dự án đã được thiết lập xong nên không cần làm lại. Hãy chạy [`tose deploy`](/vi/commands/deploy) với key có `deployments:execute`. Cho đến lúc đó, mỗi lần push Git sẽ không tự động triển khai. Xem [Scope và tự động triển khai](/vi/api/authentication#scopes-and-automatic-deploys) và [API Key và scope](/vi/api/api-keys).
+
 ## Trường hợp sử dụng
 
 ### Triển khai lần đầu
@@ -232,6 +253,10 @@ tose up
    ```bash
    git remote -v
    ```
+
+### `INSUFFICIENT_SCOPE` sau dòng "Git đã kết nối"
+
+Key thiếu `deployments:execute`. Git đã được kết nối và chưa có lần triển khai nào bắt đầu. Hãy chạy `tose deploy` với key có scope đó, hoặc thêm scope vào key. Xem [API key không có `deployments:execute`](#api-key-khong-co-deployments-execute).
 
 ## Lệnh liên quan
 
