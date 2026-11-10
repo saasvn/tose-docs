@@ -217,6 +217,14 @@ Rolling back shows a warning before you confirm: **rolling back the image does n
 
 The rollback list offers only earlier deployments that ran successfully (status `running` or `stopped`, and finished), newest first, one entry per image, up to eight, and without the image you run now. A failed build is never offered because its image was never pushed. The API applies the same rule and returns `404` for any other deployment ID. See [Template deploy API](/api/templates#rollback).
 
+## Stop or delete an instance
+
+- **Stop** (`tose template stop <slug>`) scales the instance to zero and keeps its disk and settings. Deploy again to start it.
+- **Delete** (`tose template delete <slug>`) removes the instance with its disk, variables, domains and history. It cannot be undone, so take the backups from [Versions and upgrades](#versions-and-upgrades) first.
+- **A build in progress ends.** Stop and delete both end a running build: the build and push containers are removed and the deployment is marked `stopped`. The log of a stopped build usually ends with `=== Build Stopped ===`; after a delete the history is gone. Stop a build you no longer want, then check `tose template info` to confirm the template and its deployment are `stopped`.
+
+See [`tose template stop / delete`](/commands/template#tose-template-stop-delete) and the [Templates API](/api/templates#lifecycle).
+
 ## Release gate and compatibility
 
 TOSE publishes a Dewee version as verified only after an end-to-end run passes against a staging cluster: create, authenticate over the public domain, WebSocket, MCP, persisted data after restart, redeploy and rollback, plus the negative cases above ([tose-app#276](https://github.com/saasvn/tose-app/issues/276)).

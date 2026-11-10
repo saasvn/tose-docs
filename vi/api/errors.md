@@ -221,7 +221,13 @@ Hãy nạp tiền vào ví, hoặc giảm floor của các project, rồi gửi 
 
 ### `ROLLBACK_FAILED` {#ROLLBACK_FAILED}
 
-`500`. Chỉ với rollback: khởi chạy image cũ thất bại. Message nêu lý do; lỗi có thể đến từ cụm hoặc từ một bước trước đó như đọc server, secret của project hoặc ổ đĩa. Hãy đọc message, sửa nguyên nhân rồi thử lại hoặc chọn deployment khác.
+Chỉ có ở MCP. `rollback_deployment` trả mã này khi lần chạy rollback thất bại; lần chạy đó không được thử lại. Message chứa chi tiết của lần chạy. Hãy xem `get_deployment_status` để biết phiên bản nào đang chạy.
+
+Route REST `POST .../deployments/{id}/rollback` không trả mã này. Rollback qua REST chạy như một runbook khôi phục (lập kế hoạch, phê duyệt, chạy):
+
+- Lần chạy thất bại trả `409` với mã của lần chạy (`RUNBOOK_FAILED`, hoặc mã của bước bị lỗi, ví dụ `PLAN_STALE` hay `INSUFFICIENT_BALANCE`) và kế hoạch trong `runbook`.
+- API key không thể phê duyệt rollback. Lệnh gọi bằng key chỉ lưu kế hoạch và trả `409 APPROVAL_REQUIRED` kèm `runbook` và `approval_url`; owner hoặc admin của workspace đăng nhập và phê duyệt ở đó.
+- Người đã đăng nhập cần vừa đăng nhập gần đây mới phê duyệt được rollback, nếu không sẽ nhận `403 REAUTHENTICATION_REQUIRED`.
 
 ## Mã lỗi của ngân sách autoscaling
 

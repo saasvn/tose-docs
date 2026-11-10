@@ -217,6 +217,14 @@ Khi quay lại, trang hiển thị cảnh báo trước khi bạn xác nhận: *
 
 Danh sách quay lại chỉ đưa ra các lần triển khai trước đó đã chạy thành công (trạng thái `running` hoặc `stopped`, và đã kết thúc), mới nhất trước, mỗi image một mục, tối đa tám mục, không gồm image bạn đang chạy. Bản build lỗi không bao giờ được đưa ra vì image của nó chưa từng được push. API áp dụng cùng quy tắc và trả `404` cho mọi deployment ID khác. Xem [API deploy template](/api/templates#rollback).
 
+## Dừng hoặc xóa instance {#stop-or-delete-an-instance}
+
+- **Dừng** (`tose template stop <slug>`) đưa instance về 0 replica và giữ lại ổ đĩa cùng cấu hình. Deploy lại để khởi động.
+- **Xóa** (`tose template delete <slug>`) xóa instance cùng ổ đĩa, biến, domain và lịch sử. Không thể hoàn tác, nên hãy backup theo [Phiên bản và nâng cấp](#versions-and-upgrades) trước.
+- **Build đang chạy sẽ kết thúc.** Dừng và xóa đều kết thúc build đang chạy: container build và push bị gỡ và deployment được đánh dấu `stopped`. Log của build bị dừng thường kết thúc bằng `=== Build Stopped ===`; sau khi xóa thì lịch sử không còn. Hãy dừng build bạn không cần nữa, rồi kiểm tra `tose template info` để chắc template và deployment đã `stopped`.
+
+Xem [`tose template stop / delete`](/vi/commands/template#tose-template-stop-delete) và [API template](/vi/api/templates#lifecycle).
+
 ## Release gate và bảng tương thích {#release-gate-and-compatibility}
 
 TOSE chỉ công bố một phiên bản Dewee là đã xác minh sau khi một lần chạy end-to-end đạt trên cụm staging: tạo, xác thực qua domain công khai, WebSocket, MCP, dữ liệu còn sau khi khởi động lại, deploy lại và rollback, cùng các tình huống tiêu cực ở trên ([tose-app#276](https://github.com/saasvn/tose-app/issues/276)).

@@ -221,7 +221,13 @@ The [CLI](/commands/deploy) reads `NO_GIT_CONNECTION` and `INSUFFICIENT_BALANCE`
 
 ### `ROLLBACK_FAILED` {#ROLLBACK_FAILED}
 
-`500`. Rollback only: starting the earlier image failed. The message carries the reason; it can come from the cluster or from a step before it, such as reading the server, project secrets or disk. Read the message, fix the cause, then try again or pick another deployment.
+MCP only. `rollback_deployment` returns it when the rollback run failed; it was not retried. The message carries the run's detail. Check `get_deployment_status` to see what is serving.
+
+The REST route `POST .../deployments/{id}/rollback` does not return this code. A REST rollback runs as a recovery runbook (plan, approval, run):
+
+- A failed run answers `409` with the run's code (`RUNBOOK_FAILED`, or the code of the step that failed, such as `PLAN_STALE` or `INSUFFICIENT_BALANCE`) and the plan in `runbook`.
+- An API key cannot approve a rollback. Its call stores the plan and answers `409 APPROVAL_REQUIRED` with `runbook` and `approval_url`; a signed-in owner or admin approves it there.
+- A signed-in person needs a recent sign-in to approve a rollback, otherwise `403 REAUTHENTICATION_REQUIRED`.
 
 ## Autoscaling budget codes
 

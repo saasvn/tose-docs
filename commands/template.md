@@ -174,6 +174,22 @@ tose template deploy demo --rollback <deployment_id> --yes --wait
 - Generated credentials and the one-time bootstrap secret are never printed. Open the dashboard link and complete the bootstrap sign-in there.
 - A wallet shortage, a missing TLS domain or a failed disk provisioning is reported with the step to take next.
 
+## tose template stop / delete {#tose-template-stop-delete}
+
+```bash
+tose template stop <slug>
+tose template delete <slug>
+```
+
+Both need the workspace `owner` or `admin` role and ask for confirmation. `--yes` skips the prompt.
+
+- **`stop`** scales the instance to zero and sets it to `stopped`. Disk and settings are kept, and `tose template deploy` starts it again.
+- **`delete`** removes the instance with its disk, environment variables, domains and deployment history. It cannot be undone.
+
+Both also end a build that is still running (not for Cloud Harness instances). Its deployments are marked `stopped` and its build and push containers are removed, and a stopped build's log usually ends with `=== Build Stopped ===`. You do not need to wait for a build to finish before you stop or delete the template. A deleted template's deployment history, and its logs, are gone.
+
+An instance that is being deleted refuses other changes with `409` until the delete finishes. See [Templates API](/api/templates#lifecycle) for the exact responses.
+
 ## tose template resume
 
 Issue a gateway token and resume a suspended Dewee/GoClaw instance. Use it when billing resumed the template but left it without a live gateway token.
