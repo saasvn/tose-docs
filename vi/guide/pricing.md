@@ -88,6 +88,33 @@ xóa xong.
 
 Tạo instance và đánh thức docker host của nó đều cần số dư ví lớn hơn 0.
 
+## Job CI {#ci-jobs}
+
+::: info Tình trạng
+TOSE CI chưa được phát hành rộng rãi. Mục này mô tả cách tính phí job khi CI được bật cho workspace của bạn.
+:::
+
+Job CI được trừ vào ví của workspace theo giá [compute](#compute) cơ bản, 2.0 cent mỗi vCPU-giờ và 1.0 cent mỗi GiB-giờ bộ nhớ đã dành riêng, tính theo số giây container của job chạy. Chỉ trả trước: job bị từ chối trước khi chạy nếu trường hợp xấu nhất (CPU và bộ nhớ yêu cầu trong toàn bộ thời gian timeout), cộng với trường hợp xấu nhất của các job khác đang chạy trong workspace, vượt quá số dư sau khi trừ phần sử dụng chưa tính phí và phần cộng dồn CI bên dưới.
+
+- **Cộng dồn dưới 1 cent.** Mỗi job bị trừ theo số cent nguyên. Phần lẻ của một cent được cộng dồn vào một khoản CI riêng trên ví và chỉ bị trừ khi đủ một cent, nên job ngắn không được miễn phí chỉ vì chi phí dưới 1 cent. Ví dụ, job dùng 1 vCPU và 2 GiB chạy khoảng 10 phút có chi phí khoảng 0.667 cent: một job như vậy chưa bị trừ gì, và hai job như vậy cộng lại bị trừ 1 cent.
+- **Không bao giờ vượt số dư.** Job không bao giờ bị trừ quá số dư ví. Phần compute mà số dư không trả được sẽ được xóa nợ, không bị ghi thành nợ.
+- **Xóa khi về 0.** Khi số dư ví về 0, bởi bất kỳ khoản trừ nào, khoản cộng dồn CI bị xóa. Khoản này không bao giờ bị thu sau khi nạp tiền.
+- **Một giao dịch mỗi job.** Job bị trừ ít nhất một cent ghi một giao dịch ví `usage` với loại tham chiếu `ci_job`; job không bị trừ gì thì không ghi giao dịch. Việc tính phí job là idempotent, nên thử lại không bao giờ trừ tiền hai lần.
+
+## Cloud desktop {#cloud-desktops}
+
+[Cloud desktop](/vi/guide/cloud-desktops) được tính phí **theo từng giây khi đang chạy**, theo giá compute ở trên cho CPU và RAM của nó. Desktop đang ngủ không tốn phí compute; ổ đĩa của nó được tính như [lưu trữ](#storage). Số tiền được đo bằng nano-USD (1 USD = 1.000.000.000), nên một lần chạy ngắn không bị làm tròn lên cả giờ hay cả cent: phần dư dưới 1 cent được cộng dồn sang kỳ sau như mô tả ở [Số tiền dưới 1 cent](#sub-cent-amounts). Compute đo được khi số dư bằng 0 được bỏ qua, không bị tính sau.
+
+Đánh thức desktop cần số dư ví lớn hơn 0. Xem [Cloud desktop](/vi/guide/cloud-desktops#retention).
+
+## Báo cáo chi phí {#cost-reports}
+
+```http
+GET /api/workspaces/{slug}/wallet/costs?days=30
+```
+
+Chia chi phí đã đo của `days` ngày gần nhất (mặc định 30) theo dự án, theo tài nguyên và theo ngày UTC, từ sổ usage. Số tiền tính bằng nano-USD (`compute_nano_usd`, `storage_nano_usd`, `total_nano_usd`). Mỗi mục trong `resources` có `type`: `project`, `template`, `database`, `desktop`, `runtime`, `volume`, `ci_cache` (cache phụ thuộc của CI) hoặc `other`. [Runtime Cloud Harness](/vi/guide/cloud-harness) được liệt kê là `runtime` với tên của runtime và chi phí compute riêng của nó, còn ổ đĩa của dự án được cộng vào dự án đó. Báo cáo là usage đã đo: compute đo trong giờ bắt đầu với số dư bằng 0 vẫn được liệt kê nhưng chưa từng bị tính phí.
+
 ## Khi số dư bằng 0 {#when-the-balance-is-zero}
 
 TOSE từ chối mọi deploy khi số dư ví của workspace bằng 0 hoặc âm. Bạn thấy gì tuỳ vào nơi bắt đầu deploy:
@@ -115,9 +142,14 @@ Instance Dewee hoặc GoClaw chỉ tự khôi phục sau khi nạp tiền khi c�
 
 Thao tác tương tự có ở `POST /api/workspaces/{slug}/templates/{template_slug}/resume`; xem [API](/vi/api/template-deploy#resume) và [mã `GATEWAY_TOKEN_*`](/vi/api/template-deploy#gateway-token-codes).
 
+## Mã khuyến mãi {#promo-codes}
+
+Mã khuyến mãi giảm số tiền nạp ví hoặc cộng credit thưởng. Credit thưởng được trừ trước. Xem [Mã khuyến mãi và credit thưởng](/vi/guide/promo-codes).
+
 ## Liên quan {#related}
 
 - [Ổ đĩa bền vững](/vi/guide/persistent-disks)
+- [Mã khuyến mãi và credit thưởng](/vi/guide/promo-codes)
 - [Cloud Harness](/vi/guide/cloud-harness)
 - [Giá và hạn mức của Agent Runtime](/vi/guide/agent-runtime-pricing)
 - [`tose pricing` / `tose volumes`](/vi/commands/disk)

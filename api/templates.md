@@ -26,7 +26,31 @@ When a template has no stored image, an image deploy runs the catalog default an
 GET /api/workspaces/available-templates
 ```
 
-Any authenticated caller may read it. `available-templates` is a fixed route, not a workspace slug. Entries have `name`, `key`, `description`, `source`, `branch`, `default_port`, `default_cpu`, `default_ram`, `default_image`, `required_envs` and `unlock_fee_vnd`. Some entries differ: the Cloud Harness entry is built from a release manifest, so it returns `source`, `branch` and `default_image` as empty strings, and adds `release`, `max_instances` and `pricing`. Read the field list for each entry from the response or the OpenAPI spec. Use `key` as `template_name` when you create a template.
+Any authenticated caller may read it. `available-templates` is a fixed route, not a workspace slug. Each entry has `name`, `key`, `description`, `source`, `branch`, `default_port`, `default_cpu`, `default_ram`, `default_image`, `required_envs` and `unlock_fee_vnd` (only when the fee is above zero), plus the fields below, which come from the template's validated manifest. The Cloud Harness entry does not come from a manifest: it has no `source`, `branch`, `default_image` or manifest fields from the table below, and it adds `release`, `max_instances` and `pricing`. Read the full field list from the response or the OpenAPI spec. Use `key` as `template_name` when you create a template.
+
+| Field | What it means for you |
+|-------|-----------------------|
+| `schema_version` | Version of the manifest format, currently `1`. |
+| `category`, `icon` | Optional labels for grouping and showing the template. Empty when the template sets none. |
+| `min_cpu`, `min_ram` | The smallest vCPU and RAM (GB) a create or resize accepts. Empty when the template has no minimum. |
+| `mounts` | List of `{path, sub_path}`. Each `path` inside the container is stored in `sub_path` on the instance's persistent disk, so only these paths survive a redeploy. Anything written elsewhere is lost when the container restarts. |
+| `disk_size_gib` | Size of the persistent disk in GiB (2 unless the template sets another size). |
+| `secrets` | The environment variables the template needs: `key`, `mode`, `sensitive`, `label` and `placeholder`. See below. |
+| `network_egress` | `internet` or `none`. It describes the intended outbound access and is not enforced today. |
+
+A secret's `mode` tells you who supplies the value:
+
+| `mode` | Who provides it |
+|--------|-----------------|
+| `required` | You, in the setup form. Also listed in `required_envs`. |
+| `optional` | You, or leave it empty. Also listed in `required_envs`. |
+| `generated` | TOSE creates it once, when the instance is created, and stores it encrypted. TOSE never generates it again. It is masked in the environment list, and the catalog never returns its value; an owner or admin can still reveal, overwrite or delete it like any other variable, but the instance's data may already be encrypted with it, so do not change it. It is not listed in `required_envs`. |
+
+`sensitive` marks values the dashboard hides. The catalog never returns secret values, only these declarations.
+
+Creating a template, or resizing one, below `min_cpu` or `min_ram` is refused with `400` and the message `<name> needs at least <n> vCPU` or `<name> needs at least <n> GB RAM`. Templates that allow only fixed sizes keep their existing messages, `<name> supports up to <n> vCPU` and `<name> supports <a> GB or <b> GB RAM`. No catalog template sets a minimum yet, so `min_cpu` and `min_ram` are empty today.
+
+The manifest does not contain the container image. The image, upgrade and rollback flow stays as described in [How a template picks its image](#how-a-template-picks-its-image), [Deploy Template](#deploy-template) and the [Dewee guide](/guide/dewee-template#versions-and-upgrades).
 
 ### Create a template
 
@@ -49,6 +73,51 @@ GET /api/workspaces/{slug}/templates/unlock-status
 ```
 
 An object keyed by template key, with one entry per gated template: `unlocked`, `unlock_fee_vnd`, `unlock_credit_usd_cents`, `exchange_rate_vnd_per_usd`, `unlock_url` and `payment_purpose`. The fee stays available as wallet credit. See [Pricing](/guide/pricing).
+
+### Public release status {#public-release-status}
+
+```http
+GET /api/public/template-releases
+```
+
+Public: no authentication, no workspace, no tenant data. Responses are cached for 300 seconds (`Cache-Control: public, max-age=300`), and they carry no image names, digests or evidence links. Use it to show whether a 1-click template (Dewee, GoClaw) is verified, for example on a marketing page.
+
+```json
+{
+  "templates": [
+    {
+      "key": "dewee",
+      "status": "experimental",
+      "unlock_fee_vnd": 0,
+      "default_cpu": 1,
+      "default_ram_gb": 2,
+      "region": "SGP1"
+    }
+  ]
+}
+```
+
+The example shows the shape only; read the real values from the response. `templates[]` has one entry per catalog template:
+
+| Field | Meaning |
+|-------|---------|
+| `key` | Template key, the same value as `template_name` when you [create a template](#create-a-template) |
+| `status` | `verified`, `experimental`, `deprecated` or `unavailable` (below) |
+| `version` | Release version. Present only when `status` is `verified` |
+| `last_validated_at` | Date of the passing staging run. Present only when `status` is `verified` |
+| `unlock_fee_vnd` | One-time unlock fee in VND. It stays in the wallet as credit; see [Pricing](/guide/pricing) |
+| `default_cpu` | Default vCPU |
+| `default_ram_gb` | Default RAM in GB |
+| `region` | Region where instances run |
+
+| `status` | Meaning |
+|----------|---------|
+| `verified` | The catalog image passed an end-to-end staging run. The entry carries `version` and `last_validated_at`. A record missing either is reported as `experimental`, never `verified` |
+| `experimental` | Offered, but no passing staging run is recorded for the catalog image. An image missing from the manifest is also `experimental` |
+| `deprecated` | The catalog image is marked deprecated |
+| `unavailable` | The endpoint's public flag is off, so every template reports this status regardless of its real state |
+
+`verified` is decided by the release gate in `templates/verified-images.json` in [saasvn/tose-app](https://github.com/saasvn/tose-app) (see [Release gate and compatibility](/guide/dewee-template#release-gate-and-compatibility)), not by this endpoint. Nothing is `verified` until a real staging run promotes an image, so expect `experimental` until then.
 
 ### List templates
 
@@ -122,10 +191,10 @@ GET /api/workspaces/{slug}/templates/{template_slug}/deployments/{id}/logs
 GET /api/workspaces/{slug}/templates/{template_slug}/live-logs
 ```
 
-Both are WebSockets with the same authentication and origin rules as project log streaming. Frames from the client are ignored, and the server sends text frames only. Errors found before the upgrade (unknown template or deployment, missing membership) are normal JSON error responses.
+Both are WebSockets with the same authentication and origin rules as project log streaming. Frames from the client are ignored, and the server sends text frames only. Errors found before the upgrade (unknown template or deployment, missing membership) are normal JSON error responses, and a failed handshake also returns a JSON `error` body.
 
-- **Build logs** (`deployments/{id}/logs`): one build log line per frame. For a deployment that already finished (`running`, `failed` or `stopped`), the stored log is replayed and then `[END]` is sent and the connection closes. A build that the builder ended because of a Stop usually finishes with the line `=== Build Stopped ===` before `[END]`. Otherwise new lines are pushed as the build runs, and `[END]` closes it. `[END]` is the only control frame, so read the final status from `GET .../deployments/{id}`.
-- **Runtime logs** (`live-logs`): follows the stdout and stderr of the template's pods, starting with the last 200 lines. The template must be `running` (`400` otherwise). Each frame is a raw chunk of up to 4096 bytes, not aligned to lines. The stream ends with `[END]`. If the log stream cannot be opened, the server sends one frame that starts with `[ERROR] ` and closes without `[END]`; a read error mid-stream sends `[ERROR] ` and then `[END]`. Handle both.
+- **Build logs** (`deployments/{id}/logs`): one build log line per frame. For a deployment that already finished (`running`, `failed` or `stopped`), the stored log is replayed and then `[END]` is sent and the connection closes. A build that the builder ended because of a Stop usually finishes with the line `=== Build Stopped ===` before `[END]`. Otherwise new lines are pushed as the build runs, and `[END]` closes it. When the deployment failed, `[ERROR] Deployment failed` is sent before `[END]`; read the reason from `GET .../deployments/{id}`.
+- **Runtime logs** (`live-logs`): follows the stdout and stderr of the template's pods, starting with the last 200 lines. The template must be `running` (`400` otherwise). Each frame is a raw chunk of up to 4096 bytes, not aligned to lines. The stream ends with `[END]`. If the log stream cannot be opened, or ends with a read error, the server sends one frame that starts with `[ERROR] ` and then `[END]`.
 
 ## Get Template
 
@@ -158,7 +227,7 @@ GET /api/workspaces/{slug}/templates/{template_slug}
 | `configured` | string | The stored custom image that image deploys run. Empty when none is set |
 | `source` | string | `custom`, `catalog` or `rollback` |
 | `available` | string | The catalog default image. Empty when the template has no catalog version |
-| `update_available` | boolean | The catalog image is different from the configured one |
+| `update_available` | boolean | The catalog image is different from the configured one. `false` when nothing is stored (`configured` is empty), as for a build-mode or Cloud Harness template, because there is no image to upgrade |
 | `rollback_warning` | string | The caveat about rolling back; show it next to any rollback action |
 
 ## Update Template
@@ -194,6 +263,10 @@ POST /api/workspaces/{slug}/templates/{template_slug}/deploy
 | `expected_image` | string | The image you last saw as `image.configured`. If the stored image differs, the deploy is refused with `409`. An empty value turns the check off |
 
 `image_source` must be `custom` or `catalog`. When `rollback_to` is set it takes precedence and `image_source` is not checked. Any `mode` other than `image` runs a build, and the image fields are ignored.
+
+::: warning Cloud Harness templates
+A Cloud Harness pod is built from the release manifest. There is no image to run and none to roll back to, so `rollback_to`, `image_source` and `expected_image` are refused with `400` on these templates, whatever `mode` says. Before, they were silently ignored. Send an empty body (or only `mode`) instead.
+:::
 
 ```bash
 # Run the stored image (the default)
@@ -245,7 +318,7 @@ The image is restored, but the data is not. Back up the template's database and 
 
 | Status | Meaning |
 |--------|---------|
-| `400` | The image reference is malformed, `image_source` is not `custom` or `catalog`, there is no image to deploy (no custom image and no catalog version), no cluster server is configured for the template, or Cloud Harness is not enabled |
+| `400` | The image reference is malformed, `image_source` is not `custom` or `catalog`, there is no image to deploy (no custom image and no catalog version), no cluster server is configured for the template, Cloud Harness is not enabled, or the template is a Cloud Harness template and the body has `rollback_to`, `image_source` or `expected_image` (`rollback_to, image_source and expected_image are not supported for Cloud Harness templates`) |
 | `404` | `rollback_to` does not name a deployment of this template that ran |
 | `409` | Another build or image deploy of this template is in flight, or `expected_image` does not match the stored image, the image changed while the request was starting, or the template is being deleted |
 
@@ -266,14 +339,23 @@ GET /api/workspaces/{slug}/templates/{template_slug}/deployments/{id}
 | `status` | string | `pending`, `building`, `deploying`, `running`, `failed` or `stopped` |
 | `docker_image` | string | The image this deployment ran |
 | `image_source` | string | `catalog`, `custom` or `rollback` |
-| `image_digest` | string | The `algorithm:hex` digest (usually `sha256:…`) when the reference is pinned to one. Omitted for tag-only references |
+| `image_digest` | string | The digest that ran, as `algorithm:hex` (usually `sha256:…`). Taken from the reference when it is pinned with `@sha256:…`; otherwise the digest the registry served for the tag when the deploy ran. Omitted when the lookup failed. A record, not a pin: see below |
 | `previous_image` | string | The image the template had stored before this deployment |
 | `config_fingerprint` | string | `sha256:…` hash of the image, port, CPU, RAM and replicas that the deployment applied. Two deployments with the same fingerprint ran the same configuration |
 | `trigger_type` | string | `manual`, or `image_only` for an image deploy |
 | `triggered_by` | string \| null | ID of the user who requested it |
 | `error_message` | string \| null | Why the deployment failed, if it did |
+| `health_state` | string | `healthy`, `unhealthy` or `unverified`: the last check of the deployed workload. Empty when no check ran, for example probes are off, a `custom` image, a rollback or another template |
+| `health_message` | string \| null | Why the deployment is not `healthy` |
+| `health_checked_at` | string (RFC 3339) \| null | When the check ran |
 | `created_at` / `updated_at` | string (RFC 3339) | Timestamps |
 
 These four receipt fields are recorded for image deploys only; build deploys leave them out. Together, `image_source`, `image_digest`, `previous_image`, `config_fingerprint` and `triggered_by` are the deploy receipt: what ran, what it replaced, and who asked.
 
-A tag can move. To know exactly which build ran, pin your custom image to a digest (`repository:tag@sha256:…`) so `image_digest` is recorded.
+A probed Dewee deployment (built or catalog image, probes enabled) is recorded `running` only after the rollout, the ingress step and a public `/health` check on the default domain succeed; with no public route it is recorded `running` as `unverified`. If the check fails, the deployment gets `status=failed`, `error_message` starting `Health verification failed`, `health_state=unhealthy` and the reason in `health_message`, an ops event is recorded, and the template itself stays `running`. Nothing is rolled back automatically. See [Deployment health state](/guide/dewee-template#health-state).
+
+### Image digest in the receipt {#image-digest-in-the-receipt}
+
+- A reference pinned with `@sha256:…` keeps that digest. A tag is resolved from the registry when the deploy runs.
+- The digest is a record of what ran, not a pin. The deploy still runs the tag, and a rollback re-runs the tag of the earlier deployment, so a tag that was moved since can run a different build than the recorded digest. To run exactly one build, pin the reference to a digest (`repository:tag@sha256:…`).
+- If the lookup fails (a private image without credentials, an image or tag that is not found, or a registry that cannot be reached), the deploy continues. The receipt has no `image_digest` and the deploy log shows `WARNING: image digest not recorded` with the reason. On success the log shows `Image digest: …`.

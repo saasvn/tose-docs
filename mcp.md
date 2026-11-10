@@ -2,7 +2,7 @@
 
 The TOSE MCP connector lets an MCP client such as Claude check deployments, read logs, and, with your explicit approval, deploy or roll back projects in one TOSE workspace.
 
-- **Server URL:** `https://<your TOSE API host>/mcp` (Streamable HTTP)
+- **Server URL:** `https://app.tose.sh/mcp` (Streamable HTTP). The OAuth issuer is `https://app.tose.sh`. If you run your own TOSE instance, use your own origin instead, as described in [Self-hosted instances](/mcp/oauth#self-hosted-instances).
 - **Authentication:** OAuth 2.1 with your TOSE account. The client discovers everything from the server URL, so there is no API key to paste.
 - **Availability:** the server operator enables it with `MCP_ENABLED=true`. If `/mcp` returns 404, the connector is not enabled on that TOSE instance.
 
@@ -30,6 +30,9 @@ To connect another workspace, add the connector again and pick the other workspa
 | `apply_project_env_update` | Saves the changes you approved in TOSE. Takes the project and the approval token only. Needs the `env:write` scope. | **Yes**, needs approval |
 | `deploy_project` | Builds and deploys the head commit of the project's connected branch, as shown in the plan. | **Yes**, needs approval |
 | `rollback_deployment` | Puts the image of an earlier deployment live again. | **Yes**, needs approval |
+| `plan_runbook` | Makes a read-only restart or rollback plan and returns an `approval_url`. | No |
+| `execute_runbook` | Runs a plan you approved, once per `idempotency_key`. | **Yes**, needs a signed-in approval |
+| `get_runbook` | Reads a plan, its approval and its verified result. | No |
 
 ### Autoscaling budget tools
 

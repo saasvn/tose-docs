@@ -2,7 +2,7 @@
 
 TOSE MCP connector cho phép một MCP client như Claude kiểm tra deployment và đọc log trong một workspace TOSE. Khi bạn phê duyệt rõ ràng, client còn có thể deploy hoặc rollback project.
 
-- **Server URL:** `https://<API host của TOSE>/mcp` (Streamable HTTP)
+- **Server URL:** `https://app.tose.sh/mcp` (Streamable HTTP). OAuth issuer là `https://app.tose.sh`. Nếu bạn tự vận hành instance TOSE, hãy dùng origin của chính bạn, xem [Instance tự vận hành](/vi/mcp/oauth#instance-tu-van-hanh).
 - **Xác thực:** OAuth 2.1 bằng tài khoản TOSE. Client tự tìm mọi thông tin từ server URL nên bạn không cần dán API key.
 - **Bật/tắt:** đơn vị vận hành bật connector bằng `MCP_ENABLED=true`. Nếu `/mcp` trả về 404 thì instance TOSE đó chưa bật connector.
 
@@ -30,6 +30,9 @@ Muốn kết nối workspace khác thì thêm connector lần nữa và chọn w
 | `apply_project_env_update` | Lưu các thay đổi bạn đã duyệt trong TOSE. Chỉ nhận project và approval token. Cần scope `env:write`. | **Có**, cần phê duyệt |
 | `deploy_project` | Build và deploy commit đầu của branch đã kết nối, đúng commit hiển thị trong kế hoạch. | **Có**, cần phê duyệt |
 | `rollback_deployment` | Đưa image của một deployment cũ lên chạy lại. | **Có**, cần phê duyệt |
+| `plan_runbook` | Lập kế hoạch restart hoặc rollback chỉ-đọc và trả về `approval_url`. | Không |
+| `execute_runbook` | Chạy kế hoạch bạn đã duyệt, một lần cho mỗi `idempotency_key`. | **Có**, cần phê duyệt khi đã đăng nhập |
+| `get_runbook` | Đọc kế hoạch, trạng thái phê duyệt và kết quả đã xác minh. | Không |
 
 ### Tool ngân sách autoscaling
 

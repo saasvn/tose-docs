@@ -4,7 +4,7 @@ This page covers how an MCP client connects to TOSE: which protocol revisions it
 
 ## Protocol revisions
 
-The server is stateless Streamable HTTP at `https://<your TOSE API host>/mcp`.
+The server is stateless Streamable HTTP at `https://app.tose.sh/mcp` on hosted TOSE. The OAuth issuer is `https://app.tose.sh`, and clients discover it from `/.well-known/oauth-protected-resource/mcp`. Self-hosted instances use their own origin; see [Self-hosted instances](#self-hosted-instances).
 
 | Revision | How a client reaches it |
 |----------|-------------------------|
@@ -100,6 +100,15 @@ Both are recorded in the audit history as `denied`.
 Requests from a browser carry an `Origin` header, and TOSE rejects origins it does not know before authenticating. `API_BASE_URL` and `FRONTEND_URL` are always allowed. Server-side clients send no `Origin` header and are not affected.
 
 To use a client that runs in a browser, such as a hosted MCP Inspector, the operator of the TOSE instance adds its origin to `MCP_ALLOWED_ORIGINS`, a comma-separated list. For a local Inspector, that is `http://localhost:6274`. Without it the client gets HTTP 403. 
+
+## Self-hosted instances
+
+The hosted connector is served from the dashboard host, `https://app.tose.sh`. A self-hosted instance that does the same sets both of these to one origin:
+
+- `MCP_PUBLIC_URL` on the API: the OAuth issuer, the MCP resource (`<origin>/mcp`) and the approval links.
+- `PUBLIC_MCP_URL` in the dashboard build: where the sign-in relay (`/connect/mcp`) sends users back.
+
+The proxy on that origin must forward these paths to the API: `/mcp`, `/oauth/`, `/.well-known/oauth-authorization-server`, `/.well-known/oauth-protected-resource` (including `/mcp`) and `/.well-known/jwks.json`. It must also overwrite `X-Real-IP` with the client address. The origin must be the dashboard host or covered by `COOKIE_DOMAIN`, because the consent page reads the sign-in cookie on it. Without `MCP_PUBLIC_URL`, the issuer and resource fall back to `API_BASE_URL`. The full settings table is in [`MCP-CONNECTOR.md`](https://github.com/saasvn/tose-app/blob/master/MCP-CONNECTOR.md).
 
 ## Client support
 
