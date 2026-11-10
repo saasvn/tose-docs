@@ -55,7 +55,7 @@ Thiếu scope, lệnh thoát với `INSUFFICIENT_SCOPE` (mã thoát `3`) và `er
 
 ### Không bao giờ có
 
-Giá trị biến môi trường, API key, thông tin đăng nhập registry, kubeconfig, build log và mật khẩu database. CLI còn kiểm tra phản hồi theo contract và chỉ in các trường được mô tả trên trang này, nên một trường lạ từ server không đến được terminal hay log của bạn. Nếu một API key xuất hiện trong trường được định nghĩa, nó bị che.
+Giá trị biến môi trường, API key, thông tin đăng nhập registry, kubeconfig, build log và mật khẩu database. CLI còn kiểm tra phản hồi theo contract và chỉ in các trường được mô tả trên trang này, nên một trường lạ từ server không đến được terminal hay log của bạn. Nếu một API key xuất hiện trong trường được định nghĩa, nó bị che, và ký tự điều khiển bị loại khỏi bản tóm tắt cho người đọc.
 
 ## Tham chiếu sao lưu, migration và checksum {#not-printed}
 
@@ -147,9 +147,9 @@ Với `--json`, stdout chỉ có đúng một envelope. `data` là bản export 
 | Không được phép đọc dự án | `forbidden` | `3` |
 | Dự án không tồn tại hoặc thuộc workspace khác | `not_found` | `6` |
 | `schema_version` khác `tose.dev/project-export/v1` | `ERROR` | `1` |
-| Phản hồi sai định dạng | `ERROR` | `1` |
+| Phản hồi sai định dạng: thiếu trường hoặc sai kiểu, `generated_at` không phải date-time, một mục trong `env_keys` không phải tên biến, hoặc `artifact.image_digest` không phải image được ghim bằng OCI digest | `ERROR` | `1` |
 
-Với `schema_version` không được hỗ trợ, thông báo yêu cầu cập nhật CLI (`npm i -g @tosesh/tose`) và không in gì từ bản export. Toàn bộ mã thoát nằm trong [tổng quan các lệnh](/vi/commands/overview#ma-thoat).
+Với `schema_version` không được hỗ trợ, thông báo yêu cầu cập nhật CLI (`npm i -g @tosesh/tose`) và không in gì từ bản export; phản hồi sai định dạng cũng bị từ chối thay vì in một phần. Toàn bộ mã thoát nằm trong [tổng quan các lệnh](/vi/commands/overview#ma-thoat).
 
 ## Liên quan
 
