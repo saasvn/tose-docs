@@ -8,7 +8,7 @@ Bảy trong mười nhà cung cấp dưới đây bắt đầu từ bản phát 
 
 ## Nhà cung cấp
 
-Bạn chọn nhà cung cấp khi lập kế hoạch cài đặt. Key là một secret được mã hóa, `PI_API_KEY`, và TOSE chỉ đưa nó cho Pi dưới dạng biến mà nhà cung cấp đó đọc. Ở chế độ mạng mặc định **Chỉ các host được duyệt**, agent chỉ truy cập được host ở cột thứ ba.
+Bạn chọn nhà cung cấp khi lập kế hoạch cài đặt. Key là một secret được mã hóa, `PI_API_KEY`, và TOSE chỉ đưa nó cho Pi dưới dạng biến mà nhà cung cấp đó đọc. Ở chế độ mạng mặc định **Chỉ nhà cung cấp** (Provider only), agent chỉ truy cập được host ở cột thứ ba.
 
 | Nhà cung cấp (`PI_PROVIDER`) | Biến key Pi đọc | Host được duyệt | Có từ bản | Ghi chú |
 |---|---|---|---|---|
@@ -25,11 +25,11 @@ Bạn chọn nhà cung cấp khi lập kế hoạch cài đặt. Key là một s
 
 ## Các nhà cung cấp có tên gần giống nhau
 
-Hãy chọn đúng sản phẩm khớp với key bạn có. Key của sản phẩm này không dùng được cho sản phẩm kia.
+Hãy chọn đúng sản phẩm khớp với key và gói bạn có.
 
-- **OpenCode Go hay OpenCode Zen.** `opencode-go` là **gói đăng ký OpenCode Go**. OpenCode Zen (trả theo mức dùng) là sản phẩm khác và không được cung cấp.
-- **Moonshot Open Platform hay Kimi Coding.** `moonshotai` là API **Moonshot Open Platform** tại `api.moonshot.ai`. Gói đăng ký Kimi Coding là sản phẩm khác và không được cung cấp. Khu vực Trung Quốc cũng không được cung cấp.
-- **Z.AI Coding Plan.** `zai` là **Z.AI Coding Plan** toàn cầu, không phải API Z.AI trả theo mức dùng thông thường. Gói coding Trung Quốc không được cung cấp.
+- **OpenCode Go hay OpenCode Zen.** `opencode-go` là **gói đăng ký OpenCode Go**. OpenCode Zen (trả theo mức dùng) là sản phẩm khác và dùng cùng biến key, nên với nhà cung cấp này TOSE giới hạn Pi chỉ dùng model Go.
+- **Moonshot Open Platform hay Kimi Coding.** `moonshotai` là API **Moonshot Open Platform** tại `api.moonshot.ai`. Gói đăng ký Kimi Coding là sản phẩm khác và không được cung cấp.
+- **Z.AI Coding Plan.** `zai` là **Z.AI Coding Plan** toàn cầu. Gói Trung Quốc không được cung cấp.
 - **Cloudflare Workers AI hay AI Gateway.** `cloudflare-workers-ai` gọi trực tiếp Workers AI. Cloudflare AI Gateway là sản phẩm khác và không được cung cấp.
 
 ## Account ID của Cloudflare Workers AI

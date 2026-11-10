@@ -8,7 +8,7 @@ Seven of the ten providers below start with Pi release **1.1.0**, which is **not
 
 ## Providers
 
-You choose the provider when you plan the installation. The key is one encrypted secret, `PI_API_KEY`, and TOSE hands it to Pi only as the variable that provider reads. In the default **Approved hosts only** network mode, the agent can reach only the host in the third column.
+You choose the provider when you plan the installation. The key is one encrypted secret, `PI_API_KEY`, and TOSE hands it to Pi only as the variable that provider reads. In the default **Provider only** network mode, the agent can reach only the host in the third column.
 
 | Provider (`PI_PROVIDER`) | Key variable Pi reads | Approved host | Available from | Notes |
 |---|---|---|---|---|
@@ -25,11 +25,11 @@ You choose the provider when you plan the installation. The key is one encrypted
 
 ## Providers with similar names
 
-Pick the product that matches the key you hold. A key for one does not work with the other.
+Pick the product that matches the key and plan you hold.
 
-- **OpenCode Go or OpenCode Zen.** `opencode-go` is the OpenCode **Go subscription**. OpenCode Zen (pay-as-you-go) is a different product and is not offered.
-- **Moonshot Open Platform or Kimi Coding.** `moonshotai` is the Moonshot **Open Platform** API at `api.moonshot.ai`. The Kimi Coding subscription is a different product and is not offered. The China region is not offered either.
-- **Z.AI Coding Plan.** `zai` is the global **Z.AI Coding Plan**, not the generic Z.AI pay-as-you-go API. The China coding plan is not offered.
+- **OpenCode Go or OpenCode Zen.** `opencode-go` is the OpenCode **Go subscription**. OpenCode Zen (pay-as-you-go) is a different product and reads the same key variable, so TOSE restricts Pi to Go models for this provider.
+- **Moonshot Open Platform or Kimi Coding.** `moonshotai` is the Moonshot **Open Platform** API at `api.moonshot.ai`. The Kimi Coding subscription is a different product and is not offered.
+- **Z.AI Coding Plan.** `zai` is the global **Z.AI Coding Plan**. The China plan is not offered.
 - **Cloudflare Workers AI or AI Gateway.** `cloudflare-workers-ai` calls Workers AI directly. Cloudflare AI Gateway is a different product and is not offered.
 
 ## Cloudflare Workers AI account ID
