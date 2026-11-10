@@ -7,8 +7,32 @@ ID triển khai cũng là ID task. Bạn lấy ID từ `tose deploy`, `tose stat
 | Lệnh | Tác dụng | Xác nhận |
 |------|----------|----------|
 | `tose deployment wait <id>` | Tiếp tục chờ triển khai chạy ổn định | Không |
-| `tose deployment cancel <id>` | Hủy triển khai đang build | `--yes` |
+| `tose deployment cancel <id> [project]` | Hủy triển khai đang build | `--yes` |
 | `tose deployment rollback <id> [project]` | Rollback về image của một triển khai trước | `--yes` |
+
+## tose deployment cancel
+
+Hủy một triển khai chưa tới bước deploy.
+
+### Tóm tắt
+
+```bash
+tose deployment cancel <id> [project] --yes
+```
+
+### Hành vi
+
+- Chỉ hủy được triển khai còn đang xử lý (`pending`, `cloning`, `building`, `pushing`, `deploying`). Trạng thái khác bị từ chối với mã thoát `1` (`CONFLICT`). Để dừng dự án đang `running`, dùng [`tose down`](/vi/commands/down).
+- Đây là lệnh phá hủy nên theo cùng quy tắc xác nhận như rollback: hỏi trong terminal (từ chối thì thoát mã `5`), và cần `--yes` khi không có terminal hoặc khi dùng `--json` (nếu không thì thoát mã `4`).
+- Dùng cùng cơ chế thử lại và kiểm tra trạng thái cuối như `tose down`. `503` kèm `Retry-After` được thử lại tối đa 4 lần (mỗi lần chờ đúng thời gian `Retry-After`, tối đa 60 giây, hoặc 5 giây nếu không có); sau đó lệnh thất bại với `OPERATION_FAILED` (mã thoát `8`, có thể thử lại) và nói rõ việc dừng chưa xảy ra. Yêu cầu Stop chạy quá khoảng 100 giây sẽ thất bại với `TIMEOUT` (mã thoát `7`) và kết quả chưa rõ.
+- Sau khi dừng, triển khai được đọc lại. Nếu nó không phải `stopped` (ví dụ kết thúc ở `running` trở lại), lệnh thất bại với `OPERATION_FAILED` kèm `error_message` thay vì in `cancelled`; nếu còn `deploying` thì thất bại với `TIMEOUT`.
+
+```bash
+$ tose deployment cancel dep_abc123 --yes
+Deployment dep_abc123 cancelled.
+```
+
+Chi tiết thử lại và mã thoát xem [`tose down`](/vi/commands/down#thu-lai-va-timeout).
 
 ## tose deployment rollback
 
