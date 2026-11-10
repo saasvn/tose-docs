@@ -122,7 +122,7 @@ When using `-f` / `--follow`, logs are streamed via WebSocket:
 
 - The API key is sent in the `X-API-Key` header, never in the URL. The CLI refuses to open a stream whose URL carries a credential
 - Press `Ctrl+C` to stop streaming
-- Connection auto-closes when build finishes (`[END]` message)
+- Connection auto-closes when build finishes (`[END]` message). A failed deployment sends `[ERROR] Deployment failed` first
 - Errors are displayed in red (`[ERROR]` messages)
 - Reconnects are not automatic - rerun the command if disconnected
 
