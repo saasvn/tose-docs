@@ -171,7 +171,7 @@ NODE_TLS_REJECT_UNAUTHORIZED=0 tose up
 **Solutions:**
 - Optimize package.json dependencies
 - Use `.npmrc` for faster installs
-- Enable caching in build process
+- Order Dockerfile steps so dependency installs come before copying source; see [Build layer cache](/guide/dockerfile#build-layer-cache)
 
 ## Getting Help
 
