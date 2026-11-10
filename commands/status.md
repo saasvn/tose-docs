@@ -14,7 +14,7 @@ Displays detailed status information for your project, including:
 
 - Project status (active, stopped, etc.)
 - Pod health (ready count, individual pod status, restarts, age)
-- Resource limits (CPU and memory) of the project's own container
+- Resource limits (CPU and memory) of the project's own container, plus the per-Pod process (PID) limit when the operator has declared one
 - With [sidecars](/guide/project-sidecars): every container of each pod (readiness, restarts, state and reason such as `CrashLoopBackOff`), the per-replica total, and the saved sidecar settings
 - Latest deployment info with time-ago formatting
 
@@ -139,9 +139,22 @@ $ tose status --json
 }
 ```
 
-### Process limit
+### Process limit {#process-limit-line}
 
-When the operator of your TOSE deployment has declared a per-Pod process (PID) limit, `tose status --json` includes it as `data.resources.pids.limit`. The text output does not print it. The limit is shared by the project container and its sidecars, is a declaration rather than a live check, and a missing field means the limit is unknown, not necessarily unlimited. See [Projects API](/api/projects#process-limit).
+When the operator of your TOSE deployment has declared a per-Pod process (PID) limit, the text output adds a line after `Memory:`, and `tose status --json` includes it as `data.resources.pids.limit`:
+
+```
+CPU:     2000m
+Memory:  4Gi
+PIDs:    4096 per Pod (operator-declared, shared by the Pod's containers; not verified live)
+```
+
+- **Operator-declared, not verified live.** The operator reports the number only after the runtime nodes enforce it (kubelet `podPidsLimit`). TOSE does not set or enforce it itself, and it does not read it back from the nodes.
+- **Shared by the whole Pod.** The project container and all sidecars count against the same budget; it is not a per-container limit.
+- **No line means unknown, not unlimited.** If the `PIDs:` line is missing, TOSE does not know the limit.
+- **Older servers** do not send the field, and the CLI prints nothing extra.
+
+See [Process limit](/api/projects#process-limit) in the Projects API.
 
 ## Use Cases
 

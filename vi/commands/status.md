@@ -85,9 +85,22 @@ Saved sidecars: (apply at the next deployment)
 | Failed | ❌ | Triển khai thất bại |
 | Stopped | ⏸️ | Đã dừng thủ công |
 
-## Giới hạn tiến trình
+## Giới hạn tiến trình {#process-limit-line}
 
-Khi bên vận hành hệ thống TOSE đã khai báo giới hạn tiến trình (PID) theo Pod, `tose status --json` trả về nó ở `data.resources.pids.limit`. Đầu ra dạng văn bản không in giá trị này. Giới hạn dùng chung cho container của dự án và các sidecar, là khai báo chứ không phải kiểm tra trực tiếp, và thiếu trường nghĩa là chưa biết giới hạn, không nhất thiết là không giới hạn. Xem [API dự án](/vi/api/projects#process-limit).
+Khi bên vận hành hệ thống TOSE đã khai báo giới hạn tiến trình (PID) theo Pod, đầu ra dạng văn bản thêm một dòng sau `Memory:`, và `tose status --json` trả về nó ở `data.resources.pids.limit`:
+
+```
+CPU:     2000m
+Memory:  4Gi
+PIDs:    4096 per Pod (operator-declared, shared by the Pod's containers; not verified live)
+```
+
+- **Do bên vận hành khai báo, không đo trực tiếp.** Bên vận hành chỉ khai báo con số sau khi các node chạy đã áp dụng nó (kubelet `podPidsLimit`). TOSE không tự đặt hay áp giới hạn này, và không đọc lại từ node.
+- **Dùng chung cho cả Pod.** Container của dự án và mọi sidecar cùng tính vào một ngân sách; đây không phải giới hạn theo từng container.
+- **Không có dòng nghĩa là chưa biết, không phải không giới hạn.** Thiếu dòng `PIDs:` nghĩa là TOSE chưa biết giới hạn.
+- **Server cũ** không gửi trường này, và CLI không in thêm gì.
+
+Xem [Giới hạn tiến trình](/vi/api/projects#process-limit) trong API dự án.
 
 ## Lệnh liên quan
 
