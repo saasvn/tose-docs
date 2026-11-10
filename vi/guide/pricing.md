@@ -100,7 +100,7 @@ TOSE từ chối mọi deploy khi số dư ví của workspace bằng 0 hoặc �
 
 Khi ví hết tiền, TOSE vẫn tạm ngưng compute như trước. Các instance Cloud Harness đang chạy bị dừng và docker host của chúng được tạm dừng. Ổ đĩa bền vững và dữ liệu **không** bị xóa, và phí lưu trữ vẫn tiếp tục tích lũy; khoản này được trừ sau lần nạp tiền kế tiếp. Xem [Ổ đĩa bền vững](/vi/guide/persistent-disks#retention). Phần compute chưa trả được sẽ được xoá nợ, nên bạn không phải trả sau khi nạp tiền.
 
-**Cách khắc phục:** nạp tiền vào ví ở trang billing trên dashboard, rồi deploy lại. Deploy chạy bình thường khi số dư lớn hơn 0.
+**Cách khắc phục:** nạp tiền vào ví ở **Ví & thanh toán** trên dashboard (nhóm **Workspace**), rồi deploy lại. Deploy chạy bình thường khi số dư lớn hơn 0.
 
 Nạp tiền sẽ tự động khôi phục hầu hết template đang bị tạm ngưng. Deploy một template đang `suspended` cũng cần số dư ví dương: nếu không, deploy bị từ chối với `402 INSUFFICIENT_BALANCE` và template vẫn ở trạng thái suspended (xem [API deploy và resume template](/vi/api/template-deploy#suspended-needs-balance)).
 
@@ -119,5 +119,6 @@ Thao tác tương tự có ở `POST /api/workspaces/{slug}/templates/{template_
 
 - [Ổ đĩa bền vững](/vi/guide/persistent-disks)
 - [Cloud Harness](/vi/guide/cloud-harness)
+- [Giá và hạn mức của Agent Runtime](/vi/guide/agent-runtime-pricing)
 - [`tose pricing` / `tose volumes`](/vi/commands/disk)
 - [API ổ đĩa, volume & bảng giá](/vi/api/disks)

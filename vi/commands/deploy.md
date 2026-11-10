@@ -160,4 +160,4 @@ Nếu redeploy thất bại, ở cụm hoặc ở một bước trước đó nh
 - [`tose down`](/vi/commands/down) - Dừng deployment
 - [`tose status`](/vi/commands/status) - Kiểm tra trạng thái
 - [`tose logs`](/vi/commands/logs) - Xem logs
-- [Mã thoát](/vi/commands/overview#mã-thoát) - Ý nghĩa của mã `9`
+- [Mã thoát](/vi/commands/overview#exit-codes) - Ý nghĩa của mã `9`

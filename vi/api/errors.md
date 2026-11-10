@@ -64,6 +64,8 @@ credential hợp lệ.
 
 `402`. Ví của workspace không đủ số dư cho hành động này. Hãy nạp tiền rồi thử lại.
 
+Yêu cầu của agent làm vượt hạn mức cứng, hoặc khi ví đã hết tiền, trả `402` với mã `budget_exhausted`. Hãy nâng hạn mức hoặc nạp tiền rồi thử lại. Xem [API usage và hạn mức của agent](/vi/api/agent-usage#budgets).
+
 ### `forbidden` {#forbidden}
 
 `403`. Credential hợp lệ nhưng không được phép làm việc này. API key chỉ dùng được cho workspace
@@ -98,6 +100,10 @@ key không thể tạo key khác với scope mà nó không có.
 ### `payload_too_large` {#payload_too_large}
 
 `413`. Body request lớn hơn mức API chấp nhận.
+
+### `unsupported_media_type` {#unsupported_media_type}
+
+`415`. Route nhận body JSON, nhưng request gửi body không kèm `Content-Type: application/json`. Các route ghi của CI trả về mã này. Hãy gửi header đó rồi thử lại. Body JSON có trường lạ hoặc dữ liệu thừa phía sau là `400 invalid_request`. Riêng việc duyệt hoặc từ chối kế hoạch ngân sách autoscaling dùng mã viết hoa [`UNSUPPORTED_MEDIA_TYPE`](#UNSUPPORTED_MEDIA_TYPE).
 
 ### `validation_failed` {#validation_failed}
 
@@ -145,6 +151,14 @@ Client từng so sánh `code` với `payment_required`, `unavailable`, `invalid_
 
 `402`. Ví của workspace đã hết tiền (số dư bằng 0 hoặc âm) hoặc không có ví, nên deploy bị từ chối và không có deployment nào được tạo. Chủ workspace nạp tiền ở trang billing rồi gửi lại request. Không nên retry cho đến khi số dư dương. Xem [Bảng giá](/vi/guide/pricing).
 
+Khi [ngân sách autoscaling](/vi/guide/autoscaling-budgets) được bật, mã này còn có nghĩa là một lần tăng sẽ làm hỏng quỹ dự phòng floor 72 giờ. Khi đó response có thêm `details`:
+
+```json
+{ "project_slug": "api", "reason": "floor_reserve", "reserve_target_nano_usd": 1440000000, "coverage_hours": 40 }
+```
+
+Hãy nạp tiền vào ví, hoặc giảm floor của các project, rồi gửi lại request.
+
 ### `UNAVAILABLE` {#UNAVAILABLE}
 
 `503`. GitHub App chưa được cấu hình trên instance TOSE này, nên không đọc được commit đầu của nhánh. `retryable` là `true`. Chưa có gì được tạo. Hãy thử lại sau; với instance tự host, hãy cấu hình GitHub App.
@@ -167,7 +181,7 @@ Client từng so sánh `code` với `payment_required`, `unavailable`, `invalid_
 
 ### `NOT_FOUND` {#NOT_FOUND}
 
-`404`. Chỉ với rollback: id deployment không tồn tại trong project này. Project hoặc workspace mà bạn không xem được dùng mã snake_case `not_found`.
+`404`. Chỉ với rollback: id deployment không tồn tại trong project này. Project hoặc workspace mà bạn không xem được dùng mã snake_case `not_found`. Các [route ngân sách autoscaling](/vi/api/autoscaling-budget) cũng trả `NOT_FOUND` cho project hoặc kế hoạch không tồn tại trong workspace.
 
 ### `UPSTREAM_ERROR` {#UPSTREAM_ERROR}
 
@@ -180,6 +194,61 @@ Client từng so sánh `code` với `payment_required`, `unavailable`, `invalid_
 ### `ROLLBACK_FAILED` {#ROLLBACK_FAILED}
 
 `500`. Chỉ với rollback: khởi chạy image cũ thất bại, ở cụm hoặc ở một bước trước đó như đọc server, secret của project hoặc ổ đĩa. Message là thông báo chung (`Rollback failed. See the server log for details.`) và không bao giờ chứa lỗi của cụm, vì lỗi đó có thể chứa chi tiết hạ tầng. Hãy thử lại, chọn deployment khác hoặc gửi `request_id` cho bộ phận hỗ trợ.
+
+## Mã lỗi của ngân sách autoscaling
+
+Các mã này đến từ các route của [ngân sách autoscaling](/vi/guide/autoscaling-budgets) và từ các endpoint làm tăng mức phân bổ. Chúng chỉ có trên nền tảng đã bật ngân sách. Cấu trúc route nằm trong [API ngân sách](/vi/api/autoscaling-budget).
+
+### `BUDGET_CAP` {#BUDGET_CAP}
+
+`402`. Thay đổi sẽ đẩy chi phí vượt một trần ngân sách, nên bị từ chối và không có gì thay đổi. Cập nhật project, deploy, redeploy, rollback, deploy image, áp dụng biến môi trường và scale bằng runbook đều có thể trả mã này. `details` nêu trần và các con số:
+
+```json
+{
+  "cap": "workspace_hourly",
+  "limit_nano_usd": 50000000,
+  "projected_nano_usd": 60000000,
+  "project_slug": "api"
+}
+```
+
+`cap` là `deployment_hourly`, `deployment_monthly`, `workspace_hourly` hoặc `workspace_monthly`. Tiền tính bằng nano-USD. Không nên gửi lại nguyên văn: hãy giảm mức phân bổ, hoặc nhờ owner hoặc admin nâng trần.
+
+### `PRECONDITION_FAILED` {#PRECONDITION_FAILED}
+
+`412`. `If-Match` của `PUT` ngân sách không khớp revision hiện tại, tức là có người đã đổi ngân sách sau khi bạn đọc. Chưa có gì được ghi. Hãy đọc lại ngân sách rồi gửi lại thay đổi.
+
+### `HUMAN_APPROVAL_REQUIRED` {#HUMAN_APPROVAL_REQUIRED}
+
+`403`. Có người cố duyệt hoặc từ chối kế hoạch ngân sách bằng API key. Việc duyệt cần phiên đăng nhập của một người, trên thực tế là dashboard. Hãy đưa `approval_url` của kế hoạch cho owner hoặc admin. Bất cứ thứ gì giữ token phiên hoặc mật khẩu của một người đều có thể duyệt thay người đó, nên hãy đưa cho agent một API key hoặc MCP connector, không bao giờ đưa thông tin đăng nhập.
+
+### `CROSS_SITE_REQUEST` {#CROSS_SITE_REQUEST}
+
+`403`. Một request `POST`, `PUT`, `PATCH` hoặc `DELETE` chỉ được xác thực bằng cookie phiên, từ một origin của trình duyệt không phải dashboard hay chính API, hoặc từ một trang bị đánh dấu cross-site. Chưa có gì thay đổi. Mọi route cần đăng nhập dưới `/api` đều có thể trả về mã này, không riêng các route ngân sách. Xem [Lệnh ghi bằng cookie từ site khác](/vi/api/authentication#cross-site-cookie-writes). Hãy thực hiện thay đổi ngay trên dashboard. Request có API key hoặc token `Authorization: Bearer` không bị kiểm tra.
+
+### `UNSUPPORTED_MEDIA_TYPE` {#UNSUPPORTED_MEDIA_TYPE}
+
+`415`. Duyệt hoặc từ chối kế hoạch ngân sách cần `Content-Type: application/json` và body gồm đúng một object, `{"plan_hash": "..."}`. Hãy gửi header đó rồi thử lại. Dữ liệu thừa phía sau object là `400 INVALID_ARGUMENT`.
+
+### `PLAN_STALE` {#PLAN_STALE}
+
+`409`. Ngân sách đã đổi sau khi kế hoạch được tạo, nên duyệt nó có thể hoàn tác thay đổi đó. `details` chứa `base_revision` và `current_revision`. Hãy tạo kế hoạch mới từ ngân sách hiện tại.
+
+### `PLAN_HASH_MISMATCH` {#PLAN_HASH_MISMATCH}
+
+`409`. `plan_hash` gửi kèm khi duyệt hoặc từ chối không khớp với kế hoạch. Chưa có gì được áp dụng. Hãy đọc lại kế hoạch và gửi đúng hash của nó.
+
+### `PLAN_EXPIRED` {#PLAN_EXPIRED}
+
+`410`. Kế hoạch đã quá thời hạn 30 phút và không thể duyệt nữa. Hãy tạo kế hoạch mới.
+
+### `PLAN_CLOSED` {#PLAN_CLOSED}
+
+`409`. Kế hoạch đã được áp dụng hoặc đã bị từ chối. `details.status` cho biết trường hợp nào. Kế hoạch đã đóng không mở lại được; nếu vẫn cần thay đổi, hãy tạo kế hoạch mới.
+
+### Mã ngân sách từ tool MCP {#mcp-budget-codes}
+
+`deploy_project` và `deploy_image` kiểm tra ngân sách như các route REST và trả `BUDGET_CAP` hoặc `INSUFFICIENT_BALANCE`. Nếu không kiểm tra được ngân sách (lỗi cơ sở dữ liệu), chúng không khởi chạy gì và trả [`UNAVAILABLE`](#UNAVAILABLE) không kèm HTTP status. Mã này có thể thử lại: hãy thử lại sau ít phút. `autoscaling_budget_get` và `autoscaling_budget_plan` trả `INVALID_ARGUMENT` và `NOT_FOUND`.
 
 ## Lỗi của tool MCP
 
