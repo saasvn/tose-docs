@@ -141,6 +141,24 @@ Retryable.
 
 Any other error status uses the code `http_<status>`.
 
+### Email verification codes {#email-verification-codes}
+
+Returned by `POST /auth/email/verification` (send a link, signed-in sessions only) and
+`POST /auth/email/verify` (spend a link, public).
+
+| Code | Status | Meaning |
+|------|--------|---------|
+| `rate_limited` | `429` | A link was sent less than a minute ago, or five were sent today. Honor `Retry-After`. |
+| `email_unavailable` | `503` | The installation has no email provider configured. |
+| `email_send_failed` | `503` | The email could not be sent. No link was kept. Retry later. |
+| `provider_verified` | `409` | A Google or GitHub account: the provider already vouches for the address. |
+| `invalid_token` | `400` | The link is not valid. |
+| `token_used` | `410` | The link was already used. |
+| `token_expired` | `410` | The link is older than 24 hours or a newer link replaced it. Send a new one. |
+| `email_changed` | `409` | The link was sent to an address the account no longer uses, or the account no longer has a password. |
+
+See [Confirm your email](/guide/installation#confirm-your-email).
+
 ## GitHub upstream codes
 
 Routes that call GitHub on your behalf report a failure with one of these codes instead of the generic `upstream_error` or `unavailable`. The response never carries GitHub's own error text, which can hold URLs and installation IDs. Branch on `code` and `details.reason`. They apply to `GET /api/github/repos` (with `installation_id`), `GET /api/github/repos/{owner}/{repo}/branches`, and the repository check when you create a project or connect Git. See [GitHub API](/api/github).
