@@ -168,6 +168,24 @@ curl -s -o /dev/null -w '%{http_code}\n' https://<host-instance-cua-ban>/health
 - **Gián đoạn.** Template chạy một replica trên ổ đĩa chỉ một pod mount được, và deploy lại sẽ thay pod. Hãy dự kiến có gián đoạn khi deploy. TOSE không hứa zero-downtime cho template này.
 - **Chủ động nâng cấp.** Chỉ nâng cấp khi bạn chọn (`--upgrade`), từ một bản sao lưu, ngoài giờ cao điểm. Thay đổi của catalog không tự nâng cấp cho bạn.
 
+### Nâng cấp và quay lại từ dashboard {#dashboard-upgrade-and-rollback}
+
+Trang template trong dashboard có mục **Image** với các thao tác giống CLI. Mục này hiển thị ba image: **Lần triển khai gần nhất** (đang chạy), **Đã cấu hình** (image lưu trên template, dùng cho lần deploy thông thường kế tiếp) và **Có sẵn** (phiên bản catalog). Huy hiệu **Có bản cập nhật** xuất hiện khi phiên bản catalog khác với bản bạn đang chạy, và **Mới nhất** khi giống nhau.
+
+Ba thao tác tách biệt, không thay nhiệm vụ của nhau:
+
+| Thao tác | Gửi | Kết quả |
+|----------|-----|---------|
+| **Deploy** | `image_source=custom` | Triển khai lại image đã lưu, không nâng cấp. Nếu chưa lưu image nào, triển khai phiên bản catalog và lưu lại |
+| **Nâng cấp lên bản có sẵn** | `image_source=catalog` | Triển khai phiên bản catalog và thay image đã lưu |
+| **Quay lại phiên bản trước** | `rollback_to=<deployment id>` | Chạy image của một lần triển khai trước đó và lưu nó |
+
+Hộp thoại của mỗi thao tác nêu rõ image sẽ chạy. Mọi yêu cầu còn gửi `expected_image` (image **Đã cấu hình** mà bạn đang xem) khi đã có image được lưu. Nếu có người đổi image kể từ lúc bạn mở trang, yêu cầu bị từ chối với `409`; hãy tải lại trang rồi quyết định lại. Khi đang có một lần triển khai khác, các thao tác bị vô hiệu hóa.
+
+Khi quay lại, trang hiển thị cảnh báo trước khi bạn xác nhận: **quay lại image không khôi phục schema hay dữ liệu database.** Nếu phiên bản mới đã migrate chúng, image cũ có thể lỗi hoặc đọc sai, nên hãy khôi phục bản sao lưu database trước. Xem [Sao lưu trước](#versions-and-upgrades).
+
+Danh sách quay lại chỉ đưa ra các lần triển khai trước đó đã chạy thành công (trạng thái `running` hoặc `stopped`, và đã kết thúc), mới nhất trước, mỗi image một mục, tối đa tám mục, không gồm image bạn đang chạy. Bản build lỗi không bao giờ được đưa ra vì image của nó chưa từng được push. API áp dụng cùng quy tắc và trả `404` cho mọi deployment ID khác. Xem [API deploy template](/api/templates#rollback).
+
 ## Release gate và bảng tương thích {#release-gate-and-compatibility}
 
 TOSE chỉ công bố một phiên bản Dewee là đã xác minh sau khi một lần chạy end-to-end đạt trên cụm staging: tạo, xác thực qua domain công khai, WebSocket, MCP, dữ liệu còn sau khi khởi động lại, deploy lại và rollback, cùng các tình huống tiêu cực ở trên ([tose-app#276](https://github.com/saasvn/tose-app/issues/276)).
