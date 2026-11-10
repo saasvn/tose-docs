@@ -111,6 +111,7 @@ The routes belong to the admin console API and use the admin console sign-in, no
 | `PATCH /admin/api/promo-codes/{id}` | Change `description`, `max_redemptions`, `max_per_user`, `starts_at`, `expires_at` or `status`. |
 | `POST /admin/api/promo-codes/{id}/disable` | Stop the code from being applied to new payments. |
 | `GET /admin/api/promo-codes/{id}/redemptions` | The code's redemption ledger. |
+| `POST /admin/api/promo-codes/redemptions/{id}/release` | Release one redemption. Body `{"reason"}` (optional, kept on the redemption). See [Release a redemption](#admin-release). |
 | `GET /admin/api/promo-codes/campaigns/{campaign}` | Number of codes and ledger `stats` of a campaign. |
 
 `stats` holds `reserved`, `redeemed`, `released`, `rejected`, `discount_cents`, `bonus_granted_cents` and `bonus_unspent_cents`.
@@ -121,7 +122,7 @@ Errors carry `{"error", "code"}`: `INVALID` (`400`), `NOT_FOUND` (`404`) and `CO
 
 ### MCP tools
 
-On the [MCP connector](/mcp), six more tools exist for platform admins. They need the `admin:discounts` scope **and** a user who is a platform admin right now. For everyone else they are hidden from `tools/list` and refused when called, and the check fails closed when the admin lookup errors. The scope is dropped when a non-admin gives consent and on every refresh after a user stops being an admin.
+On the [MCP connector](/mcp), seven more tools exist for platform admins. They need the `admin:discounts` scope **and** a user who is a platform admin right now. For everyone else they are hidden from `tools/list` and refused when called, and the check fails closed when the admin lookup errors. The scope is dropped when a non-admin gives consent and on every refresh after a user stops being an admin.
 
 | Tool | Does | Changes anything? |
 |------|------|-------------------|
@@ -131,8 +132,13 @@ On the [MCP connector](/mcp), six more tools exist for platform admins. They nee
 | `update_discount_code` | Change `description`, limits, window or `status`. | Yes |
 | `disable_discount_code` | Stop a code from being applied to new payments. | Yes |
 | `list_discount_redemptions` | The ledger of a `code` or a `campaign`, newest first. | No |
+| `release_discount_redemption` | Release one redemption by ID, with a `reason`. | Yes |
 
-Every create, update and disable is written to the [audit log](/api/audit) with high risk, from both REST and MCP.
+### Release a redemption {#admin-release}
+
+A redemption that is no longer wanted, for example after a SePay refund (SePay sends no refund webhook, so it is never released automatically), can be released by an operator. Call the MCP tool `release_discount_redemption` or `POST /admin/api/promo-codes/redemptions/{id}/release` with the body `{"reason": "..."}`. A redemption that is still `reserved` (its payment has not completed) is refused with `CONFLICT` (`409`). Releasing a completed redemption frees the code's use and takes back the unspent bonus credit, like a full refund of a Polar payment. Releasing twice is harmless, and an unknown ID answers `NOT_FOUND` (`404`).
+
+Every create, update, disable and release is written to the [audit log](/api/audit) with high risk, from both REST and MCP.
 
 ### Example: the AgentKit launch codes
 
