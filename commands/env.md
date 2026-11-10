@@ -306,7 +306,7 @@ The CLI sends `?apply=true` to the API and reports the outcome after the change 
 | `NO_DEPLOYMENT` or `NO_SERVER` | Saved. The project has no deployment or no server to roll out to, so the change applies with the next deploy | `0` |
 | `ROLLOUT_FAILED` and other codes | Saved, but the rollout did not happen. Run `tose redeploy` to retry | `8` |
 | `INSUFFICIENT_BALANCE` | Saved, but the wallet could not fund the rollout. Top up, then run `tose redeploy` | `9` |
-| No `apply` in the response | An older server that does not report an outcome. The change is saved only | `0` |
+| No `apply` in the response | An older server that does not report an outcome. The change is saved only. With `--json`, `apply` is `{ "applied": false }`, which does not mean a failure | `0` |
 
 With `--json`, the result also carries `apply` (the API's outcome) and `apply_message` (one sentence describing it):
 
@@ -336,6 +336,8 @@ With `--apply`, the CLI never falls back to one request per variable after a ref
 ### One restart
 
 When variables are written one by one, or several keys are removed, only the **last** write or delete asks for the rollout. The project restarts once, not once per variable.
+
+Writing one by one only happens on an older server that has no bulk route. In that case `--json` returns `set` (for `env set`) or `pushed` (for `env push`) instead of the counts above, together with `apply` and `apply_message`. `tose env rm` does not request a rollout when none of the keys exist.
 
 Values stay masked as described in [Masked values for workspace members](#masked-values-for-workspace-members).
 

@@ -308,7 +308,7 @@ CLI gửi `?apply=true` tới API và báo kết quả sau khi thay đổi đã 
 | `NO_DEPLOYMENT` hoặc `NO_SERVER` | Đã lưu. Dự án chưa có deployment hoặc server để triển khai, nên thay đổi có hiệu lực ở lần deploy tiếp theo | `0` |
 | `ROLLOUT_FAILED` và các code khác | Đã lưu nhưng việc triển khai không diễn ra. Chạy `tose redeploy` để thử lại | `8` |
 | `INSUFFICIENT_BALANCE` | Đã lưu nhưng ví không đủ để trả cho lần triển khai. Hãy nạp tiền rồi chạy `tose redeploy` | `9` |
-| Phản hồi không có `apply` | Server cũ không báo kết quả. Thay đổi chỉ được lưu | `0` |
+| Phản hồi không có `apply` | Server cũ không báo kết quả. Thay đổi chỉ được lưu. Với `--json`, `apply` là `{ "applied": false }`, không có nghĩa là thất bại | `0` |
 
 Với `--json`, kết quả có thêm `apply` (kết quả từ API) và `apply_message` (một câu mô tả kết quả):
 
@@ -338,6 +338,8 @@ Với `--apply`, CLI không bao giờ quay lại gửi từng biến một sau k
 ### Chỉ khởi động lại một lần
 
 Khi các biến được ghi từng cái một, hoặc xóa nhiều key, chỉ lần ghi hoặc xóa **cuối cùng** yêu cầu triển khai. Dự án khởi động lại một lần, không phải một lần cho mỗi biến.
+
+Việc ghi từng biến chỉ xảy ra với server cũ không có route bulk. Khi đó `--json` trả `set` (với `env set`) hoặc `pushed` (với `env push`) thay cho các số đếm ở trên, cùng với `apply` và `apply_message`. `tose env rm` không yêu cầu triển khai khi không có key nào tồn tại.
 
 Giá trị vẫn được che như mô tả ở [Giá trị bị che với member của workspace](#masked-values-for-workspace-members).
 

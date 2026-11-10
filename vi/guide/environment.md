@@ -293,7 +293,7 @@ Khi các biến đã lưu khác với biến mà deployment đang chạy đượ
   `/api/workspaces/{slug}/projects/{project_slug}/env[/{env_id}]`, hoặc vào `PUT .../env/bulk`.
   Thay đổi được lưu rồi triển khai qua cùng đường với `POST .../redeploy`. Xem
   [Biến môi trường và apply](/vi/api/projects#environment-variables).
-- **CLI:** thêm `--apply` vào `tose env set`, `tose env rm` hoặc `tose env push` để lưu và triển khai trong một lệnh, hoặc chạy `tose redeploy` để áp dụng các biến đã lưu trước đó. Xem [Lưu và áp dụng thay đổi](/vi/commands/env#luu-va-ap-dung-thay-doi).
+- **CLI:** thêm `--apply` vào `tose env set`, `tose env rm` hoặc `tose env push` để lưu và triển khai trong một lệnh, hoặc chạy `tose redeploy` để áp dụng các biến đã lưu trước đó. Xem [Lưu và áp dụng thay đổi](/vi/commands/env#saving-and-applying-changes).
 
 Áp dụng cần cùng quyền với redeploy: vai trò `owner` hoặc `admin` của workspace, scope
 `deployments:execute` với API key (ứng dụng OAuth được kết nối cần được phê duyệt), và số dư ví dương.
