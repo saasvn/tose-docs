@@ -42,6 +42,18 @@ Không commit API key. Không đặt key vào URL, query string, dòng log hoặ
 Ứng dụng hoạt động thay mặt người dùng đã đăng nhập gửi session token trong
 `Authorization: Bearer <token>`. Trình duyệt dùng cookie `tose_token`, chứa cùng token đó.
 
+### Lệnh ghi bằng cookie từ site khác {#cross-site-cookie-writes}
+
+Một request `POST`, `PUT`, `PATCH` hoặc `DELETE` chỉ được xác thực bằng cookie `tose_token` phải
+đến từ dashboard. API từ chối request đó với `403` và mã
+[`CROSS_SITE_REQUEST`](/vi/api/errors#CROSS_SITE_REQUEST) khi trình duyệt cho biết nó đến từ site
+khác: `Origin` là một site khác hoặc `null`, hoặc không có `Origin` nhưng được đánh dấu
+`Sec-Fetch-Site: cross-site`. Không có gì thay đổi. Quy tắc này áp dụng cho mọi route dưới `/api`,
+cùng với `DELETE /auth/sessions/{id}` và `POST /auth/email/verification`.
+
+Request gửi API key hoặc token `Authorization: Bearer` không bị kiểm tra, các request đọc cũng vậy.
+Script và CLI không bị ảnh hưởng.
+
 ## Không đặt credential trong URL {#credentials-in-url}
 
 URL bị ghi vào log của proxy, lịch sử trình duyệt và công cụ analytics, nên API từ chối credential
@@ -106,6 +118,7 @@ Desktop gateway đọc session token từ danh sách `Sec-WebSocket-Protocol`
 | 401 | `unauthenticated` | Không có credential, hoặc không hợp lệ, đã thu hồi, hết hạn | Gửi key hoặc token hợp lệ |
 | 403 | `forbidden` | Credential không được truy cập workspace hoặc hành động này | Dùng key của workspace đó |
 | 403 | `insufficient_scope` | Key thiếu scope cần thiết | Tạo key có scope đó |
+| 403 | `CROSS_SITE_REQUEST` | Lệnh ghi chỉ dùng cookie đến từ site khác | Thực hiện trên dashboard, hoặc dùng key hay token Bearer |
 
 Xem [Mã lỗi](/vi/api/errors) về envelope.
 
