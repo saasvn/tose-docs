@@ -223,6 +223,7 @@ When the public status endpoint is on, [`GET /api/public/template-releases`](/ap
 ## Related
 
 - [`tose template`](/commands/template)
+- [Registry templates: probes, upgrade and rollback](/guide/template-upgrades)
 - [Environment Variables](/guide/environment)
 - [Persistent Disks](/guide/persistent-disks)
 - [Pricing](/guide/pricing)
