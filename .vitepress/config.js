@@ -73,6 +73,7 @@ export default defineConfig({
               { text: 'Git Integration', link: '/guide/git' },
               { text: 'Dockerfile Examples', link: '/guide/dockerfile' },
               { text: 'CI impact selection', link: '/guide/ci-impact-selection' },
+              { text: 'CI usage and budget caps', link: '/guide/ci-usage-and-budgets' },
               { text: 'Persistent Disks', link: '/guide/persistent-disks' },
               { text: 'Autoscaling budgets', link: '/guide/autoscaling-budgets' },
               { text: 'Dewee Template Runbook', link: '/guide/dewee-template' },
@@ -135,7 +136,8 @@ export default defineConfig({
               { text: 'Template deploy and resume', link: '/api/template-deploy' },
               { text: 'Disks, Volumes & Pricing', link: '/api/disks' },
               { text: 'Autoscaling budget', link: '/api/autoscaling-budget' },
-              { text: 'CI suggestions', link: '/api/ci-suggestions' }
+              { text: 'CI suggestions', link: '/api/ci-suggestions' },
+              { text: 'CI usage and budget', link: '/api/ci-usage-budget' }
             ]
           }
         ]
@@ -194,6 +196,7 @@ export default defineConfig({
               { text: 'Tích hợp Git', link: '/vi/guide/git' },
               { text: 'Ví dụ Dockerfile', link: '/vi/guide/dockerfile' },
               { text: 'Chọn job CI theo ảnh hưởng', link: '/vi/guide/ci-impact-selection' },
+              { text: 'Mức sử dụng CI và hạn mức', link: '/vi/guide/ci-usage-and-budgets' },
               { text: 'Ổ đĩa bền vững', link: '/vi/guide/persistent-disks' },
               { text: 'Ngân sách autoscaling', link: '/vi/guide/autoscaling-budgets' },
               { text: 'Runbook template Dewee', link: '/vi/guide/dewee-template' },
@@ -254,7 +257,8 @@ export default defineConfig({
               { text: 'Deploy và resume template', link: '/vi/api/template-deploy' },
               { text: 'Ổ đĩa, Volume & Bảng giá', link: '/vi/api/disks' },
               { text: 'API ngân sách autoscaling', link: '/vi/api/autoscaling-budget' },
-              { text: 'Gợi ý CI', link: '/vi/api/ci-suggestions' }
+              { text: 'Gợi ý CI', link: '/vi/api/ci-suggestions' },
+              { text: 'Mức sử dụng CI và hạn mức', link: '/vi/api/ci-usage-budget' }
             ]
           }
         ],
