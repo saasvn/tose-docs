@@ -49,6 +49,8 @@ export default defineConfig({
               { text: 'tose up', link: '/commands/up' },
               { text: 'tose deploy / redeploy', link: '/commands/deploy' },
               { text: 'tose deployment', link: '/commands/deployment' },
+              { text: 'tose ci', link: '/commands/ci' },
+
               { text: 'tose runbook', link: '/commands/runbook' },
               { text: 'tose status', link: '/commands/status' },
               { text: 'tose logs', link: '/commands/logs' },
@@ -191,6 +193,8 @@ export default defineConfig({
               { text: 'tose up', link: '/vi/commands/up' },
               { text: 'tose deploy / redeploy', link: '/vi/commands/deploy' },
               { text: 'tose deployment', link: '/vi/commands/deployment' },
+              { text: 'tose ci', link: '/vi/commands/ci' },
+
               { text: 'tose runbook', link: '/vi/commands/runbook' },
               { text: 'tose status', link: '/vi/commands/status' },
               { text: 'tose logs', link: '/vi/commands/logs' },

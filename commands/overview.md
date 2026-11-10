@@ -45,6 +45,15 @@ These options are available on **all** commands:
 | [`tose deployment rollback`](/commands/deployment#tose-deployment-rollback) | Roll back to an earlier deployment (needs `--yes`) |
 | [`tose runbook`](/commands/runbook) | Plan, review and run a restart or rollback that a person approves in the browser |
 
+### CI
+
+| Command | Description |
+|---------|-------------|
+| [`tose ci pipelines`, `runs`, `plan`](/commands/ci) | List pipelines and runs, plan a manual run |
+| [`tose ci run`, `dispatch`](/commands/ci#starting-a-run) | Start a manual or `workflow_dispatch` run, optionally `--wait` |
+| [`tose ci status`, `events`, `logs`, `report`](/commands/ci#events) | Inspect a run |
+| [`tose ci cancel`](/commands/ci#cancel) | Stop a run (needs `--yes`) |
+
 ### Monitoring
 
 | Command | Description |
