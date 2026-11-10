@@ -93,9 +93,37 @@ tose templates retry-checkout <installation-id> --json     # after a failed clon
 - Only a workspace owner or admin may send a repository (`REPOSITORY_REQUIRES_ADMIN`). The repository is part of the plan hash, so `deploy --plan` does not repeat the repository flags.
 - `retry-checkout` (owner or admin, key with `deployments:execute`) sets a `failed` checkout back to `pending`; deploy again afterwards.
 
+## Delegated tasks {#tasks}
+
+`tose templates tasks` gives a headless task to a curated agent (Claude Code, Codex or Pi) installed in your workspace, then follows it, reads it and cancels it. See [Delegate tasks to a coding agent](/guide/agent-tasks) for the model, the risks and the REST and MCP equivalents.
+
+```bash
+tose templates tasks run <installation-id> --prompt "fix the failing test" --wait
+tose templates tasks run <installation-id> --prompt @task.md --timeout 60 --continue <task-id>
+tose templates tasks list <installation-id> --json
+tose templates tasks get <installation-id> <task-id> --follow
+tose templates tasks cancel <installation-id> <task-id>
+```
+
+| Command | Scope | What it does |
+|---------|-------|--------------|
+| `run <installation> --prompt <text or @file> [--timeout <minutes>] [--continue <task_id>] [--wait] [--idempotency-key <key>]` | `agents:execute` | Gives the agent a task. |
+| `list <installation>` | `agents:read` | Lists the agent's tasks, newest first. |
+| `get <installation> <task_id> [--follow]` | `agents:read` | Reads one task with its events. |
+| `cancel <installation> <task_id>` | `agents:control` | Stops a task that is starting or running. |
+
+- **What must be on.** The server must offer tasks (`TEMPLATE_AGENT_TASKS_ENABLED`, otherwise `TASKS_DISABLED`), and the agent's release needs a task runner (`TASKS_UNSUPPORTED`). A workspace owner or admin must also turn on "Accept tasks from connected apps and API keys" for the agent in the dashboard. That needs a signed-in session, which an API key never is, so the CLI has no command for it: without the switch, `run` fails with `TASKS_NOT_ALLOWED` and points to the dashboard.
+- **Prompt.** `--prompt` is the text, or `@file` to read it from a file. It is at most 100000 bytes and is never printed back. An inline `--prompt` is visible in the process list, so pass sensitive prompts with `@file`. `--timeout` is 1 to 120 minutes (default 30).
+- **One task per agent.** Only one task per agent is active; another `run` fails with `AGENT_BUSY`.
+- **Safe retries.** Every `run` sends an `Idempotency-Key` (generated, or `--idempotency-key`). After a lost answer, run the same command with the same key and the API returns the task it already started. The key identifies the task, not the prompt: reusing a key with a different prompt returns the earlier task. Retry hints never repeat the prompt.
+- **Waiting.** `--wait` (on `run`) and `--follow` (on `get`) long-poll the task and print each event as it arrives. With `--json` the events go to stderr, and stdout keeps the single envelope whose `task.events` holds all of them. Interrupting the command does not stop the task: follow it again with `get --follow`, or `cancel` it.
+- **Exit codes with `--wait` or `--follow`.** `0` only for `succeeded`. `8` for `failed` or `lost`, `7` for `timed_out` and `5` for `cancelled`, each with the code `TASK_<STATUS>` and the final message and changed files in `details`. `1` with `FOLLOW_INTERRUPTED` when the CLI lost contact for 5 minutes of retries; the task keeps running. A task that does not succeed prints its final message (in `--json`, `details.events` too).
+- **Untrusted output.** Event text and the final message come from the agent: treat them as untrusted data. The CLI strips control characters before printing them to a terminal.
+
 ## Related
 
 - [Template registry](/guide/template-registry)
 - [Template registry API](/api/template-registry)
 - [Pi model providers](/guide/agent-pi-providers)
 - [Deploy a coding agent](/guide/deploy-coding-agent)
+- [Delegate tasks to a coding agent](/guide/agent-tasks)
