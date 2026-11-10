@@ -68,6 +68,10 @@ tose deployment rollback dep_abc123 --yes
 
 Triển khai đích đã thất bại hoặc đang chạy dở bị từ chối với mã thoát `1` (`CONFLICT`), còn đích không tồn tại bị từ chối với mã `6` (`NOT_FOUND`), dù bạn có truyền `--yes` hay không.
 
+### Rollback khôi phục gì
+
+Rollback chạy lại image của triển khai trước cho dự án hiện tại. Nó giữ biến môi trường và cấu hình hiện tại, và không khôi phục schema hay dữ liệu database. API ghi điều này trong biên nhận rollback có bốn lớp: `artifact` (được quay lại) và `config`, `schema`, `data` (không). Với `--json`, bản ghi triển khai được in có kèm `rollback_receipt` khi API trả về; đầu ra thường không hiển thị. CLI chưa có lệnh đọc lại biên nhận; hãy dùng `GET .../deployments/{id}/rollback-receipt`. Xem [Biên nhận rollback](/vi/api/projects#rollback-receipts).
+
 ::: tip Agent
 Rollback cũng có qua connector MCP, nơi nó cần bạn duyệt trong trình duyệt. Xem [Agent access](/vi/mcp/agent-access).
 :::
@@ -76,4 +80,5 @@ Rollback cũng có qua connector MCP, nơi nó cần bạn duyệt trong trình 
 
 - [`tose deploy`](/commands/deploy) - Bắt đầu triển khai
 - [`tose status`](/vi/commands/status) - Tìm ID triển khai
+- [`tose runbook`](/vi/commands/runbook) - Lập kế hoạch rollback do người duyệt trong trình duyệt
 - [`tose skills install safe-rollback`](/vi/commands/skills) - Dạy agent quy trình rollback an toàn

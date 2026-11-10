@@ -125,6 +125,22 @@ $ tose deploy
 Stream build logs with: tose logs --build -f
 ```
 
+## Find your way around the dashboard
+
+The workspace sidebar groups pages by what you do. Page addresses (`/w/<slug>/...`) did not change.
+At the top, the workspace name links to **All workspaces**.
+
+| Group | Pages |
+|-------|-------|
+| (top) | **Overview** |
+| **Build & deploy** | **Projects**, **Databases**, **CI** (hidden when CI is not enabled on the platform) |
+| **Apps & agents** | **Installed apps** (`/w/<slug>/templates`), **Template catalog** (`/w/<slug>/registry/deploy`), **Cloud desktops** (hidden when Cloud Desktops are not enabled) |
+| **Monitor** | **Notifications**, **Logs** |
+| **Workspace** | **Members**, **Wallet & billing**, **Referrals**, **Settings** |
+
+**Installed apps** was called **Templates**, **Wallet & billing** was **Billing**, and **Cloud desktops**
+was **Desktops**. To install a curated agent such as Codex or Claude Code, open **Template catalog** and follow [Deploy a coding agent](/guide/deploy-coding-agent).
+
 ## Project Structure
 
 A typical project that works with TOSE:

@@ -133,6 +133,8 @@ Both return `202` with `{desktop, operation}`. When the desktop is already in th
 (for example waking a running desktop), they return `200` with `operation: null`. Sleep releases
 CPU and RAM and keeps the disk; wake boots the same disk again. Memory is not preserved.
 
+Waking a desktop needs a positive wallet balance. With a zero or negative balance, `wake` returns `402` (even for a desktop that is already running) and the desktop stays asleep; top up the wallet and call it again. A desktop that is `running` with its workload gone or scaled to 0 is only woken back on the same disk under the same condition. Compute is billed per second; see [Pricing](/guide/pricing#cloud-desktops).
+
 ### Poll an operation
 
 ```bash
