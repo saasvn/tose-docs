@@ -57,11 +57,12 @@ Hai ứng dụng desktop dùng URL scheme tùy biến thay vì loopback. TOSE ch
 | `deployments:execute` | `deploy_project` | Có |
 | `deployments:rollback` | `rollback_deployment` | Có |
 | `env:read` | `list_project_env_keys`, `inspect_project_env`: tên biến và trạng thái đã đặt hay chưa. Không bao giờ trả giá trị. Mặc định tắt, xem [Metadata biến môi trường](#metadata-bien-moi-truong-env-read). | Không |
+| `env:write` | `plan_project_env_update`, `apply_project_env_update`: đổi biến sau khi bạn nhập giá trị và duyệt trong TOSE. Mặc định tắt, chỉ owner và admin, xem [Cập nhật biến môi trường](#cap-nhat-bien-moi-truong-env-write). | Có |
 
-- Mọi scope khác, gồm thành viên, thanh toán, `env:write`, database và hạ tầng, đều bị từ chối với `invalid_scope`. `env:read` là scope duy nhất liên quan đến biến môi trường.
+- Mọi scope khác, gồm thành viên, thanh toán, database và hạ tầng, đều bị từ chối với `invalid_scope`. `env:read` và `env:write` là hai scope về biến môi trường, mỗi scope được cấp riêng.
 - Scope ghi chỉ được cấp khi owner hoặc admin của workspace tick chọn trên trang consent. Scope này bị gỡ ở lần refresh kế tiếp nếu người đó bị hạ vai trò.
 - Refresh chỉ được thu hẹp scope, không bao giờ mở rộng.
-- `tools/list` chỉ hiển thị tool mà scope cho phép: kết nối chỉ đọc thấy bốn tool đọc, có scope ghi thì thêm deploy và rollback. Hai tool env chỉ hiện khi có `env:read`.
+- `tools/list` chỉ hiển thị tool mà scope cho phép: kết nối chỉ đọc thấy bốn tool đọc, có scope ghi thì thêm deploy và rollback. Hai tool metadata env chỉ hiện khi có `env:read`, hai tool cập nhật env chỉ hiện khi có `env:write`.
 
 Kể cả khi có scope ghi, mỗi lần deploy và rollback vẫn chờ bạn duyệt plan trong trình duyệt.
 
@@ -74,6 +75,16 @@ Kể cả khi có scope ghi, mỗi lần deploy và rollback vẫn chờ bạn d
 - Refresh chỉ có thể thu hẹp, không bao giờ thêm scope này. Muốn thêm sau, hãy kết nối lại và tick ô.
 - Bất kỳ thành viên workspace nào cũng tự cấp được cho kết nối của mình. Owner và admin thấy trạng thái thật của từng biến; thành viên thấy `unknown` (xem [Tool metadata env](/vi/mcp#tool-metadata-env)).
 - Vai trò thành viên được kiểm tra ở mỗi lần gọi, nên mất tư cách thành viên workspace thì kết nối dừng ngay ở lần gọi kế tiếp.
+
+### Cập nhật biến môi trường (`env:write`)
+
+`env:write` cho phép client đổi biến môi trường trong khi bạn vẫn kiểm soát mọi giá trị.
+
+- Mặc định tắt. Trang consent hiển thị scope này với ô chọn riêng, nhưng chỉ owner hoặc admin của workspace mới cấp được: thành viên tick ô này thì consent thất bại và không có kết nối nào được tạo. Không tick thì kết nối không thể lập hay áp dụng thay đổi env.
+- Scope tách biệt với `env:read`. Khác với `env:write` của API key, nó không bao gồm `env:read` và không cho client liệt kê hay xem biến, nên hãy tick cả hai ô khi client cần cả hai. Nó cũng không nằm trong `deployments:write`, nên quyền deploy không kèm theo nó.
+- Refresh chỉ có thể thu hẹp, không bao giờ thêm scope này. Muốn thêm sau, hãy kết nối lại và tick ô.
+- Client gửi thao tác và tên biến. Bạn nhập giá trị trong form TOSE đã đăng nhập và duyệt tại đó; riêng approval token không làm được gì. Xem [Tool cập nhật env](/vi/mcp#tool-cap-nhat-env).
+- Vai trò được kiểm tra lại khi áp dụng kế hoạch. Nếu bạn bị hạ vai trò, hoặc kết nối không còn scope, lệnh áp dụng bị từ chối.
 
 ## Step-up `insufficient_scope`
 
