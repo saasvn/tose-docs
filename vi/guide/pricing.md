@@ -9,15 +9,38 @@ Mức giá hiện hành luôn có tại [`tose pricing`](/vi/commands/disk#tose-
 
 ## Compute {#compute}
 
-Compute được tính theo giờ cho CPU và RAM cấp cho workload đang chạy. Mức giá phụ thuộc số dư ví:
+Compute được tính theo giờ cho CPU và RAM cấp cho workload đang chạy. Mọi workspace đều trả cùng một **mức giá tiêu chuẩn**, bất kể số dư ví:
 
-| Số dư ví | CPU (mỗi vCPU-giờ) | RAM (mỗi GB-giờ) |
-|----------|--------------------|------------------|
-| Dưới $100 | $0.02 | $0.01 |
-| Từ $100 | $0.014 | $0.007 |
-| Từ $200 | $0.012 | $0.006 |
+| Tài nguyên | Giá |
+|------------|-----|
+| CPU | $0.02 mỗi vCPU-giờ |
+| RAM | $0.01 mỗi GB-giờ |
+
+Giá không đổi khi số dư ví tăng hay giảm. Thay vào đó, các lần nạp tiền lớn trong một thanh toán được tặng [credit thưởng](#top-up-bonus). Giá ổ đĩa xem ở mục [Lưu trữ](#storage).
 
 Compute **chỉ tính phí khi workload đang chạy**. Dừng dự án (`tose down`), ngủ hoặc bị tạm ngưng sẽ dừng tính phí compute.
+
+## Thưởng khi nạp tiền {#top-up-bonus}
+
+Một lần nạp ví từ $100 trở lên được tặng credit thưởng, cộng thêm vào số tiền bạn đã trả:
+
+| Một lần nạp | Credit thưởng |
+|-------------|---------------|
+| Từ $100 | +10% |
+| Từ $250 | +15% |
+| Từ $500 (**Phổ biến nhất**) | +20% |
+| Từ $1,000 | +25% |
+
+Quy tắc:
+
+- **Tính theo từng thanh toán.** Mức thưởng được chọn theo số tiền của một thanh toán. Hai lần nạp $60 không cộng lại thành một lần nạp $120. Thanh toán dưới $100 không có thưởng.
+- **Credit riêng, không hết hạn.** Phần thưởng là một mục `topup_bonus` riêng trong lịch sử ví, ghi một lần cho mỗi thanh toán và không bao giờ hết hạn.
+- **Chỉ áp dụng khi nạp ví.** Không tặng thưởng cho credit do quản trị viên cộng, credit khuyến mãi hoặc thanh toán mở khóa tính năng.
+- **Không cộng dồn với mã khuyến mãi.** Thanh toán có áp mã khuyến mãi sẽ không nhận thưởng nạp tiền. Với thanh toán đó, hãy chọn mã hoặc mức thưởng.
+- **Hoàn tiền thu hồi thưởng theo tỷ lệ.** Hoàn một phần thanh toán sẽ thu hồi cùng tỷ lệ của phần thưởng (làm tròn lên, nên hoàn toàn bộ sẽ thu hồi hết). Khoản trừ không bao giờ đưa số dư xuống dưới 0, nên phần thưởng đã tiêu không bị thu hồi.
+- **Không thưởng hồi tố.** Số dư hiện có giữ nguyên giá trị. Phần thưởng được cộng khi một thanh toán hoàn tất; không bao giờ áp dụng cho thanh toán cũ hay số dư hiện có.
+
+Các mức thưởng có tại endpoint công khai [`GET /api/billing/topup-bonus`](/vi/api/disks#get-top-up-bonus) và trong khối `topup_bonus` của [`GET /api/pricing`](/vi/api/disks#get-pricing). Nếu trang này và API khác nhau, API là nguồn chuẩn.
 
 ## Lưu trữ {#storage}
 
@@ -77,9 +100,8 @@ Harness:
 | `docker_host.usd_per_hour_cold` | Luôn là `0` |
 | `storage.state_disk_gib`, `storage.runtime_disk_gib` | Dung lượng các ổ đĩa |
 | `storage.usd_per_month` | Giá cả hai ổ đĩa mỗi tháng |
-| `compute_tiers` | Giá instance và docker host cho từng bậc số dư ví |
 
-Các giá theo giờ nằm ngoài `compute_tiers` áp dụng cho bậc số dư thấp nhất.
+Giá dùng mức compute tiêu chuẩn, nên danh mục chỉ liệt kê một giá cho mỗi mục, không theo số dư ví.
 
 **Giới hạn số instance.** Mỗi workspace chỉ chứa được một số lượng instance Cloud Harness giới hạn:
 mặc định là 5, trừ khi bản cài đặt TOSE của bạn đặt giới hạn khác. Trường `max_instances` trong danh

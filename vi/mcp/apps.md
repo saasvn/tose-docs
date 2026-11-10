@@ -25,7 +25,7 @@ Hỗ trợ tùy theo host và phiên bản. [Ma trận client](https://github.co
 
 ## Chi phí trong plan chỉ là ước tính
 
-Chi phí hiển thị trong plan là **giá niêm yết** theo nhóm số dư của workspace, nhân với CPU, RAM và số replica đã cấu hình. Chi phí được hiển thị bằng cent Mỹ mỗi giờ và đô la Mỹ mỗi 30 ngày (720 giờ). **Đây chỉ là ước tính.** Phí thật được đo theo giờ. Xem [bảng giá](/vi/guide/pricing).
+Chi phí hiển thị trong plan là **giá niêm yết** ở mức tiêu chuẩn (như nhau cho mọi workspace), nhân với CPU, RAM và số replica đã cấu hình. Chi phí được hiển thị bằng cent Mỹ mỗi giờ và đô la Mỹ mỗi 30 ngày (720 giờ). **Đây chỉ là ước tính.** Phí thật được đo theo giờ. Xem [bảng giá](/vi/guide/pricing).
 
 ## View làm được và không làm được gì
 

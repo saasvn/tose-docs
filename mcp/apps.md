@@ -25,7 +25,7 @@ Support depends on the host and its version. The [client matrix](https://github.
 
 ## Cost in the plan is an estimate
 
-The cost shown in a plan is the **price-list rate** for your workspace's balance band, multiplied by the configured CPU, RAM and number of replicas. It is shown in US cents per hour and US dollars per 30 days (720 hours). **It is an estimate.** Real charges are metered hourly. See [pricing](/guide/pricing).
+The cost shown in a plan is the **price-list rate** (the standard rate, the same for every workspace), multiplied by the configured CPU, RAM and number of replicas. It is shown in US cents per hour and US dollars per 30 days (720 hours). **It is an estimate.** Real charges are metered hourly. See [pricing](/guide/pricing).
 
 ## What a view can and cannot do
 

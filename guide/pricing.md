@@ -9,15 +9,38 @@ The current rates are always available from [`tose pricing`](/commands/disk#tose
 
 ## Compute
 
-Compute is billed per hour for the CPU and RAM allocated to running workloads. The rate depends on your wallet balance:
+Compute is billed per hour for the CPU and RAM allocated to running workloads. Every workspace pays the same **standard rate**, whatever its wallet balance:
 
-| Wallet balance | CPU (per vCPU-hour) | RAM (per GB-hour) |
-|----------------|---------------------|-------------------|
-| Below $100 | $0.02 | $0.01 |
-| $100 or more | $0.014 | $0.007 |
-| $200 or more | $0.012 | $0.006 |
+| Resource | Rate |
+|----------|------|
+| CPU | $0.02 per vCPU-hour |
+| RAM | $0.01 per GB-hour |
+
+The price never changes as your balance goes up or down. Larger single top-ups earn [bonus credit](#top-up-bonus) instead. Disk pricing is described under [Storage](#storage).
 
 Compute is billed **only while the workload is running**. Stopping a project (`tose down`), sleeping, or suspension stops compute billing.
+
+## Top-up bonus {#top-up-bonus}
+
+A single wallet top-up of $100 or more earns bonus credit, added on top of the amount you paid:
+
+| Single top-up | Bonus credit |
+|---------------|--------------|
+| $100 or more | +10% |
+| $250 or more | +15% |
+| $500 or more (**Most popular**) | +20% |
+| $1,000 or more | +25% |
+
+Rules:
+
+- **Per payment.** The band is chosen by the amount of one payment. Two $60 top-ups do not add up to a $120 top-up. A payment below $100 earns no bonus.
+- **Separate credit that does not expire.** The bonus is a separate `topup_bonus` entry in the wallet history, written once per payment, and it never expires.
+- **Wallet top-ups only.** The bonus is not granted on credit added by an administrator, on promotional credit, or on payments for a feature unlock.
+- **No stacking with promo codes.** A payment that has a promo code applied earns no top-up bonus. Choose the code or the bonus band for that payment.
+- **Refunds take the bonus back in proportion.** Refunding part of a payment takes back the same share of its bonus (rounded up, so a full refund takes back all of it). The debit never takes the balance below zero, so bonus you already spent is not recovered.
+- **No retroactive bonus.** Existing balances keep their value. The bonus is granted when a payment completes; it is never applied to earlier payments or existing balances.
+
+The bands are served by the public [`GET /api/billing/topup-bonus`](/api/disks#get-top-up-bonus) endpoint and by the `topup_bonus` block of [`GET /api/pricing`](/api/disks#get-pricing). Those are the source of truth if this page and the API ever disagree.
 
 ## Storage
 
@@ -76,9 +99,8 @@ dashboard shows on the Cloud Harness card:
 | `docker_host.usd_per_hour_cold` | Always `0` |
 | `storage.state_disk_gib`, `storage.runtime_disk_gib` | Disk sizes |
 | `storage.usd_per_month` | Both disks per month |
-| `compute_tiers` | Instance and docker host prices for each wallet balance tier |
 
-The hourly prices outside `compute_tiers` are for the lowest balance tier.
+Prices use the standard compute rate, so the catalog lists one price per item, not one per wallet balance.
 
 **Instance limit.** A workspace can hold a limited number of Cloud Harness instances: 5 by default,
 unless your TOSE installation sets another limit. The catalog entry's `max_instances` field shows it.
