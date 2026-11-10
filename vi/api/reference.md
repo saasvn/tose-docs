@@ -124,4 +124,5 @@ Stop phản hồi trong khoảng 100 giây. Khi gặp `503`, chờ số giây tr
 - [Mã lỗi](/vi/api/errors)
 - [Ổ đĩa, Volume & Bảng giá](/vi/api/disks)
 - [API ngân sách autoscaling](/vi/api/autoscaling-budget)
+- [API analytics của workspace](/vi/api/analytics)
 - [Tự host](/vi/guide/self-hosting)

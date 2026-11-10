@@ -133,4 +133,5 @@ if (res.status === 503) {
 - [Cloud Desktops API](/api/desktops)
 - [Disks, Volumes & Pricing API](/api/disks)
 - [Autoscaling budget API](/api/autoscaling-budget)
+- [Workspace analytics API](/api/analytics)
 - [Self-hosting](/guide/self-hosting)
