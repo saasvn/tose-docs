@@ -157,6 +157,13 @@ curl -s -o /dev/null -w '%{http_code}\n' https://<host-instance-cua-ban>/health
 | Không bao giờ thấy `Backend ready after Ns` | Backend không lên trong 90 giây. Kiểm tra kết nối tới database |
 | Đăng nhập lần đầu | Mở liên kết dashboard và hoàn tất đăng nhập bootstrap một lần. CLI không bao giờ in credential bootstrap |
 | Tạo bị từ chối với HTTP `402` | Chưa trả phí mở khóa hoặc số dư ví quá thấp. Xem [Bảng giá](/vi/guide/pricing) |
+| Instance ở trạng thái `suspended` | Nạp tiền vào ví, rồi chạy `tose template resume my-dewee --wait`. Xem [Resume instance đang bị suspend](#resume-instance-dang-bi-suspend) |
+
+### Resume instance đang bị suspend {#resume-instance-dang-bi-suspend}
+
+Instance bị suspend vì ví hết tiền từ chối `tose template deploy` và `tose template resume` với `402 INSUFFICIENT_BALANCE` (CLI thoát với mã `9`) cho đến khi ví có credit. Sau khi nạp tiền, `tose template resume my-dewee --wait` cấp gateway token và resume instance.
+
+Sau khi resume, client phải dùng gateway token mới và các phiên hiện có sẽ kết thúc, nên hãy cập nhật các API client và đăng nhập lại. Xem [`tose template resume`](/vi/commands/template#tose-template-resume).
 
 ## Phiên bản và nâng cấp {#versions-and-upgrades}
 
@@ -190,6 +197,8 @@ Danh sách quay lại chỉ đưa ra các lần triển khai trước đó đã 
 
 TOSE chỉ công bố một phiên bản Dewee là đã xác minh sau khi một lần chạy end-to-end đạt trên cụm staging: tạo, xác thực qua domain công khai, WebSocket, MCP, dữ liệu còn sau khi khởi động lại, deploy lại và rollback, cùng các tình huống tiêu cực ở trên ([tose-app#276](https://github.com/saasvn/tose-app/issues/276)).
 
+Release gate này chỉ áp dụng cho template Dewee được tuyển chọn. Việc cài template từ registry có security gate fail-closed riêng, vẫn đang bị chặn cho đến khi kiểm tra trên host đã hardening và cluster thật hoàn tất ([tose-app#142](https://github.com/saasvn/tose-app/issues/142)); xem [Security gate khi cài đặt](/vi/guide/template-registry#install-security-gate-gated).
+
 | Trường | Giá trị hiện tại |
 |--------|------------------|
 | Nguồn Dewee | `https://github.com/nextlevelbuilder/dewee`, nhánh `dev` |
@@ -214,6 +223,7 @@ Khi endpoint trạng thái công khai đang bật, [`GET /api/public/template-re
 ## Liên quan
 
 - [`tose template`](/vi/commands/template)
+- [Template registry: probe, nâng cấp và rollback](/vi/guide/template-upgrades)
 - [Biến môi trường](/vi/guide/environment)
 - [Ổ đĩa bền vững](/vi/guide/persistent-disks)
 - [Bảng giá](/vi/guide/pricing)

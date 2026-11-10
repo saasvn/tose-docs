@@ -139,7 +139,7 @@ At the top, the workspace name links to **All workspaces**.
 | **Workspace** | **Members**, **Wallet & billing**, **Referrals**, **Settings** |
 
 **Installed apps** was called **Templates**, **Wallet & billing** was **Billing**, and **Cloud desktops**
-was **Desktops**. To install a curated agent such as Codex or Claude Code, open **Template catalog**.
+was **Desktops**. To install a curated agent such as Codex or Claude Code, open **Template catalog** and follow [Deploy a coding agent](/guide/deploy-coding-agent).
 
 ## Project Structure
 
