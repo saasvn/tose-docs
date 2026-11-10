@@ -193,7 +193,9 @@ wallet, then run the command again.
 
 ### Error: Redeploy or Rollback Failed
 
-If the redeploy fails, in the cluster or in a step before it such as reading the server, secrets or disk, the API answers `500` with `Redeploy failed. See the server log for details.`. A failed `tose rollback` answers `ROLLBACK_FAILED` with `Rollback failed. See the server log for details.`. Both messages are generic on purpose: the cluster error can contain infrastructure detail, so it stays in the server log. Run the command again, and quote the `request_id` to support if it keeps failing.
+If the redeploy fails, in the cluster or in a step before it such as reading the server, secrets or disk, the API answers `500` with `Redeploy failed. See the server log for details.`. The message is generic on purpose: the cluster error can contain infrastructure detail, so it stays in the server log. Run the command again, and quote the `request_id` to support if it keeps failing.
+
+`tose rollback` goes through a recovery runbook. With an API key the API stores the plan and answers `409 APPROVAL_REQUIRED` with an `approval_url`: a workspace owner or admin opens it while signed in and approves the plan, then run it with `tose runbook execute <plan_id>`. A run that fails answers `409` with the run's code (`RUNBOOK_FAILED`, or the code of the step that failed, such as `PLAN_STALE`) and the plan in `runbook`. See [`ROLLBACK_FAILED`](/api/errors#ROLLBACK_FAILED).
 
 ## deploy vs redeploy
 

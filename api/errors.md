@@ -193,7 +193,13 @@ Top up the wallet, or lower the project floors, then repeat the request.
 
 ### `ROLLBACK_FAILED` {#ROLLBACK_FAILED}
 
-`500`. Rollback only: starting the earlier image failed, in the cluster or in a step before it, such as reading the server, project secrets or disk. The message is generic (`Rollback failed. See the server log for details.`) and never carries the cluster error, because that can contain infrastructure detail. Retry, pick another deployment, or quote `request_id` to support.
+MCP only. `rollback_deployment` returns it when the rollback run failed; it was not retried. The message carries the run's detail. Check `get_deployment_status` to see what is serving.
+
+The REST route `POST .../deployments/{id}/rollback` does not return this code. A REST rollback runs as a recovery runbook (plan, approval, run):
+
+- A failed run answers `409` with the run's code (`RUNBOOK_FAILED`, or the code of the step that failed, such as `PLAN_STALE` or `INSUFFICIENT_BALANCE`) and the plan in `runbook`.
+- An API key cannot approve a rollback. Its call stores the plan and answers `409 APPROVAL_REQUIRED` with `runbook` and `approval_url`; a signed-in owner or admin approves it there.
+- A signed-in person needs a recent sign-in to approve a rollback, otherwise `403 REAUTHENTICATION_REQUIRED`.
 
 ## Autoscaling budget codes
 
