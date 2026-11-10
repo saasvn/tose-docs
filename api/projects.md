@@ -148,7 +148,7 @@ The call creates a push webhook. If the webhook cannot be created, the connectio
 
 | Status | Meaning |
 |--------|---------|
-| `400` | `repo_full_name` is missing or not `owner/repo`, the repository is not reachable through the installation, the branch does not exist, or no attached installation can reach the repository |
+| `400` | `repo_full_name` is missing or not `owner/repo`, the repository is not reachable through the installation, the branch does not exist, or no attached installation can reach the repository. A failure caused by GitHub has a [`github_*` code](/api/errors#github-upstream-codes) and is not retryable |
 | `403` | `installation_id` is not attached to this workspace |
 | `409` | The project already has a Git connection |
 | `503` | The GitHub App is not configured on this deployment |

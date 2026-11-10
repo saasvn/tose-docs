@@ -148,7 +148,7 @@ Lệnh tạo webhook push. Nếu không tạo được webhook, kết nối vẫ
 
 | Mã | Ý nghĩa |
 |--------|---------|
-| `400` | Thiếu `repo_full_name` hoặc không phải `owner/repo`, repository không truy cập được qua installation, branch không tồn tại, hoặc không installation nào đã gắn truy cập được repository |
+| `400` | Thiếu `repo_full_name` hoặc không phải `owner/repo`, repository không truy cập được qua installation, branch không tồn tại, hoặc không installation nào đã gắn truy cập được repository. Lỗi do GitHub gây ra có [mã `github_*`](/vi/api/errors#ma-loi-upstream-cua-github) và không thể thử lại |
 | `403` | `installation_id` chưa được gắn vào workspace này |
 | `409` | Dự án đã có kết nối Git |
 | `503` | GitHub App chưa được cấu hình trên hệ thống này |
