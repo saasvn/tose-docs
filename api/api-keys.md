@@ -97,7 +97,7 @@ Some routes act on a person's account or on shared infrastructure, not on one wo
 | `GET /api/mcp/connections`, `DELETE /api/mcp/connections/{family_id}`, `GET /api/mcp/tasks`, `GET /api/mcp/audit` | Connections belong to the person who made them, so only that person can see or revoke them. |
 | `POST` and `DELETE /api/servers`, `PUT /api/servers/{id}/development`, `POST` and `DELETE /api/registries`, `GET /api/registries` | Servers and registries are shared platform infrastructure. |
 
-A few account-level reads do accept a key, limited to its own workspace: `GET /api/workspaces` lists only the key's workspace, `GET /api/workspaces/available-templates` returns the template catalog, and `GET /api/servers` and the `GET /api/github/...` reads check the workspace the key is bound to. The GitHub reads also need the `projects:read` scope.
+A few account-level reads do accept a key, limited to its own workspace: `GET /api/workspaces` lists only the key's workspace, `GET /api/workspaces/available-templates` returns the template catalog, and `GET /api/servers` and the `GET /api/github/...` reads check the workspace the key is bound to. The GitHub reads also need the `projects:read` scope. A key that omits `workspace_slug` on them uses its own workspace, never the key creator's account, so `available-installations` returns only installations attached to that workspace. Naming another workspace is `403`. See [GitHub API](/api/github).
 
 ### Behavior change: `POST /api/upload` no longer accepts API keys
 
