@@ -93,6 +93,17 @@ Connector không có tool gọi API tùy ý. Nó không đọc được giá tr�
 - **Giá trị không bao giờ đi qua MCP.** Không tool nào nhận hay trả giá trị, và không có tool nào để hiện hoặc kéo giá trị. Lịch sử audit chỉ ghi tên thao tác và tên biến.
 - **Gõ "ok" trong chat không duyệt được gì.** Việc duyệt chỉ diễn ra trên trang TOSE, như mô tả ở [Cơ chế phê duyệt](#co-che-phe-duyet).
 
+### Công cụ feedback {#cong-cu-feedback}
+
+Hai tool cho phép agent báo lỗi của chính TOSE hoặc đề xuất tính năng, qua cùng dịch vụ với [Feedback API](/vi/api/feedback). Chúng chỉ tồn tại khi feedback được bật.
+
+| Tool | Chức năng | Scope |
+|------|-----------|-------|
+| `submit_feedback` | Gửi báo cáo: `type`, `component`, `title`, `description`, và tùy chọn `reproduction_steps`, `correlation_id`, `idempotency_key`, cùng `environment` và `error_codes` khi `include_diagnostics: true`. Không chỉ định được workspace, người dùng hay repository: người báo là bạn và workspace là của chính kết nối. | `feedback:write` |
+| `get_feedback` | Trả về trạng thái của báo cáo bạn đã gửi từ cùng workspace. Người khác nhận `NOT_FOUND`. | `workspace:read` |
+
+`feedback:write` có ô đồng ý riêng trên màn hình kết nối, và bất kỳ thành viên nào cũng cấp được cho kết nối của mình. Với kết nối MCP, nó không bao giờ nằm trong yêu cầu mặc định hay trong scope MCP khác, và nó không cấp gì khác. Với API key, `workspace:write` bao hàm nó, nên các key hiện có vẫn gửi được báo cáo. Việc đăng là bất đồng bộ: báo cáo mới không bao giờ hiển thị là đã đăng, và `issue_url` chỉ xuất hiện khi GitHub đã xác nhận issue. Bí mật và dữ liệu cá nhân được che trước, diagnostics là tùy chọn, giới hạn là 20 báo cáo mỗi người và 60 mỗi workspace mỗi giờ (`RATE_LIMITED`). Gửi lại với cùng `idempotency_key` trả về báo cáo đầu tiên. Xem [Scope](/vi/mcp/oauth#scope).
+
 ### Cơ chế phê duyệt
 
 `deploy_project` và `rollback_deployment` luôn chạy hai bước:

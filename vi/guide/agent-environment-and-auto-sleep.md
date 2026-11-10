@@ -76,6 +76,15 @@ Tự động ngủ cần image có bộ dò hoạt động (`tose-agent-console 
 
 Chỉ nút **Đánh thức và mở console** (`POST /api/workspaces/{slug}/template-installations/{id}/wake`) mới đánh thức agent. Đọc ứng dụng, polling và health check không bao giờ làm vậy. Cần ví còn tiền (nếu không sẽ có `402 INSUFFICIENT_BALANCE` và agent vẫn ngủ) và mất thời gian khởi động lại từ đầu. `auto_sleep.last_wake.outcome` là `pending` cho tới khi agent phản hồi, sau đó là `ok`, `failed` hoặc `insufficient_balance`.
 
+### Agent đã bị thu hồi không thể đánh thức
+
+Agent đang ngủ hoặc đã dừng không được miễn thu hồi khi workspace bị bỏ rơi. Nó đi theo cùng mốc thời gian với agent bị tạm ngưng:
+
+- sau **7 ngày**, workload bị gỡ (Deployment, Service, Ingress và secret môi trường) và ổ đĩa được giữ;
+- sau **14 ngày**, và chỉ với workspace chưa từng thanh toán, ổ đĩa, network policy và bản ghi bị xóa.
+
+Đánh thức agent đã bị thu hồi trả về `409 INSTALLATION_RECLAIMED`: không thể đánh thức, và nó chỉ chạy lại khi bạn **deploy lại**. Hãy giữ ví còn tiền để tránh điều này. Với workspace chưa từng thanh toán, tệp trên ổ đĩa chỉ được giữ đến lần xóa ở ngày thứ 14.
+
 Thiết lập và đánh thức dành cho chủ sở hữu hoặc quản trị viên workspace, hoặc API key có `deployments:execute`.
 
 Xem thêm [Bảng giá](/vi/guide/pricing) và [hợp đồng OpenAPI](https://github.com/saasvn/tose-app/blob/master/internal/apispec/openapi.yaml).

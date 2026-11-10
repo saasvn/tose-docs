@@ -22,6 +22,12 @@ Development (restricted) is implemented and covered by policy and plan tests. It
 - Private, link-local and cloud metadata addresses are refused in every mode.
 - **Nothing widens an existing installation.** An installation keeps the destinations of the plan you approved until a person approves a new plan.
 
+## When the agent reports a blocked host
+
+The curated agents know their network mode. When `git`, `npm` or `pip` fails because the mode blocks the host, the agent does not retry or look for workarounds. It tells you that the installation's network mode blocks it, and that you can reconfigure the installation with a new plan that uses **Development (restricted)** egress, or **Unrestricted public Internet** if you accept the higher risk. It then continues with what works offline.
+
+A blocked host shows up as a DNS failure, a refused or reset connection, or a timeout, and affects only that host. An invalid or expired API key and a model error come from the provider itself (401, 403 or a message in the model reply), so they are not network blocks. The guidance reaches an agent with the next image releases; agents already installed keep their release until you install a new one.
+
 ## Toolchains per agent
 
 Development mode offers the toolchains of the agent's image, so it does not advertise a tool the image lacks. Go modules are not offered, because no curated image has a Go toolchain.

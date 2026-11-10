@@ -76,6 +76,15 @@ Sleep needs an image that carries the activity probe (`tose-agent-console activi
 
 Only an explicit **Wake and open console** (`POST /api/workspaces/{slug}/template-installations/{id}/wake`) wakes the agent. Reading the app, polling and health checks never do. It needs a funded wallet (otherwise `402 INSUFFICIENT_BALANCE` and the agent stays asleep) and takes a cold start. `auto_sleep.last_wake.outcome` is `pending` until the agent answers, then `ok`, `failed` or `insufficient_balance`.
 
+### Reclaimed agents cannot be woken
+
+A sleeping or stopped agent is not exempt from reclaiming when its workspace is abandoned. It follows the same timeline as a suspended one:
+
+- after **7 days** the workload is removed (Deployment, Service, Ingress and environment secret) and the disk is kept;
+- after **14 days**, and only for a workspace that never completed a payment, the disk, network policies and records are deleted.
+
+Waking a reclaimed agent returns `409 INSTALLATION_RECLAIMED`: it cannot be woken, and starts again only when you **deploy it again**. Keep the wallet funded to avoid this. For a workspace that never paid, files on the disk are kept only until the 14-day deletion.
+
 Setting and waking are for workspace owners and admins, or an API key with `deployments:execute`.
 
 See also [Pricing](/guide/pricing) and the [OpenAPI contract](https://github.com/saasvn/tose-app/blob/master/internal/apispec/openapi.yaml).

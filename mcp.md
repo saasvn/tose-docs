@@ -93,6 +93,17 @@ There is no generic API tool. The connector cannot read the value of an environm
 - **Values never travel over MCP.** No tool accepts or returns a value, and there is no tool that reveals or pulls one. The audit history records operation names and variable names only.
 - **Typing "ok" in the chat does not approve anything.** Approval happens only on the TOSE page, as described in [How approval works](#how-approval-works).
 
+### Feedback tools
+
+Two tools let an agent report a defect in TOSE itself or request a feature, through the same service as the [Feedback API](/api/feedback). They exist only where feedback is enabled.
+
+| Tool | What it does | Scope |
+|------|--------------|-------|
+| `submit_feedback` | Files a report: `type`, `component`, `title`, `description`, and optionally `reproduction_steps`, `correlation_id`, `idempotency_key`, and `environment` and `error_codes` with `include_diagnostics: true`. It cannot name a workspace, user or repository: the reporter is you and the workspace is the connection's own. | `feedback:write` |
+| `get_feedback` | Returns the status of a report you filed from the same workspace. Anyone else gets `NOT_FOUND`. | `workspace:read` |
+
+`feedback:write` has its own consent checkbox on the connect screen, and any member may grant it for their own connection. For an MCP connection it is never part of a default request or of another MCP scope, and it grants nothing else. For API keys, `workspace:write` implies it, so existing keys keep filing reports. Publishing is asynchronous: a new report is never shown as published, and `issue_url` appears only once GitHub confirmed the issue. Secrets and personal data are redacted first, diagnostics are opt-in, and the limits are 20 reports per user and 60 per workspace each hour (`RATE_LIMITED`). A retry with the same `idempotency_key` returns the first report. See [Scopes](/mcp/oauth#scopes).
+
 ### How approval works
 
 `deploy_project` and `rollback_deployment` always run in two steps:

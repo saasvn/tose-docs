@@ -90,7 +90,9 @@ Name:  example.com (or subdomain)
 Value: your-project.tose.sh
 ```
 
-Once DNS propagates, the status will change from `pending` to `ok`, and an SSL certificate will be automatically provisioned.
+A new domain is a claim until you prove you control its DNS. Add the TXT record shown for it at `_tose-challenge.<domain>`, then verify it in the dashboard or with `POST .../domains/{domain_id}/verify`. Until it is verified the domain is not routed and gets no certificate. See [Custom domains and ownership verification](/guide/custom-domains).
+
+Once the domain is verified and DNS propagates, the status will change from `pending` to `ok`, and an SSL certificate will be provisioned. SSL shows active only when the certificate is Ready.
 
 ### JSON Output
 
