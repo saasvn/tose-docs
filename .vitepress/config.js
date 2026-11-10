@@ -72,16 +72,20 @@ export default defineConfig({
               { text: 'Environment Variables', link: '/guide/environment' },
               { text: 'Git Integration', link: '/guide/git' },
               { text: 'Dockerfile Examples', link: '/guide/dockerfile' },
+              { text: 'CI impact selection', link: '/guide/ci-impact-selection' },
+              { text: 'CI usage and budget caps', link: '/guide/ci-usage-and-budgets' },
               { text: 'Persistent Disks', link: '/guide/persistent-disks' },
               { text: 'Autoscaling budgets', link: '/guide/autoscaling-budgets' },
               { text: 'Dewee Template Runbook', link: '/guide/dewee-template' },
               { text: 'Template registry (early access)', link: '/guide/template-registry' },
               { text: 'Pi model providers', link: '/guide/agent-pi-providers' },
+              { text: 'Template directory', link: '/guide/template-directory' },
               { text: 'Pricing', link: '/guide/pricing' },
               { text: 'Agent Runtime pricing', link: '/guide/agent-runtime-pricing' },
               { text: 'Self-hosting', link: '/guide/self-hosting' },
               { text: 'Referral program', link: '/guide/referral' },
               { text: 'Link an earlier enquiry', link: '/guide/link-enquiry' },
+              { text: 'CI artifacts, reports and issue drafts', link: '/guide/ci-artifacts' },
               { text: 'Blog and editorial MCP (planned)', link: '/guide/blog-and-editorial-mcp' }
             ]
           },
@@ -133,7 +137,11 @@ export default defineConfig({
               { text: 'Template registry', link: '/api/template-registry' },
               { text: 'Template deploy and resume', link: '/api/template-deploy' },
               { text: 'Disks, Volumes & Pricing', link: '/api/disks' },
-              { text: 'Autoscaling budget', link: '/api/autoscaling-budget' }
+              { text: 'Autoscaling budget', link: '/api/autoscaling-budget' },
+              { text: 'CI suggestions', link: '/api/ci-suggestions' },
+              { text: 'CI usage and budget', link: '/api/ci-usage-budget' },
+              { text: 'CI artifacts and reports', link: '/api/ci-artifacts' },
+              { text: 'Disks, Volumes & Pricing', link: '/api/disks' }
             ]
           }
         ]
@@ -191,16 +199,20 @@ export default defineConfig({
               { text: 'Biến môi trường', link: '/vi/guide/environment' },
               { text: 'Tích hợp Git', link: '/vi/guide/git' },
               { text: 'Ví dụ Dockerfile', link: '/vi/guide/dockerfile' },
+              { text: 'Chọn job CI theo ảnh hưởng', link: '/vi/guide/ci-impact-selection' },
+              { text: 'Mức sử dụng CI và hạn mức', link: '/vi/guide/ci-usage-and-budgets' },
               { text: 'Ổ đĩa bền vững', link: '/vi/guide/persistent-disks' },
               { text: 'Ngân sách autoscaling', link: '/vi/guide/autoscaling-budgets' },
               { text: 'Runbook template Dewee', link: '/vi/guide/dewee-template' },
               { text: 'Template registry (truy cập sớm)', link: '/vi/guide/template-registry' },
               { text: 'Nhà cung cấp model cho Pi', link: '/vi/guide/agent-pi-providers' },
+              { text: 'Thư mục template', link: '/vi/guide/template-directory' },
               { text: 'Bảng giá', link: '/vi/guide/pricing' },
               { text: 'Giá Agent Runtime', link: '/vi/guide/agent-runtime-pricing' },
               { text: 'Tự host', link: '/vi/guide/self-hosting' },
               { text: 'Chương trình giới thiệu', link: '/vi/guide/referral' },
               { text: 'Liên kết yêu cầu trước đó', link: '/vi/guide/link-enquiry' },
+              { text: 'Artifact CI, báo cáo và bản nháp issue', link: '/vi/guide/ci-artifacts' },
               { text: 'Blog và MCP biên tập (dự kiến)', link: '/vi/guide/blog-and-editorial-mcp' }
             ]
           },
@@ -250,7 +262,11 @@ export default defineConfig({
               { text: 'Attribution khi đăng ký', link: '/vi/api/signup-attribution' },
               { text: 'Deploy và resume template', link: '/vi/api/template-deploy' },
               { text: 'Ổ đĩa, Volume & Bảng giá', link: '/vi/api/disks' },
-              { text: 'API ngân sách autoscaling', link: '/vi/api/autoscaling-budget' }
+              { text: 'API ngân sách autoscaling', link: '/vi/api/autoscaling-budget' },
+              { text: 'Gợi ý CI', link: '/vi/api/ci-suggestions' },
+              { text: 'Mức sử dụng CI và hạn mức', link: '/vi/api/ci-usage-budget' },
+              { text: 'Artifact và báo cáo CI', link: '/vi/api/ci-artifacts' },
+              { text: 'Ổ đĩa, Volume & Bảng giá', link: '/vi/api/disks' }
             ]
           }
         ],
