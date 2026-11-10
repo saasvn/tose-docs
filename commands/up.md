@@ -178,6 +178,27 @@ Triggers the deployment and shows the result:
 Stream build logs with: tose logs --build -f
 ```
 
+### API Key Without `deployments:execute`
+
+Connecting Git and starting a deployment are separate permissions. With an API key that has `projects:write` but not `deployments:execute`, `tose up` still connects Git, but with auto-deploy off. It starts no deployment and exits with the error `INSUFFICIENT_SCOPE`:
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "INSUFFICIENT_SCOPE",
+    "message": "Git is connected, but no deployment was started: this API key lacks the `deployments:execute` scope. Run `tose deploy` with a key that includes it.",
+    "details": {
+      "required_scope": "deployments:execute",
+      "git_connected": true,
+      "deploy_skipped": true
+    }
+  }
+}
+```
+
+The project is already set up, so nothing needs to be repeated. Run [`tose deploy`](/commands/deploy) with a key that includes `deployments:execute`. Until then, Git pushes do not deploy automatically. See [Scopes and automatic deploys](/api/authentication#scopes-and-automatic-deploys) and [API Keys and Scopes](/api/api-keys).
+
 ## JSON Output
 
 ```bash
@@ -245,6 +266,10 @@ git remote -v
 2. Check if GitHub App is installed
 3. Ensure branch exists on remote: `git push origin main`
 4. Check logs: `tose logs --build -f`
+
+### `INSUFFICIENT_SCOPE` After "Git connected"
+
+The key lacks `deployments:execute`. Git is connected and no deployment was started. Run `tose deploy` with a key that has that scope, or add the scope to the key. See [API Key Without `deployments:execute`](#api-key-without-deployments-execute).
 
 ## Related Commands
 

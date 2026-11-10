@@ -106,6 +106,15 @@ production yet.
 | [`tose volumes resize`](/commands/disk#tose-volumes-resize) | Grow any disk by volume ID |
 | [`tose pricing`](/commands/disk#tose-pricing) | Show compute and storage rates |
 
+### Autoscaling budgets
+
+| Command | Description |
+|---------|-------------|
+| [`tose autoscaling budget get`](/commands/autoscaling#tose-autoscaling-budget-get) | Show spend caps, usage and pending approvals |
+| [`tose autoscaling budget set`](/commands/autoscaling#tose-autoscaling-budget-set) | Propose caps and a project floor; a person approves the plan in the dashboard |
+
+Budgets work only where the platform operator has turned them on.
+
 ### Agent Skills
 
 | Command | Description |
