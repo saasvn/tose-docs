@@ -41,7 +41,7 @@ Creating, changing and deleting an instance needs the workspace **admin** role. 
 
 ### Dashboard
 
-1. Open **Templates** in your workspace and choose **Dewee**.
+1. Open **Installed apps** in your workspace (under **Apps & agents**), select **New Template** and choose **Dewee**.
 2. Pay the unlock fee if asked.
 3. Pick CPU and RAM, then create.
 4. Open **Environment** and set the three required variables (below).
@@ -72,7 +72,9 @@ The three required variables are:
 
 The `DEWEE_*` spellings (for example `DEWEE_GATEWAY_TOKEN`) are accepted as aliases and copied to the `GOCLAW_*` name at startup when the `GOCLAW_*` one is empty. Set one spelling, not both.
 
-`tose template env list` masks values it recognizes as credentials (names containing `token`, `secret`, `password`, `api_key` and similar), which covers `GOCLAW_GATEWAY_TOKEN`. It does **not** mask `GOCLAW_POSTGRES_DSN` or `GOCLAW_ENCRYPTION_KEY` when you set them from a file or stdin, so those two values can be printed in plain text. Set them with the masked prompt instead (`tose template env set my-dewee GOCLAW_ENCRYPTION_KEY`) and avoid running `env list` on a shared screen or in CI logs. A fix is tracked in [tose-cli#40](https://github.com/saasvn/tose-cli/issues/40). See [`tose template`](/commands/template) for the full command reference.
+`tose template env set` sends `GOCLAW_POSTGRES_DSN`, `GOCLAW_ENCRYPTION_KEY` and `GOCLAW_GATEWAY_TOKEN` as secrets, and `tose template env list` masks their values (`********`). The `SECRET` column shows `yes` for them. Names containing `token`, `secret`, `password`, `api_key`, `dsn`, `encryption_key` or `connection_string` are treated the same way.
+
+Values saved with an older CLI may still be stored as not secret. They show as `SECRET no` with a masked value. Set them again to store them as secrets, using `--env-file` or `--env-stdin` (or the masked prompt, for example `tose template env set my-dewee GOCLAW_ENCRYPTION_KEY`), then check that `env list` shows `SECRET yes`. Avoid running `env list` on a shared screen or in CI logs anyway. See [`tose template`](/commands/template) for the full command reference.
 
 ## Security contract
 
@@ -165,6 +167,24 @@ curl -s -o /dev/null -w '%{http_code}\n' https://<your-instance-host>/health
 - **Rollback is not symmetric.** `tose template deploy --rollback <deployment_id>` runs an earlier image again, but it does **not** revert the database schema or data. A migration that has run may be incompatible with the older image. To go back safely, restore the database backup together with the older image.
 - **Downtime.** The template runs one replica on a disk that one pod can mount, and redeploys replace the pod. Expect an interruption during a deploy. TOSE does not promise zero downtime for this template.
 - **Opt-in.** Upgrade only when you choose to (`--upgrade`), from a backup, outside peak use. A catalog change does not upgrade you.
+
+### Upgrade and roll back from the dashboard {#dashboard-upgrade-and-rollback}
+
+The template page in the dashboard has an **Image** section with the same controls as the CLI. It shows three images: **Last deployment** (what runs now), **Configured** (the image stored on the template, used by the next plain deploy) and **Available** (the catalog version). An **Update available** badge appears when the catalog version differs from what you run, and **Up to date** when it does not.
+
+Three separate actions never do each other's job:
+
+| Action | What it sends | Result |
+|--------|---------------|--------|
+| **Deploy** | `image_source=custom` | Redeploys the stored image. It does not upgrade. With no stored image yet, it deploys the catalog version and stores it |
+| **Upgrade to available version** | `image_source=catalog` | Deploys the catalog version and replaces the stored image |
+| **Roll back to an earlier version** | `rollback_to=<deployment id>` | Runs the image of an earlier deployment and stores it |
+
+The dialog for each action names the image it will run. Every request also sends `expected_image` (the **Configured** image you were looking at) whenever an image is stored. If someone changed the image since you opened the page, the request is refused with `409`; reload the page and decide again. While another deployment is in progress the actions are disabled.
+
+Rolling back shows a warning before you confirm: **rolling back the image does not roll back the database schema or data.** If the newer version migrated them, the older image may fail or misread them, so restore a database backup first. See [Back up first](#versions-and-upgrades).
+
+The rollback list offers only earlier deployments that ran successfully (status `running` or `stopped`, and finished), newest first, one entry per image, up to eight, and without the image you run now. A failed build is never offered because its image was never pushed. The API applies the same rule and returns `404` for any other deployment ID. See [Template deploy API](/api/templates#rollback).
 
 ## Release gate and compatibility
 
