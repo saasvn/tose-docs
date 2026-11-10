@@ -87,6 +87,7 @@ export default defineConfig({
               { text: 'Referral program', link: '/guide/referral' },
               { text: 'Link an earlier enquiry', link: '/guide/link-enquiry' },
               { text: 'CI artifacts, reports and issue drafts', link: '/guide/ci-artifacts' },
+              { text: 'CI triggers and fork approval', link: '/guide/ci-triggers-and-forks' },
               { text: 'Blog and editorial MCP (planned)', link: '/guide/blog-and-editorial-mcp' }
             ]
           },
@@ -214,6 +215,7 @@ export default defineConfig({
               { text: 'Chương trình giới thiệu', link: '/vi/guide/referral' },
               { text: 'Liên kết yêu cầu trước đó', link: '/vi/guide/link-enquiry' },
               { text: 'Artifact CI, báo cáo và bản nháp issue', link: '/vi/guide/ci-artifacts' },
+              { text: 'Trigger CI và duyệt fork', link: '/vi/guide/ci-triggers-and-forks' },
               { text: 'Blog và MCP biên tập (dự kiến)', link: '/vi/guide/blog-and-editorial-mcp' }
             ]
           },
