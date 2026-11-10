@@ -81,16 +81,19 @@ secrets:
 
 ### Curated agents with a GitHub repository {#curated-repository}
 
-A curated agent can start with one GitHub repository in its persistent `/workspace`, cloned read-only at a pinned commit (see [Repository checkout](/guide/agent-repository-checkout)).
+A curated agent can start with one GitHub repository in its persistent `/workspace`, cloned at a pinned commit (see [Repository checkout](/guide/agent-repository-checkout)). It is read-only unless you pass `--repo-push`.
 
 ```bash
 tose templates plan --curated codex --repo acme/app --config deploy.yaml --json
 tose templates plan --curated codex --repo acme/app --branch release --commit <40-hex-sha> --config deploy.yaml
+tose templates plan --curated codex --repo acme/app --repo-push --repo-push-branches agent --workspace-disk-gib 20 --config deploy.yaml
 tose templates retry-checkout <installation-id> --json     # after a failed clone
 ```
 
 - `--repo owner/name` must be in the repositories your workspace's GitHub connection lists. The CLI never accepts a clone URL, token or SSH key, and refuses an unlisted name before sending anything. `--github-installation <id>` disambiguates; `--commit` pins an older commit of the branch.
-- Only a workspace owner or admin may send a repository (`REPOSITORY_REQUIRES_ADMIN`). The repository is part of the plan hash, so `deploy --plan` does not repeat the repository flags.
+- `--workspace-disk-gib 5|10|20|50` (curated agents only, default 5) sizes the agent's `/workspace` disk. The plan pins it and shows it as `Workspace:`; it cannot change after install, and storage is billed while the disk exists, also while the agent is stopped. Any other value is refused before anything is sent.
+- `--repo-push` (with `--repo`) lets the agent push through the TOSE git proxy; it never holds a GitHub token. `--repo-push-branches all|agent` picks the branches: `all` (the default, including the default branch) or `agent` (only `tose/<installation slug>/...`). The plan shows the branch pattern and the proxy remote. Pushing needs the GitHub App permission `contents: write` (blocker `GITHUB_PERMISSION_MISSING`); a server without the git proxy answers `GIT_PROXY_NOT_CONFIGURED`, and the CLI suggests planning again without push.
+- Only a workspace owner or admin may send a repository (`REPOSITORY_REQUIRES_ADMIN`). The repository, its push setting and the disk size are part of the plan hash, so `deploy --plan` does not repeat those flags and refuses ones that contradict the plan.
 - `retry-checkout` (owner or admin, key with `deployments:execute`) sets a `failed` checkout back to `pending`; deploy again afterwards.
 
 ## Related
