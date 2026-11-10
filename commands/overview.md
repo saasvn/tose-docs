@@ -78,7 +78,14 @@ These options are available on **all** commands:
 |---------|-------------|
 | [`tose domain list`](/commands/domain) | List custom domains |
 | [`tose domain add`](/commands/domain#tose-domain-add) | Add a custom domain |
+| [`tose domain verify`](/commands/domain#tose-domain-verify) | Check the ownership TXT record and route the domain |
 | [`tose domain rm`](/commands/domain#tose-domain-rm) | Remove a custom domain |
+
+### Operations
+
+| Command | Description |
+|---------|-------------|
+| [`tose ops summary`](/commands/ops) | Per-workspace projects, installed apps and open incidents |
 
 ### Databases
 
