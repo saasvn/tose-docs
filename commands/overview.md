@@ -61,6 +61,7 @@ These options are available on **all** commands:
 | [`tose status`](/commands/status) | Show project status and pod health |
 | [`tose logs`](/commands/logs) | View build or live logs |
 | [`tose open`](/commands/open) | Open project URL in browser |
+| [`tose analytics`](/commands/analytics) | Read-only workspace costs, resources and reliability (`overview`, `costs`, `resources`, `reliability`) |
 
 ### Environment Variables
 

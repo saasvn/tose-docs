@@ -50,6 +50,7 @@ export default defineConfig({
               { text: 'tose deploy / redeploy', link: '/commands/deploy' },
               { text: 'tose deployment', link: '/commands/deployment' },
               { text: 'tose ci', link: '/commands/ci' },
+              { text: 'tose analytics', link: '/commands/analytics' },
 
               { text: 'tose runbook', link: '/commands/runbook' },
               { text: 'tose status', link: '/commands/status' },
@@ -201,6 +202,7 @@ export default defineConfig({
               { text: 'tose deploy / redeploy', link: '/vi/commands/deploy' },
               { text: 'tose deployment', link: '/vi/commands/deployment' },
               { text: 'tose ci', link: '/vi/commands/ci' },
+              { text: 'tose analytics', link: '/vi/commands/analytics' },
 
               { text: 'tose runbook', link: '/vi/commands/runbook' },
               { text: 'tose status', link: '/vi/commands/status' },
