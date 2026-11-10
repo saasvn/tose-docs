@@ -4,7 +4,7 @@ Trang này mô tả cách một MCP client kết nối tới TOSE: dùng đượ
 
 ## Revision giao thức
 
-Server là Streamable HTTP không trạng thái (stateless) tại `https://<API host của TOSE>/mcp`.
+Server là Streamable HTTP không trạng thái (stateless) tại `https://app.tose.sh/mcp` trên TOSE hosted. OAuth issuer là `https://app.tose.sh`, client tự tìm thấy qua `/.well-known/oauth-protected-resource/mcp`. Instance tự vận hành dùng origin riêng, xem [Instance tự vận hành](#instance-tu-van-hanh).
 
 | Revision | Client truy cập bằng |
 |----------|----------------------|
@@ -100,6 +100,15 @@ Cả hai đều được ghi vào lịch sử audit với kết quả `denied`.
 Request từ trình duyệt có header `Origin`, và TOSE từ chối origin lạ trước khi xác thực. `API_BASE_URL` và `FRONTEND_URL` luôn được cho phép. Client phía server không gửi `Origin` nên không bị ảnh hưởng.
 
 Để dùng client chạy trên trình duyệt, ví dụ MCP Inspector bản hosted, người vận hành instance TOSE thêm origin của nó vào `MCP_ALLOWED_ORIGINS`, là danh sách ngăn cách bằng dấu phẩy. Với Inspector chạy cục bộ, giá trị là `http://localhost:6274`. Nếu thiếu, client nhận HTTP 403.
+
+## Instance tự vận hành {#instance-tu-van-hanh}
+
+Connector hosted được phục vụ từ host dashboard, `https://app.tose.sh`. Instance tự vận hành muốn làm như vậy thì đặt cả hai giá trị sau về cùng một origin:
+
+- `MCP_PUBLIC_URL` ở API: OAuth issuer, MCP resource (`<origin>/mcp`) và các link phê duyệt.
+- `PUBLIC_MCP_URL` trong bản build dashboard: nơi sign-in relay (`/connect/mcp`) đưa người dùng quay lại.
+
+Proxy trên origin đó phải chuyển các path sau tới API: `/mcp`, `/oauth/`, `/.well-known/oauth-authorization-server`, `/.well-known/oauth-protected-resource` (gồm cả `/mcp`) và `/.well-known/jwks.json`. Proxy cũng phải ghi đè `X-Real-IP` bằng địa chỉ client. Origin phải là host dashboard hoặc nằm trong `COOKIE_DOMAIN`, vì trang consent đọc cookie đăng nhập trên host này. Nếu không đặt `MCP_PUBLIC_URL`, issuer và resource lấy theo `API_BASE_URL`. Bảng cấu hình đầy đủ nằm ở [`MCP-CONNECTOR.md`](https://github.com/saasvn/tose-app/blob/master/MCP-CONNECTOR.md).
 
 ## Client được hỗ trợ
 
