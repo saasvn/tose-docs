@@ -172,7 +172,7 @@ tose env set NODE_ENV=production
 tose redeploy
 ```
 
-You can also save and apply in one step, from the dashboard or the API. See
+You can also save and apply in one step, from the dashboard, the API or the CLI. See
 [Apply without a rebuild](#apply-without-a-rebuild).
 
 ## Apply without a rebuild {#apply-without-a-rebuild}
@@ -186,8 +186,9 @@ is **pending**.
   `/api/workspaces/{slug}/projects/{project_slug}/env[/{env_id}]`, or to `PUT .../env/bulk`.
   The change is saved, then rolled out through the same path as `POST .../redeploy`. See
   [Environment variables and apply](/api/projects#environment-variables).
-- **CLI:** `tose redeploy` applies saved variables. A flag to save and apply in one command is not part
-  of the CLI yet.
+- **CLI:** add `--apply` to `tose env set`, `tose env rm` or `tose env push` to save and roll out in one
+  command, or run `tose redeploy` to apply variables you already saved. See
+  [Saving and applying changes](/commands/env#saving-and-applying-changes).
 
 Apply needs what a redeploy needs: the workspace `owner` or `admin` role, the `deployments:execute`
 scope for an API key (approval for a connected OAuth app), and a positive wallet balance. If one is
