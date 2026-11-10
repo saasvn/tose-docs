@@ -55,11 +55,29 @@ Without the scope the command exits with `INSUFFICIENT_SCOPE` (exit code `3`) an
 
 ### What it never prints
 
-Environment values, API keys, registry credentials, kubeconfig, build logs and database passwords. The CLI also checks the response against the contract and prints only the fields in the table above, so an unexpected field from the server does not reach your terminal or your logs. If an API key shows up inside a documented field it is redacted.
+Environment values, API keys, registry credentials, kubeconfig, build logs and database passwords. The CLI also checks the response against the contract and prints only the fields documented on this page, so an unexpected field from the server does not reach your terminal or your logs. If an API key shows up inside a documented field it is redacted, and control characters are removed from the human summary.
 
-## What the CLI does not print {#not-printed}
+## Backup references, migration and checksum {#not-printed}
 
-The API export also returns `env_refs`, `databases` with their backup references and SHA-256 checksums, the `migration` contract and the `X-Tose-Export-Sha256` header. `tose export` prints only the fields in the table above, so it shows none of these. To see backup references, verify checksums or record the export checksum, call the API directly. See [Backup references](/api/projects#backup-references) and [Migration evidence](/api/projects#migration-evidence). Database backup download is admin only, and TOSE takes no volume backups.
+Besides the fields above, the CLI prints these parts of the API export when the server sends them:
+
+- `env_keys` and `env_refs`: variable **names**, whether each is secret, and `value_recoverable` (whether TOSE can still decrypt the stored value). Values are never exported.
+- `databases[].backup_refs` (and `volumes[].backup_refs`, always empty because TOSE takes no volume backups): backup ID, time, size, SHA-256, format, retention and the admin-only `download_path`. No storage key or credential is included. A backup without `sha256` was taken before checksums were recorded.
+- `migration`: the `tose.dev/data-migration/v1` plan with five steps and the evidence each needs. The source keeps serving and is kept if a step fails. `status` is always `not_started`; the CLI refuses an export that says otherwise.
+
+Exports from older servers without these fields still work; the fields are simply absent.
+
+### Checksum evidence
+
+The API sends `X-Tose-Export-Sha256`, the SHA-256 of the response body. With `--json`, `data.export_checksum` reports the hash the CLI computed over the exact bytes:
+
+| `status` | Meaning |
+|----------|---------|
+| `verified` | Matches the server's header. Safe to record as `record_export` evidence. |
+| `absent` | The server sent no header. The hash is computed locally only and is **not** server-verified. |
+| `malformed_header` | The header is not a SHA-256. Treat as unverified. |
+
+`sha256` covers the exact bytes the server sent, not the filtered `data` the CLI prints. To keep a file that hashes to it, download the export from the API directly. A mismatch is an error (exit `1`) and prints no export content.
 
 ## Blockers and rollback
 
@@ -129,9 +147,9 @@ With `--json`, stdout is exactly one envelope. `data` is the export, and `messag
 | Not allowed to read the project | `forbidden` | `3` |
 | Project missing or in another workspace | `not_found` | `6` |
 | `schema_version` is not `tose.dev/project-export/v1` | `ERROR` | `1` |
-| The response is malformed | `ERROR` | `1` |
+| The response is malformed: a field is missing or has the wrong type, `generated_at` is not a date-time, an `env_keys` entry is not a variable name, or `artifact.image_digest` is not an image pinned by OCI digest | `ERROR` | `1` |
 
-For an unsupported `schema_version` the message tells you to update the CLI (`npm i -g @tosesh/tose`). Nothing from the export is printed in that case. Every exit code is listed in the [commands overview](/commands/overview#exit-codes).
+For an unsupported `schema_version` the message tells you to update the CLI (`npm i -g @tosesh/tose`). Nothing from the export is printed in that case, and nothing is printed for a malformed response either: the CLI refuses it instead of showing part of it. Every exit code is listed in the [commands overview](/commands/overview#exit-codes).
 
 ## Related
 

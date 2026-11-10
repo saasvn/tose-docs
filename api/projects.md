@@ -441,6 +441,8 @@ The response carries an `apply` object next to the usual result. The change is s
 | `deployment_id`, `status` | The deployment the rollout recorded, when applied |
 | `code`, `reason` | Why it was not applied: `NO_DEPLOYMENT` (no successful deployment yet), `NO_SERVER`, `INSUFFICIENT_BALANCE`, `ROLLOUT_FAILED` and similar. Redeploy to retry |
 
+Two codes mean another operation got in the way. `REDEPLOY_BUSY`: a deployment or stop of the project is already in progress. `ROLLOUT_REPLACED`: the rollout was replaced or stopped before it finished. The change is saved in both cases: wait for the other operation, then redeploy. The standalone `POST .../redeploy` route returns these as HTTP `409`; an env request that already saved its edit keeps its normal write status and reports the code under `apply` with `applied: false`.
+
 Apply needs the same rights as a redeploy: the `owner` or `admin` role, the `deployments:execute`
 scope for an API key, approval for a connected OAuth app, and a positive wallet balance. When one is
 missing, the request is refused before anything is saved:
