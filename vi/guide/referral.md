@@ -119,5 +119,5 @@ Dành cho quản trị viên và moderator TOSE.
 
 ## Xem thêm
 
-- [Blog, widget và MCP biên tập (trạng thái)](./blog-and-editorial-mcp)
+- [Đăng blog qua MCP](./blog-and-editorial-mcp)
 - [Bảng giá](./pricing)

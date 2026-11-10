@@ -49,6 +49,8 @@ export default defineConfig({
               { text: 'tose up', link: '/commands/up' },
               { text: 'tose deploy / redeploy', link: '/commands/deploy' },
               { text: 'tose deployment', link: '/commands/deployment' },
+              { text: 'tose ci', link: '/commands/ci' },
+
               { text: 'tose runbook', link: '/commands/runbook' },
               { text: 'tose status', link: '/commands/status' },
               { text: 'tose logs', link: '/commands/logs' },
@@ -57,13 +59,13 @@ export default defineConfig({
               { text: 'tose env', link: '/commands/env' },
               { text: 'tose domain', link: '/commands/domain' },
               { text: 'tose db', link: '/commands/db' },
+              { text: 'tose export', link: '/commands/export' },
               { text: 'tose skills', link: '/commands/skills' },
               { text: 'tose feedback', link: '/commands/feedback' },
               { text: 'tose desktop', link: '/commands/desktop' },
               { text: 'tose template', link: '/commands/template' },
+              { text: 'tose sidecars', link: '/commands/sidecars' },
               { text: 'tose disk / volumes / pricing', link: '/commands/disk' },
-              { text: 'tose export', link: '/commands/export' },
-
               { text: 'tose autoscaling', link: '/commands/autoscaling' },
               { text: 'tose generate', link: '/commands/generate' }
             ]
@@ -82,6 +84,7 @@ export default defineConfig({
               { text: 'Deploy a coding agent', link: '/guide/deploy-coding-agent' },
               { text: 'Autoscaling budgets', link: '/guide/autoscaling-budgets' },
               { text: 'Recovery runbooks', link: '/guide/recovery-runbooks' },
+              { text: 'Project Sidecars', link: '/guide/project-sidecars' },
               { text: 'Dewee Template Runbook', link: '/guide/dewee-template' },
               { text: 'Template registry (early access)', link: '/guide/template-registry' },
               { text: 'Registry templates: probes and upgrade', link: '/guide/template-upgrades' },
@@ -100,7 +103,7 @@ export default defineConfig({
               { text: 'Link an earlier enquiry', link: '/guide/link-enquiry' },
               { text: 'CI artifacts, reports and issue drafts', link: '/guide/ci-artifacts' },
               { text: 'CI triggers and fork approval', link: '/guide/ci-triggers-and-forks' },
-              { text: 'Blog and editorial MCP (planned)', link: '/guide/blog-and-editorial-mcp' }
+              { text: 'Blog publishing via MCP', link: '/guide/blog-and-editorial-mcp' }
             ]
           },
           {
@@ -191,6 +194,8 @@ export default defineConfig({
               { text: 'tose up', link: '/vi/commands/up' },
               { text: 'tose deploy / redeploy', link: '/vi/commands/deploy' },
               { text: 'tose deployment', link: '/vi/commands/deployment' },
+              { text: 'tose ci', link: '/vi/commands/ci' },
+
               { text: 'tose runbook', link: '/vi/commands/runbook' },
               { text: 'tose status', link: '/vi/commands/status' },
               { text: 'tose logs', link: '/vi/commands/logs' },
@@ -199,13 +204,13 @@ export default defineConfig({
               { text: 'tose env', link: '/vi/commands/env' },
               { text: 'tose domain', link: '/vi/commands/domain' },
               { text: 'tose db', link: '/vi/commands/db' },
+              { text: 'tose export', link: '/vi/commands/export' },
               { text: 'tose skills', link: '/vi/commands/skills' },
               { text: 'tose feedback', link: '/vi/commands/feedback' },
               { text: 'tose desktop', link: '/commands/desktop' },
               { text: 'tose template', link: '/vi/commands/template' },
+              { text: 'tose sidecars', link: '/vi/commands/sidecars' },
               { text: 'tose disk / volumes / pricing', link: '/vi/commands/disk' },
-              { text: 'tose export', link: '/vi/commands/export' },
-
               { text: 'tose autoscaling', link: '/vi/commands/autoscaling' },
               { text: 'tose generate', link: '/vi/commands/generate' }
             ]
@@ -224,6 +229,7 @@ export default defineConfig({
               { text: 'Triển khai coding agent', link: '/vi/guide/deploy-coding-agent' },
               { text: 'Ngân sách autoscaling', link: '/vi/guide/autoscaling-budgets' },
               { text: 'Runbook khôi phục', link: '/vi/guide/recovery-runbooks' },
+              { text: 'Sidecar của dự án', link: '/vi/guide/project-sidecars' },
               { text: 'Runbook template Dewee', link: '/vi/guide/dewee-template' },
               { text: 'Template registry (truy cập sớm)', link: '/vi/guide/template-registry' },
               { text: 'Template registry: probe và nâng cấp', link: '/vi/guide/template-upgrades' },
@@ -242,7 +248,7 @@ export default defineConfig({
               { text: 'Liên kết yêu cầu trước đó', link: '/vi/guide/link-enquiry' },
               { text: 'Artifact CI, báo cáo và bản nháp issue', link: '/vi/guide/ci-artifacts' },
               { text: 'Trigger CI và duyệt fork', link: '/vi/guide/ci-triggers-and-forks' },
-              { text: 'Blog và MCP biên tập (dự kiến)', link: '/vi/guide/blog-and-editorial-mcp' }
+              { text: 'Đăng blog qua MCP', link: '/vi/guide/blog-and-editorial-mcp' }
             ]
           },
           {

@@ -141,6 +141,24 @@ thử lại.
 
 Mọi status lỗi khác dùng mã `http_<status>`.
 
+### Mã xác minh email {#email-verification-codes}
+
+Do `POST /auth/email/verification` (gửi link, chỉ phiên đã đăng nhập) và
+`POST /auth/email/verify` (dùng link, công khai) trả về.
+
+| Mã | Status | Ý nghĩa |
+|----|--------|---------|
+| `rate_limited` | `429` | Link vừa được gửi chưa tới một phút, hoặc hôm nay đã gửi năm lần. Hãy theo `Retry-After`. |
+| `email_unavailable` | `503` | Bản cài đặt chưa cấu hình nhà cung cấp email. |
+| `email_send_failed` | `503` | Không gửi được email. Không có link nào được giữ lại. Hãy thử lại sau. |
+| `provider_verified` | `409` | Tài khoản Google hoặc GitHub: nhà cung cấp đã bảo chứng địa chỉ. |
+| `invalid_token` | `400` | Link không hợp lệ. |
+| `token_used` | `410` | Link đã được sử dụng. |
+| `token_expired` | `410` | Link cũ hơn 24 giờ hoặc đã bị link mới thay thế. Hãy gửi link mới. |
+| `email_changed` | `409` | Link được gửi tới địa chỉ mà tài khoản không còn dùng, hoặc tài khoản không còn mật khẩu. |
+
+Xem [Xác nhận email](/vi/guide/installation#confirm-your-email).
+
 ## Mã lỗi upstream của GitHub
 
 Các route gọi GitHub thay bạn báo lỗi bằng một trong các mã dưới đây, thay cho `upstream_error` hoặc `unavailable` chung chung. Phản hồi không bao giờ chứa nội dung lỗi gốc của GitHub vì nó có thể có URL và ID installation. Hãy rẽ nhánh theo `code` và `details.reason`. Chúng áp dụng cho `GET /api/github/repos` (khi có `installation_id`), `GET /api/github/repos/{owner}/{repo}/branches`, và bước kiểm tra repository khi tạo project hoặc kết nối Git. Xem [GitHub API](/vi/api/github).

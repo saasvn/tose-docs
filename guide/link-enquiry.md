@@ -15,13 +15,14 @@ The card is hidden when linking is not available for your account or on your TOS
 
 ## Who can use it
 
-Only accounts whose email was **verified by the sign-in provider** can link:
+Only accounts with a **verified email** can link:
 
 | How you signed in | Can link? |
 |---|---|
 | Google, with a verified email | Yes |
 | GitHub, with an address on GitHub's verified list | Yes |
-| Email and password | No. These accounts get `409 email_not_verified`. |
+| Email and password, after you [confirm your email](/guide/installation#confirm-your-email) | Yes |
+| Email and password, before you confirm | No. These accounts get `409 email_not_verified`. |
 
 The check runs at every Google or GitHub sign-in. If the provider stops reporting your email as verified, the card is hidden on the Projects page and you cannot authorize again until it does. If you already have an authorization, the Settings card stays visible so you can withdraw it.
 
@@ -74,7 +75,7 @@ Linking is account-level and session-only. API keys and OAuth grants, including 
 |---|---|
 | `400 consent_required` | The request did not say `authorize: true` |
 | `400 consent_outdated` | The consent text changed. Reload and agree again |
-| `409 email_not_verified` | The account email was not verified by the sign-in provider |
+| `409 email_not_verified` | The account email is not verified yet. Confirm it from Settings, or sign in with a provider that verified it |
 | `502 lead_signal_failed` | tose.sh could not be reached. The attempt is retried |
 | `503 lead_link_unavailable` | Linking is not enabled on this installation |
 

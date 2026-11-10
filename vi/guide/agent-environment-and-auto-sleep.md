@@ -4,7 +4,7 @@ Trang này giải thích các biến môi trường bạn có thể thêm cho m�
 
 ## Trên trang triển khai {#on-the-deploy-page}
 
-Dashboard triển khai các agent này trên một trang duy nhất. Các thẻ, kế hoạch hiển thị trực tiếp và nút **Triển khai** được mô tả ở [Triển khai một coding agent](https://docs.tose.sh/vi/guide/deploy-coding-agent#deploy-an-agent). Hai thiết lập của trang đó được giải thích ở đây:
+Dashboard triển khai các agent này trên một trang duy nhất. Các thẻ, kế hoạch hiển thị trực tiếp và nút **Triển khai** được mô tả ở [Triển khai một coding agent](/vi/guide/deploy-coding-agent#deploy-an-agent). Hai thiết lập của trang đó được giải thích ở đây:
 
 - **Biến môi trường**, trong thẻ **Nâng cao: phiên bản, model và biến môi trường**: xem [Biến môi trường riêng của bạn](#your-own-environment-variables).
 - **Tự động ngủ khi không hoạt động**, trong thẻ **Cấu hình**: xem [Tự động ngủ cho agent nhàn rỗi](#auto-sleep-for-idle-agents).

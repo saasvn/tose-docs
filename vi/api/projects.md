@@ -40,6 +40,30 @@ Thay đổi có hiệu lực ở lần deploy tiếp theo. Dự án có [ổ đ�
 | `400` | `status` không hợp lệ, slug sai định dạng, dự án có ổ đĩa bền vững mà bạn tăng `replicas` trên `1` hoặc đổi `server_id`, hoặc server không hợp lệ với workspace |
 | `409` | Slug đã được dùng trong workspace |
 
+## Sidecar {#sidecars}
+
+`POST /api/workspaces/{slug}/projects` và endpoint cập nhật ở trên cũng nhận danh sách `sidecars`: tối đa ba container phụ chạy trong mọi pod của dự án tiêu chuẩn. Sidecar không phải dịch vụ công khai riêng. Quy tắc từng trường, ví dụ digest ghim và chi tiết vận hành nằm ở hướng dẫn: [Sidecar của dự án](/vi/guide/project-sidecars).
+
+| Yêu cầu | Kết quả |
+|---------|--------|
+| Tạo, bỏ trống `sidecars` | Không có sidecar |
+| Cập nhật, bỏ trống `sidecars` hoặc `null` | Giữ nguyên danh sách đã lưu |
+| Cập nhật với `"sidecars": []` | Xoá toàn bộ sidecar. Luôn được phép, kể cả khi sidecar bị tắt |
+| Cập nhật với danh sách không rỗng | Thay thế danh sách đã lưu. Cần bật sidecar cho workspace |
+
+Mọi phản hồi dự án đều có `sidecars` (`[]` khi không có). Lưu thay đổi ảnh hưởng **lần deploy tiếp theo**, không ảnh hưởng pod đang chạy.
+
+| Status | Mã |
+|--------|-------|
+| `400` | `INVALID_SIDECAR`, `IMAGE_DIGEST_REQUIRED`, `INVALID_IMAGE_REFERENCE` |
+| `403` | `SIDECARS_DISABLED`. Redeploy dự án có sidecar đã lưu trong workspace không được phép cũng nhận `403`; rollback trực tiếp khi còn sidecar đang chạy nhận `409` cùng mã; deploy và deploy image được nhận rồi mới thất bại, lý do nằm trong log deploy |
+| `422` | `SIDECAR_ENV_MISSING` và `SIDECAR_DISK_MISSING` (`409` khi redeploy), `SIDECAR_IMAGE_FORBIDDEN`, `REGISTRY_CREDENTIAL_NOT_FOUND`, `REGISTRY_CREDENTIAL_HOST_MISMATCH`, `REGISTRY_ACCESS_DENIED`, `IMAGE_NOT_FOUND` |
+| `502` | `REGISTRY_UNAVAILABLE` |
+| `500` | `REGISTRY_CREDENTIAL_UNREADABLE` |
+| `503` | `ENCRYPTION_UNAVAILABLE` |
+
+`GET .../logs` và `GET .../live-logs` nhận `container=<tên sidecar>`, còn `GET .../status` liệt kê mọi container của từng pod và trả tổng mỗi replica của cấu hình đã lưu trong `pod_total`. Xuất dự án có sidecar trả `409 SIDECARS_NOT_PORTABLE`. Schema là `ProjectSidecar` trong [spec OpenAPI](https://api.tose.sh/api/openapi.yaml).
+
 ## Giới hạn tiến trình {#process-limit}
 
 ```http
@@ -417,6 +441,8 @@ Phản hồi có thêm đối tượng `apply` bên cạnh kết quả thông th
 | `deployment_id`, `status` | Deployment mà lần triển khai ghi nhận, khi đã áp dụng |
 | `code`, `reason` | Lý do chưa áp dụng: `NO_DEPLOYMENT` (chưa có deployment thành công), `NO_SERVER`, `INSUFFICIENT_BALANCE`, `ROLLOUT_FAILED` và tương tự. Hãy redeploy để thử lại |
 
+Hai mã cho biết một thao tác khác đang chen vào. `REDEPLOY_BUSY`: dự án đang có một lần deploy hoặc dừng chạy. `ROLLOUT_REPLACED`: lần triển khai bị thay thế hoặc bị dừng trước khi hoàn tất. Cả hai trường hợp thay đổi đều đã được lưu: hãy chờ thao tác kia xong rồi redeploy. Route `POST .../redeploy` độc lập trả các mã này với HTTP `409`; yêu cầu sửa env đã lưu thay đổi giữ nguyên status ghi thông thường và báo mã trong `apply` kèm `applied: false`.
+
 Apply cần cùng quyền với redeploy: vai trò `owner` hoặc `admin`, scope `deployments:execute` với API
 key, phê duyệt với ứng dụng OAuth được kết nối, và số dư ví dương. Nếu thiếu một điều kiện, yêu cầu bị
 từ chối trước khi lưu bất cứ thứ gì:
@@ -442,3 +468,5 @@ deployment tạo trước khi có trường này, và sau khi rollback bằng ru
 - [`tose deployment rollback`](/vi/commands/deployment#tose-deployment-rollback)
 - [Hướng dẫn xuất dự án](https://github.com/saasvn/tose-app/blob/master/docs/portable-project-export.md): bài khôi phục thử với Docker và Kubernetes
 - [Tài liệu OpenAPI của backend](https://github.com/saasvn/tose-app/blob/master/internal/apispec/openapi.yaml)
+
+- [Sidecar của dự án](/vi/guide/project-sidecars)

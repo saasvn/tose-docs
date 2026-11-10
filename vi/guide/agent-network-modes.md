@@ -59,7 +59,7 @@ Phát triển (giới hạn) thu hẹp phạm vi truy cập của agent, nhưng 
 
 - **Cho phép theo tên, không theo trang.** Cluster cho phép các địa chỉ mà một tên phân giải ra và không kiểm tra tên máy chủ TLS. Các trang khác dùng chung địa chỉ CDN (ví dụ Cloudflare hoặc Fastly) vẫn có thể phản hồi. Chế độ Chỉ nhà cung cấp mô hình cũng có mức phơi nhiễm tương tự qua các máy chủ của nhà cung cấp.
 - **Một số máy chủ trong danh sách nhận upload.** `github.com` và `registry.npmjs.org` nhận upload. Agent không tự giữ thông tin xác thực GitHub hay npm, nhưng một token bạn dán vào phiên, hoặc token bị prompt injection cài vào, cho phép nó `git push` hoặc `npm publish` dữ liệu ra ngoài.
-- **Repository riêng tư dùng tính năng tải kho mã, không dùng chế độ này.** Tính năng tải kho GitHub đã được phát hành: kế hoạch có thể ghim một kho mã của workspace, riêng tư hoặc công khai, và TOSE clone nó vào `/workspace` mà không đưa token GitHub cho agent. Xem [Kho mã GitHub cho coding agent](https://docs.tose.sh/vi/guide/agent-repository-checkout).
+- **Repository riêng tư dùng tính năng tải kho mã, không dùng chế độ này.** Tính năng tải kho GitHub đã được phát hành: kế hoạch có thể ghim một kho mã của workspace, riêng tư hoặc công khai, và TOSE clone nó vào `/workspace` mà không đưa token GitHub cho agent. Xem [Kho mã GitHub cho coding agent](/vi/guide/agent-repository-checkout).
 - Agent có nhận khóa hoặc phiên đăng nhập của nhà cung cấp mô hình của bạn, nên hãy coi mọi thứ agent đọc được là thứ nó có thể gửi tới một máy chủ được cho phép.
 
 ## Liên quan
