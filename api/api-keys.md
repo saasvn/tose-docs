@@ -8,7 +8,7 @@ For how to send a key with a request, see [Authentication](/api/authentication).
 
 - A key belongs to **one workspace**, the one it was created in. It can read and change that workspace and nothing else.
 - A key never gains account-level or platform-level power, even when the person who created it is a platform admin. See [Routes that reject API keys](#routes-that-reject-api-keys).
-- TOSE checks the creator's workspace membership on every request. If the person is removed from the workspace, or demoted, their keys lose that access at once.
+- TOSE checks the creator's workspace membership on every request. If the person is demoted, their keys lose that access at once. If the person is removed from the workspace, the keys they created there are revoked. They stay revoked if the person is invited back, so anything that used them (a CI job, for example) needs a new key.
 - A request for any other workspace is refused with `403`.
 
 ## Create a key
