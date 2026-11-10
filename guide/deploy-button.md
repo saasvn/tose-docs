@@ -117,7 +117,7 @@ When TOSE finds no match, the form explains what is missing and offers three act
 - **Install or configure the GitHub App** opens GitHub so the visitor can give the TOSE GitHub App access to the account that owns the fork.
 - **Check again** reads the connected GitHub accounts again, without leaving the form, and looks for the repository and the fork once more.
 
-The fork lookup reads at most 10 forks per GitHub account, same-named forks first,; a fork beyond that limit may not be found. Looking for a repository changes nothing: the form is submitted only when the visitor presses **Create Project**.
+The fork lookup reads at most 10 forks per GitHub account, same-named forks first; a fork beyond that limit may not be found. Looking for a repository changes nothing: the form is submitted only when the visitor presses **Create Project**.
 
 ### Cost and the wallet {#cost-and-wallet}
 
