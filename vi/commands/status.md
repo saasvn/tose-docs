@@ -67,6 +67,10 @@ Sức khỏe:
 | Failed | ❌ | Triển khai thất bại |
 | Stopped | ⏸️ | Đã dừng thủ công |
 
+## Giới hạn tiến trình
+
+Khi bên vận hành hệ thống TOSE đã khai báo giới hạn tiến trình (PID) theo Pod, `tose status --json` trả về nó ở `data.resources.pids.limit`. Đầu ra dạng văn bản không in giá trị này. Giới hạn dùng chung cho container của dự án và các sidecar, là khai báo chứ không phải kiểm tra trực tiếp, và thiếu trường nghĩa là chưa biết giới hạn, không nhất thiết là không giới hạn. Xem [API dự án](/vi/api/projects#process-limit).
+
 ## Lệnh liên quan
 
 - [`tose up`](/vi/commands/up) - Triển khai ứng dụng

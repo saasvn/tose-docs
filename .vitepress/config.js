@@ -48,6 +48,7 @@ export default defineConfig({
               { text: 'tose desktop', link: '/commands/desktop' },
               { text: 'tose template', link: '/commands/template' },
               { text: 'tose disk / volumes / pricing', link: '/commands/disk' },
+              { text: 'tose autoscaling', link: '/commands/autoscaling' },
               { text: 'tose generate', link: '/commands/generate' }
             ]
           },
@@ -59,11 +60,15 @@ export default defineConfig({
               { text: 'Git Integration', link: '/guide/git' },
               { text: 'Dockerfile Examples', link: '/guide/dockerfile' },
               { text: 'Persistent Disks', link: '/guide/persistent-disks' },
+              { text: 'Autoscaling budgets', link: '/guide/autoscaling-budgets' },
               { text: 'Dewee Template Runbook', link: '/guide/dewee-template' },
               { text: 'Template registry (early access)', link: '/guide/template-registry' },
+              { text: 'Pi model providers', link: '/guide/agent-pi-providers' },
               { text: 'Pricing', link: '/guide/pricing' },
+              { text: 'Agent Runtime pricing', link: '/guide/agent-runtime-pricing' },
               { text: 'Self-hosting', link: '/guide/self-hosting' },
               { text: 'Referral program', link: '/guide/referral' },
+              { text: 'Link an earlier enquiry', link: '/guide/link-enquiry' },
               { text: 'Blog and editorial MCP (planned)', link: '/guide/blog-and-editorial-mcp' }
             ]
           },
@@ -101,17 +106,20 @@ export default defineConfig({
               { text: 'Authentication', link: '/api/authentication' },
               { text: 'API Keys & Scopes', link: '/api/api-keys' },
               { text: 'Audit Log', link: '/api/audit' },
+              { text: 'Feedback', link: '/api/feedback' },
               { text: 'MCP Connector', link: '/mcp' },
               { text: 'Errors', link: '/api/errors' },
               { text: 'Sign-up Attribution', link: '/api/signup-attribution' },
               { text: 'Desktops', link: '/api/desktops' },
               { text: 'Runtimes', link: '/api/runtimes' },
+              { text: 'Agent usage and budgets', link: '/api/agent-usage' },
               { text: 'Projects', link: '/api/projects' },
               { text: 'GitHub', link: '/api/github' },
               { text: 'Templates', link: '/api/templates' },
               { text: 'Template registry', link: '/api/template-registry' },
               { text: 'Template deploy and resume', link: '/api/template-deploy' },
-              { text: 'Disks, Volumes & Pricing', link: '/api/disks' }
+              { text: 'Disks, Volumes & Pricing', link: '/api/disks' },
+              { text: 'Autoscaling budget', link: '/api/autoscaling-budget' }
             ]
           }
         ]
@@ -157,6 +165,7 @@ export default defineConfig({
               { text: 'tose desktop', link: '/commands/desktop' },
               { text: 'tose template', link: '/vi/commands/template' },
               { text: 'tose disk / volumes / pricing', link: '/vi/commands/disk' },
+              { text: 'tose autoscaling', link: '/vi/commands/autoscaling' },
               { text: 'tose generate', link: '/vi/commands/generate' }
             ]
           },
@@ -168,11 +177,15 @@ export default defineConfig({
               { text: 'Tích hợp Git', link: '/vi/guide/git' },
               { text: 'Ví dụ Dockerfile', link: '/vi/guide/dockerfile' },
               { text: 'Ổ đĩa bền vững', link: '/vi/guide/persistent-disks' },
+              { text: 'Ngân sách autoscaling', link: '/vi/guide/autoscaling-budgets' },
               { text: 'Runbook template Dewee', link: '/vi/guide/dewee-template' },
               { text: 'Template registry (truy cập sớm)', link: '/vi/guide/template-registry' },
+              { text: 'Nhà cung cấp model cho Pi', link: '/vi/guide/agent-pi-providers' },
               { text: 'Bảng giá', link: '/vi/guide/pricing' },
+              { text: 'Giá Agent Runtime', link: '/vi/guide/agent-runtime-pricing' },
               { text: 'Tự host', link: '/vi/guide/self-hosting' },
               { text: 'Chương trình giới thiệu', link: '/vi/guide/referral' },
+              { text: 'Liên kết yêu cầu trước đó', link: '/vi/guide/link-enquiry' },
               { text: 'Blog và MCP biên tập (dự kiến)', link: '/vi/guide/blog-and-editorial-mcp' }
             ]
           },
@@ -209,16 +222,19 @@ export default defineConfig({
               { text: 'Xác thực', link: '/vi/api/authentication' },
               { text: 'API key & Scope', link: '/vi/api/api-keys' },
               { text: 'Audit log', link: '/vi/api/audit' },
+              { text: 'Feedback', link: '/vi/api/feedback' },
               { text: 'MCP Connector', link: '/vi/mcp' },
               { text: 'Mã lỗi', link: '/vi/api/errors' },
               { text: 'Runtimes', link: '/vi/api/runtimes' },
+              { text: 'Usage và hạn mức agent', link: '/vi/api/agent-usage' },
               { text: 'Dự án', link: '/vi/api/projects' },
               { text: 'GitHub', link: '/vi/api/github' },
               { text: 'Template', link: '/vi/api/templates' },
               { text: 'Template registry', link: '/vi/api/template-registry' },
               { text: 'Attribution khi đăng ký', link: '/vi/api/signup-attribution' },
               { text: 'Deploy và resume template', link: '/vi/api/template-deploy' },
-              { text: 'Ổ đĩa, Volume & Bảng giá', link: '/vi/api/disks' }
+              { text: 'Ổ đĩa, Volume & Bảng giá', link: '/vi/api/disks' },
+              { text: 'API ngân sách autoscaling', link: '/vi/api/autoscaling-budget' }
             ]
           }
         ],
