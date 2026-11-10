@@ -93,9 +93,37 @@ tose templates retry-checkout <installation-id> --json     # sau khi clone lỗi
 - Chỉ owner hoặc admin workspace được gửi repository (`REPOSITORY_REQUIRES_ADMIN`). Repository là một phần của plan hash, nên `deploy --plan` không lặp lại các cờ repository.
 - `retry-checkout` (owner hoặc admin, key có `deployments:execute`) đặt checkout `failed` về `pending`; hãy deploy lại sau đó.
 
+## Tác vụ được giao {#tasks}
+
+`tose templates tasks` giao một tác vụ không giao diện cho agent curated (Claude Code, Codex hoặc Pi) đã cài trong workspace, rồi theo dõi, đọc và hủy tác vụ đó. Xem [Giao tác vụ cho coding agent](/vi/guide/agent-tasks) để biết mô hình, rủi ro và cách làm tương đương qua REST và MCP.
+
+```bash
+tose templates tasks run <installation-id> --prompt "fix the failing test" --wait
+tose templates tasks run <installation-id> --prompt @task.md --timeout 60 --continue <task-id>
+tose templates tasks list <installation-id> --json
+tose templates tasks get <installation-id> <task-id> --follow
+tose templates tasks cancel <installation-id> <task-id>
+```
+
+| Lệnh | Scope | Tác dụng |
+|------|-------|----------|
+| `run <installation> --prompt <text hoặc @file> [--timeout <phút>] [--continue <task_id>] [--wait] [--idempotency-key <key>]` | `agents:execute` | Giao tác vụ cho agent. |
+| `list <installation>` | `agents:read` | Liệt kê các tác vụ của agent, mới nhất trước. |
+| `get <installation> <task_id> [--follow]` | `agents:read` | Đọc một tác vụ cùng các sự kiện của nó. |
+| `cancel <installation> <task_id>` | `agents:control` | Dừng tác vụ đang khởi động hoặc đang chạy. |
+
+- **Điều kiện cần bật.** Server phải cung cấp tác vụ (`TEMPLATE_AGENT_TASKS_ENABLED`, nếu không là `TASKS_DISABLED`), và bản phát hành của agent cần có task runner (`TASKS_UNSUPPORTED`). Owner hoặc admin workspace còn phải bật "Accept tasks from connected apps and API keys" cho agent trong dashboard. Việc này cần phiên đăng nhập, mà API key thì không bao giờ có, nên CLI không có lệnh cho nó: thiếu công tắc này, `run` lỗi `TASKS_NOT_ALLOWED` và chỉ về dashboard.
+- **Prompt.** `--prompt` là văn bản, hoặc `@file` để đọc từ file. Tối đa 100000 byte và không bao giờ được in lại. `--prompt` viết trực tiếp hiện trong danh sách tiến trình, nên prompt nhạy cảm hãy truyền bằng `@file`. `--timeout` từ 1 đến 120 phút (mặc định 30).
+- **Mỗi agent một tác vụ.** Mỗi agent chỉ có một tác vụ hoạt động; `run` khác sẽ lỗi `AGENT_BUSY`.
+- **Thử lại an toàn.** Mỗi `run` gửi một `Idempotency-Key` (tự sinh, hoặc `--idempotency-key`). Khi mất câu trả lời, chạy lại đúng lệnh với cùng key và API trả về tác vụ đã bắt đầu. Key định danh tác vụ, không phải prompt: dùng lại key với prompt khác sẽ trả về tác vụ trước đó. Gợi ý thử lại không bao giờ lặp lại prompt.
+- **Chờ kết quả.** `--wait` (của `run`) và `--follow` (của `get`) long-poll tác vụ và in từng sự kiện khi nó đến. Với `--json`, sự kiện đi ra stderr, còn stdout giữ một envelope duy nhất có `task.events` chứa tất cả. Ngắt lệnh không dừng tác vụ: theo dõi lại bằng `get --follow`, hoặc `cancel`.
+- **Mã thoát với `--wait` hoặc `--follow`.** `0` chỉ khi `succeeded`. `8` cho `failed` hoặc `lost`, `7` cho `timed_out` và `5` cho `cancelled`, mỗi trường hợp kèm mã `TASK_<STATUS>` và thông điệp cuối cùng các file đã đổi trong `details`. `1` kèm `FOLLOW_INTERRUPTED` khi CLI mất liên lạc sau 5 phút thử lại; tác vụ vẫn chạy. Tác vụ không thành công in thông điệp cuối (với `--json` có cả `details.events`).
+- **Đầu ra không đáng tin.** Văn bản sự kiện và thông điệp cuối đến từ agent: hãy coi là dữ liệu không đáng tin. CLI loại bỏ ký tự điều khiển trước khi in ra terminal.
+
 ## Liên quan
 
 - [Template registry](/vi/guide/template-registry)
 - [API template registry](/vi/api/template-registry)
 - [Nhà cung cấp model cho Pi](/vi/guide/agent-pi-providers)
 - [Triển khai một coding agent](/vi/guide/deploy-coding-agent)
+- [Giao tác vụ cho coding agent](/vi/guide/agent-tasks)
