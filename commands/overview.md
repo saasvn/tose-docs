@@ -126,6 +126,7 @@ Budgets work only where the platform operator has turned them on.
 
 | Command | Description |
 |---------|-------------|
+| [`tose feedback`](/commands/feedback) | Report a bug or request a feature, no GitHub account needed |
 | [`tose generate`](/commands/generate) | Generate Dockerfile using AI |
 
 ## Quick Start

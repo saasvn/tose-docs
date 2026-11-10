@@ -238,3 +238,4 @@ git push origin my-branch
 - [tose up](/vi/commands/up)
 - [Biến môi trường](/vi/guide/environment)
 - [Cấu hình](/vi/guide/configuration)
+- [Nút Deploy on TOSE](/vi/guide/deploy-button) - Cho phép người truy cập deploy repository của bạn từ README hoặc website
