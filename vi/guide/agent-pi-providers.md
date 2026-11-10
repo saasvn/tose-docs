@@ -2,8 +2,8 @@
 
 **Pi** là một coding agent tuyển chọn trong **Template catalog** của TOSE. Pi dùng tài khoản của chính bạn tại nhà cung cấp model: bạn đưa API key của nhà cung cấp (hoặc dùng gói của họ) và nhà cung cấp tính phí trực tiếp cho bạn. Trang này liệt kê các nhà cung cấp Pi có thể dùng, mỗi bên cần gì, và sự khác nhau giữa những sản phẩm có tên gần giống nhau.
 
-::: warning Chưa khả dụng
-Bảy trong mười nhà cung cấp dưới đây bắt đầu từ bản phát hành Pi **1.1.0**, **chưa được phát hành**. Cho đến lúc đó, dashboard chỉ đưa Anthropic, OpenAI và Google cho Pi, và kế hoạch yêu cầu nhà cung cấp khác sẽ bị từ chối. Bản phát hành đã công bố là bất biến, nên **các cài đặt Pi hiện có không tự động được nâng cấp**; để dùng nhà cung cấp mới, hãy cài một app mới sau khi bản phát hành ra mắt.
+::: info Bản phát hành 1.1.0
+Cả mười nhà cung cấp dưới đây đều có từ bản phát hành Pi **1.1.0**, bản mặc định cho các Pi agent mới. Bản 1.0.0 vẫn còn trong danh sách và chỉ có Anthropic, OpenAI và Google. Bản phát hành đã công bố là bất biến, nên **các cài đặt Pi hiện có không tự động được nâng cấp**; để dùng nhà cung cấp mới, hãy cài một app mới.
 :::
 
 ## Nhà cung cấp
@@ -39,7 +39,13 @@ Hãy chọn đúng sản phẩm khớp với key và gói bạn có.
 - Đây **không phải secret**. Nó gồm 32 ký tự thập lục phân viết thường.
 - Kế hoạch bắt buộc có nó với nhà cung cấp này và từ chối nó với mọi nhà cung cấp khác.
 - Nó được lưu trong kế hoạch đã duyệt và trong cài đặt, giống lựa chọn nhà cung cấp. Đổi nó nghĩa là có kế hoạch mới và phải duyệt lại.
-- Agent tuyển chọn không có trình chỉnh sửa biến môi trường tổng quát.
+- Biến môi trường riêng của bạn là phần khác: xem [biến môi trường và tự động ngủ](/vi/guide/agent-environment-and-auto-sleep#your-own-environment-variables).
+
+## Công cụ lập trình và mạng
+
+Từ bản 1.1.0, image Pi có **Node.js với npm** và **uv cho Python**, và `/AGENTS.md` mô tả container cho Pi.
+
+Chế độ mạng **Development (restricted)** (`development`) của Pi mở thêm các host của git, npm và PyPI bên cạnh nhà cung cấp, giống Codex và Claude Code, nên `git clone`, `npm install` và `uv pip install` hoạt động. Chế độ mặc định **Chỉ nhà cung cấp** vẫn chỉ truy cập host của nhà cung cấp. Bản 1.0.0 không có công cụ lập trình, nên chế độ này mở các host đó cho nó mà không kèm công cụ.
 
 ## Thanh toán và model
 

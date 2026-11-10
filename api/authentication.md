@@ -9,7 +9,7 @@ Every request to the TOSE API carries exactly one credential. The API checks the
 | 3 | Session token | `tose_token` cookie | Browser sessions |
 
 ::: tip Limit what a key can do
-A key can be limited with scopes, and always belongs to one workspace. See [API Keys and Scopes](/api/api-keys). Every change made with a key is recorded in the [audit log](/api/audit).
+A key can be limited with scopes, and always belongs to one workspace. See [API Keys and Scopes](/api/api-keys). Every change made with a key is recorded in the [audit log](/api/audit). The support assistant in the dashboard uses a separate 5-minute [support token](/api/support-assistant) instead of a key.
 :::
 
 ## API keys
@@ -101,6 +101,8 @@ For a key with `projects:write` but not `deployments:execute`:
 | Connect Git to a project | Succeeds. No first deploy is queued and the connection is created with `auto_deploy` off. |
 | Create a project with a `git` block | Succeeds and returns `deploy_skipped` instead of `deployment_id` and `build_logs_url`. |
 | Turn `auto_deploy` on, or move the branch of an auto-deploying connection | Fails with `403 insufficient_scope` and `required_scope: deployments:execute`. |
+
+The CLI follows the same rule: `tose up` with such a key connects Git, starts no deployment and exits with `INSUFFICIENT_SCOPE`. Run [`tose deploy`](/commands/deploy) with a key that has `deployments:execute`. See [`tose up`](/commands/up#api-key-without-deployments-execute).
 
 Add `deployments:execute` to the key, or use a session, when Git pushes should deploy automatically.
 

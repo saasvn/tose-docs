@@ -4,7 +4,7 @@ This page covers how an MCP client connects to TOSE: which protocol revisions it
 
 ## Protocol revisions
 
-The server is stateless Streamable HTTP at `https://<your TOSE API host>/mcp`.
+The server is stateless Streamable HTTP at `https://app.tose.sh/mcp` on hosted TOSE. The OAuth issuer is `https://app.tose.sh`, and clients discover it from `/.well-known/oauth-protected-resource/mcp`. Self-hosted instances use their own origin; see [Self-hosted instances](#self-hosted-instances).
 
 | Revision | How a client reaches it |
 |----------|-------------------------|
@@ -56,13 +56,35 @@ Two desktop apps use a custom URL scheme instead of loopback. TOSE accepts exact
 | `logs:read` | `read_logs` | No |
 | `deployments:execute` | `deploy_project` | Yes |
 | `deployments:rollback` | `rollback_deployment` | Yes |
+| `env:read` | `list_project_env_keys`, `inspect_project_env`: variable names and whether each is set. Never a value. Off by default, see [Env metadata](#env-metadata-env-read). | No |
+| `env:write` | `plan_project_env_update`, `apply_project_env_update`: change variables after you supply the values and approve in TOSE. Off by default, owners and admins only, see [Env updates](#env-updates-env-write). | Yes |
 
-- Any other scope, including members, billing, environment variables, databases and infrastructure, is refused with `invalid_scope`.
+- Any other scope, including members, billing, databases and infrastructure, is refused with `invalid_scope`. `env:read` and `env:write` are the two environment scopes, and each is granted on its own. Platform administrators can also grant `blog:write` (see [Blog publishing through MCP](/guide/blog-and-editorial-mcp)).
 - A write scope is granted only when a workspace owner or admin ticks it on the consent page. It is removed on the next refresh if that person is demoted.
 - A refresh can narrow the scopes but never widen them.
-- `tools/list` shows only the tools your scopes allow: four read tools for a read-only connection, plus deploy and rollback with write scope.
+- `tools/list` shows only the tools your scopes allow: four read tools for a read-only connection, plus deploy and rollback with write scope. The two env metadata tools appear only with `env:read`, and the two env update tools only with `env:write`.
 
 Even with a write scope, every deploy and rollback still waits for you to approve the plan in your browser.
+
+### Env metadata (`env:read`)
+
+`env:read` lets a client tell a missing setting from a wrong one without ever seeing a value.
+
+- It is off by default. The consent page shows it with its own checkbox, and the connection gets it only when you tick that box. Leave the box unticked and the connection has no env access.
+- It is not part of `deployments:read` or `deployments:write`, so a deploy grant never carries it and existing connections do not gain it.
+- A refresh can narrow it but never add it. To add it later, connect again and tick the box.
+- Any workspace member can grant it for their own connection. Owners and admins see the real state of each variable; members see `unknown` (see [Env metadata tools](/mcp#env-metadata-tools)).
+- Membership is checked on every call, so losing your place in the workspace stops the connection at the next call.
+
+### Env updates (`env:write`)
+
+`env:write` lets a client change environment variables while you stay in control of every value.
+
+- It is off by default. The consent page shows it with its own checkbox, but only a workspace owner or admin can grant it: if a member ticks it, the consent fails and no connection is made. Leave the box unticked and the connection cannot plan or apply env changes.
+- It is separate from `env:read`. Unlike an API key's `env:write`, it does not include `env:read` and does not let the client list or inspect variables, so tick both boxes when the client needs both. It is also not part of `deployments:write`, so a deploy grant never carries it.
+- A refresh can narrow it but never add it. To add it later, connect again and tick the box.
+- The client sends operations and variable names. You supply any values in the signed-in TOSE form and approve there; the approval token alone does nothing. See [Env update tools](/mcp#env-update-tools).
+- The role is checked again when the plan is applied. If you were demoted, or the connection no longer holds the scope, the apply is refused.
 
 ## `insufficient_scope` step-up
 
@@ -78,6 +100,15 @@ Both are recorded in the audit history as `denied`.
 Requests from a browser carry an `Origin` header, and TOSE rejects origins it does not know before authenticating. `API_BASE_URL` and `FRONTEND_URL` are always allowed. Server-side clients send no `Origin` header and are not affected.
 
 To use a client that runs in a browser, such as a hosted MCP Inspector, the operator of the TOSE instance adds its origin to `MCP_ALLOWED_ORIGINS`, a comma-separated list. For a local Inspector, that is `http://localhost:6274`. Without it the client gets HTTP 403. 
+
+## Self-hosted instances
+
+The hosted connector is served from the dashboard host, `https://app.tose.sh`. A self-hosted instance that does the same sets both of these to one origin:
+
+- `MCP_PUBLIC_URL` on the API: the OAuth issuer, the MCP resource (`<origin>/mcp`) and the approval links.
+- `PUBLIC_MCP_URL` in the dashboard build: where the sign-in relay (`/connect/mcp`) sends users back.
+
+The proxy on that origin must forward these paths to the API: `/mcp`, `/oauth/`, `/.well-known/oauth-authorization-server`, `/.well-known/oauth-protected-resource` (including `/mcp`) and `/.well-known/jwks.json`. It must also overwrite `X-Real-IP` with the client address. The origin must be the dashboard host or covered by `COOKIE_DOMAIN`, because the consent page reads the sign-in cookie on it. Without `MCP_PUBLIC_URL`, the issuer and resource fall back to `API_BASE_URL`. The full settings table is in [`MCP-CONNECTOR.md`](https://github.com/saasvn/tose-app/blob/master/MCP-CONNECTOR.md).
 
 ## Client support
 

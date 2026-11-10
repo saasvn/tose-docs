@@ -365,3 +365,4 @@ git remote set-url origin https://github.com/username/repo.git
 - [tose up](/commands/up) - Deployment command
 - [Environment Variables](/guide/environment) - Managing env vars
 - [Configuration](/guide/configuration) - CLI configuration
+- [Deploy on TOSE button](/guide/deploy-button) - Let visitors deploy your repository from a README or website

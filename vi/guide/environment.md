@@ -121,7 +121,7 @@ API_KEY=****** (đã che)
 
 ### Giá trị bị che với member của workspace
 
-`member` của workspace không nhận được giá trị biến môi trường: API trả `********` (danh sách env của project) hoặc `***` (danh sách env của template) thay cho giá trị. Chỉ `admin` và `owner` mới thấy giá trị. CLI không bao giờ ghi hoặc gửi các placeholder này như một giá trị thật:
+`member` của workspace không nhận được giá trị biến môi trường: API trả `********` (danh sách env của project) hoặc `***` (danh sách env của template) thay cho giá trị. Chỉ `admin` và `owner` mới thấy giá trị. Dashboard theo cùng quy tắc: ở trang dự án và trang template, member thấy "Hidden" thay cho placeholder, và các thao tác thêm, sửa, xóa, export, copy bị ẩn. Chỉ owner và admin mới xem hoặc đổi được giá trị env. CLI không bao giờ ghi hoặc gửi các placeholder này như một giá trị thật:
 
 - `tose env pull` bỏ qua các key bị che (hiện trong `skipped_masked` khi dùng `--json`), giữ nguyên giá trị mà file local đã có cho các key đó, và thất bại mà không ghi file khi mọi giá trị đều bị che (`FORBIDDEN`, mã thoát `1`).
 - `tose env push`, `tose env set` và `tose template env set` từ chối giá trị là placeholder đã che và không gửi gì (`VALIDATION_ERROR`, mã thoát `2`).
@@ -293,7 +293,7 @@ Khi các biến đã lưu khác với biến mà deployment đang chạy đượ
   `/api/workspaces/{slug}/projects/{project_slug}/env[/{env_id}]`, hoặc vào `PUT .../env/bulk`.
   Thay đổi được lưu rồi triển khai qua cùng đường với `POST .../redeploy`. Xem
   [Biến môi trường và apply](/vi/api/projects#environment-variables).
-- **CLI:** `tose redeploy` áp dụng các biến đã lưu. CLI chưa có cờ để lưu và áp dụng trong một lệnh.
+- **CLI:** thêm `--apply` vào `tose env set`, `tose env rm` hoặc `tose env push` để lưu và triển khai trong một lệnh, hoặc chạy `tose redeploy` để áp dụng các biến đã lưu trước đó. Xem [Lưu và áp dụng thay đổi](/vi/commands/env#saving-and-applying-changes).
 
 Áp dụng cần cùng quyền với redeploy: vai trò `owner` hoặc `admin` của workspace, scope
 `deployments:execute` với API key (ứng dụng OAuth được kết nối cần được phê duyệt), và số dư ví dương.

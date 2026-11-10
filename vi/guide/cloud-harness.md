@@ -49,7 +49,7 @@ Bạn cần:
 Trên dashboard:
 
 1. Mở **Ứng dụng đã cài** (Installed apps, nhóm **Ứng dụng & agent**) trong workspace và chọn **Tạo mẫu**.
-2. Chọn **Cloud Harness**. Thẻ này hiển thị chi phí của instance theo bậc số dư ví của bạn và số
+2. Chọn **Cloud Harness**. Thẻ này hiển thị chi phí của instance và số
    instance workspace đang có.
 3. Nhập tên và chọn kích thước: 1 hoặc 2 vCPU, RAM 2 GB hoặc 4 GB. Cloud Harness chỉ chấp nhận các
    kích thước này.
@@ -78,7 +78,7 @@ Instance tính phí theo mức sử dụng, không có phí mở khóa:
 - **Docker host** tính phí **theo giây khi đang thức** và **$0 khi đang nghỉ (cold)**.
 - **Cả hai ổ đĩa** tính phí theo giá lưu trữ chừng nào instance còn tồn tại, kể cả khi đang dừng.
 
-Giá chính xác phụ thuộc vào bậc số dư ví của bạn. Danh mục template tính sẵn các mức giá này, và
+Giá dùng mức compute tiêu chuẩn. Danh mục template tính sẵn các mức giá này, và
 dashboard hiển thị chúng trên thẻ Cloud Harness, còn giá docker host thì hiển thị trên trang
 instance. Xem [Bảng giá](/vi/guide/pricing#cloud-harness) để biết cách tính từng phần.
 

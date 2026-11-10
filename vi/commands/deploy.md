@@ -65,7 +65,7 @@ Run 'tose up' to connect your repository first.
 
 ### Lỗi: số dư ví không đủ
 
-Khi số dư ví của workspace bằng 0 hoặc âm, API từ chối `deploy`, `redeploy` và `rollback` với mã `402` và code `INSUFFICIENT_BALANCE`. Không có deployment nào được tạo. CLI thoát với mã `9`.
+Khi số dư ví của workspace bằng 0 hoặc âm, API từ chối `deploy`, `redeploy` và `rollback` với mã `402` và code `INSUFFICIENT_BALANCE`. Không có deployment nào được tạo. Tạo project mới (`tose up`, `tose init`) khi ví trống cũng bị từ chối theo cách này, với `402` thay cho `403` trước đây, và không project nào được tạo. CLI thoát với mã `9`.
 
 ```bash
 $ tose deploy
@@ -140,6 +140,12 @@ $ tose redeploy
 ### Lỗi: số dư ví không đủ
 
 `tose redeploy` và `tose rollback` bị từ chối giống `tose deploy`: mã thoát `9`, `error.code: "INSUFFICIENT_BALANCE"` và một mục `next_actions` có `url` nạp tiền. Hãy nạp ví rồi chạy lại lệnh.
+
+### Lỗi: redeploy hoặc rollback thất bại
+
+Nếu redeploy thất bại, ở cụm hoặc ở một bước trước đó như đọc server, secret hoặc ổ đĩa, API trả `500` kèm `Redeploy failed. See the server log for details.`. Message chung chung có chủ đích: lỗi của cụm có thể chứa chi tiết hạ tầng nên chỉ nằm trong log của server. Hãy chạy lại lệnh, và gửi `request_id` cho bộ phận hỗ trợ nếu vẫn lỗi.
+
+`tose rollback` chạy qua một runbook khôi phục. Với API key, API lưu kế hoạch và trả `409 APPROVAL_REQUIRED` kèm `approval_url`: owner hoặc admin của workspace mở link đó khi đã đăng nhập và phê duyệt kế hoạch, sau đó chạy kế hoạch bằng `tose runbook execute <plan_id>`. Lần chạy thất bại trả `409` với mã của lần chạy (`RUNBOOK_FAILED`, hoặc mã của bước bị lỗi, ví dụ `PLAN_STALE`) và kế hoạch trong `runbook`. Xem [`ROLLBACK_FAILED`](/vi/api/errors#ROLLBACK_FAILED).
 
 ## deploy so với redeploy
 

@@ -16,6 +16,7 @@ tose logs [options]
 | `--deployment <id>` | `-d` | Xem logs cho triển khai cụ thể |
 | `--lines <số>` | `-n` | Số dòng hiển thị (mặc định: 100) |
 | `--follow` | `-f` | Theo dõi logs thời gian thực |
+| `--container <tên>` | | Theo dõi một [sidecar](/vi/guide/project-sidecars) thay vì container chính của dự án. Chỉ áp dụng cho log trực tiếp: không kết hợp với `--build` hoặc `-d` |
 
 ## Sử dụng
 
@@ -36,6 +37,16 @@ tose logs --project my-app
 ```bash
 tose logs --follow
 ```
+
+### Theo dõi một sidecar
+
+Không có `--container`, CLI theo dõi container chính của dự án như trước. Truyền tên sidecar để theo dõi sidecar đó:
+
+```bash
+tose logs --follow --container otel-collector
+```
+
+Tên được kiểm tra cục bộ và mã hóa URL; container không tồn tại bị API từ chối với `400`. API key vẫn gửi qua header `X-API-Key`, không bao giờ nằm trong URL.
 
 ### Tùy chọn kết hợp
 

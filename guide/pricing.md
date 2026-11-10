@@ -9,15 +9,40 @@ The current rates are always available from [`tose pricing`](/commands/disk#tose
 
 ## Compute
 
-Compute is billed per hour for the CPU and RAM allocated to running workloads. The rate depends on your wallet balance:
+Compute is billed per hour for the CPU and RAM allocated to running workloads. Every workspace pays the same **standard rate**, whatever its wallet balance:
 
-| Wallet balance | CPU (per vCPU-hour) | RAM (per GB-hour) |
-|----------------|---------------------|-------------------|
-| Below $100 | $0.02 | $0.01 |
-| $100 or more | $0.014 | $0.007 |
-| $200 or more | $0.012 | $0.006 |
+| Resource | Rate |
+|----------|------|
+| CPU | $0.02 per vCPU-hour |
+| RAM | $0.01 per GB-hour |
+
+The price never changes as your balance goes up or down. Larger single top-ups earn [bonus credit](#top-up-bonus) instead. Disk pricing is described under [Storage](#storage).
+
+A project with [sidecars](/guide/project-sidecars) is billed for its own CPU and RAM plus the applied limits of its sidecars, per replica, at the same rates.
 
 Compute is billed **only while the workload is running**. Stopping a project (`tose down`), sleeping, or suspension stops compute billing.
+
+## Top-up bonus {#top-up-bonus}
+
+A single wallet top-up of $100 or more earns bonus credit, added on top of the amount you paid:
+
+| Single top-up | Bonus credit |
+|---------------|--------------|
+| $100 or more | +10% |
+| $250 or more | +15% |
+| $500 or more (**Most popular**) | +20% |
+| $1,000 or more | +25% |
+
+Rules:
+
+- **Per payment.** The band is chosen by the amount of one payment. Two $60 top-ups do not add up to a $120 top-up. A payment below $100 earns no bonus.
+- **Separate credit that does not expire.** The bonus is a separate `topup_bonus` entry in the wallet history, written once per payment, and it never expires.
+- **Wallet top-ups only.** The bonus is not granted on credit added by an administrator, on promotional credit, or on payments for a feature unlock.
+- **No stacking with promo codes.** A payment that has a promo code applied earns no top-up bonus. Choose the code or the bonus band for that payment.
+- **Refunds take the bonus back in proportion.** Refunding part of a payment takes back the same share of its bonus (rounded up, so a full refund takes back all of it). The debit never takes the balance below zero, so bonus you already spent is not recovered.
+- **No retroactive bonus.** Existing balances keep their value. The bonus is granted when a payment completes; it is never applied to earlier payments or existing balances.
+
+The bands are served by the public [`GET /api/billing/topup-bonus`](/api/disks#get-top-up-bonus) endpoint and by the `topup_bonus` block of [`GET /api/pricing`](/api/disks#get-pricing). Those are the source of truth if this page and the API ever disagree.
 
 ## Storage
 
@@ -76,15 +101,41 @@ dashboard shows on the Cloud Harness card:
 | `docker_host.usd_per_hour_cold` | Always `0` |
 | `storage.state_disk_gib`, `storage.runtime_disk_gib` | Disk sizes |
 | `storage.usd_per_month` | Both disks per month |
-| `compute_tiers` | Instance and docker host prices for each wallet balance tier |
 
-The hourly prices outside `compute_tiers` are for the lowest balance tier.
+Prices use the standard compute rate, so the catalog lists one price per item, not one per wallet balance.
 
 **Instance limit.** A workspace can hold a limited number of Cloud Harness instances: 5 by default,
 unless your TOSE installation sets another limit. The catalog entry's `max_instances` field shows it.
 An instance being deleted counts until its docker host is gone.
 
 Creating an instance and waking its docker host need a positive wallet balance.
+
+## CI jobs {#ci-jobs}
+
+::: info Availability
+TOSE CI is not generally available yet. This section describes how its jobs are billed once CI is enabled for your workspace.
+:::
+
+A CI job is billed from the workspace wallet at the base [compute](#compute) rates, 2.0 cents per vCPU-hour and 1.0 cent per GiB-hour of reserved memory, for the seconds its container ran. It is prepaid only: a job is refused before it starts when its worst case (requested CPU and memory for the full timeout), plus the worst case of the workspace's other running jobs, does not fit the balance after subtracting usage not yet billed and the CI carry below.
+
+- **Sub-cent carry.** Each job is charged in whole cents. The fraction of a cent left over goes into a separate CI carry on the wallet and is charged once it adds up to a whole cent, so a short job is not free just because it costs less than one cent. For example, a job with 1 vCPU and 2 GiB that runs for about 10 minutes costs about 0.667 cent: it charges nothing on its own, and two such jobs together charge 1 cent.
+- **Never more than the balance.** A job never charges more than the wallet balance. Compute that the balance could not pay is forgiven, not carried as debt.
+- **Forgiven at zero.** When the wallet balance reaches zero, by any debit, the CI carry is cleared. It is never collected after a later top-up.
+- **One transaction per job.** A job that charges at least one cent writes one `usage` wallet transaction with the reference type `ci_job`; a job that charges nothing writes none. Settling a job is idempotent, so a retry never charges it twice.
+
+## Cloud desktops {#cloud-desktops}
+
+A [cloud desktop](/guide/cloud-desktops) is billed **per second while it runs**, at the compute rates above for its CPU and RAM. A sleeping desktop has no compute charge; its disk is billed as [storage](#storage). Amounts are metered in nano-USD (1 USD = 1,000,000,000), so a short run is not rounded up to a whole hour or cent: the sub-cent remainder carries forward as described under [Sub-cent amounts](#sub-cent-amounts). Compute metered while the balance is zero is forgiven, not charged later.
+
+Waking a desktop needs a positive wallet balance. See [Cloud desktops](/guide/cloud-desktops#retention).
+
+## Cost reports {#cost-reports}
+
+```http
+GET /api/workspaces/{slug}/wallet/costs?days=30
+```
+
+Splits the metered cost of the last `days` days (default 30) by project, by resource and by UTC day, from the usage ledger. Amounts are in nano-USD (`compute_nano_usd`, `storage_nano_usd`, `total_nano_usd`). Each entry in `resources` has a `type`: `project`, `template`, `database`, `desktop`, `runtime`, `volume`, `ci_cache` (the CI dependency cache) or `other`. [Cloud Harness runtimes](/guide/cloud-harness) are listed as `runtime` with the runtime's name and their own compute cost, and a project's disks count towards that project. The report is metered usage: compute metered in an hour that began with a zero balance is listed but was never charged.
 
 ## When the balance is zero {#when-the-balance-is-zero}
 
@@ -113,9 +164,16 @@ To bring it back, open the instance and choose **Issue token and resume** (or re
 
 The same action is available as `POST /api/workspaces/{slug}/templates/{template_slug}/resume`; see the [API](/api/template-deploy#resume) and the [`GATEWAY_TOKEN_*` codes](/api/template-deploy#gateway-token-codes).
 
+## Promo codes
+
+A promo code lowers a wallet top-up or adds bonus credit. Bonus credit is spent first. See [Promo codes and bonus credit](/guide/promo-codes).
+
 ## Related
 
 - [Persistent Disks](/guide/persistent-disks)
+- [Promo codes and bonus credit](/guide/promo-codes)
 - [Cloud Harness](/guide/cloud-harness)
+- [Agent Runtime pricing and budgets](/guide/agent-runtime-pricing)
 - [`tose pricing` / `tose volumes`](/commands/disk)
 - [Disks, Volumes & Pricing API](/api/disks)
+- [Project Sidecars](/guide/project-sidecars)

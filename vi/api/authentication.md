@@ -9,7 +9,7 @@ Mỗi request tới TOSE API mang đúng một credential. API kiểm tra theo t
 | 3 | Session token | Cookie `tose_token` | Phiên trình duyệt |
 
 ::: tip Giới hạn quyền của key
-Key có thể được giới hạn bằng scope và luôn thuộc về một workspace. Xem [API key và scope](/vi/api/api-keys). Mọi thay đổi thực hiện bằng key đều được ghi vào [audit log](/vi/api/audit).
+Key có thể được giới hạn bằng scope và luôn thuộc về một workspace. Xem [API key và scope](/vi/api/api-keys). Mọi thay đổi thực hiện bằng key đều được ghi vào [audit log](/vi/api/audit). Trợ lý hỗ trợ trong dashboard dùng [support token](/vi/api/support-assistant) riêng sống 5 phút thay cho key.
 :::
 
 ## API key
@@ -100,6 +100,8 @@ Với key có `projects:write` nhưng không có `deployments:execute`:
 | Kết nối Git với dự án | Thành công. Không có lần triển khai đầu nào được xếp hàng và kết nối được tạo với `auto_deploy` tắt. |
 | Tạo dự án có khối `git` | Thành công và trả `deploy_skipped` thay cho `deployment_id` và `build_logs_url`. |
 | Bật `auto_deploy`, hoặc đổi nhánh của kết nối đang tự động triển khai | Thất bại với `403 insufficient_scope` và `required_scope: deployments:execute`. |
+
+CLI theo cùng quy tắc này: `tose up` với key như vậy kết nối Git, không bắt đầu lần triển khai nào và thoát với `INSUFFICIENT_SCOPE`. Hãy chạy [`tose deploy`](/vi/commands/deploy) với key có `deployments:execute`. Xem [`tose up`](/vi/commands/up#api-key-khong-co-deployments-execute).
 
 Hãy thêm `deployments:execute` vào key, hoặc dùng phiên đăng nhập, khi muốn mỗi lần push Git tự động triển khai.
 

@@ -257,7 +257,7 @@ Thanh bên của workspace nhóm các trang theo việc bạn làm. Địa chỉ
 
 **Ứng dụng đã cài** trước đây là **Mẫu**, **Ví & thanh toán** là **Thanh toán**, và **Desktop
 đám mây** là **Desktop**. Để cài một agent được tuyển chọn như Codex hoặc Claude Code, hãy mở
-**Kho mẫu**.
+**Kho mẫu** và làm theo [Triển khai coding agent](/vi/guide/deploy-coding-agent).
 
 ## Quy trình làm việc phổ biến
 

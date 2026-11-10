@@ -72,7 +72,9 @@ Ba biến bắt buộc:
 
 Các tên `DEWEE_*` (ví dụ `DEWEE_GATEWAY_TOKEN`) được chấp nhận làm alias và được sao chép sang tên `GOCLAW_*` khi khởi động, nếu tên `GOCLAW_*` đang trống. Chỉ đặt một cách viết, không đặt cả hai.
 
-`tose template env list` che các giá trị mà nó nhận ra là credential (tên chứa `token`, `secret`, `password`, `api_key` và tương tự), trong đó có `GOCLAW_GATEWAY_TOKEN`. Lệnh này **không** che `GOCLAW_POSTGRES_DSN` và `GOCLAW_ENCRYPTION_KEY` khi bạn đặt chúng từ file hoặc stdin, nên hai giá trị này có thể bị in ra dạng văn bản thường. Hãy đặt chúng bằng prompt ẩn (`tose template env set my-dewee GOCLAW_ENCRYPTION_KEY`) và tránh chạy `env list` trên màn hình dùng chung hoặc trong log CI. Bản sửa được theo dõi tại [tose-cli#40](https://github.com/saasvn/tose-cli/issues/40). Xem [`tose template`](/vi/commands/template) để biết đầy đủ các lệnh.
+`tose template env set` gửi `GOCLAW_POSTGRES_DSN`, `GOCLAW_ENCRYPTION_KEY` và `GOCLAW_GATEWAY_TOKEN` dưới dạng secret, và `tose template env list` che giá trị của chúng (`********`). Cột `SECRET` hiển thị `yes` cho các biến này. Tên chứa `token`, `secret`, `password`, `api_key`, `dsn`, `encryption_key` hoặc `connection_string` cũng được xử lý tương tự.
+
+Các giá trị đã lưu bằng CLI cũ có thể vẫn được lưu là không phải secret. Chúng hiển thị `SECRET no` kèm giá trị đã che. Hãy đặt lại để lưu chúng là secret, bằng `--env-file` hoặc `--env-stdin` (hoặc prompt ẩn, ví dụ `tose template env set my-dewee GOCLAW_ENCRYPTION_KEY`), rồi kiểm tra `env list` hiển thị `SECRET yes`. Dù vậy, vẫn nên tránh chạy `env list` trên màn hình dùng chung hoặc trong log CI. Xem [`tose template`](/vi/commands/template) để biết đầy đủ các lệnh.
 
 ## Cam kết bảo mật {#security-contract}
 
@@ -135,8 +137,31 @@ Xử lý sự cố:
 
 Ý nghĩa của các trạng thái:
 
-- `running` nghĩa là pod đã sẵn sàng theo cách Kubernetes tính. Container template chưa có startup, readiness hay liveness probe, và script khởi động chờ tối đa 90 giây để backend trả lời `/health`, sau đó vẫn chạy nginx dù backend chưa lên. Vì vậy `running` **không** chứng minh API đang phản hồi ([tose-app#274](https://github.com/saasvn/tose-app/issues/274)).
-- Image có `HEALTHCHECK` Docker riêng gọi `http://127.0.0.1:18790/health`. Nó kiểm tra backend, không kiểm tra route công khai qua nginx.
+- Với một deployment Dewee có probe (image build hoặc image catalog, probe bật), deployment chỉ được ghi `running` sau khi rollout, bước ingress và kiểm tra `/health` công khai trên domain mặc định thành công ([tose-app#290](https://github.com/saasvn/tose-app/pull/290)). Template không có route công khai được ghi `running` với trạng thái `unverified`, và các deployment không bị probe (xem bên dưới) không có bước kiểm tra này.
+- **Probe.** Với deployment Dewee từ image build hoặc image catalog, Kubernetes chạy startup và readiness probe trên `/health` và liveness probe trên `/livez`, qua cổng của template (`3000` với Dewee). Ngân sách startup là 30 phút, nên migration database chậm không gây vòng lặp restart. Deployment dùng image `custom`, deploy rollback và các template khác (ví dụ GoClaw) không có probe và không có kiểm tra công khai, vì TOSE không biết cấu trúc của image custom.
+- **Container.** Script khởi động thoát với mã khác 0 nếu backend không bao giờ khỏe hoặc chết về sau, không bao giờ để Nginx chạy mà không có backend, và dừng cả hai gọn gàng khi nhận `SIGTERM`. Vì vậy backend hỏng sẽ làm pod restart thay vì trả `502`.
+- Image cũng có `HEALTHCHECK` Docker riêng gọi `http://127.0.0.1:18790/health`. Nó kiểm tra backend, không kiểm tra route công khai qua Nginx.
+
+### Trạng thái health của deployment {#health-state}
+
+Khi kiểm tra công khai thất bại, deployment có `status=failed` với `error_message` bắt đầu bằng `Health verification failed`, nhưng không bị rollback và template vẫn là `running`, nên tính phí, tạm ngưng và log trực tiếp vẫn hoạt động. Bản ghi deployment có các trường (xem [Deployment](/vi/api/templates#deployment)):
+
+| `health_state` | Ý nghĩa |
+|----------------|---------|
+| `healthy` | Kiểm tra `/health` công khai trên domain mặc định thành công |
+| `unhealthy` | Kiểm tra thất bại. `health_message` nêu lý do (ví dụ phản hồi không phải 2xx) và một ops event được ghi lại |
+| `unverified` | TOSE không kiểm tra được vì template không có route công khai |
+| rỗng | Không có kiểm tra nào chạy: probe bị tắt, hoặc deployment dùng image `custom`, là rollback hoặc thuộc template khác |
+
+`health_checked_at` ghi thời điểm kiểm tra chạy.
+
+Nếu một deployment là `unhealthy`:
+
+1. Đọc `health_message` bằng `tose template info my-dewee --json` hoặc API deployments.
+2. Đọc log trực tiếp (`tose template logs my-dewee -f`) để tìm crash, `GOCLAW_POSTGRES_DSN` sai hoặc migration lỗi.
+3. Sửa nguyên nhân rồi deploy lại. Nếu image trước đó chạy tốt, rollback bằng `tose template deploy --rollback <deployment_id>`. TOSE không bao giờ tự rollback, và rollback không hoàn lại database ([Nâng cấp](#versions-and-upgrades)), và deploy rollback không được kiểm tra health, nên hãy tự kiểm tra `/health` sau đó.
+
+Người vận hành API tự host có thể tắt probe và kiểm tra công khai bằng `TEMPLATE_PROBES_ENABLED=false`. Xem [Tự host](/vi/guide/self-hosting#template-probes).
 
 Tự kiểm tra một instance:
 
@@ -152,23 +177,59 @@ curl -s -o /dev/null -w '%{http_code}\n' https://<host-instance-cua-ban>/health
 | `502` từ host công khai | Backend chưa chạy phía sau nginx. Đọc log trực tiếp để tìm crash, `GOCLAW_POSTGRES_DSN` sai hoặc migration lỗi |
 | `/health` ổn nhưng giao diện web không kết nối được | Proxy phía trước TOSE chặn nâng cấp `/ws`, hoặc token sai |
 | Log kết thúc bằng `Database upgrade failed` | Migration lỗi và container thoát. Xem [Nâng cấp](#versions-and-upgrades) |
-| Không bao giờ thấy `Backend ready after Ns` | Backend không lên trong 90 giây. Kiểm tra kết nối tới database |
+| Không bao giờ thấy `Backend ready after Ns` | Backend không khỏe trong 10 phút và container thoát để pod restart. Kiểm tra kết nối tới database |
+| Deployment có `health_state: unhealthy` | Kiểm tra `/health` công khai thất bại. Xem [Trạng thái health của deployment](#health-state) |
 | Đăng nhập lần đầu | Mở liên kết dashboard và hoàn tất đăng nhập bootstrap một lần. CLI không bao giờ in credential bootstrap |
 | Tạo bị từ chối với HTTP `402` | Chưa trả phí mở khóa hoặc số dư ví quá thấp. Xem [Bảng giá](/vi/guide/pricing) |
+| Instance ở trạng thái `suspended` | Nạp tiền vào ví, rồi chạy `tose template resume my-dewee --wait`. Xem [Resume instance đang bị suspend](#resume-instance-dang-bi-suspend) |
+
+### Resume instance đang bị suspend {#resume-instance-dang-bi-suspend}
+
+Instance bị suspend vì ví hết tiền từ chối `tose template deploy` và `tose template resume` với `402 INSUFFICIENT_BALANCE` (CLI thoát với mã `9`) cho đến khi ví có credit. Sau khi nạp tiền, `tose template resume my-dewee --wait` cấp gateway token và resume instance.
+
+Sau khi resume, client phải dùng gateway token mới và các phiên hiện có sẽ kết thúc, nên hãy cập nhật các API client và đăng nhập lại. Xem [`tose template resume`](/vi/commands/template#tose-template-resume).
 
 ## Phiên bản và nâng cấp {#versions-and-upgrades}
 
 - **Image.** Instance chạy image được lưu trên nó. `tose template deploy` thông thường (chế độ `image`) giữ nguyên image đó và không tự nâng cấp. `tose template info` hiển thị image đã deploy, đã cấu hình và khả dụng, cùng việc có bản cập nhật hay không. Chỉ chuyển sang phiên bản catalog bằng `tose template deploy --upgrade`, và truyền `--expected-image` (dòng `Configured:`) để deploy thất bại nếu image đã đổi trong lúc đó. `--mode build` không thay image.
-- **Tag không phải digest.** Tag có thể bị push lại. Để có bản ghi tái lập được, hãy lấy digest của image bạn đang chạy và lưu cùng ghi chú của bạn.
+- **Digest được ghi không phải là ghim.** Mỗi lần deploy image ghi vào biên nhận (`image_digest`) digest registry trả về cho tag lúc deploy chạy; tham chiếu ghim bằng `@sha256:…` giữ digest của nó. Deploy vẫn chạy tag, và `--rollback` chạy lại tag của deployment trước, nên tag bị push lại có thể khác digest đã ghi. Để chạy đúng một bản build, hãy ghim image theo digest. Nếu tra cứu thất bại (image private không có credential, không tìm thấy, registry không kết nối được), deploy vẫn tiếp tục, biên nhận không có digest và log deploy nêu lý do. Xem [biên nhận deploy](/vi/api/templates#image-digest-in-the-receipt).
 - **Tự động nâng cấp được bật mặc định.** Mỗi lần khởi động khi có `GOCLAW_POSTGRES_DSN`, container chạy `dewee upgrade` và từ chối khởi động nếu lệnh lỗi. Đặt `GOCLAW_AUTO_UPGRADE=false` nếu bạn muốn tự chạy nâng cấp vào thời điểm bạn chọn.
 - **Sao lưu trước.** PostgreSQL là của bạn: TOSE không snapshot nó. Trước mọi thay đổi phiên bản, hãy sao lưu và khôi phục thử một lần vào database tạm để chứng minh bản sao lưu dùng được. Sao lưu cả dữ liệu ổ đĩa bền vững mà bạn cần.
 - **Rollback không đối xứng.** `tose template deploy --rollback <deployment_id>` chạy lại image cũ, nhưng **không** quay lại schema hay dữ liệu database. Migration đã chạy có thể không tương thích với image cũ. Để quay lại an toàn, hãy khôi phục bản sao lưu database cùng với image cũ.
 - **Gián đoạn.** Template chạy một replica trên ổ đĩa chỉ một pod mount được, và deploy lại sẽ thay pod. Hãy dự kiến có gián đoạn khi deploy. TOSE không hứa zero-downtime cho template này.
 - **Chủ động nâng cấp.** Chỉ nâng cấp khi bạn chọn (`--upgrade`), từ một bản sao lưu, ngoài giờ cao điểm. Thay đổi của catalog không tự nâng cấp cho bạn.
 
+### Nâng cấp và quay lại từ dashboard {#dashboard-upgrade-and-rollback}
+
+Trang template trong dashboard có mục **Image** với các thao tác giống CLI. Mục này hiển thị ba image: **Lần triển khai gần nhất** (đang chạy), **Đã cấu hình** (image lưu trên template, dùng cho lần deploy thông thường kế tiếp) và **Có sẵn** (phiên bản catalog). Huy hiệu **Có bản cập nhật** xuất hiện khi phiên bản catalog khác với bản bạn đang chạy, và **Mới nhất** khi giống nhau.
+
+Ba thao tác tách biệt, không thay nhiệm vụ của nhau:
+
+| Thao tác | Gửi | Kết quả |
+|----------|-----|---------|
+| **Deploy** | `image_source=custom` | Triển khai lại image đã lưu, không nâng cấp. Nếu chưa lưu image nào, triển khai phiên bản catalog và lưu lại |
+| **Nâng cấp lên bản có sẵn** | `image_source=catalog` | Triển khai phiên bản catalog và thay image đã lưu |
+| **Quay lại phiên bản trước** | `rollback_to=<deployment id>` | Chạy image của một lần triển khai trước đó và lưu nó |
+
+Hộp thoại của mỗi thao tác nêu rõ image sẽ chạy. Mọi yêu cầu còn gửi `expected_image` (image **Đã cấu hình** mà bạn đang xem) khi đã có image được lưu. Nếu có người đổi image kể từ lúc bạn mở trang, yêu cầu bị từ chối với `409`; hãy tải lại trang rồi quyết định lại. Khi đang có một lần triển khai khác, các thao tác bị vô hiệu hóa.
+
+Khi quay lại, trang hiển thị cảnh báo trước khi bạn xác nhận: **quay lại image không khôi phục schema hay dữ liệu database.** Nếu phiên bản mới đã migrate chúng, image cũ có thể lỗi hoặc đọc sai, nên hãy khôi phục bản sao lưu database trước. Xem [Sao lưu trước](#versions-and-upgrades).
+
+Danh sách quay lại chỉ đưa ra các lần triển khai trước đó đã chạy thành công (trạng thái `running` hoặc `stopped`, và đã kết thúc), mới nhất trước, mỗi image một mục, tối đa tám mục, không gồm image bạn đang chạy. Bản build lỗi không bao giờ được đưa ra vì image của nó chưa từng được push. API áp dụng cùng quy tắc và trả `404` cho mọi deployment ID khác. Xem [API deploy template](/api/templates#rollback).
+
+## Dừng hoặc xóa instance {#stop-or-delete-an-instance}
+
+- **Dừng** (`tose template stop <slug>`) đưa instance về 0 replica và giữ lại ổ đĩa cùng cấu hình. Deploy lại để khởi động.
+- **Xóa** (`tose template delete <slug>`) xóa instance cùng ổ đĩa, biến, domain và lịch sử. Không thể hoàn tác, nên hãy backup theo [Phiên bản và nâng cấp](#versions-and-upgrades) trước.
+- **Build đang chạy sẽ kết thúc.** Dừng và xóa đều kết thúc build đang chạy: container build và push bị gỡ và deployment được đánh dấu `stopped`. Log của build bị dừng thường kết thúc bằng `=== Build Stopped ===`; sau khi xóa thì lịch sử không còn. Hãy dừng build bạn không cần nữa, rồi kiểm tra `tose template info` để chắc template và deployment đã `stopped`.
+
+Xem [`tose template stop / delete`](/vi/commands/template#tose-template-stop-delete) và [API template](/vi/api/templates#lifecycle).
+
 ## Release gate và bảng tương thích {#release-gate-and-compatibility}
 
 TOSE chỉ công bố một phiên bản Dewee là đã xác minh sau khi một lần chạy end-to-end đạt trên cụm staging: tạo, xác thực qua domain công khai, WebSocket, MCP, dữ liệu còn sau khi khởi động lại, deploy lại và rollback, cùng các tình huống tiêu cực ở trên ([tose-app#276](https://github.com/saasvn/tose-app/issues/276)).
+
+Release gate này chỉ áp dụng cho template Dewee được tuyển chọn. Việc cài template từ registry có security gate fail-closed riêng, vẫn đang bị chặn cho đến khi kiểm tra trên host đã hardening và cluster thật hoàn tất ([tose-app#142](https://github.com/saasvn/tose-app/issues/142)); xem [Security gate khi cài đặt](/vi/guide/template-registry#install-security-gate-gated).
 
 | Trường | Giá trị hiện tại |
 |--------|------------------|
@@ -179,6 +240,8 @@ TOSE chỉ công bố một phiên bản Dewee là đã xác minh sau khi một 
 | Mức hỗ trợ | **Thử nghiệm (experimental)** |
 
 Khi có một lần chạy đã xác minh, bảng này sẽ có thêm digest, commit, revision TOSE, ngày và chữ *verified*. Đừng coi template là one-click đã xác minh trước thời điểm đó.
+
+Khi endpoint trạng thái công khai đang bật, [`GET /api/public/template-releases`](/vi/api/templates#public-release-status) báo cùng trạng thái này cho từng template: `verified` (kèm `version` và `last_validated_at`), `experimental`, `deprecated`, hoặc `unavailable` khi cờ tắt. Release gate trong `templates/verified-images.json` quyết định `verified`, và chưa có gì được xác minh cho tới khi một lần chạy staging thật nâng cấp một image.
 
 ## Checklist triển khai theo giai đoạn {#staged-rollout-checklist}
 
@@ -192,6 +255,7 @@ Khi có một lần chạy đã xác minh, bảng này sẽ có thêm digest, co
 ## Liên quan
 
 - [`tose template`](/vi/commands/template)
+- [Template registry: probe, nâng cấp và rollback](/vi/guide/template-upgrades)
 - [Biến môi trường](/vi/guide/environment)
 - [Ổ đĩa bền vững](/vi/guide/persistent-disks)
 - [Bảng giá](/vi/guide/pricing)
