@@ -118,6 +118,30 @@ Commands:
 Không bao giờ commit API key vào version control hoặc chia sẻ công khai. TOSE CLI lưu trữ nó an toàn trong `~/.tose/config.json`.
 :::
 
+## Xác nhận email {#confirm-your-email}
+
+Khi đăng ký bằng email và mật khẩu, TOSE gửi một link xác nhận tới địa chỉ đó. Bạn dùng tài khoản được ngay; chỉ các tính năng cần email đã xác minh, như [liên kết yêu cầu tư vấn trước đó trên tose.sh](/vi/guide/link-enquiry), phải chờ đến khi bạn xác nhận.
+
+1. Mở email từ TOSE và bấm vào link xác nhận. Link mở trang `/verify-email/<token>` trên dashboard.
+2. Bấm **Xác nhận địa chỉ email**. Link chỉ được dùng khi bạn bấm nút, nên các công cụ quét thư xem trước link không làm hỏng nó.
+3. Khi thấy "Email của bạn đã được xác minh", bạn có thể đóng trang. Link chỉ xác nhận địa chỉ, không đăng nhập thay bạn.
+
+**Trước khi xác nhận**, **Settings** hiện thẻ "Xác nhận email" với nút **Gửi email xác nhận**. **Sau khi xác nhận**, thẻ này biến mất.
+
+### Link bị thiếu hoặc hết hạn
+
+- Mỗi link dùng được một lần và hết hạn sau 24 giờ. Gửi link mới sẽ làm các link cũ hết hạn.
+- Mở **Settings** và bấm **Gửi email xác nhận** để nhận link mới. Bạn gửi được một lần mỗi phút và năm lần mỗi ngày. Trong giới hạn đó bạn sẽ thấy "Email xác nhận vừa được gửi"; hãy kiểm tra hộp thư (kể cả spam) hoặc thử lại sau.
+- Nếu trang báo link đã được sử dụng, hết hạn hoặc không hợp lệ, hãy gửi link mới theo cách trên.
+- Nếu trang báo link được gửi tới địa chỉ mà tài khoản không còn dùng (`email_changed`), hãy gửi link mới cho địa chỉ hiện tại.
+- Nếu bản tự host chưa cấu hình nhà cung cấp email, yêu cầu gửi lỗi `503 email_unavailable`. Việc đăng ký vẫn thành công.
+
+### Tài khoản không cần bước này
+
+Tài khoản tạo bằng Google hoặc GitHub không cần link: nhà cung cấp đã bảo chứng địa chỉ, và thẻ không hiện. Nếu vẫn yêu cầu link, API trả `409 provider_verified`. Đăng nhập lại bằng nhà cung cấp sẽ làm mới địa chỉ. Nếu bạn đã xác nhận, yêu cầu trả `200` với `email_verified: true`.
+
+`GET /auth/me` trả về `email_verified`. Xem [Lỗi API](/vi/api/errors#email-verification-codes) để biết các mã.
+
 ## Thiết lập lần đầu
 
 Khi chạy lần đầu, TOSE CLI sẽ nhắc nhập API key:

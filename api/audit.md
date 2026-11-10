@@ -26,7 +26,7 @@ Each entry holds:
 - Query strings.
 - Invitation tokens. They are dropped from the path parameters.
 
-Reads (`GET`) are not part of this log.
+Reads (`GET`) are not part of this log, with one exception: [project exports](/api/projects#export) are recorded, allowed or denied, because they list how a project is configured.
 
 ## MCP connector calls
 

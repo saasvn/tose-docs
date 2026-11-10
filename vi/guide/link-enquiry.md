@@ -15,13 +15,14 @@ Thẻ bị ẩn khi tài khoản của bạn hoặc bản cài đặt TOSE chưa
 
 ## Ai dùng được
 
-Chỉ tài khoản có email **đã được nhà cung cấp đăng nhập xác minh** mới liên kết được:
+Chỉ tài khoản có email **đã xác minh** mới liên kết được:
 
 | Cách đăng nhập | Liên kết được? |
 |---|---|
 | Google, với email đã xác minh | Có |
 | GitHub, với địa chỉ nằm trong danh sách đã xác minh của GitHub | Có |
-| Email và mật khẩu | Không. Các tài khoản này nhận `409 email_not_verified`. |
+| Email và mật khẩu, sau khi [xác nhận email](/vi/guide/installation#confirm-your-email) | Có |
+| Email và mật khẩu, trước khi xác nhận | Không. Các tài khoản này nhận `409 email_not_verified`. |
 
 Việc kiểm tra chạy ở mỗi lần đăng nhập Google hoặc GitHub. Nếu nhà cung cấp không còn báo email của bạn là đã xác minh, thẻ sẽ bị ẩn trên trang Projects và bạn không thể ủy quyền lại cho đến khi nó báo lại. Nếu bạn đã có một ủy quyền, thẻ ở Settings vẫn hiện để bạn rút lại.
 
@@ -74,7 +75,7 @@ Liên kết là tính năng ở cấp tài khoản và chỉ dùng được bằ
 |---|---|
 | `400 consent_required` | Request không có `authorize: true` |
 | `400 consent_outdated` | Nội dung đồng ý đã đổi. Tải lại và đồng ý lại |
-| `409 email_not_verified` | Email tài khoản chưa được nhà cung cấp đăng nhập xác minh |
+| `409 email_not_verified` | Email tài khoản chưa được xác minh. Hãy xác nhận trong Settings, hoặc đăng nhập bằng nhà cung cấp đã xác minh nó |
 | `502 lead_signal_failed` | Không kết nối được tose.sh. Lần gửi sẽ được thử lại |
 | `503 lead_link_unavailable` | Bản cài đặt này chưa bật tính năng liên kết |
 

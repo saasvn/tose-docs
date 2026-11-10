@@ -48,7 +48,7 @@ A refused code never changes the payment. The message tells you why:
 ## Rules
 
 - **Limits.** A code can have a minimum amount, a first-top-up-only rule, a start and an expiry date, a total number of uses and a number of uses per person. Codes belonging to one **campaign** can be redeemed once per person and once per workspace, in total.
-- **One code per payment, no stacking.** A payment that uses a code earns no [referral commission](/guide/referral). If the code is rejected when the payment completes (see below), the payment earns commission as usual.
+- **One code per payment, no stacking.** A payment that uses a code earns no top-up bonus and no [referral commission](/guide/referral). If the code is rejected when the payment completes (see below), the payment earns commission as usual.
 - **Wallet top-ups only by default.** A code applies to unlocking a template (Dewee, GoClaw) only when the operator allowed it. Bonus credit never applies to a template unlock.
 - **Abandoned checkouts.** If you start a payment with a code and never finish it, your next payment with the same code (or one from the same campaign) takes over. Your own abandoned checkout does not lock a single-use code for you. Someone else's unfinished checkout with the same code, including a teammate's on a campaign code, still counts against its limits until it is finished or replaced.
 - **A code can be rejected when the payment completes.** The rules are checked again at completion. If the code can no longer be honored (for example another top-up completed first on a first-top-up-only code, or an abandoned payment is completed late), the discount is dropped and the wallet is credited what you actually paid.
@@ -75,7 +75,6 @@ An operator can cap how many payments a whole campaign may be applied to, for ex
 A `bonus` or `match_percent` code adds promotional credit to the wallet **after** the payment completes. It shows in the wallet history as a `promo_credit` transaction with its expiry date.
 
 - **Spent first.** Every wallet debit spends promotional credit before paid credit, soonest-expiring grant first. That covers the hourly compute and storage billing, CI job charges, and the storage backlog collected when you top up. Referral reversals and negative `admin_adjust` entries deliberately do not spend bonus credit.
-- **Not part of your price tier.** Unspent bonus credit is left out of the balance that decides your [compute price](/guide/pricing#compute), so it cannot move you to a cheaper band.
 - **It expires.** When the credit passes its expiry date (`credit_valid_days` of the code, counted from when the payment completes), what is left of it is taken back with a `promo_expired` transaction. Credit you already spent on usage is yours. The wallet never goes below zero because of this.
 - **Refunds.** A full refund of the payment releases the code and takes back the unspent bonus credit (a `promo_revoked` transaction). A partial refund keeps the code and the credit.
 - **It follows the balance.** When a workspace is deleted or its balance is carried over to another wallet, the active bonus grants move with the balance. They still expire, and are still taken back on a full refund, in the receiving wallet.
