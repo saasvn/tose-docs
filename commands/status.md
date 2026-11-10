@@ -14,7 +14,8 @@ Displays detailed status information for your project, including:
 
 - Project status (active, stopped, etc.)
 - Pod health (ready count, individual pod status, restarts, age)
-- Resource limits (CPU and memory), plus the per-Pod process (PID) limit when the operator has declared one
+- Resource limits (CPU and memory) of the project's own container, plus the per-Pod process (PID) limit when the operator has declared one
+- With [sidecars](/guide/project-sidecars): every container of each pod (readiness, restarts, state and reason such as `CrashLoopBackOff`), the per-replica total, and the saved sidecar settings
 - Latest deployment info with time-ago formatting
 
 ## Arguments
@@ -47,6 +48,24 @@ Latest deployment:
   URL:     https://my-app.tose.sh
 ```
 
+### Project with Sidecars
+
+`CPU` and `Memory` stay the project container's own limits. `pod total` is one replica including its sidecars, the amount billed per replica. A pod counts as ready only when all of its containers are. Saved sidecars are configuration that applies at the next deployment; the container rows show what runs.
+
+```bash
+$ tose status
+
+Pods:    0/1 ready
+  pod-abc-1  Running  restarts=3  age=5m
+    - my-app  ready  state=running  restarts=0
+    - otel-collector  not ready  state=waiting (CrashLoopBackOff)  restarts=3
+CPU:     0.5  (project container; pod total 0.75 incl. sidecars, billed per replica)
+Memory:  1  (project container; pod total 1.25 GB incl. sidecars, billed per replica)
+
+Saved sidecars: (apply at the next deployment)
+  otel-collector: 0.25 vCPU / 0.25 GB, ghcr.io/acme/collector:1.4@sha256:…
+```
+
 ### Check Specific Project
 
 ```bash
@@ -67,22 +86,6 @@ Latest deployment:
   Status:  stopped
   Time:    1d ago
 ```
-
-### Process limit line
-
-When the operator of your TOSE deployment has declared a per-Pod process (PID) limit, the text output adds a line after `Memory:`:
-
-```
-CPU:     2000m
-Memory:  4Gi
-PIDs:    4096 per Pod (operator-declared, shared by the Pod's containers; not verified live)
-```
-
-- **Operator-declared, not verified.** The number is a value the operator configured, not a live reading from the nodes.
-- **Shared by the whole Pod.** The project container and all sidecars count against the same budget; it is not a per-container limit.
-- **No line means unknown, not unlimited.** If the `PIDs:` line is missing, TOSE does not know the limit. Do not read that as "no limit".
-- **Older servers.** A server that does not send the field leaves the line out, and the CLI prints nothing extra.
-- **Not a guarantee.** TOSE does not enforce this limit yet, so do not rely on it to contain a runaway process.
 
 ## Status Values
 
@@ -123,9 +126,8 @@ $ tose status --json
       ]
     },
     "resources": {
-      "cpu": { "used": "100m", "limit": "2000m" },
-      "memory": { "used": "500Mi", "limit": "4Gi" },
-      "pids": { "limit": 4096 }
+      "cpu": { "limit": "2", "pod_total": "2" },
+      "memory": { "limit": "4", "pod_total": "4" }
     },
     "latestDeployment": {
       "id": "dep_abc123",
@@ -137,7 +139,22 @@ $ tose status --json
 }
 ```
 
-`resources.pids.limit` appears only when the operator has declared a per-Pod PID limit. When the field is absent the limit is unknown, not unlimited. See [Process limit](#process-limit-line) and the [Projects API](/api/projects#status).
+### Process limit {#process-limit-line}
+
+When the operator of your TOSE deployment has declared a per-Pod process (PID) limit, the text output adds a line after `Memory:`, and `tose status --json` includes it as `data.resources.pids.limit`:
+
+```
+CPU:     2000m
+Memory:  4Gi
+PIDs:    4096 per Pod (operator-declared, shared by the Pod's containers; not verified live)
+```
+
+- **Operator-declared, not verified live.** The operator reports the number only after the runtime nodes enforce it (kubelet `podPidsLimit`). TOSE does not set or enforce it itself, and it does not read it back from the nodes.
+- **Shared by the whole Pod.** The project container and all sidecars count against the same budget; it is not a per-container limit.
+- **No line means unknown, not unlimited.** If the `PIDs:` line is missing, TOSE does not know the limit.
+- **Older servers** do not send the field, and the CLI prints nothing extra.
+
+See [Process limit](/api/projects#process-limit) in the Projects API.
 
 ## Use Cases
 

@@ -71,6 +71,12 @@ $ tose deployment rollback dep_abc123 --yes
 
 A failed or in-progress target is refused with exit code `1` (`CONFLICT`), and an unknown one with exit code `6` (`NOT_FOUND`), whether or not you pass `--yes`.
 
+### Rollback receipt
+
+On success the CLI prints the `tose.dev/rollback-receipt/v1` receipt the API returns (`--json`: `data.rollback_receipt`) and names the layers it covers. **Only the image (`artifact`) is rolled back.** `config`, `schema` and `data` are shown as not rolled back; restore them separately from a verified backup. The new deployment's `rollback_of_deployment_id` names the deployment whose image was reapplied.
+
+`--json` adds `data.rollback_receipt_status` (`included`, `absent` or `unreadable`). If the server returns no receipt (an older server, or it could not read the source back) or it cannot be read, the rollback still succeeded, the same scope notice is printed, and the message points to `GET .../deployments/{id}/rollback-receipt` to fetch it later. The CLI never relays a receipt that claims anything but `artifact` was restored.
+
 ::: tip Agents
 Rollback is also available through the MCP connector, where it needs your approval in the browser. See [Agent access](/mcp/agent-access).
 :::
@@ -79,4 +85,5 @@ Rollback is also available through the MCP connector, where it needs your approv
 
 - [`tose deploy`](/commands/deploy) - Start a deployment
 - [`tose status`](/commands/status) - Find deployment IDs
+- [`tose runbook`](/commands/runbook) - Plan a rollback that a person approves in the browser
 - [`tose skills install safe-rollback`](/commands/skills) - Teach an agent the safe rollback flow

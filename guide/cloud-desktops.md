@@ -14,7 +14,8 @@ Typical uses:
 ::: warning Status: Coming soon
 Cloud Desktops are built, and the `tose desktop` commands ship in CLI 0.1.3, but the feature is
 not switched on in production yet. It is enabled per TOSE installation: if the `desktops`
-endpoints return 404 for your workspace, the feature is not enabled.
+endpoints return 404 for your workspace, the feature is not enabled. The dashboard then hides
+**Cloud desktops** from the sidebar.
 :::
 
 ## How it works
@@ -212,9 +213,10 @@ See the [Desktops API reference](/api/desktops#actions) for every action and its
 
 - **Desktops are never deleted automatically.** A desktop and its disk are removed only when
   a workspace admin deletes it explicitly, confirming by name.
+- **Billing is per second.** A running desktop is charged for each second its pod is up, in nano-USD precision, at the compute rates in [Pricing](/guide/pricing#cloud-desktops). A sleeping desktop pays no compute, only its disk.
 - **Low balance only sleeps desktops.** If your workspace runs out of credit, running desktops
-  are put to sleep to stop compute charges. Disks are kept, and you can wake the desktops after
-  topping up.
+  are put to sleep to stop compute charges. Disks are kept. Waking a desktop needs a positive wallet
+  balance (`402` otherwise), so top up first, then wake it.
 - A workspace cannot be deleted while it still contains desktops. Delete them first.
 
 ## Related
