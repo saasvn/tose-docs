@@ -1,6 +1,6 @@
 # Kho mã GitHub cho coding agent
 
-Một coding agent được TOSE tuyển chọn (**Pi**, **Codex** hoặc **Claude Code**) có thể khởi động với một kho mã GitHub của bạn, riêng tư hoặc công khai, đã nằm sẵn trong `/workspace` bền vững của agent. Bạn chọn kho mã và nhánh trong thẻ **Kho mã (không bắt buộc)** của trang triển khai. Bạn không bao giờ phải dán URL, personal access token hay SSH key, và agent không bao giờ nhận credential GitHub nào. Bản checkout chỉ đọc, trừ khi bạn [cho agent push](#cho-agent-push-len-kho-ma).
+Một coding agent được TOSE tuyển chọn (**Pi**, **Codex** hoặc **Claude Code**) có thể khởi động với một kho mã GitHub của bạn, riêng tư hoặc công khai, đã nằm sẵn trong `/workspace` bền vững của agent. Bạn chọn kho mã và nhánh trong thẻ **Kho mã (không bắt buộc)** của trang triển khai. Bạn không bao giờ phải dán URL, personal access token hay SSH key, và agent không bao giờ nhận credential GitHub nào. Bản checkout chỉ đọc, trừ khi bạn [cho agent push](#cho-agent-push-len-kho-ma). Bạn cũng có thể [gắn, đổi hoặc gỡ kho mã sau khi cài](#gan-hoac-doi-kho-ma-sau-khi-cai).
 
 Để cài một agent, mở **Cloud Agents** trong dashboard ([tổng quan dashboard](/vi/guide/getting-started#lam-quen-voi-dashboard)).
 
@@ -14,7 +14,7 @@ Tính năng checkout đã được triển khai và có test, nhưng chưa đư�
 - Vai trò **owner** hoặc **admin** của workspace. Người khác gửi `repository` sẽ nhận `403 REPOSITORY_REQUIRES_ADMIN`.
 - Một plan của agent được tuyển chọn. Plan template từ registry và nâng cấp không nhận kho mã.
 
-## Chọn kho mã trên trang triển khai
+## Chọn kho mã trên trang triển khai {#chon-kho-ma-tren-trang-trien-khai}
 
 Trang triển khai của agent có thẻ **Kho mã (không bắt buộc)**. Chọn **Thêm kho mã GitHub** để mở thẻ. Bỏ qua mục này thì agent bắt đầu với workspace trống.
 
@@ -65,7 +65,7 @@ Mục `curated.repository` của plan chứa cùng dữ liệu: `installation_id
 
 Agent có thể push commit của nó ngược lên kho mã đã ghim khi triển khai. Push **mặc định tắt**, và bạn chọn khi triển khai (tose-app [#704](https://github.com/saasvn/tose-app/pull/704)).
 
-### Thiết lập
+### Thiết lập {#thiet-lap}
 
 1. **GitHub App cần quyền ghi nội dung.** GitHub App của TOSE phải có quyền kho mã **Contents: Read and write**. Người vận hành nền tảng cấp quyền này trong phần cài đặt của App trên GitHub, rồi mọi tài khoản GitHub đã cài App phải chấp nhận quyền mới trên GitHub. Trước khi đó, plan có push bị chặn với `GITHUB_PERMISSION_MISSING`, khi lập plan, duyệt và cài đặt.
 2. **Bật push.** Trong thẻ **Kho mã (không bắt buộc)**, bật **Cho phép agent push lên kho mã này**. Giống như kho mã, chỉ owner hoặc admin của workspace mới lập plan có push.
@@ -95,9 +95,9 @@ Cả hai lựa chọn nằm trong plan hash, nên plan có push là một plan k
 | `push` | `true`. Không có khi agent không được push. |
 | `push_branches` | `all` hoặc `agent`. |
 | `push_branch_pattern` | Các nhánh agent được push: `*`, hoặc `tose/<slug của bản cài>/*`. |
-| `push_remote` | Git proxy của TOSE mà `origin` của checkout trỏ tới, ví dụ `https://api.tose.sh/api/git/<checkout_id>`. Không chứa credential. |
+| `push_remote` | Git proxy của TOSE mà `origin` của checkout trỏ tới, ví dụ `https://api.tose.sh/api/git/<checkout_id>`. Không chứa credential. Checkout tạo từ tose-app [#741](https://github.com/saasvn/tose-app/pull/741) trở đi ghi rõ kho mã trong checkout id: `<template id>r<repository id>`. |
 
-`access` vẫn là `contents:read`: trường này mô tả token dùng để clone. Danh sách `effects` mô tả bằng lời việc push cho phép làm gì. Khi bật push, network policy của agent còn cho phép máy chủ API của TOSE ở cổng 443, trong mọi chế độ mạng, và plan liệt kê nó trong `curated.network.destinations`. Sau khi cài, đối tượng `repository` của installation báo `push` và `push_branches`, và trang của agent hiển thị **Push** **Bật** hoặc **Tắt**.
+`access` vẫn là `contents:read`: trường này mô tả token dùng để clone. Danh sách `effects` mô tả bằng lời việc push cho phép làm gì. Khi bật push, network policy của agent còn cho phép máy chủ API của TOSE ở cổng 443, trong mọi chế độ mạng, và plan liệt kê nó trong `curated.network.destinations`. Sau khi cài, đối tượng `repository` của installation báo `push` và `push_branches`, và trang của agent hiển thị **Push** **Bật** hoặc **Tắt**. Bạn có thể đổi cả hai về sau; xem [Gắn hoặc đổi kho mã của agent sau khi cài](#gan-hoac-doi-kho-ma-sau-khi-cai).
 
 ### Cách hoạt động {#cach-hoat-dong-cua-push}
 
@@ -133,13 +133,96 @@ Khi push bật, bất kỳ ai chạy được lệnh trong agent đều push đ�
 :::
 
 - Agent không giữ token GitHub nào, và bí mật proxy của nó chỉ mở được đúng một kho mã này qua TOSE.
-- Bí mật hết hiệu lực khi agent bị dừng, khi installation bị xóa và khi GitHub App installation bị ngắt khỏi workspace.
+- Bí mật hết hiệu lực khi agent bị dừng, khi installation bị xóa, khi GitHub App installation bị ngắt khỏi workspace, và ngay lập tức khi bạn tắt push, đổi kho mã hoặc gỡ kho mã [sau khi cài](#gan-hoac-doi-kho-ma-sau-khi-cai).
 
 ### Giới hạn {#gioi-han}
 
-- **Không đổi được push sau khi cài.** Deploy lại từ trang của agent vẫn giữ lựa chọn cũ. Muốn bật, tắt push hoặc đổi nhánh, hãy lập plan và cài một agent mới với lựa chọn mới. Đó là bản cài đặt mới với `/workspace` riêng, nên hãy push công việc trước hoặc chuyển sang bằng git.
-- **Đổi tên kho mã làm proxy ngừng hoạt động.** Proxy dùng tên kho mã đã ghim khi cài và không đi theo chuyển hướng của GitHub, nên sau khi đổi tên hoặc chuyển giao kho trên GitHub, git hiển thị `PERMISSION_DENIED`. Deploy lại không khắc phục được: hãy lập plan và cài một agent mới cho tên mới của kho.
+- **Đổi push trên trang của agent, không phải bằng deploy lại thông thường.** Deploy lại từ trang của agent vẫn giữ lựa chọn cũ. Muốn bật, tắt push hoặc đổi nhánh được push, hãy dùng thẻ **Kho mã**; xem [Gắn hoặc đổi kho mã của agent sau khi cài](#gan-hoac-doi-kho-ma-sau-khi-cai).
+- **Đổi tên kho mã làm proxy ngừng hoạt động.** Proxy dùng tên kho mã đã ghim khi cài và không đi theo chuyển hướng của GitHub, nên sau khi đổi tên hoặc chuyển giao kho trên GitHub, git hiển thị `PERMISSION_DENIED`. Deploy lại không khắc phục được: hãy [đổi kho mã của agent](#gan-hoac-doi-kho-ma-sau-khi-cai) sang tên mới. Nếu `/workspace/<tên>` vẫn còn bản clone cũ và TOSE không nhận ra đó là cùng một kho, checkout thất bại với `WORKSPACE_NOT_EMPTY`; hãy chuyển thư mục đó sang chỗ khác trong agent trước.
 - **Agent không mở pull request.** Bạn tự mở trên GitHub từ nhánh mà agent đã push.
+
+## Gắn hoặc đổi kho mã của agent sau khi cài {#gan-hoac-doi-kho-ma-sau-khi-cai}
+
+Bạn không còn phải cài lại agent để gắn hay đổi kho mã (tose-app [#741](https://github.com/saasvn/tose-app/pull/741)). Trên trang của agent (**Cloud Agents**, rồi chọn agent, tại `/w/<workspace>/templates/<agent>`), thẻ **Kho mã** cho **owner** hoặc **admin** của workspace:
+
+- **gắn** kho mã cho agent được cài mà chưa có kho;
+- **bật hoặc tắt push**, và chọn nhánh được push (mọi nhánh, hoặc chỉ `tose/<slug của bản cài>/…`);
+- **đổi** agent sang kho mã khác;
+- **gỡ** kho mã.
+
+### Dùng thẻ Kho mã
+
+1. Mở trang của agent. Agent chưa có kho mã hiển thị "Chưa gắn kho mã" và nút **Gắn kho mã**. Agent đã có kho hiển thị kho đó cùng **Thay đổi** và **Gỡ kho mã**.
+2. Chọn **Gắn kho mã** hoặc **Thay đổi**. Bộ chọn giống trang triển khai sẽ mở ra: tài khoản GitHub, **Kho mã**, **Nhánh**, và tùy chọn cho agent push cùng lựa chọn nhánh ([Chọn kho mã trên trang triển khai](#chon-kho-ma-tren-trang-trien-khai) giải thích từng bước).
+3. Chọn **Lưu và khởi động lại agent**. Thẻ hiển thị "Đã lưu. Đang khởi động lại agent…", rồi "Đã lưu. Agent đang khởi động lại; kho mã sẽ có trong /workspace khi agent chạy lại." Nếu bạn lưu mà không đổi gì, thẻ hiển thị "Không có gì thay đổi." và agent không khởi động lại.
+4. Để bỏ kho mã, chọn **Gỡ kho mã** rồi xác nhận. Agent sẽ khởi động lại.
+
+**Khi lưu, agent khởi động lại**, vì thay đổi chỉ tới agent qua một lần deploy. **Các tệp đã có trong `/workspace` không bao giờ bị xoá.** Nếu chính việc khởi động lại thất bại, thay đổi vẫn được lưu và thẻ báo "Đã lưu nhưng không khởi động lại được agent (…). Hãy triển khai lại agent để áp dụng." Hãy deploy agent từ trang của nó để áp dụng.
+
+### Điều gì xảy ra khi lưu
+
+| Bạn đổi | Điều xảy ra trong `/workspace` |
+|---------|--------------------------------|
+| Gắn kho mã, hoặc đổi sang kho khác | Kho mới được clone vào `/workspace/<tên>` trước khi agent khởi động, như lúc cài. Thư mục cùng tên đã chứa tệp khác hoặc một kho khác không bao giờ bị ghi đè: checkout thất bại với `WORKSPACE_NOT_EMPTY` (xem [Trạng thái và các trường hợp lỗi](#trang-thai-va-cac-truong-hop-loi)). Thư mục của kho cũ vẫn nằm nguyên chỗ cũ. |
+| Bật hoặc tắt push, cùng kho mã | Bản clone hiện có giữ nguyên tệp. Chỉ `origin` của nó được chuyển: sang git proxy của TOSE khi có push, về lại `https://github.com/<owner>/<repo>.git` khi không. `origin` do bạn tự đặt được giữ nguyên. |
+| Đổi nhánh được push, cùng kho mã | Quy tắc nhánh (`all` hoặc `agent`) có hiệu lực ngay; không có gì trong `/workspace` thay đổi. |
+| Chọn nhánh khác của kho đã clone | Bị từ chối với `REPOSITORY_ALREADY_CLONED`. Hãy đổi nhánh bằng git ngay trong agent (`git fetch`, `git switch`). Bản clone chưa thành công (đang chờ hoặc thất bại) vẫn đổi nhánh được. |
+| Gỡ kho mã | Tệp vẫn nằm trong `/workspace`, nhưng agent không thể fetch hay push qua TOSE nữa. Lần deploy kế tiếp cũng bỏ máy chủ API của TOSE khỏi mạng của agent. |
+
+Tắt push, đổi kho mã hoặc gỡ kho mã **làm bí mật git của agent (`TOSE_GIT_TOKEN`) hết hiệu lực ngay**. Khi có push, lần deploy kế tiếp cấp một bí mật mới.
+
+**Bản clone còn sót lại không push được vào kho mới.** Mọi checkout tạo từ tose-app #741 trở đi có proxy remote ghi rõ kho mã, `https://<máy chủ API>/api/git/<template id>r<repository id>`. Proxy từ chối remote của kho khác, và từ chối remote trần `/api/git/<template id>` của checkout đó. Vì vậy thư mục mà kho cũ của agent để lại trong `/workspace` không fetch được từ kho hiện tại, cũng không push được vào đó. Checkout cũ hơn mà kho chưa từng đổi vẫn giữ remote trần và vẫn hoạt động.
+
+### Qua API
+
+Cả hai route cần **owner** hoặc **admin** của workspace, đăng nhập hoặc dùng API key có `deployments:execute`. Ứng dụng MCP đã kết nối bị từ chối với `403 REPOSITORY_REQUIRES_PERSON`; hãy đổi kho mã trên dashboard.
+
+```text
+PUT    /api/workspaces/{slug}/template-installations/{id}/repository
+DELETE /api/workspaces/{slug}/template-installations/{id}/repository
+```
+
+`PUT` gắn, đổi hoặc cấu hình lại kho mã. Body giống `repository` của plan: bắt buộc `installation_id`, `full_name` và `branch`; tùy chọn `commit_sha`, `repo_id`, `push` (mặc định `false`) và `push_branches` (`all`, mặc định, hoặc `agent`, chỉ đi kèm `push`). Không cần plan mới.
+
+```json
+{"installation_id": 12345678, "full_name": "acme/app", "branch": "main", "push": true, "push_branches": "agent"}
+```
+
+`DELETE` không có body. Route này xoá bản ghi checkout và làm bí mật git hết hiệu lực; tệp vẫn được giữ.
+
+Cả hai trả `200` với:
+
+```json
+{
+  "installation": {"id": "…", "repository": {"full_name": "acme/app", "branch": "main", "status": "pending", "push": true, "push_branches": "agent"}},
+  "restart_required": true,
+  "deploy_path": "/api/workspaces/acme/templates/claude-code-1/deploy"
+}
+```
+
+Khi `restart_required` là `true`, hãy áp dụng thay đổi bằng cách deploy lại agent:
+
+```text
+POST {deploy_path}
+{"mode": "image"}
+```
+
+`restart_required` là `false` khi `PUT` không đổi gì. `DELETE` luôn trả `true`.
+
+| Trạng thái và mã | Lý do |
+|------------------|-------|
+| `403` | Bạn không phải owner hoặc admin của workspace, hoặc API key thiếu `deployments:execute`. |
+| `403 REPOSITORY_REQUIRES_PERSON` | Một ứng dụng đã kết nối gửi yêu cầu. Hãy dùng dashboard. |
+| `404 REPOSITORY_NOT_FOUND` | `DELETE` với agent không có kho mã. |
+| `409 REPOSITORY_ALREADY_CLONED` | Nhánh khác của kho đã clone. Hãy đổi nhánh bằng git ngay trong agent. |
+| `409 REPOSITORY_CLONING` | Đang clone. Đợi lần deploy xong rồi thử lại. |
+| `409 REPOSITORY_CHANGED` | Người khác vừa đổi kho mã của agent. Tải lại rồi thử lại. |
+| `409 NOT_A_CLOUD_AGENT` | Chỉ agent Claude Code, Codex và Pi mới có kho mã. |
+| `409 INSTALLATION_DELETED` | Installation đã hoặc đang bị xoá. |
+| `409` `BRANCH_MISSING`, `PERMISSION_DENIED`, `REPO_REMOVED`, `NO_INSTALLATION`, `REPO_ID_CHANGED`, `GITHUB_PERMISSION_MISSING` | Câu trả lời của GitHub về kho mã, như trong [Trạng thái và các trường hợp lỗi](#trang-thai-va-cac-truong-hop-loi) và [Thiết lập](#thiet-lap). |
+| `422` tại `repository.installation_id` | GitHub App installation không được kết nối với workspace này. |
+| `503 GITHUB_APP_NOT_CONFIGURED`, `503 GIT_PROXY_NOT_CONFIGURED` | Máy chủ này chưa có GitHub App, hoặc chưa có địa chỉ git proxy công khai cho push. |
+| `502 GITHUB_UNAVAILABLE` | Không kết nối được tới GitHub. Hãy thử lại. |
 
 ## Trạng thái và các trường hợp lỗi {#trang-thai-va-cac-truong-hop-loi}
 
@@ -174,7 +257,7 @@ Một checkout thất bại mang một trong các mã ở trên trừ `REPO_ID_C
 
 ### Thử lại checkout thất bại
 
-Hãy sửa nguyên nhân (cho phép lại kho mã trên GitHub, hoặc kết nối lại tài khoản), rồi chọn **Thử tải lại**, hoặc gọi API với vai trò owner hoặc admin. Thử lại clone đúng commit đã ghim; nhánh hoặc commit khác cần một plan mới:
+Hãy sửa nguyên nhân (cho phép lại kho mã trên GitHub, hoặc kết nối lại tài khoản), rồi chọn **Thử tải lại**, hoặc gọi API với vai trò owner hoặc admin. Thử lại clone đúng commit đã ghim; muốn nhánh, commit hoặc kho mã khác, hãy [đổi kho mã](#gan-hoac-doi-kho-ma-sau-khi-cai):
 
 ```text
 POST /api/workspaces/{slug}/template-installations/{id}/repository/retry
@@ -204,4 +287,4 @@ API key cần `deployments:execute`. Checkout `failed` quay về `pending` và *
 
 ## Liên quan
 
-- Nguồn chuẩn: `docs/curated-agent-templates.md` (mục "GitHub repository" và "Pushing to the repository"), `docs/agent-runtime-security.md` (mục "Trusted repository bootstrap") và `internal/apispec/openapi.yaml` trong `saasvn/tose-app`.
+- Nguồn chuẩn: `docs/curated-agent-templates.md` (mục "GitHub repository", "Pushing to the repository" và "After install: attach, change or remove the repository"), `docs/agent-runtime-security.md` (mục "Trusted repository bootstrap") và `internal/apispec/openapi.yaml` trong `saasvn/tose-app`.

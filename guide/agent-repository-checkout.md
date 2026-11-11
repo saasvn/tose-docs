@@ -1,6 +1,6 @@
 # GitHub repository for coding agents
 
-A curated coding agent (**Pi**, **Codex** or **Claude Code**) can start with one of your GitHub repositories, private or public, already in its persistent `/workspace`. You pick the repository and the branch in the **Repository (optional)** card of the one-page deploy. You never paste a URL, a personal access token or an SSH key, and the agent never receives a GitHub credential. The checkout is read-only unless you [let the agent push](#let-the-agent-push-to-your-repository).
+A curated coding agent (**Pi**, **Codex** or **Claude Code**) can start with one of your GitHub repositories, private or public, already in its persistent `/workspace`. You pick the repository and the branch in the **Repository (optional)** card of the one-page deploy. You never paste a URL, a personal access token or an SSH key, and the agent never receives a GitHub credential. The checkout is read-only unless you [let the agent push](#let-the-agent-push-to-your-repository). You can also [attach, change or remove the repository after install](#attach-or-change-an-agents-repository-after-install).
 
 To install an agent, open **Cloud Agents** in the dashboard ([dashboard overview](/guide/getting-started#find-your-way-around-the-dashboard)).
 
@@ -95,9 +95,9 @@ Both choices are part of the plan hash, so a plan with push is a different plan 
 | `push` | `true`. Absent when the agent may not push. |
 | `push_branches` | `all` or `agent`. |
 | `push_branch_pattern` | The branches the agent may push to: `*`, or `tose/<installation slug>/*`. |
-| `push_remote` | The TOSE git proxy the checkout's `origin` points to, for example `https://api.tose.sh/api/git/<checkout_id>`. It carries no credential. |
+| `push_remote` | The TOSE git proxy the checkout's `origin` points to, for example `https://api.tose.sh/api/git/<checkout_id>`. It carries no credential. A checkout created since tose-app [#741](https://github.com/saasvn/tose-app/pull/741) names its repository in the checkout id: `<template id>r<repository id>`. |
 
-`access` stays `contents:read`: it describes the token that clones the repository. The `effects` list says in words what pushing allows. With push on, the agent's network policy also allows the TOSE API host on port 443, in every network mode, and the plan lists it in `curated.network.destinations`. After install, the installation's `repository` object reports `push` and `push_branches`, and the agent's page shows **Push** **On** or **Off**.
+`access` stays `contents:read`: it describes the token that clones the repository. The `effects` list says in words what pushing allows. With push on, the agent's network policy also allows the TOSE API host on port 443, in every network mode, and the plan lists it in `curated.network.destinations`. After install, the installation's `repository` object reports `push` and `push_branches`, and the agent's page shows **Push** **On** or **Off**. You can change both later; see [Attach or change an agent's repository after install](#attach-or-change-an-agents-repository-after-install).
 
 ### How it works
 
@@ -133,13 +133,96 @@ While push is on, anyone who can run commands in the agent can push to that repo
 :::
 
 - The agent holds no GitHub token, and its proxy secret opens only this one repository through TOSE.
-- The secret stops working when the agent is stopped, when the installation is deleted and when the GitHub App installation is disconnected from the workspace.
+- The secret stops working when the agent is stopped, when the installation is deleted, when the GitHub App installation is disconnected from the workspace, and at once when you turn push off, change the repository or remove it [after install](#attach-or-change-an-agents-repository-after-install).
 
 ### Limits
 
-- **Push cannot be changed after install.** Redeploying from the agent's page keeps the choice. To turn push on or off, or to change the branches, plan and install a new agent with the new choice. It is a new installation with its own `/workspace`, so push your work first or move it over with git.
-- **Renaming the repository breaks the proxy.** The proxy uses the repository name pinned at install and does not follow GitHub's redirects, so after a rename or transfer on GitHub git shows `PERMISSION_DENIED`. A redeploy does not fix it: plan and install a new agent for the repository's new name.
+- **Push is changed on the agent's page, not by a plain redeploy.** Redeploying from the agent's page keeps the choice. To turn push on or off, or to change the branches, use the **Repository** card; see [Attach or change an agent's repository after install](#attach-or-change-an-agents-repository-after-install).
+- **Renaming the repository breaks the proxy.** The proxy uses the repository name pinned at install and does not follow GitHub's redirects, so after a rename or transfer on GitHub git shows `PERMISSION_DENIED`. A redeploy does not fix it: [change the agent's repository](#attach-or-change-an-agents-repository-after-install) to its new name. If `/workspace/<name>` still holds the old clone and TOSE cannot tell it is the same repository, the checkout fails with `WORKSPACE_NOT_EMPTY`; move that folder aside inside the agent first.
 - **The agent does not open pull requests.** Open them yourself on GitHub from the branch the agent pushed.
+
+## Attach or change an agent's repository after install {#attach-or-change-an-agents-repository-after-install}
+
+You no longer have to reinstall an agent to give it a repository or to change it (tose-app [#741](https://github.com/saasvn/tose-app/pull/741)). On the agent's page (**Cloud Agents**, then the agent, at `/w/<workspace>/templates/<agent>`), the **Repository** card lets a workspace **owner** or **admin**:
+
+- **attach** a repository to an agent installed without one;
+- turn **push** on or off, and choose the branches (any branch, or only `tose/<installation slug>/…`);
+- **switch** the agent to another repository;
+- **remove** the repository.
+
+### Use the Repository card
+
+1. Open the agent's page. An agent without a repository shows "No repository yet" and **Attach a repository**. An agent with one shows it with **Change** and **Remove repository**.
+2. Choose **Attach a repository** or **Change**. The same picker as on the deploy page opens: the GitHub account, the **Repository**, the **Branch**, and **Let the agent push to this repository** with its branch choice ([Choose a repository on the deploy page](#choose-a-repository-on-the-deploy-page) explains each step).
+3. Choose **Save and restart the agent**. The card shows "Saved. Restarting the agent…", then "Saved. The agent is restarting; the repository is in /workspace once it is back." If you saved without changing anything, it shows "Nothing changed." and the agent is not restarted.
+4. To take the repository away, choose **Remove repository** and confirm. The agent restarts.
+
+**Saving restarts the agent**, because the change reaches the agent only on a deploy. **Files already in `/workspace` are never deleted.** If the restart itself fails, the change is saved anyway and the card says "Saved, but the agent could not be restarted (…). Deploy it to apply the change." Deploy the agent from its page to apply it.
+
+### What happens when you save
+
+| You change | What happens in `/workspace` |
+|------------|-------------------------------|
+| Attach a repository, or switch to another one | The new repository is cloned into `/workspace/<name>` before the agent starts, like at install. A folder of that name that already holds other files or another repository is never overwritten: the checkout fails with `WORKSPACE_NOT_EMPTY` (see [Status and failure states](#status-and-failure-states)). The old repository's folder stays where it is. |
+| Turn push on or off, same repository | The existing clone keeps its files. Only its `origin` is switched: to the TOSE git proxy with push, back to `https://github.com/<owner>/<repo>.git` without. An `origin` you set yourself is left alone. |
+| Change the push branches, same repository | The branch rule (`all` or `agent`) takes effect at once; nothing in `/workspace` changes. |
+| Choose another branch of the repository already cloned | Refused with `REPOSITORY_ALREADY_CLONED`. Switch branches with git inside the agent (`git fetch`, `git switch`). A clone that has not succeeded yet (waiting or failed) can still change its branch. |
+| Remove the repository | The files stay in `/workspace`, but the agent can no longer fetch or push through TOSE. Its next deploy also takes the TOSE API host out of its network. |
+
+Turning push off, switching the repository or removing it **ends the agent's git secret (`TOSE_GIT_TOKEN`) at once**. With push on, the next deploy issues a new one.
+
+**A leftover clone cannot push into the new repository.** Every checkout created since tose-app #741 has a proxy remote that names its repository, `https://<API host>/api/git/<template id>r<repository id>`. The proxy refuses a remote of another repository, and the bare `/api/git/<template id>` remote for such a checkout. So a folder left in `/workspace` by an earlier repository of the agent can neither fetch from nor push to the current one. An older checkout whose repository never changed keeps its bare remote and keeps working.
+
+### Through the API
+
+Both routes need a workspace **owner** or **admin**, signed in or with an API key that has `deployments:execute`. A connected MCP app is refused with `403 REPOSITORY_REQUIRES_PERSON`; change the repository from the dashboard instead.
+
+```text
+PUT    /api/workspaces/{slug}/template-installations/{id}/repository
+DELETE /api/workspaces/{slug}/template-installations/{id}/repository
+```
+
+`PUT` attaches, changes or reconfigures the repository. The body is the plan's `repository`: `installation_id`, `full_name` and `branch` are required; `commit_sha`, `repo_id`, `push` (default `false`) and `push_branches` (`all`, the default, or `agent`, with `push` only) are optional. No new plan is needed.
+
+```json
+{"installation_id": 12345678, "full_name": "acme/app", "branch": "main", "push": true, "push_branches": "agent"}
+```
+
+`DELETE` takes no body. It removes the checkout record and ends the git secret; the files stay.
+
+Both answer `200` with:
+
+```json
+{
+  "installation": {"id": "…", "repository": {"full_name": "acme/app", "branch": "main", "status": "pending", "push": true, "push_branches": "agent"}},
+  "restart_required": true,
+  "deploy_path": "/api/workspaces/acme/templates/claude-code-1/deploy"
+}
+```
+
+When `restart_required` is `true`, apply the change by deploying the agent again:
+
+```text
+POST {deploy_path}
+{"mode": "image"}
+```
+
+`restart_required` is `false` when the `PUT` changed nothing. `DELETE` always returns `true`.
+
+| Status and code | Why |
+|-----------------|-----|
+| `403` | You are not a workspace owner or admin, or the API key lacks `deployments:execute`. |
+| `403 REPOSITORY_REQUIRES_PERSON` | A connected app sent the request. Use the dashboard. |
+| `404 REPOSITORY_NOT_FOUND` | `DELETE` on an agent that has no repository. |
+| `409 REPOSITORY_ALREADY_CLONED` | Another branch of the repository already cloned. Switch branches with git inside the agent. |
+| `409 REPOSITORY_CLONING` | A clone is running. Wait for the deploy to finish and try again. |
+| `409 REPOSITORY_CHANGED` | Someone else changed the agent's repository meanwhile. Reload and try again. |
+| `409 NOT_A_CLOUD_AGENT` | Only Claude Code, Codex and Pi agents have a repository. |
+| `409 INSTALLATION_DELETED` | The installation was deleted or is being deleted. |
+| `409` `BRANCH_MISSING`, `PERMISSION_DENIED`, `REPO_REMOVED`, `NO_INSTALLATION`, `REPO_ID_CHANGED`, `GITHUB_PERMISSION_MISSING` | GitHub's answer for the repository, as in [Status and failure states](#status-and-failure-states) and [Set it up](#set-it-up). |
+| `422` at `repository.installation_id` | The GitHub App installation is not connected to this workspace. |
+| `503 GITHUB_APP_NOT_CONFIGURED`, `503 GIT_PROXY_NOT_CONFIGURED` | This server has no GitHub App, or no public git proxy address for push. |
+| `502 GITHUB_UNAVAILABLE` | GitHub could not be reached. Try again. |
 
 ## Status and failure states
 
@@ -174,7 +257,7 @@ A failed checkout has one of the codes above except `REPO_ID_CHANGED` (a plannin
 
 ### Retry a failed checkout
 
-Fix the cause (allow the repository again on GitHub, or reconnect the account), then choose **Retry checkout**, or call the API as an owner or admin. Retry clones the same pinned commit; another branch or commit needs a new plan:
+Fix the cause (allow the repository again on GitHub, or reconnect the account), then choose **Retry checkout**, or call the API as an owner or admin. Retry clones the same pinned commit; for another branch, commit or repository, [change the repository](#attach-or-change-an-agents-repository-after-install) instead:
 
 ```text
 POST /api/workspaces/{slug}/template-installations/{id}/repository/retry
@@ -204,4 +287,4 @@ Needs `deployments:execute` for an API key. A `failed` checkout goes back to `pe
 
 ## Related
 
-- Source of truth: `docs/curated-agent-templates.md` ("GitHub repository" and "Pushing to the repository"), `docs/agent-runtime-security.md` ("Trusted repository bootstrap") and `internal/apispec/openapi.yaml` in `saasvn/tose-app`.
+- Source of truth: `docs/curated-agent-templates.md` ("GitHub repository", "Pushing to the repository" and "After install: attach, change or remove the repository"), `docs/agent-runtime-security.md` ("Trusted repository bootstrap") and `internal/apispec/openapi.yaml` in `saasvn/tose-app`.
