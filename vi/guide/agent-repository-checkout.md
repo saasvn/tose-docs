@@ -138,7 +138,7 @@ Khi push bật, bất kỳ ai chạy được lệnh trong agent đều push đ�
 ### Giới hạn {#gioi-han}
 
 - **Đổi push trên trang của agent, không phải bằng deploy lại thông thường.** Deploy lại từ trang của agent vẫn giữ lựa chọn cũ. Muốn bật, tắt push hoặc đổi nhánh được push, hãy dùng thẻ **Kho mã**; xem [Gắn hoặc đổi kho mã của agent sau khi cài](#gan-hoac-doi-kho-ma-sau-khi-cai).
-- **Đổi tên kho mã làm proxy ngừng hoạt động.** Proxy dùng tên kho mã đã ghim khi cài và không đi theo chuyển hướng của GitHub, nên sau khi đổi tên hoặc chuyển giao kho trên GitHub, git hiển thị `PERMISSION_DENIED`. Deploy lại không khắc phục được: hãy [đổi kho mã của agent](#gan-hoac-doi-kho-ma-sau-khi-cai) sang tên mới. Nếu `/workspace/<tên>` vẫn còn bản clone cũ và TOSE không nhận ra đó là cùng một kho, checkout thất bại với `WORKSPACE_NOT_EMPTY`; hãy chuyển thư mục đó sang chỗ khác trong agent trước.
+- **Đổi tên kho mã làm proxy ngừng hoạt động.** Proxy dùng tên kho mã đã ghim khi cài (hoặc ở lần đổi kho mã gần nhất) và không đi theo chuyển hướng của GitHub, nên sau khi đổi tên hoặc chuyển giao kho trên GitHub, git hiển thị `PERMISSION_DENIED`. Deploy lại không khắc phục được: hãy [đổi kho mã của agent](#gan-hoac-doi-kho-ma-sau-khi-cai) sang tên mới. Nếu `/workspace/<tên>` vẫn còn bản clone cũ và TOSE không nhận ra đó là cùng một kho, checkout thất bại với `WORKSPACE_NOT_EMPTY`; hãy chuyển thư mục đó sang chỗ khác trong agent trước.
 - **Agent không mở pull request.** Bạn tự mở trên GitHub từ nhánh mà agent đã push.
 
 ## Gắn hoặc đổi kho mã của agent sau khi cài {#gan-hoac-doi-kho-ma-sau-khi-cai}
@@ -153,7 +153,7 @@ Bạn không còn phải cài lại agent để gắn hay đổi kho mã (tose-a
 ### Dùng thẻ Kho mã
 
 1. Mở trang của agent. Agent chưa có kho mã hiển thị "Chưa gắn kho mã" và nút **Gắn kho mã**. Agent đã có kho hiển thị kho đó cùng **Thay đổi** và **Gỡ kho mã**.
-2. Chọn **Gắn kho mã** hoặc **Thay đổi**. Bộ chọn giống trang triển khai sẽ mở ra: tài khoản GitHub, **Kho mã**, **Nhánh**, và tùy chọn cho agent push cùng lựa chọn nhánh ([Chọn kho mã trên trang triển khai](#chon-kho-ma-tren-trang-trien-khai) giải thích từng bước).
+2. Chọn **Gắn kho mã** hoặc **Thay đổi**. Bộ chọn giống trang triển khai sẽ mở ra: tài khoản GitHub, **Kho mã**, **Nhánh**, và **Cho phép agent push lên kho mã này** cùng lựa chọn nhánh ([Chọn kho mã trên trang triển khai](#chon-kho-ma-tren-trang-trien-khai) giải thích từng bước).
 3. Chọn **Lưu và khởi động lại agent**. Thẻ hiển thị "Đã lưu. Đang khởi động lại agent…", rồi "Đã lưu. Agent đang khởi động lại; kho mã sẽ có trong /workspace khi agent chạy lại." Nếu bạn lưu mà không đổi gì, thẻ hiển thị "Không có gì thay đổi." và agent không khởi động lại.
 4. Để bỏ kho mã, chọn **Gỡ kho mã** rồi xác nhận. Agent sẽ khởi động lại.
 
@@ -163,7 +163,7 @@ Bạn không còn phải cài lại agent để gắn hay đổi kho mã (tose-a
 
 | Bạn đổi | Điều xảy ra trong `/workspace` |
 |---------|--------------------------------|
-| Gắn kho mã, hoặc đổi sang kho khác | Kho mới được clone vào `/workspace/<tên>` trước khi agent khởi động, như lúc cài. Thư mục cùng tên đã chứa tệp khác hoặc một kho khác không bao giờ bị ghi đè: checkout thất bại với `WORKSPACE_NOT_EMPTY` (xem [Trạng thái và các trường hợp lỗi](#trang-thai-va-cac-truong-hop-loi)). Thư mục của kho cũ vẫn nằm nguyên chỗ cũ. |
+| Gắn kho mã, hoặc đổi sang kho khác | Kho mới được clone vào `/workspace/<tên>` trước khi agent khởi động, như lúc cài. Thư mục cùng tên đã chứa tệp khác hoặc bản clone của một kho GitHub khác không bao giờ bị ghi đè: checkout thất bại với `WORKSPACE_NOT_EMPTY` (xem [Trạng thái và các trường hợp lỗi](#trang-thai-va-cac-truong-hop-loi)). Thư mục của kho cũ vẫn nằm nguyên chỗ cũ. |
 | Bật hoặc tắt push, cùng kho mã | Bản clone hiện có giữ nguyên tệp. Chỉ `origin` của nó được chuyển: sang git proxy của TOSE khi có push, về lại `https://github.com/<owner>/<repo>.git` khi không. `origin` do bạn tự đặt được giữ nguyên. |
 | Đổi nhánh được push, cùng kho mã | Quy tắc nhánh (`all` hoặc `agent`) có hiệu lực ngay; không có gì trong `/workspace` thay đổi. |
 | Chọn nhánh khác của kho đã clone | Bị từ chối với `REPOSITORY_ALREADY_CLONED`. Hãy đổi nhánh bằng git ngay trong agent (`git fetch`, `git switch`). Bản clone chưa thành công (đang chờ hoặc thất bại) vẫn đổi nhánh được. |
@@ -213,6 +213,7 @@ POST {deploy_path}
 |------------------|-------|
 | `403` | Bạn không phải owner hoặc admin của workspace, hoặc API key thiếu `deployments:execute`. |
 | `403 REPOSITORY_REQUIRES_PERSON` | Một ứng dụng đã kết nối gửi yêu cầu. Hãy dùng dashboard. |
+| `404 INSTALLATION_NOT_FOUND` | Không có installation với id này trong workspace. |
 | `404 REPOSITORY_NOT_FOUND` | `DELETE` với agent không có kho mã. |
 | `409 REPOSITORY_ALREADY_CLONED` | Nhánh khác của kho đã clone. Hãy đổi nhánh bằng git ngay trong agent. |
 | `409 REPOSITORY_CLONING` | Đang clone. Đợi lần deploy xong rồi thử lại. |
@@ -263,7 +264,7 @@ Hãy sửa nguyên nhân (cho phép lại kho mã trên GitHub, hoặc kết n�
 POST /api/workspaces/{slug}/template-installations/{id}/repository/retry
 ```
 
-API key cần `deployments:execute`. Checkout `failed` quay về `pending` và **chạy ở lần deploy kế tiếp**, vì vậy sau đó hãy redeploy agent từ trang của nó. Route trả về:
+API key cần `deployments:execute`. Checkout `failed` quay về `pending` và **chạy ở lần deploy kế tiếp**. Nút **Thử tải lại** trên thẻ **Kho mã** của trang agent tự khởi động lại agent; nếu thử lại qua API (hoặc từ trang trạng thái triển khai), hãy tự deploy lại agent (`POST .../templates/{agent}/deploy` với `{"mode":"image"}`, hoặc từ trang của agent). Route trả về:
 
 | Trạng thái | Khi nào |
 |------------|---------|

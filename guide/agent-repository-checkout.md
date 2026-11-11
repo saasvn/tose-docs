@@ -138,7 +138,7 @@ While push is on, anyone who can run commands in the agent can push to that repo
 ### Limits
 
 - **Push is changed on the agent's page, not by a plain redeploy.** Redeploying from the agent's page keeps the choice. To turn push on or off, or to change the branches, use the **Repository** card; see [Attach or change an agent's repository after install](#attach-or-change-an-agents-repository-after-install).
-- **Renaming the repository breaks the proxy.** The proxy uses the repository name pinned at install and does not follow GitHub's redirects, so after a rename or transfer on GitHub git shows `PERMISSION_DENIED`. A redeploy does not fix it: [change the agent's repository](#attach-or-change-an-agents-repository-after-install) to its new name. If `/workspace/<name>` still holds the old clone and TOSE cannot tell it is the same repository, the checkout fails with `WORKSPACE_NOT_EMPTY`; move that folder aside inside the agent first.
+- **Renaming the repository breaks the proxy.** The proxy uses the repository name pinned at install (or at the last repository change) and does not follow GitHub's redirects, so after a rename or transfer on GitHub git shows `PERMISSION_DENIED`. A redeploy does not fix it: [change the agent's repository](#attach-or-change-an-agents-repository-after-install) to its new name. If `/workspace/<name>` still holds the old clone and TOSE cannot tell it is the same repository, the checkout fails with `WORKSPACE_NOT_EMPTY`; move that folder aside inside the agent first.
 - **The agent does not open pull requests.** Open them yourself on GitHub from the branch the agent pushed.
 
 ## Attach or change an agent's repository after install {#attach-or-change-an-agents-repository-after-install}
@@ -163,7 +163,7 @@ You no longer have to reinstall an agent to give it a repository or to change it
 
 | You change | What happens in `/workspace` |
 |------------|-------------------------------|
-| Attach a repository, or switch to another one | The new repository is cloned into `/workspace/<name>` before the agent starts, like at install. A folder of that name that already holds other files or another repository is never overwritten: the checkout fails with `WORKSPACE_NOT_EMPTY` (see [Status and failure states](#status-and-failure-states)). The old repository's folder stays where it is. |
+| Attach a repository, or switch to another one | The new repository is cloned into `/workspace/<name>` before the agent starts, like at install. A folder of that name that already holds other files or a clone of another GitHub repository is never overwritten: the checkout fails with `WORKSPACE_NOT_EMPTY` (see [Status and failure states](#status-and-failure-states)). The old repository's folder stays where it is. |
 | Turn push on or off, same repository | The existing clone keeps its files. Only its `origin` is switched: to the TOSE git proxy with push, back to `https://github.com/<owner>/<repo>.git` without. An `origin` you set yourself is left alone. |
 | Change the push branches, same repository | The branch rule (`all` or `agent`) takes effect at once; nothing in `/workspace` changes. |
 | Choose another branch of the repository already cloned | Refused with `REPOSITORY_ALREADY_CLONED`. Switch branches with git inside the agent (`git fetch`, `git switch`). A clone that has not succeeded yet (waiting or failed) can still change its branch. |
@@ -213,6 +213,7 @@ POST {deploy_path}
 |-----------------|-----|
 | `403` | You are not a workspace owner or admin, or the API key lacks `deployments:execute`. |
 | `403 REPOSITORY_REQUIRES_PERSON` | A connected app sent the request. Use the dashboard. |
+| `404 INSTALLATION_NOT_FOUND` | No installation with this id in the workspace. |
 | `404 REPOSITORY_NOT_FOUND` | `DELETE` on an agent that has no repository. |
 | `409 REPOSITORY_ALREADY_CLONED` | Another branch of the repository already cloned. Switch branches with git inside the agent. |
 | `409 REPOSITORY_CLONING` | A clone is running. Wait for the deploy to finish and try again. |
@@ -263,7 +264,7 @@ Fix the cause (allow the repository again on GitHub, or reconnect the account), 
 POST /api/workspaces/{slug}/template-installations/{id}/repository/retry
 ```
 
-Needs `deployments:execute` for an API key. A `failed` checkout goes back to `pending` and **runs at the next deploy**, so redeploy the agent from its page afterwards. The route answers:
+Needs `deployments:execute` for an API key. A `failed` checkout goes back to `pending` and **runs at the next deploy**. **Retry checkout** on the agent's **Repository** card restarts the agent for you; after a retry through the API (or from the deploy status page), deploy the agent again yourself (`POST .../templates/{agent}/deploy` with `{"mode":"image"}`, or from its page). The route answers:
 
 | Status | When |
 |--------|------|
