@@ -24,13 +24,13 @@ Every five minutes the collector reads every running pod of each active project 
 - `sampled_pods`: how many of them answered;
 - the sum of memory and network over the pods that answered.
 
-A sample is **complete** when every running pod answered (`sampled_pods` equals `running_pods`). Only complete samples count towards memory. A sample where some pods did not answer, where every read failed, or where the workload ran more than 10 pods is kept, but it is not averaged into memory: it would understate the total.
+A sample is **complete** when every running pod answered (`sampled_pods` equals `running_pods`). Only complete samples count towards memory and network. A sample where some pods did not answer, where every read failed, or where the workload ran more than 10 pods is kept, but it is not averaged into memory: it would understate the total.
 
 Samples stored before this collector existed read only the first pod. They count only for a workload with at most one pod.
 
 ## Not measured is `null`, never `0`
 
-When a figure was not measured, the API returns `null` and the dashboard leaves a gap in the chart. A `0` always means a real reading of zero. This applies to `memory_bytes`, `memory_mb`, `network_rx`, `network_tx`, `pod_count` and `ready_count`.
+When a figure was not measured, the API returns `null` and the dashboard leaves a gap in the chart. A `0` always means a real reading of zero. This applies to `memory_bytes`, `memory_mb`, `network_rx`, `network_tx` and `ready_count`, and to `pod_count` in buckets (a raw sample always has the number of pods listed).
 
 A bucket that expected samples but has none is marked `gap: true`. A gap means "no observation", not "down".
 
@@ -60,7 +60,7 @@ Any workspace member can read these. A workload of another workspace returns `40
 | Query parameter | Description |
 |---|---|
 | `period` | `1h`, `6h`, `24h` (default), `7d` or `30d`. Any other value returns `400` |
-| `timezone` | An IANA time zone name, such as `Europe/Berlin`. Sets the bucket boundaries of `7d` and `30d`. Defaults to UTC. An unknown name returns `400` |
+| `timezone` | An IANA time zone name, such as `Europe/Berlin`. Sets the bucket boundaries of `7d` and `30d`. Defaults to UTC. For `7d` and `30d` an unknown name returns `400`; raw periods ignore it |
 
 ### Raw samples (`1h`, `6h`, `24h`)
 
@@ -96,8 +96,9 @@ Any workspace member can read these. A workload of another workspace returns `40
 ```json
 {
   "period": "30d",
-  "from": "2026-10-11T23:55:00Z",
-  "to": "2026-11-10T23:55:00Z",
+  "since": "2026-10-11T23:57:12Z",
+  "from": "2026-10-11T23:57:12Z",
+  "to": "2026-11-10T23:57:12Z",
   "granularity": "1d",
   "timezone": "Asia/Ho_Chi_Minh",
   "observed_at": "2026-11-10T23:55:00Z",
@@ -129,8 +130,8 @@ Any workspace member can read these. A workload of another workspace returns `40
 
 | Field | Meaning |
 |---|---|
-| `memory_bytes`, `memory_mb` | The average of the complete samples in the bucket; `null` when there were none |
-| `network_rx`, `network_tx` | The largest cumulative counter in the bucket. Counters restart with each pod, so do not subtract two buckets to get a rate |
+| `memory_bytes`, `memory_mb` | The average of the valid samples in the bucket (complete samples, and legacy one-pod samples of a one-pod workload); `null` when there were none |
+| `network_rx`, `network_tx` | The largest cumulative counter among the valid samples in the bucket. Counters restart with each pod, so do not subtract two buckets to get a rate |
 | `pod_count` | The most pods seen in the bucket |
 | `ready_count` | The fewest ready pods seen in the bucket |
 | `samples`, `gap` | How many samples the bucket holds, and whether samples were expected but none exists |

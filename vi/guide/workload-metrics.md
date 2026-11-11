@@ -24,13 +24,13 @@ Cứ năm phút, bộ thu thập đọc mọi pod đang chạy của mỗi dự 
 - `sampled_pods`: số pod đã trả lời;
 - tổng bộ nhớ và mạng của các pod đã trả lời.
 
-Một mẫu là **đầy đủ** khi mọi pod đang chạy đều trả lời (`sampled_pods` bằng `running_pods`). Chỉ mẫu đầy đủ mới được tính vào bộ nhớ. Mẫu có pod không trả lời, mẫu mà mọi lần đọc đều lỗi, hoặc mẫu của workload chạy quá 10 pod vẫn được giữ, nhưng không được tính trung bình vào bộ nhớ: nó sẽ làm tổng thấp hơn thực tế.
+Một mẫu là **đầy đủ** khi mọi pod đang chạy đều trả lời (`sampled_pods` bằng `running_pods`). Chỉ mẫu đầy đủ mới được tính vào bộ nhớ và mạng. Mẫu có pod không trả lời, mẫu mà mọi lần đọc đều lỗi, hoặc mẫu của workload chạy quá 10 pod vẫn được giữ, nhưng không được tính trung bình vào bộ nhớ: nó sẽ làm tổng thấp hơn thực tế.
 
 Các mẫu lưu trước khi có bộ thu thập này chỉ đọc pod đầu tiên. Chúng chỉ được tính cho workload có tối đa một pod.
 
 ## Không đo được là `null`, không bao giờ là `0`
 
-Khi một số liệu không được đo, API trả `null` và dashboard để trống đoạn đó trên biểu đồ. Giá trị `0` luôn là một lần đọc thật bằng 0. Quy tắc này áp dụng cho `memory_bytes`, `memory_mb`, `network_rx`, `network_tx`, `pod_count` và `ready_count`.
+Khi một số liệu không được đo, API trả `null` và dashboard để trống đoạn đó trên biểu đồ. Giá trị `0` luôn là một lần đọc thật bằng 0. Quy tắc này áp dụng cho `memory_bytes`, `memory_mb`, `network_rx`, `network_tx` và `ready_count`, và cho `pod_count` trong bucket (mẫu thô luôn có số pod được liệt kê).
 
 Một bucket lẽ ra có mẫu nhưng không có mẫu nào được đánh dấu `gap: true`. Gap nghĩa là "không có quan sát", không phải "bị sập".
 
@@ -60,7 +60,7 @@ Mọi thành viên workspace đều đọc được. Workload của workspace kh
 | Tham số query | Mô tả |
 |---|---|
 | `period` | `1h`, `6h`, `24h` (mặc định), `7d` hoặc `30d`. Giá trị khác trả `400` |
-| `timezone` | Tên múi giờ IANA, ví dụ `Europe/Berlin`. Đặt ranh giới bucket của `7d` và `30d`. Mặc định là UTC. Tên không hợp lệ trả `400` |
+| `timezone` | Tên múi giờ IANA, ví dụ `Europe/Berlin`. Đặt ranh giới bucket của `7d` và `30d`. Mặc định là UTC. Với `7d` và `30d`, tên không hợp lệ trả `400`; khoảng thô bỏ qua tham số này |
 
 ### Mẫu thô (`1h`, `6h`, `24h`)
 
@@ -96,8 +96,9 @@ Mọi thành viên workspace đều đọc được. Workload của workspace kh
 ```json
 {
   "period": "30d",
-  "from": "2026-10-11T23:55:00Z",
-  "to": "2026-11-10T23:55:00Z",
+  "since": "2026-10-11T23:57:12Z",
+  "from": "2026-10-11T23:57:12Z",
+  "to": "2026-11-10T23:57:12Z",
   "granularity": "1d",
   "timezone": "Asia/Ho_Chi_Minh",
   "observed_at": "2026-11-10T23:55:00Z",
@@ -129,8 +130,8 @@ Mọi thành viên workspace đều đọc được. Workload của workspace kh
 
 | Trường | Ý nghĩa |
 |---|---|
-| `memory_bytes`, `memory_mb` | Trung bình các mẫu đầy đủ trong bucket; `null` khi không có mẫu nào |
-| `network_rx`, `network_tx` | Bộ đếm cộng dồn lớn nhất trong bucket. Bộ đếm khởi động lại theo từng pod, nên đừng trừ hai bucket để ra tốc độ |
+| `memory_bytes`, `memory_mb` | Trung bình các mẫu hợp lệ trong bucket (mẫu đầy đủ, và mẫu cũ một pod của workload một pod); `null` khi không có mẫu nào |
+| `network_rx`, `network_tx` | Bộ đếm cộng dồn lớn nhất trong các mẫu hợp lệ của bucket. Bộ đếm khởi động lại theo từng pod, nên đừng trừ hai bucket để ra tốc độ |
 | `pod_count` | Số pod lớn nhất thấy trong bucket |
 | `ready_count` | Số pod ready nhỏ nhất thấy trong bucket |
 | `samples`, `gap` | Số mẫu trong bucket, và bucket có thiếu mẫu dù lẽ ra phải có hay không |
