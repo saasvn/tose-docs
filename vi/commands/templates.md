@@ -98,7 +98,7 @@ tose templates retry-checkout <installation-id> --json     # sau khi clone lỗi
 
 ### Quản lý kho mã của agent sau khi cài {#repo-set-remove}
 
-Mỗi agent có tối đa 10 kho mã, mỗi kho được clone vào thư mục riêng `/workspace/<tên kho>`. Owner hoặc admin (API key có `deployments:execute`) có thể thêm kho mã cho agent curated đã cài, bật hoặc tắt push cho một kho agent đang có, hoặc gỡ một hay tất cả các kho, mà không cần plan mới. Xem [Gắn hoặc đổi kho mã của agent sau khi cài](/vi/guide/agent-repository-checkout#gan-hoac-doi-kho-ma-sau-khi-cai) để biết điều gì xảy ra trong `/workspace`.
+Mỗi agent có [tối đa 10 kho mã](/vi/guide/agent-repository-checkout#nhieu-kho-ma-cho-mot-agent), mỗi kho được clone vào thư mục riêng `/workspace/<tên kho>`. Owner hoặc admin (API key có `deployments:execute`) có thể thêm kho mã cho agent curated đã cài, bật hoặc tắt push cho một kho agent đang có, hoặc gỡ một hay tất cả các kho, mà không cần plan mới. Xem [Gắn hoặc đổi kho mã của agent sau khi cài](/vi/guide/agent-repository-checkout#gan-hoac-doi-kho-ma-sau-khi-cai) để biết điều gì xảy ra trong `/workspace`.
 
 ```bash
 tose templates repo list <installation-id>                                              # tên, nhánh, trạng thái, push, đường dẫn

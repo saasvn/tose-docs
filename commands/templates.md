@@ -98,7 +98,7 @@ tose templates retry-checkout <installation-id> --json     # after a failed clon
 
 ### Manage an agent's repositories after install {#repo-set-remove}
 
-An agent has up to 10 repositories, each cloned into its own folder `/workspace/<repo name>`. An owner or admin (an API key with `deployments:execute`) can add a repository to an installed curated agent, turn push on or off for one it has, or remove one or all, without a new plan. See [Attach or change an agent's repositories after install](/guide/agent-repository-checkout#attach-or-change-an-agents-repository-after-install) for what happens in `/workspace`.
+An agent has [up to 10 repositories](/guide/agent-repository-checkout#several-repositories-per-agent), each cloned into its own folder `/workspace/<repo name>`. An owner or admin (an API key with `deployments:execute`) can add a repository to an installed curated agent, turn push on or off for one it has, or remove one or all, without a new plan. See [Attach or change an agent's repositories after install](/guide/agent-repository-checkout#attach-or-change-an-agents-repository-after-install) for what happens in `/workspace`.
 
 ```bash
 tose templates repo list <installation-id>                                              # name, branch, status, push, path
