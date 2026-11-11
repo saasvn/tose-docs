@@ -2,7 +2,7 @@
 
 TOSE phát hành sẵn các coding agent được tuyển chọn: **Pi**, **Codex** và **Claude Code**. Mỗi agent chạy trong container riêng với chính sách mạng riêng. Bạn chọn agent được phép truy cập Internet đến mức nào khi lập kế hoạch cài đặt, và kế hoạch bạn duyệt chính là kế hoạch được áp dụng.
 
-Trang này giải thích ba chế độ, mỗi chế độ truy cập được và không truy cập được gì, chế độ Phát triển cung cấp những bộ công cụ nào cho từng agent, và rủi ro còn lại. Để cài một agent, mở **Template catalog** trong dashboard ([tổng quan dashboard](/vi/guide/getting-started#lam-quen-voi-dashboard)).
+Trang này giải thích ba chế độ, mỗi chế độ truy cập được và không truy cập được gì, chế độ Phát triển cung cấp những bộ công cụ nào cho từng agent, và rủi ro còn lại. Để cài một agent, mở **Cloud Agents** trong dashboard ([tổng quan dashboard](/vi/guide/getting-started#lam-quen-voi-dashboard)).
 
 ::: warning Tình trạng và kiểm chứng
 Phát triển (giới hạn) đã được triển khai và có kiểm thử cho chính sách và kế hoạch. Chế độ này chưa được chứng minh trên cluster thật có thực thi, và TOSE chưa hoàn tất việc chấp nhận [rủi ro còn lại](#rui-ro-con-lai) cho bản phát hành rộng rãi. Bạn chọn được chế độ nào tùy theo những gì máy chủ báo cho workspace của bạn.

@@ -1,6 +1,6 @@
 # Pi model providers
 
-**Pi** is one of the curated coding agents in the TOSE **Template catalog**. It works with your own account at a model provider: you give it a provider API key (or use your provider plan), and the provider bills you directly. This page lists the providers Pi can use, what each one needs, and the differences between providers that have similar names.
+**Pi** is one of the curated coding agents in the TOSE **Cloud Agents** menu. It works with your own account at a model provider: you give it a provider API key (or use your provider plan), and the provider bills you directly. This page lists the providers Pi can use, what each one needs, and the differences between providers that have similar names.
 
 ::: info Release 1.1.0
 All ten providers below are available from Pi release **1.1.0**, the default release for new Pi agents. Release 1.0.0 stays listed and offers only Anthropic, OpenAI and Google. Published releases are immutable, so **existing Pi installations are not upgraded automatically**; to use a new provider, install a new app.
@@ -54,4 +54,4 @@ The **Development (restricted)** network mode (`development`) for Pi opens the h
 - **TOSE keeps no model list.** Your provider decides which models your key may use and which of them support tools. Leave **Model** empty to use Pi's default for the provider you chose.
 - Providers add and retire models often, so check a model with your provider before you rely on it for coding work.
 
-To install an agent, open **Template catalog** in the dashboard ([dashboard overview](/guide/getting-started#find-your-way-around-the-dashboard)).
+To install an agent, open **Cloud Agents** in the dashboard ([dashboard overview](/guide/getting-started#find-your-way-around-the-dashboard)).

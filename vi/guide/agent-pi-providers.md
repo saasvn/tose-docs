@@ -1,6 +1,6 @@
 # Nhà cung cấp model cho Pi
 
-**Pi** là một coding agent tuyển chọn trong **Template catalog** của TOSE. Pi dùng tài khoản của chính bạn tại nhà cung cấp model: bạn đưa API key của nhà cung cấp (hoặc dùng gói của họ) và nhà cung cấp tính phí trực tiếp cho bạn. Trang này liệt kê các nhà cung cấp Pi có thể dùng, mỗi bên cần gì, và sự khác nhau giữa những sản phẩm có tên gần giống nhau.
+**Pi** là một coding agent tuyển chọn trong menu **Cloud Agents** của TOSE. Pi dùng tài khoản của chính bạn tại nhà cung cấp model: bạn đưa API key của nhà cung cấp (hoặc dùng gói của họ) và nhà cung cấp tính phí trực tiếp cho bạn. Trang này liệt kê các nhà cung cấp Pi có thể dùng, mỗi bên cần gì, và sự khác nhau giữa những sản phẩm có tên gần giống nhau.
 
 ::: info Bản phát hành 1.1.0
 Cả mười nhà cung cấp dưới đây đều có từ bản phát hành Pi **1.1.0**, bản mặc định cho các Pi agent mới. Bản 1.0.0 vẫn còn trong danh sách và chỉ có Anthropic, OpenAI và Google. Bản phát hành đã công bố là bất biến, nên **các cài đặt Pi hiện có không tự động được nâng cấp**; để dùng nhà cung cấp mới, hãy cài một app mới.
@@ -54,4 +54,4 @@ Chế độ mạng **Development (restricted)** (`development`) của Pi mở th
 - **TOSE không giữ danh sách model.** Nhà cung cấp quyết định key của bạn được dùng model nào và model nào hỗ trợ tool. Để trống **Model** để dùng mặc định của Pi cho nhà cung cấp đã chọn.
 - Nhà cung cấp thường xuyên thêm và gỡ model, nên hãy kiểm tra model với nhà cung cấp trước khi dựa vào nó cho công việc lập trình.
 
-Để cài một agent, mở **Template catalog** trên dashboard ([làm quen với dashboard](/vi/guide/getting-started#làm-quen-với-dashboard)).
+Để cài một agent, mở **Cloud Agents** trên dashboard ([làm quen với dashboard](/vi/guide/getting-started#lam-quen-voi-dashboard)).

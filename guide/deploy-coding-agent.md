@@ -1,6 +1,6 @@
 # Deploy a coding agent
 
-TOSE publishes ready-made coding agents in the **Template catalog**: **Claude Code**, **Codex** and **Pi**. Each one runs in its own private pod in your workspace, with a persistent disk, and you work with it in a console that only workspace owners and admins can open.
+TOSE publishes ready-made coding agents, **Claude Code**, **Codex** and **Pi**, in the **Cloud Agents** menu of your workspace (`/w/<workspace>/agents`). Each one runs in its own private pod in your workspace, with a persistent disk, and you work with it in a console that only workspace owners and admins can open.
 
 The released versions are **Codex 1.0.0**, **Claude Code 1.0.0**, and **Pi 1.0.0** and **1.1.0**. Pi 1.1.0 is the default for new Pi agents: it adds seven providers, Node.js with npm, uv for Python, and instructions that describe the container to Pi. Each release is pinned to an image by digest, and the app you install shows that image as its **Template Source**.
 
@@ -13,7 +13,7 @@ The released versions are **Codex 1.0.0**, **Claude Code 1.0.0**, and **Pi 1.0.0
 
 ## Deploy an agent {#deploy-an-agent}
 
-1. Open **Template catalog** in the workspace sidebar (**Apps & agents**). The **Agent templates by TOSE** list shows one card per agent, with its sign-in methods, size range, release and upstream version, source and license.
+1. Open **Cloud Agents** in the workspace sidebar (`/w/<workspace>/agents`). **Your agents** lists the agents already in the workspace, with their status, release, whether they accept tasks (for releases with a task runner), and their repository and push setting. **Available agents** shows one card per agent you can deploy, with its sign-in methods, size range, release and upstream version, source and license. **Deploy an agent** at the top jumps to that list. The Templates pages (**Installed apps**, **My templates** and **Template catalog**, the deploy wizard's first step) no longer list these agents.
 2. Choose an agent and select **Deploy**. The agent deploys from one page, **Deploy** followed by the agent's name, with these cards:
    - **App**: the **App name**.
    - **Sign in**: the provider (see [Choose a provider](#choose-a-provider)). When it uses an API key, enter the key right there. The key is encrypted, sent only with the deploy, never shown again and never part of the plan. A plan sign-in needs no key: you sign in after the deploy.
@@ -23,7 +23,7 @@ The released versions are **Codex 1.0.0**, **Claude Code 1.0.0**, and **Pi 1.0.0
    - **Advanced: release, model and environment variables**: the **Release** (the newest by default, so Pi 1.1.0 for Pi), an optional **Model** (leave it empty to use the agent's default) and your own **Environment variables**.
 3. Check the plan next to the **Deploy** button. As you change the inputs, the page plans them and shows the cost ceiling (the most the agent can cost per hour), the wallet runway, and any blockers and warnings. Fix highlighted fields to see the cost.
 4. Select **Deploy**. It approves exactly the plan shown, installs it and follows the progress: approving the plan, installing, starting the agent, until **The agent is running**. A member who cannot approve gets a link to the plan to send to an owner or admin instead.
-5. Open the app's page. Use **Open console**, or connect your plan as described below.
+5. Open the agent's page: select **Open app** when the deploy finishes, or later select the agent under **Your agents** in **Cloud Agents**. The page itself is still `/w/<workspace>/templates/<app>`, where `<app>` is the app name you chose. Use **Open console**, or connect your plan as described below.
 
 The page does not ask for a cost limit. The plan still shows the cost ceiling so you can judge it before deploying. If you create plans through the API, you can still send `max_hourly_cost_cents`; the plan is then blocked when its ceiling is higher.
 
