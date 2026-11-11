@@ -96,6 +96,23 @@ tose templates retry-checkout <installation-id> --json     # sau khi clone lỗi
 - Chỉ owner hoặc admin workspace được gửi repository (`REPOSITORY_REQUIRES_ADMIN`). Repository, thiết lập push và dung lượng ổ là một phần của plan hash, nên `deploy --plan` không lặp lại các cờ đó và từ chối cờ mâu thuẫn với kế hoạch.
 - `retry-checkout` (owner hoặc admin, key có `deployments:execute`) đặt checkout `failed` về `pending`; hãy deploy lại sau đó.
 
+### Đổi kho mã sau khi cài {#repo-set-remove}
+
+Owner hoặc admin (API key có `deployments:execute`) có thể gắn kho mã cho agent curated đã cài, đổi sang kho khác, bật hoặc tắt push, hoặc gỡ kho mã, mà không cần plan mới. Xem [Gắn hoặc đổi kho mã của agent sau khi cài](/vi/guide/agent-repository-checkout#gan-hoac-doi-kho-ma-sau-khi-cai) để biết điều gì xảy ra trong `/workspace`.
+
+```bash
+tose templates repo set <installation-id> --repo acme/app --yes                         # gắn hoặc đổi kho, chỉ đọc
+tose templates repo set <installation-id> --repo acme/app --push --push-branches agent --yes
+tose templates repo remove <installation-id> --yes                                      # tệp vẫn ở trong /workspace
+```
+
+- `repo set` chọn `--repo` trong danh sách kho mà kết nối GitHub của bạn liệt kê, giống `plan`, và gửi kèm id của kho, nên một kho khác trùng tên bị từ chối (`REPO_ID_CHANGED`). `--commit` và `--github-installation` hoạt động như trong `plan`.
+- Lệnh thay toàn bộ thiết lập: không có `--push` thì kho chỉ đọc, nên bỏ `--push` với agent đang được push sẽ tắt push. `--push-branches all|agent` cần `--push`.
+- `--branch` mặc định là nhánh đã clone khi `--repo` là kho hiện tại, nếu không thì là nhánh mặc định của kho. Nhánh khác của kho đã clone bị từ chối (`REPOSITORY_ALREADY_CLONED`); hãy đổi nhánh bằng git ngay trong agent.
+- Cả hai lệnh hỏi xác nhận, hoặc cần `--yes` trong script. Khi API trả `restart_required: true`, lệnh deploy lại agent ở chế độ image, việc này khởi động lại agent và dừng tác vụ đang chạy. Nếu lần deploy đó bị từ chối, thay đổi vẫn được lưu và lệnh thoát với mã `8` kèm lệnh `tose template deploy <slug> --mode image` cần chạy.
+- Đầu ra hiển thị checkout mới (`pending` cho tới khi lần deploy clone hoặc trỏ lại kho). Với `--json` là `{installation_id, repository, restart_required, deployment}`. Theo dõi lần khởi động lại bằng `tose templates wait <installation-id>`.
+- Lỗi từ API giữ nguyên mã kèm bước tiếp theo: `REPOSITORY_CLONING`, `NOT_A_CLOUD_AGENT`, `INSTALLATION_DELETED`, `REPOSITORY_REQUIRES_PERSON`, `REPOSITORY_NOT_FOUND` (`repo remove` khi không có kho) và các mã của GitHub `BRANCH_MISSING`, `PERMISSION_DENIED`, `GITHUB_PERMISSION_MISSING`, ...
+
 ## Liên quan
 
 - [Template registry](/vi/guide/template-registry)

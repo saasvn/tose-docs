@@ -96,6 +96,23 @@ tose templates retry-checkout <installation-id> --json     # after a failed clon
 - Only a workspace owner or admin may send a repository (`REPOSITORY_REQUIRES_ADMIN`). The repository, its push setting and the disk size are part of the plan hash, so `deploy --plan` does not repeat those flags and refuses ones that contradict the plan.
 - `retry-checkout` (owner or admin, key with `deployments:execute`) sets a `failed` checkout back to `pending`; deploy again afterwards.
 
+### Change the repository after install {#repo-set-remove}
+
+An owner or admin (an API key with `deployments:execute`) can attach a repository to an installed curated agent, switch it to another one, turn push on or off, or remove it, without a new plan. See [Attach or change an agent's repository after install](/guide/agent-repository-checkout#attach-or-change-an-agents-repository-after-install) for what happens in `/workspace`.
+
+```bash
+tose templates repo set <installation-id> --repo acme/app --yes                         # attach or switch, read-only
+tose templates repo set <installation-id> --repo acme/app --push --push-branches agent --yes
+tose templates repo remove <installation-id> --yes                                      # files stay in /workspace
+```
+
+- `repo set` picks `--repo` from the repositories your GitHub connection lists, like `plan`, and also sends the repository id, so a different repository under the same name is refused (`REPO_ID_CHANGED`). `--commit` and `--github-installation` work as in `plan`.
+- It replaces the settings as a whole: without `--push` the repository is read-only, so leaving `--push` out on an agent that pushes turns push off. `--push-branches all|agent` needs `--push`.
+- `--branch` defaults to the cloned branch when `--repo` names the current repository, otherwise to the repository's default branch. Another branch of a cloned repository is refused (`REPOSITORY_ALREADY_CLONED`); switch branches with git inside the agent.
+- Both commands ask for confirmation, or need `--yes` in scripts. When the API answers `restart_required: true`, the command deploys the agent again in image mode, which restarts it and stops a running task. If that deploy is refused, the change stays saved and the command exits `8` with the `tose template deploy <slug> --mode image` to run.
+- The output shows the new checkout (`pending` until the deployment clones or re-points it). With `--json` it is `{installation_id, repository, restart_required, deployment}`. Follow the restart with `tose templates wait <installation-id>`.
+- API refusals keep their code with a next step: `REPOSITORY_CLONING`, `NOT_A_CLOUD_AGENT`, `INSTALLATION_DELETED`, `REPOSITORY_REQUIRES_PERSON`, `REPOSITORY_NOT_FOUND` (`repo remove` without a repository) and GitHub's `BRANCH_MISSING`, `PERMISSION_DENIED`, `GITHUB_PERMISSION_MISSING`, ...
+
 ## Related
 
 - [Template registry](/guide/template-registry)
