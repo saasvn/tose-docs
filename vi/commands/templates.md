@@ -98,12 +98,12 @@ tose templates retry-checkout <installation-id> --json     # sau khi clone lỗi
 
 ### Đổi kho mã sau khi cài {#repo-set-remove}
 
-Owner hoặc admin (API key có `deployments:execute`) có thể gắn kho mã cho agent curated đã cài, đổi sang kho khác, bật hoặc tắt push, hoặc gỡ kho mã, mà không cần plan mới. Xem [Gắn hoặc đổi kho mã của agent sau khi cài](/vi/guide/agent-repository-checkout#gan-hoac-doi-kho-ma-sau-khi-cai) để biết điều gì xảy ra trong `/workspace`.
+Owner hoặc admin (API key có `deployments:execute`) có thể thêm kho mã cho agent curated đã cài, bật hoặc tắt push, hoặc gỡ các kho mã, mà không cần plan mới. Một agent có [tối đa 10 kho mã](/vi/guide/agent-repository-checkout#nhieu-kho-ma-cho-mot-agent): `repo set` với kho mà agent chưa có sẽ **thêm** kho đó bên cạnh các kho khác (máy chủ không còn thay kho đầu tiên), và `repo remove` gỡ **tất cả**. CLI chưa gỡ được từng kho riêng (saasvn/tose-cli#116); hãy dùng thẻ **Kho mã** của agent. Xem [Gắn hoặc đổi kho mã của agent sau khi cài](/vi/guide/agent-repository-checkout#gan-hoac-doi-kho-ma-sau-khi-cai) để biết điều gì xảy ra trong `/workspace`.
 
 ```bash
-tose templates repo set <installation-id> --repo acme/app --yes                         # gắn hoặc đổi kho, chỉ đọc
+tose templates repo set <installation-id> --repo acme/app --yes                         # thêm kho, chỉ đọc
 tose templates repo set <installation-id> --repo acme/app --push --push-branches agent --yes
-tose templates repo remove <installation-id> --yes                                      # tệp vẫn ở trong /workspace
+tose templates repo remove <installation-id> --yes                                      # gỡ mọi kho; tệp vẫn ở trong /workspace
 ```
 
 - `repo set` chọn `--repo` trong danh sách kho mà kết nối GitHub của bạn liệt kê, giống `plan`. `--commit` và `--github-installation` hoạt động như trong `plan`.

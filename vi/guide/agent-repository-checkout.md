@@ -154,7 +154,7 @@ Bạn không phải cài lại agent để thêm hay đổi kho mã (tose-app [#
 
 - Một agent có **tối đa 10 kho mã**. Mỗi kho được clone vào thư mục riêng, `/workspace/<tên>`, trong đó `<tên>` là tên kho không kèm owner.
 - Hai kho cùng tên (không phân biệt hoa thường) không dùng chung được một thư mục: thêm `other-org/app` vào agent đã có `acme/app` bị từ chối với `REPOSITORY_FOLDER_TAKEN`. Hãy gỡ kho thứ nhất rồi thêm kho kia.
-- Các kho được clone **lần lượt, kho cũ nhất trước**, trước khi agent khởi động. **Lần clone thất bại đầu tiên dừng cả lần deploy**: các kho sau đó không được clone, và agent không khởi động với một bộ kho thiếu. Hãy sửa nguyên nhân rồi [thử lại](#thu-lai-checkout-that-bai).
+- Các kho được clone **lần lượt, kho cũ nhất trước**, trước khi agent khởi động. **Lần clone thất bại đầu tiên dừng cả lần deploy**: các kho sau đó không được clone. Agent đang chạy được khởi động lại như trước, với các kho đã clone xong; agent chưa chạy thì vẫn dừng. Hãy sửa nguyên nhân rồi [thử lại](#thu-lai-checkout-that-bai).
 - **Push được đặt riêng cho từng kho.** Agent giữ **một** bí mật git, `TOSE_GIT_TOKEN`, cho mọi kho mà nó được push. Tắt push cho một kho, hoặc gỡ một kho, làm bí mật đó hết hiệu lực ngay; lần deploy kế tiếp cấp bí mật mới cho các kho vẫn cho push. Khi không còn kho nào cho push, lần deploy kế tiếp cũng bỏ máy chủ API của TOSE khỏi mạng của agent.
 - Kho chọn lúc triển khai là kho đầu tiên. Installation vẫn có `repository`, chính là phần tử đầu của `repositories`, nên các client chỉ biết một kho vẫn hoạt động.
 
@@ -162,7 +162,7 @@ Bạn không phải cài lại agent để thêm hay đổi kho mã (tose-app [#
 
 1. Mở trang của agent. Agent chưa có kho mã hiển thị "Chưa có kho mã." Mỗi kho là một dòng với tên, nhánh, trạng thái checkout và, khi agent được push, nhãn **Push**. Dấu **?** cạnh mỗi dòng cho xem thư mục, nhánh, commit và thiết lập push.
 2. Để thêm, chọn **+ Thêm kho mã**. Bộ chọn giống trang triển khai sẽ mở ra: tài khoản GitHub, **Kho mã**, **Nhánh**, và **Cho phép agent push lên kho mã này** cùng lựa chọn nhánh ([Chọn kho mã trên trang triển khai](#chon-kho-ma-tren-trang-trien-khai) giải thích từng bước). Nút bị vô hiệu khi agent đã có 10 kho.
-3. Để đổi push của một kho, chọn **Quyền push** trên dòng của kho đó. Kho đang được clone chưa có **Quyền push** cho tới khi clone xong.
+3. Để đổi push của một kho, chọn **Quyền push** trên dòng của kho đó. Kho đang chờ hoặc đang được clone chưa có **Quyền push** cho tới khi checkout xong.
 4. Chọn **Lưu và khởi động lại**. Thẻ hiển thị "Đã lưu. Đang khởi động lại agent…", rồi "Đã lưu. Agent đang khởi động lại; kho mã sẽ có trong /workspace khi agent chạy lại." Nếu bạn lưu mà không đổi gì, thẻ hiển thị "Không có gì thay đổi." và agent không khởi động lại.
 5. Để bỏ một kho, chọn **Gỡ** trên dòng của kho rồi xác nhận. Agent sẽ khởi động lại. Checkout thất bại còn có nút **Thử tải lại** trên dòng của nó.
 
@@ -266,7 +266,7 @@ Sau khi cài đặt, trang **Trạng thái** của installation hiển thị **T
 | **Đang chờ** (`pending`) | Checkout sẽ chạy ở lần deploy kế tiếp. |
 | **Đang tải về** (`cloning`) | Bootstrap Job đang chạy. |
 | **Sẵn sàng** (`ready`) | Kho mã đã nằm trong `/workspace/<repo>`. |
-| **Thất bại** (`failed`) | Xem mã bên dưới. Deployment thất bại với `<CODE>: <lý do>` và **agent không được khởi động**. |
+| **Thất bại** (`failed`) | Xem mã bên dưới. Deployment thất bại với `<CODE>: <lý do>`. Agent chưa chạy thì **không được khởi động**; agent đang chạy được khởi động lại như trước. |
 
 Mảng `repositories` của installation liệt kê mọi kho mã của agent, kho cũ nhất trước (tối đa 10; không có khi agent chưa có kho). `repository` là phần tử đầu tiên, giữ lại cho client chỉ biết một kho. Mỗi phần tử có `status`, `error_code` (khi thất bại), `attempts`, `full_name`, `branch`, `commit` (7 ký tự), `commit_sha`, `path`, `description`, `push` (và `push_branches` khi có push), `installation_id`, `repo_id` và, khi thất bại, `retry_path`.
 

@@ -154,7 +154,7 @@ You do not have to reinstall an agent to give it repositories or to change them 
 
 - An agent has **up to 10 repositories**. Each is cloned into its own folder, `/workspace/<name>`, where `<name>` is the repository's name without its owner.
 - Two repositories with the same name (ignoring case) cannot share a folder: adding `other-org/app` to an agent that has `acme/app` is refused with `REPOSITORY_FOLDER_TAKEN`. Remove the first one, then add the other.
-- The repositories are cloned **one after the other, oldest first**, before the agent starts. **The first clone that fails stops the deploy**: the repositories after it are not cloned, and the agent is not started with a partial set. Fix the cause and [retry](#retry-a-failed-checkout).
+- The repositories are cloned **one after the other, oldest first**, before the agent starts. **The first clone that fails stops the deploy**: the repositories after it are not cloned. An agent that was running is started again as it was, with the repositories cloned so far; one that was not running stays stopped. Fix the cause and [retry](#retry-a-failed-checkout).
 - **Push is set per repository.** The agent holds **one** git secret, `TOSE_GIT_TOKEN`, for every repository it may push to. Turning push off for one repository, or removing one, ends that secret at once; the next deploy issues a new one for the repositories that still allow push. When none allows push any more, the next deploy also takes the TOSE API host out of the agent's network.
 - The repository chosen at deploy is the first one. The installation still has `repository`, which is the first entry of `repositories`, so clients that know one repository keep working.
 
@@ -162,7 +162,7 @@ You do not have to reinstall an agent to give it repositories or to change them 
 
 1. Open the agent's page. An agent without a repository shows "No repository yet." Each repository is a row with its name, branch, checkout state and, when the agent may push, a **Push** badge. The **?** next to a row shows its folder, branch, commit and push setting.
 2. To add one, choose **+ Add repository**. The same picker as on the deploy page opens: the GitHub account, the **Repository**, the **Branch**, and **Let the agent push to this repository** with its branch choice ([Choose a repository on the deploy page](#choose-a-repository-on-the-deploy-page) explains each step). The button is disabled once the agent has 10 repositories.
-3. To change push for one repository, choose **Push settings** on its row. A repository that is being cloned has no **Push settings** until the clone ends.
+3. To change push for one repository, choose **Push settings** on its row. A repository that is waiting or being cloned has no **Push settings** until its checkout ends.
 4. Choose **Save and restart**. The card shows "Saved. Restarting the agent…", then "Saved. The agent is restarting; the repository is in /workspace once it is back." If you saved without changing anything, it shows "Nothing changed." and the agent is not restarted.
 5. To take one repository away, choose **Remove** on its row and confirm. The agent restarts. A failed checkout also has **Retry checkout** on its row.
 
@@ -266,7 +266,7 @@ After install, the installation's **Status** page shows **Repository checkout**,
 | **Waiting** (`pending`) | The checkout runs at the next deploy. |
 | **Checking out** (`cloning`) | The bootstrap Job is running. |
 | **Ready** (`ready`) | The repository is in `/workspace/<repo>`. |
-| **Failed** (`failed`) | See the code below. The deployment fails with `<CODE>: <reason>` and **the agent is not started**. |
+| **Failed** (`failed`) | See the code below. The deployment fails with `<CODE>: <reason>`. An agent that was not running is **not started**; one that was running is started again as it was. |
 
 The installation's `repositories` array lists every repository of the agent, oldest first (at most 10; absent without one). `repository` is its first entry, kept for clients that know one repository. Each entry has `status`, `error_code` (when failed), `attempts`, `full_name`, `branch`, `commit` (7 characters), `commit_sha`, `path`, `description`, `push` (and `push_branches` with push), `installation_id`, `repo_id` and, when failed, `retry_path`.
 
