@@ -139,6 +139,7 @@ Khác với phần còn lại của trang này, mọi thành viên workspace đ�
 
 - **`endpoint` của server luôn rỗng.** Đối tượng `server` trong chi tiết dự án có `endpoint: ""`, nên chi tiết dự án không chứa URL control-plane Kubernetes. Hãy dùng `server.id` và `server.name`.
 - **`latest_deployment`.** Phản hồi status trả deployment gần nhất ở khóa `latest_deployment` (`id`, `status`, `created_at`, tùy chọn `service_url`) và bỏ khóa này khi dự án chưa từng deploy. Khóa camelCase cũ `latestDeployment` vẫn được gửi với cùng giá trị; code mới hãy đọc `latest_deployment`.
+- **Số liệu tài nguyên.** `GET .../metrics/resources` trả bộ nhớ, trạng thái ready và bộ đếm mạng quan sát được; xem [Số liệu workload](/vi/guide/workload-metrics#api).
 - **Credential registry.** Đối tượng `registry` của dự án có `id`, `name`, `provider`, `namespace`, `url`, `status`, `created_at` và `updated_at`. Username và mật khẩu registry không bao giờ nằm trong phản hồi nào.
 
 ## Health gate sau deploy {#health-gate}
