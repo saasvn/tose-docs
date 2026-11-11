@@ -94,24 +94,28 @@ tose templates retry-checkout <installation-id> --json     # sau khi clone lỗi
 - `--workspace-disk-gib 5|10|20|50` (chỉ agent curated, mặc định 5) đặt dung lượng ổ `/workspace` của agent. Kế hoạch ghim giá trị này và hiển thị ở dòng `Workspace:`; không đổi được sau khi cài, và dung lượng lưu trữ được tính phí khi ổ còn tồn tại, kể cả khi agent đã dừng. Giá trị khác bị từ chối trước khi gửi bất cứ gì.
 - `--repo-push` (đi cùng `--repo`) cho agent push qua git proxy của TOSE; agent không bao giờ giữ token GitHub. `--repo-push-branches all|agent` chọn nhánh: `all` (mặc định, gồm cả nhánh mặc định) hoặc `agent` (chỉ `tose/<slug installation>/...`). Kế hoạch hiển thị mẫu nhánh và remote của proxy. Push cần quyền `contents: write` của GitHub App (blocker `GITHUB_PERMISSION_MISSING`); máy chủ chưa có git proxy trả về `GIT_PROXY_NOT_CONFIGURED`, và CLI gợi ý lập kế hoạch lại không có push.
 - Chỉ owner hoặc admin workspace được gửi repository (`REPOSITORY_REQUIRES_ADMIN`). Repository, thiết lập push và dung lượng ổ là một phần của plan hash, nên `deploy --plan` không lặp lại các cờ đó và từ chối cờ mâu thuẫn với kế hoạch.
-- `retry-checkout` (owner hoặc admin, key có `deployments:execute`) đặt checkout `failed` về `pending`; hãy deploy lại sau đó.
+- `retry-checkout` (owner hoặc admin, key có `deployments:execute`) đặt mọi checkout `failed` về `pending`; hãy deploy lại sau đó. `deploy`, `wait` và `installs` hiển thị mọi kho mã của agent.
 
-### Đổi kho mã sau khi cài {#repo-set-remove}
+### Quản lý kho mã của agent sau khi cài {#repo-set-remove}
 
-Owner hoặc admin (API key có `deployments:execute`) có thể thêm kho mã cho agent curated đã cài, bật hoặc tắt push, hoặc gỡ các kho mã, mà không cần plan mới. Một agent có [tối đa 10 kho mã](/vi/guide/agent-repository-checkout#nhieu-kho-ma-cho-mot-agent): `repo set` với kho mà agent chưa có sẽ **thêm** kho đó bên cạnh các kho khác (máy chủ không còn thay kho đầu tiên), và `repo remove` gỡ **tất cả**. CLI chưa gỡ được từng kho riêng (saasvn/tose-cli#116); hãy dùng thẻ **Kho mã** của agent. Xem [Gắn hoặc đổi kho mã của agent sau khi cài](/vi/guide/agent-repository-checkout#gan-hoac-doi-kho-ma-sau-khi-cai) để biết điều gì xảy ra trong `/workspace`.
+Mỗi agent có [tối đa 10 kho mã](/vi/guide/agent-repository-checkout#nhieu-kho-ma-cho-mot-agent), mỗi kho được clone vào thư mục riêng `/workspace/<tên kho>`. Owner hoặc admin (API key có `deployments:execute`) có thể thêm kho mã cho agent curated đã cài, bật hoặc tắt push cho một kho agent đang có, hoặc gỡ một hay tất cả các kho, mà không cần plan mới. Xem [Gắn hoặc đổi kho mã của agent sau khi cài](/vi/guide/agent-repository-checkout#gan-hoac-doi-kho-ma-sau-khi-cai) để biết điều gì xảy ra trong `/workspace`.
 
 ```bash
-tose templates repo set <installation-id> --repo acme/app --yes                         # thêm kho, chỉ đọc
-tose templates repo set <installation-id> --repo acme/app --push --push-branches agent --yes
-tose templates repo remove <installation-id> --yes                                      # gỡ mọi kho; tệp vẫn ở trong /workspace
+tose templates repo list <installation-id>                                              # tên, nhánh, trạng thái, push, đường dẫn
+tose templates repo add <installation-id> --repo acme/app --yes                         # thêm kho, chỉ đọc
+tose templates repo add <installation-id> --repo acme/app --push --push-branches agent --yes
+tose templates repo remove <installation-id> acme/app --yes                             # một kho; tệp vẫn ở trong /workspace
+tose templates repo remove <installation-id> --all --yes                                # mọi kho
 ```
 
-- `repo set` chọn `--repo` trong danh sách kho mà kết nối GitHub của bạn liệt kê, giống `plan`. `--commit` và `--github-installation` hoạt động như trong `plan`.
-- Lệnh thay toàn bộ thiết lập: không có `--push` thì kho chỉ đọc, nên bỏ `--push` với agent đang được push sẽ tắt push. `--push-branches all|agent` cần `--push`.
-- Khi `--repo` là kho hiện tại, các thiết lập không được truyền giữ giá trị hiện có: nhánh đã clone, GitHub App installation, id của kho (kho khác trùng tên bị từ chối với `REPO_ID_CHANGED`) và, khi có `--push`, các nhánh được push, nên chỉ `--push` không bao giờ mở rộng agent đang giới hạn ở nhánh riêng. Nhánh khác của kho đã clone bị từ chối (`REPOSITORY_ALREADY_CLONED`; hãy đổi nhánh bằng git ngay trong agent), `--commit` cũng vậy. Với kho khác, `--branch` mặc định là nhánh mặc định của kho và `--push-branches` là `all`.
-- Cả hai lệnh hỏi xác nhận, hoặc cần `--yes` trong script. Khi API trả `restart_required: true`, lệnh deploy lại agent ở chế độ image, việc này khởi động lại agent và dừng tác vụ đang chạy. Nếu lần deploy đó bị từ chối, thay đổi vẫn được lưu và lệnh thoát với mã `8` kèm lệnh `tose template deploy <slug> --mode image` cần chạy.
-- Đầu ra hiển thị checkout mới (`pending` cho tới khi lần deploy clone hoặc trỏ lại kho). Với `--json` là `{installation_id, repository, restart_required, deployment}`. Theo dõi lần khởi động lại bằng `tose templates wait <installation-id>`.
-- Lỗi từ API giữ nguyên mã kèm bước tiếp theo: `REPOSITORY_CLONING`, `NOT_A_CLOUD_AGENT`, `INSTALLATION_DELETED`, `REPOSITORY_REQUIRES_PERSON`, `REPOSITORY_NOT_FOUND` (`repo remove` khi không có kho) và các mã của GitHub `BRANCH_MISSING`, `PERMISSION_DENIED`, `GITHUB_PERMISSION_MISSING`, ...
+- `repo list` hiển thị mọi kho mã của agent cùng nhánh, commit, trạng thái, thiết lập push và đường dẫn. Với `--json` là `{installation_id, repositories}`.
+- `repo add` (cũng viết được là `repo set`) chọn `--repo` trong danh sách kho mà kết nối GitHub của bạn liệt kê, giống `plan`. `--commit` và `--github-installation` hoạt động như trong `plan`. Kho agent chưa có được thêm bên cạnh các kho khác; lệnh không bao giờ thay thế kho nào. `--branch` mặc định là nhánh mặc định của kho và `--push-branches` là `all`.
+- Hai kho cùng tên không thể dùng chung thư mục: `REPOSITORY_FOLDER_TAKEN`, và bước tiếp theo gợi ý gỡ kho đang giữ thư mục đó. Agent đã có 10 kho bị từ chối với `REPOSITORY_LIMIT`; hãy gỡ bớt một kho trước.
+- Với kho agent đang có, `repo add` đặt lại toàn bộ thiết lập push của kho đó: không có `--push` thì kho chỉ đọc, nên bỏ `--push` với kho agent đang push sẽ tắt push. `--push-branches all|agent` cần `--push`. Các thiết lập không được truyền giữ giá trị hiện có: nhánh đã clone, GitHub App installation, id của kho (kho khác trùng tên bị từ chối với `REPO_ID_CHANGED`) và, khi có `--push`, các nhánh được push, nên chỉ `--push` không bao giờ mở rộng agent đang giới hạn ở nhánh riêng. Nhánh khác của kho đã clone bị từ chối (`REPOSITORY_ALREADY_CLONED`; hãy đổi nhánh bằng git ngay trong agent), `--commit` cũng vậy.
+- `repo remove <installation-id> <owner/name>` gỡ đúng kho đó; `--all` gỡ mọi kho. Khi không có tên kho và không có `--all`, agent chỉ có một kho thì kho đó bị gỡ, còn agent có nhiều kho bị từ chối kèm danh sách tên để chọn.
+- `add` và `remove` hỏi xác nhận, hoặc cần `--yes` trong script. Khi API trả `restart_required: true`, lệnh deploy lại agent ở chế độ image, việc này khởi động lại agent và dừng tác vụ đang chạy. Nếu lần deploy đó bị từ chối, thay đổi vẫn được lưu và lệnh thoát với mã `8` kèm lệnh `tose template deploy <slug> --mode image` cần chạy.
+- Đầu ra hiển thị mọi kho (kho mới ở trạng thái `pending` cho tới khi lần deploy clone hoặc trỏ lại kho). Với `--json` là `{installation_id, repository, repositories, restart_required, deployment}`, trong đó `repository` là kho đầu tiên. Theo dõi lần khởi động lại bằng `tose templates wait <installation-id>`.
+- Lỗi từ API giữ nguyên mã kèm bước tiếp theo: `REPOSITORY_CLONING`, `REPOSITORY_LIMIT`, `REPOSITORY_FOLDER_TAKEN`, `NOT_A_CLOUD_AGENT`, `INSTALLATION_DELETED`, `REPOSITORY_REQUIRES_PERSON`, `REPOSITORY_NOT_FOUND` (kho agent không có) và các mã của GitHub `BRANCH_MISSING`, `PERMISSION_DENIED`, `GITHUB_PERMISSION_MISSING`, ...
 
 ## Liên quan
 
