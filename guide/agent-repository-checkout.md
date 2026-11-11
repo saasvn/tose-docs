@@ -1,6 +1,6 @@
 # GitHub repository for coding agents
 
-A curated coding agent (**Pi**, **Codex** or **Claude Code**) can start with one of your GitHub repositories, private or public, already in its persistent `/workspace`. You pick the repository and the branch in the **Repository (optional)** card of the one-page deploy. After install, an agent can have [up to 10 repositories](#several-repositories-per-agent), each in its own folder `/workspace/<name>`. You never paste a URL, a personal access token or an SSH key, and the agent never receives a GitHub credential. The checkout is read-only unless you [let the agent push](#let-the-agent-push-to-your-repository). You can also [add, reconfigure or remove repositories after install](#attach-or-change-an-agents-repository-after-install).
+A curated coding agent (**Pi**, **Codex** or **Claude Code**) can start with one of your GitHub repositories, private or public, already in its persistent `/workspace`. You pick the repository and the branch in the **Repository (optional)** card of the one-page deploy. After install, an agent can have [up to 10 repositories](#several-repositories-per-agent), each in its own folder `/workspace/<name>`. You never paste a URL, a personal access token or an SSH key, and the agent never receives a GitHub credential. The checkout is read-only unless you [let the agent push](#let-the-agent-push-to-your-repository). After install, you can also [let it manage the repository's issues and pull requests](#let-the-agent-manage-issues-and-pull-requests). You can also [add, reconfigure or remove repositories after install](#attach-or-change-an-agents-repository-after-install).
 
 To install an agent, open **Cloud Agents** in the dashboard ([dashboard overview](/guide/getting-started#find-your-way-around-the-dashboard)).
 
@@ -137,9 +137,102 @@ While push is on, anyone who can run commands in the agent can push to the repos
 
 ### Limits
 
-- **Push is changed on the agent's page, not by a plain redeploy.** Redeploying from the agent's page keeps the choice. To turn push on or off, or to change the branches, use **Push settings** on that repository in the **Repository** card; see [Attach or change an agent's repository after install](#attach-or-change-an-agents-repository-after-install).
+- **Push is changed on the agent's page, not by a plain redeploy.** Redeploying from the agent's page keeps the choice. To turn push on or off, or to change the branches, use **Permissions** on that repository in the **Repository** card; see [Attach or change an agent's repository after install](#attach-or-change-an-agents-repository-after-install).
 - **Renaming the repository breaks the proxy.** The proxy uses the repository name pinned at install (or at the last repository change) and does not follow GitHub's redirects, so after a rename or transfer on GitHub git shows `PERMISSION_DENIED`. A redeploy does not fix it: on the agent's **Repository** card, [remove the old entry and add the repository](#attach-or-change-an-agents-repository-after-install) under its new name. If `/workspace/<name>` still holds the old clone and TOSE cannot tell it is the same repository, the checkout fails with `WORKSPACE_NOT_EMPTY`; move that folder aside inside the agent first.
-- **The agent does not open pull requests.** Open them yourself on GitHub from the branch the agent pushed.
+- **Push alone does not open pull requests.** Open them yourself on GitHub from the branch the agent pushed, or [let the agent manage issues and pull requests](#let-the-agent-manage-issues-and-pull-requests) so it opens them itself.
+
+## Let the agent manage issues and pull requests {#let-the-agent-manage-issues-and-pull-requests}
+
+An installed agent can create and update the issues and pull requests of its repositories through TOSE, still without holding a GitHub token (tose-app [#753](https://github.com/saasvn/tose-app/pull/753)). It is **off by default**, set **per repository**, and only for an agent that is already installed: a plan cannot ask for it.
+
+### Turn it on
+
+1. **The GitHub App needs Issues and Pull requests.** The TOSE GitHub App must have the repository permissions **Issues: Read and write** and **Pull requests: Read and write**. The platform operator grants them in the App's settings on GitHub, and every GitHub account that installed the App must then accept them on its installation. Until then, turning the option on is refused with `409 GITHUB_PERMISSION_MISSING`.
+2. **Turn it on for one repository.** On the agent's page, choose **Permissions** on the repository's row in the **Repository** card and turn on **Let the agent manage issues and pull requests**. Only a workspace owner or admin can change it. Choose **Save and restart**: the change reaches the agent on its next deploy.
+3. The row then shows an **Issues/PR** badge, and the **?** next to it says "Issues and pull requests through TOSE".
+
+Through the API, send `github_api: true` in the body of [`PUT .../repository`](#through-the-api):
+
+```json
+{"installation_id": 12345678, "full_name": "acme/app", "branch": "main", "push": true, "github_api": true}
+```
+
+- `github_api` is `false` when omitted. The body replaces the repository's settings, so leaving it out turns the option off.
+- It does not need `push`: an agent can manage issues and pull requests of a repository it may not push to, and a secret issued only for this never opens `git push`.
+- Sending `repository.github_api` in a plan is `422`. Install the agent first, then turn it on.
+- Each entry of the installation's `repositories` reports `github_api` and, when it is on, `api_path` (`/api/gh/<checkout_id>`), the proxy path of that repository on the TOSE API.
+
+### How the agent uses it
+
+On its next deploy the agent's pod receives two variables:
+
+| Variable | Value |
+|----------|-------|
+| `TOSE_GIT_TOKEN` | The agent's proxy secret, the same one git push uses. Send it as a bearer token. |
+| `TOSE_GITHUB_API` | One `owner/name=URL` entry per repository with the option on, separated by spaces. Each URL is `https://<API host>/api/gh/<checkout_id>`. |
+
+A path after the URL is relative to the repository, so `POST $URL/issues` is GitHub's `POST /repos/<owner>/<name>/issues`. Requests and answers are GitHub's own REST API:
+
+```bash
+# The proxy URL of acme/app
+URL=$(printf '%s\n' $TOSE_GITHUB_API | sed -n 's#^acme/app=##p')
+
+# Open an issue
+curl -sS -H "Authorization: Bearer $TOSE_GIT_TOKEN" \
+  -d '{"title":"Login fails on Safari","body":"Steps to reproduce…","labels":["bug"]}' \
+  "$URL/issues"
+
+# Open a pull request from a branch the agent pushed
+curl -sS -H "Authorization: Bearer $TOSE_GIT_TOKEN" \
+  -d '{"title":"Fix login on Safari","head":"tose/my-agent/fix-login","base":"main"}' \
+  "$URL/pulls"
+```
+
+Bodies must be JSON, up to 1 MiB. GitHub's pagination links (`Link`) are rewritten to point at the proxy, so a client can follow them.
+
+### What the agent can and cannot do
+
+| Allowed | Requests |
+|---------|----------|
+| Issues | Create, read, edit and close (`issues`, `issues/{n}`); comments (`issues/{n}/comments`, `issues/comments/{id}`); labels (`issues/{n}/labels`); assignees (`issues/{n}/assignees`); events (`issues/{n}/events`). |
+| The repository | Read it, its labels, its assignable users and its milestones (`labels`, `assignees`, `milestones`). |
+| Pull requests | Create, read and edit (`pulls`, `pulls/{n}`); files and commits; review comments (`pulls/{n}/comments`); reviews (`pulls/{n}/reviews`); requested reviewers. |
+
+**Everything else is refused** with `403 GITHUB_API_ENDPOINT_NOT_ALLOWED`: merging a pull request, repository contents, settings, webhooks, Actions, deployments and any other repository. To change files, the agent [pushes](#let-the-agent-push-to-your-repository) a branch; a person merges the pull request on GitHub.
+
+GitHub assigns issues to the **GitHub usernames** of the repository's collaborators, not to email addresses.
+
+### How it works and security
+
+- The agent **never holds a GitHub token**. For each request the proxy uses a **short-lived GitHub App token for that one repository**, with only `issues: write`, `pull_requests: write` and `metadata: read` (no contents), and reuses it until five minutes before it expires.
+- The proxy does not follow redirects and passes only a fixed set of response headers.
+- **Every write and every refusal is audited** as `template_installation.github_api`, with the repository, the method, the path and the outcome. No audit entry holds the secret or a GitHub token.
+- It answers only while the agent runs, its GitHub App installation is connected to the workspace and the repository still allows it. Turning the option off, or removing the repository, ends the agent's secret at once; the next deploy issues a new one for the repositories that still allow push or the API.
+- While any repository allows push or the API, the agent's network allows the TOSE API host on port 443, in every network mode.
+- It shares the git proxy's limits for each repository, counted together with git: 4 requests at once and 60 a minute, then `429 GIT_RATE_LIMITED`.
+
+::: warning Anyone who can run commands in the agent can write issues and pull requests
+That includes you and other owners or admins in its console, a [delegated task](/guide/agent-tasks), and a prompt injection the agent follows. It cannot merge or change files this way, but it can open, edit, close and comment. Turn it on only for an agent you trust with those, and keep branch protection on the branches that matter.
+:::
+
+### When the proxy refuses
+
+The proxy answers with JSON `{"code": "…", "message": "…"}`:
+
+| Status and code | Why |
+|-----------------|-----|
+| `401 GIT_TOKEN_INVALID` | No bearer token, or not the agent's current `TOSE_GIT_TOKEN`. Each deploy issues a new secret, and the previous one stops working shortly after. |
+| `403 GITHUB_API_DISABLED` | The option is off for this repository. A person turns it on under **Permissions** in the **Repository** card. |
+| `403 GITHUB_API_ENDPOINT_NOT_ALLOWED` | The request is not in the [allowed list](#what-the-agent-can-and-cannot-do). |
+| `403 INSTALLATION_NOT_RUNNING`, `INSTALLATION_DELETED`, `INSTALLATION_SUSPENDED`, `SCOPE_REVOKED` | As in [When git refuses](#when-git-refuses). |
+| `400 GIT_REQUEST_INVALID` | The body is not JSON. |
+| `413`/`414 GIT_REQUEST_TOO_LARGE` | The body is over 1 MiB, or the query is too long. |
+| `429 GIT_RATE_LIMITED` | More than 4 requests at once or 60 a minute for this repository. Retry later. |
+| `502 GITHUB_PERMISSION_MISSING` | The TOSE GitHub App lacks **Issues** or **Pull requests: Read and write**, or this installation has not accepted it. |
+| `502 GITHUB_UNAVAILABLE` | GitHub could not be reached. Retry. |
+| `503 GIT_PROXY_NOT_CONFIGURED` | This server has no GitHub API proxy. |
+
+Any other status is GitHub's own answer, passed through: for example `422` when an assignee or a label is invalid, or `404` when an issue does not exist.
 
 ## Attach or change an agent's repositories after install {#attach-or-change-an-agents-repository-after-install}
 
@@ -147,6 +240,7 @@ You do not have to reinstall an agent to give it repositories or to change them 
 
 - **add** a repository, up to 10;
 - turn **push** on or off for one repository, and choose its branches (any branch, or only `tose/<installation slug>/…`);
+- let the agent [manage the issues and pull requests](#let-the-agent-manage-issues-and-pull-requests) of one repository;
 - **retry** a failed checkout;
 - **remove** one repository.
 
@@ -155,14 +249,14 @@ You do not have to reinstall an agent to give it repositories or to change them 
 - An agent has **up to 10 repositories**. Each is cloned into its own folder, `/workspace/<name>`, where `<name>` is the repository's name without its owner.
 - Two repositories with the same name (ignoring case) cannot share a folder: adding `other-org/app` to an agent that has `acme/app` is refused with `REPOSITORY_FOLDER_TAKEN`. Remove the first one, then add the other.
 - The repositories are cloned **one after the other, oldest first**, before the agent starts. **The first clone that fails stops the deploy**: the repositories after it are not cloned. An agent that was running is started again as it was, with the repositories cloned so far; one that was not running stays stopped. Fix the cause and [retry](#retry-a-failed-checkout).
-- **Push is set per repository.** The agent holds **one** git secret, `TOSE_GIT_TOKEN`, for every repository it may push to. Turning push off for one repository, or removing one, ends that secret at once; the next deploy issues a new one for the repositories that still allow push. When none allows push any more, the next deploy also takes the TOSE API host out of the agent's network.
+- **Push and issues/pull requests are set per repository.** The agent holds **one** secret, `TOSE_GIT_TOKEN`, for every repository it may push to or manage issues and pull requests of. Turning either off for one repository, or removing one, ends that secret at once; the next deploy issues a new one for the repositories that still allow them. When none allows either any more, the next deploy also takes the TOSE API host out of the agent's network.
 - The repository chosen at deploy is the first one. The installation still has `repository`, which is the first entry of `repositories`, so clients that know one repository keep working.
 
 ### Use the Repository card
 
-1. Open the agent's page. An agent without a repository shows "No repository yet." Each repository is a row with its name, branch, checkout state and, when the agent may push, a **Push** badge. The **?** next to a row shows its folder, branch, commit and push setting.
+1. Open the agent's page. An agent without a repository shows "No repository yet." Each repository is a row with its name, branch, checkout state and, when the agent may push, a **Push** badge, and an **Issues/PR** badge when it may manage issues and pull requests. The **?** next to a row shows its folder, branch, commit, push setting and whether issues and pull requests go through TOSE.
 2. To add one, choose **+ Add repository**. The same picker as on the deploy page opens: the GitHub account, the **Repository**, the **Branch**, and **Let the agent push to this repository** with its branch choice ([Choose a repository on the deploy page](#choose-a-repository-on-the-deploy-page) explains each step). The button is disabled once the agent has 10 repositories.
-3. To change push for one repository, choose **Push settings** on its row. A repository that is waiting or being cloned has no **Push settings** until its checkout ends.
+3. To change push, or issues and pull requests, for one repository, choose **Permissions** on its row. A repository that is waiting or being cloned has no **Permissions** until its checkout ends.
 4. Choose **Save and restart**. The card shows "Saved. Restarting the agent…", then "Saved. The agent is restarting; the repository is in /workspace once it is back." If you saved without changing anything, it shows "Nothing changed." and the agent is not restarted.
 5. To take one repository away, choose **Remove** on its row and confirm. The agent restarts. A failed checkout also has **Retry checkout** on its row.
 
@@ -194,7 +288,7 @@ DELETE /api/workspaces/{slug}/template-installations/{id}/repositories/{repo_id}
 DELETE /api/workspaces/{slug}/template-installations/{id}/repository
 ```
 
-`PUT` adds a repository the agent does not have yet, or changes push for one it has. The repository is matched by `repo_id` when you send it, otherwise by `full_name`. The body is the plan's `repository`: `installation_id`, `full_name` and `branch` are required; `commit_sha`, `repo_id`, `push` (default `false`) and `push_branches` (`all`, the default, or `agent`, with `push` only) are optional. No new plan is needed. The body replaces that repository's settings, so leaving `push` out turns push off for it.
+`PUT` adds a repository the agent does not have yet, or changes push or issues and pull requests for one it has. The repository is matched by `repo_id` when you send it, otherwise by `full_name`. The body is the plan's `repository`: `installation_id`, `full_name` and `branch` are required; `commit_sha`, `repo_id`, `push` (default `false`), `push_branches` (`all`, the default, or `agent`, with `push` only) and `github_api` (default `false`, see [Let the agent manage issues and pull requests](#let-the-agent-manage-issues-and-pull-requests)) are optional. No new plan is needed. The body replaces that repository's settings, so leaving `push` or `github_api` out turns it off for that repository.
 
 ```json
 {"installation_id": 12345678, "full_name": "acme/app", "branch": "main", "push": true, "push_branches": "agent"}
@@ -211,7 +305,7 @@ All three answer `200` with:
     "repository": {"full_name": "acme/app", "repo_id": 1296269, "branch": "main", "status": "ready", "push": true, "push_branches": "agent"},
     "repositories": [
       {"full_name": "acme/app", "repo_id": 1296269, "branch": "main", "status": "ready", "push": true, "push_branches": "agent"},
-      {"full_name": "acme/docs", "repo_id": 1296270, "branch": "main", "status": "pending", "push": false}
+      {"full_name": "acme/docs", "repo_id": 1296270, "branch": "main", "status": "pending", "push": false, "github_api": true, "api_path": "/api/gh/<checkout_id>"}
     ]
   },
   "restart_required": true,
@@ -241,9 +335,9 @@ POST {deploy_path}
 | `409 REPOSITORY_CHANGED` | Someone else changed the agent's repositories meanwhile. Reload and try again. |
 | `409 NOT_A_CLOUD_AGENT` | Only Claude Code, Codex and Pi agents have repositories. |
 | `409 INSTALLATION_DELETED` | The installation was deleted or is being deleted. |
-| `409` `BRANCH_MISSING`, `PERMISSION_DENIED`, `REPO_REMOVED`, `NO_INSTALLATION`, `REPO_ID_CHANGED`, `GITHUB_PERMISSION_MISSING` | GitHub's answer for the repository, as in [Status and failure states](#status-and-failure-states) and [Set it up](#set-it-up). |
+| `409` `BRANCH_MISSING`, `PERMISSION_DENIED`, `REPO_REMOVED`, `NO_INSTALLATION`, `REPO_ID_CHANGED`, `GITHUB_PERMISSION_MISSING` | GitHub's answer for the repository, as in [Status and failure states](#status-and-failure-states) and [Set it up](#set-it-up). `GITHUB_PERMISSION_MISSING` with `github_api` means the App lacks **Issues** or **Pull requests: Read and write** ([Turn it on](#turn-it-on)). |
 | `422` at `repository.installation_id` | The GitHub App installation is not connected to this workspace. |
-| `503 GITHUB_APP_NOT_CONFIGURED`, `503 GIT_PROXY_NOT_CONFIGURED` | This server has no GitHub App, or no public git proxy address for push. |
+| `503 GITHUB_APP_NOT_CONFIGURED`, `503 GIT_PROXY_NOT_CONFIGURED` | This server has no GitHub App, or no public git proxy address for push or issues and pull requests. |
 | `502 GITHUB_UNAVAILABLE` | GitHub could not be reached. Try again. |
 
 ## Status and failure states
