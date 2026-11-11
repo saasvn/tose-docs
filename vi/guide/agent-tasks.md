@@ -39,6 +39,8 @@ Khi máy chủ cung cấp tác vụ, client được kết nối thấy bốn c�
 | `cloud_agent_get_task` | `agents:read` | Đọc một tác vụ. Truyền `after` (con trỏ của lần gọi trước) để chỉ nhận sự kiện mới, và `wait_seconds` (0 đến 25) để chờ thay đổi thay vì hỏi liên tục. |
 | `cloud_agent_cancel_task` | `agents:control` | Dừng tác vụ đang `starting` hoặc đang chạy. Tác vụ đã kết thúc được trả về nguyên trạng. |
 
+Trước tose-app [#738](https://github.com/saasvn/tose-app/pull/738), các công cụ này tên là `list_template_agents`, `run_template_agent_task`, `get_template_agent_task` và `cancel_template_agent_task`. Tên cũ không còn tồn tại, nên hãy cập nhật danh sách cho phép hoặc script của client nếu còn dùng tên cũ.
+
 Các công cụ không bao giờ bật delegation, không mở console và không nhận bí mật. Khi một lần từ chối có cách khắc phục trên trang của agent (`TASKS_NOT_ALLOWED`, `TASKS_UNSUPPORTED`, `AGENT_SLEEPING`, `PROVIDER_SIGN_IN_REQUIRED`), thông báo chỉ ra trang đó. Các host có MCP Apps hiển thị tác vụ trong một khung trạng thái nhỏ. Màn hình đồng ý ghi về `agents:execute`: "A task can read and send back anything the agent can, including its sign-in."
 
 ### Ví dụ hội thoại

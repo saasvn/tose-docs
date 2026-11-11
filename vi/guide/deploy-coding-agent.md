@@ -13,7 +13,7 @@ Các phiên bản đã phát hành là **Codex 1.0.0**, **Claude Code 1.0.0**, c
 
 ## Triển khai một agent {#deploy-an-agent}
 
-1. Mở **Cloud Agents** ở thanh bên của workspace (`/w/<workspace>/agents`). Mục **Agent của bạn** liệt kê các agent đã có trong workspace, kèm trạng thái, bản phát hành, agent có đang nhận việc không, kho mã và quyền push. Mục **Agent có sẵn** có mỗi agent triển khai được một thẻ, ghi các cách đăng nhập, khoảng kích thước, bản phát hành và phiên bản upstream, nguồn và giấy phép. Nút **Triển khai agent** ở đầu trang đưa bạn tới danh sách đó. Các trang mẫu (**Ứng dụng đã cài**, **Kho mẫu** và bước đầu của trình triển khai) không còn liệt kê các agent này.
+1. Mở **Cloud Agents** ở thanh bên của workspace (`/w/<workspace>/agents`). Mục **Agent của bạn** liệt kê các agent đã có trong workspace, kèm trạng thái, bản phát hành, agent có đang nhận việc không (với bản phát hành có trình chạy tác vụ), kho mã và quyền push. Mục **Agent có sẵn** có mỗi agent triển khai được một thẻ, ghi các cách đăng nhập, khoảng kích thước, bản phát hành và phiên bản upstream, nguồn và giấy phép. Nút **Triển khai agent** ở đầu trang đưa bạn tới danh sách đó. Các trang mẫu (**Ứng dụng đã cài**, **Mẫu của tôi** và **Kho mẫu**, tức bước đầu của trình triển khai) không còn liệt kê các agent này.
 2. Chọn một agent rồi chọn **Triển khai**. Agent được triển khai trên một trang duy nhất, **Triển khai** kèm tên agent, gồm các thẻ sau:
    - **Ứng dụng**: **Tên ứng dụng**.
    - **Đăng nhập**: nhà cung cấp (xem [Chọn nhà cung cấp](#chon-nha-cung-cap)). Nếu dùng API key, hãy nhập key ngay tại đây. Key được mã hóa, chỉ gửi đi cùng lần triển khai, không hiển thị lại và không nằm trong kế hoạch. Đăng nhập bằng gói không cần key: bạn đăng nhập sau khi triển khai.
@@ -23,7 +23,7 @@ Các phiên bản đã phát hành là **Codex 1.0.0**, **Claude Code 1.0.0**, c
    - **Nâng cao: phiên bản, model và biến môi trường**: **Bản phát hành** (mặc định là bản mới nhất, với Pi là 1.1.0), **Mô hình** tùy chọn (để trống thì dùng model mặc định của agent) và **Biến môi trường** của riêng bạn.
 3. Xem kế hoạch bên cạnh nút **Triển khai**. Khi bạn thay đổi các ô nhập, trang tự lập kế hoạch và hiển thị mức trần chi phí (số tiền tối đa agent có thể tốn mỗi giờ), số giờ ví còn đủ, cùng các điều chặn và cảnh báo nếu có. Sửa các ô được đánh dấu để xem chi phí.
 4. Chọn **Triển khai**. Nút này duyệt đúng kế hoạch đang hiển thị, cài đặt và theo dõi tiến trình: duyệt kế hoạch, cài đặt, khởi động agent, cho tới khi **Agent đang chạy**. Thành viên không có quyền duyệt sẽ nhận một liên kết tới kế hoạch để gửi cho owner hoặc admin.
-5. Mở trang của agent: chọn agent đó trong mục **Agent của bạn** ở **Cloud Agents**. Bản thân trang vẫn là `/w/<workspace>/templates/<agent>`. Dùng **Mở console**, hoặc kết nối gói của bạn như mô tả bên dưới.
+5. Mở trang của agent: chọn **Mở ứng dụng** khi triển khai xong, hoặc sau đó chọn agent trong mục **Agent của bạn** ở **Cloud Agents**. Bản thân trang vẫn là `/w/<workspace>/templates/<app>`, trong đó `<app>` là tên ứng dụng bạn đã đặt. Dùng **Mở console**, hoặc kết nối gói của bạn như mô tả bên dưới.
 
 Trang triển khai không hỏi giới hạn chi phí. Kế hoạch vẫn hiển thị mức trần chi phí để bạn cân nhắc trước khi triển khai. Nếu tạo kế hoạch qua API, bạn vẫn có thể gửi `max_hourly_cost_cents`; khi đó kế hoạch bị chặn nếu mức trần cao hơn.
 

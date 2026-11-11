@@ -39,6 +39,8 @@ When the server offers tasks, a connected client sees four tools. The person who
 | `cloud_agent_get_task` | `agents:read` | Reads a task. Pass `after` (the cursor from the previous call) to get only new events, and `wait_seconds` (0 to 25) to wait for a change instead of polling fast. |
 | `cloud_agent_cancel_task` | `agents:control` | Stops a `starting` or running task. A task that already ended is returned unchanged. |
 
+Until tose-app [#738](https://github.com/saasvn/tose-app/pull/738) these tools were named `list_template_agents`, `run_template_agent_task`, `get_template_agent_task` and `cancel_template_agent_task`. The old names no longer exist, so update any client allowlist or script that still uses them.
+
 The tools never turn delegation on, never open the console and never take a secret. When a refusal has a fix on the agent's page (`TASKS_NOT_ALLOWED`, `TASKS_UNSUPPORTED`, `AGENT_SLEEPING`, `PROVIDER_SIGN_IN_REQUIRED`), the message names that page. Hosts with MCP Apps show the task in a small status view. The consent screen says of `agents:execute`: "A task can read and send back anything the agent can, including its sign-in."
 
 ### Example chat

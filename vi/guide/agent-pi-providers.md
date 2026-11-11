@@ -54,4 +54,4 @@ Chế độ mạng **Development (restricted)** (`development`) của Pi mở th
 - **TOSE không giữ danh sách model.** Nhà cung cấp quyết định key của bạn được dùng model nào và model nào hỗ trợ tool. Để trống **Model** để dùng mặc định của Pi cho nhà cung cấp đã chọn.
 - Nhà cung cấp thường xuyên thêm và gỡ model, nên hãy kiểm tra model với nhà cung cấp trước khi dựa vào nó cho công việc lập trình.
 
-Để cài một agent, mở **Cloud Agents** trên dashboard ([làm quen với dashboard](/vi/guide/getting-started#làm-quen-với-dashboard)).
+Để cài một agent, mở **Cloud Agents** trên dashboard ([làm quen với dashboard](/vi/guide/getting-started#lam-quen-voi-dashboard)).
