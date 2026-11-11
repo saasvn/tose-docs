@@ -8,7 +8,7 @@ Cả mười nhà cung cấp dưới đây đều có từ bản phát hành Pi 
 
 ## Nhà cung cấp
 
-Bạn chọn nhà cung cấp khi lập kế hoạch cài đặt. Key là một secret được mã hóa, `PI_API_KEY`, và TOSE chỉ đưa nó cho Pi dưới dạng biến mà nhà cung cấp đó đọc. Ở chế độ mạng mặc định **Chỉ nhà cung cấp** (Provider only), agent chỉ truy cập được host ở cột thứ ba.
+Bạn chọn nhà cung cấp khi lập kế hoạch cài đặt. Key là một secret được mã hóa, `PI_API_KEY`, và TOSE chỉ đưa nó cho Pi dưới dạng biến mà nhà cung cấp đó đọc. Ở chế độ mạng mặc định **Hạn chế** (Restricted), agent truy cập được host ở cột thứ ba, cùng GitHub và các host gói npm, PyPI và Go ([chế độ mạng](/vi/guide/agent-network-modes)).
 
 | Nhà cung cấp (`PI_PROVIDER`) | Biến key Pi đọc | Host được duyệt | Có từ bản | Ghi chú |
 |---|---|---|---|---|
@@ -46,7 +46,7 @@ Hãy chọn đúng sản phẩm khớp với key và gói bạn có.
 
 Từ bản 1.1.0, image Pi có **Node.js với npm** và **uv cho Python**, và `/AGENTS.md` mô tả container cho Pi.
 
-Chế độ mạng **Development (restricted)** (`development`) của Pi mở thêm các host của git, npm và PyPI bên cạnh nhà cung cấp, giống Codex và Claude Code, nên `git clone`, `npm install` và `uv pip install` hoạt động. Chế độ mặc định **Chỉ nhà cung cấp** vẫn chỉ truy cập host của nhà cung cấp. Bản 1.0.0 không có công cụ lập trình, nên chế độ này mở các host đó cho nó mà không kèm công cụ.
+Chế độ mạng mặc định **Hạn chế** (`approved`) mở thêm GitHub và các host gói npm, PyPI và Go bên cạnh nhà cung cấp, giống Codex và Claude Code, nên `git clone`, `npm install` và `uv pip install` hoạt động. Image không có Go, nhưng Pi có thể tải Go từ `go.dev` vào thư mục home. Bản 1.0.0 không có công cụ lập trình, nên chế độ này mở các host đó cho nó mà không kèm công cụ. Agent Pi đã cài trước đây nhận các host này ở lần triển khai tiếp theo; xem [Agent đã cài trước đây](/vi/guide/agent-network-modes#agent-da-cai-truoc-day).
 
 ## Thanh toán và model
 

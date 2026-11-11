@@ -8,7 +8,7 @@ All ten providers below are available from Pi release **1.1.0**, the default rel
 
 ## Providers
 
-You choose the provider when you plan the installation. The key is one encrypted secret, `PI_API_KEY`, and TOSE hands it to Pi only as the variable that provider reads. In the default **Provider only** network mode, the agent can reach only the host in the third column.
+You choose the provider when you plan the installation. The key is one encrypted secret, `PI_API_KEY`, and TOSE hands it to Pi only as the variable that provider reads. In the default **Restricted** network mode, the agent can reach the host in the third column, plus GitHub and the npm, PyPI and Go package hosts ([network modes](/guide/agent-network-modes)).
 
 | Provider (`PI_PROVIDER`) | Key variable Pi reads | Approved host | Available from | Notes |
 |---|---|---|---|---|
@@ -46,7 +46,7 @@ Pick the product that matches the key and plan you hold.
 
 From release 1.1.0 the Pi image includes **Node.js with npm** and **uv for Python**, and `/AGENTS.md` describes the container to Pi.
 
-The **Development (restricted)** network mode (`development`) for Pi opens the hosts of git, npm and PyPI as well as the provider, the same as for Codex and Claude Code, so `git clone`, `npm install` and `uv pip install` work. **Provider only** (the default) still reaches the provider's host alone. Release 1.0.0 has no developer tools, so the mode opens those hosts for it without the tools.
+The default **Restricted** network mode (`approved`) opens GitHub and the npm, PyPI and Go package hosts as well as the provider, the same as for Codex and Claude Code, so `git clone`, `npm install` and `uv pip install` work. The image has no Go, but Pi can download it from `go.dev` into its home. Release 1.0.0 has no developer tools, so the mode opens those hosts for it without the tools. Pi agents installed earlier get these hosts with their next deploy; see [Agents installed earlier](/guide/agent-network-modes#agents-installed-earlier).
 
 ## Billing and models
 

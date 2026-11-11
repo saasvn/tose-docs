@@ -174,7 +174,7 @@ Mọi agent tuyển chọn đều có bản phát hành đã rà soát, tức im
 | Mô hình | `AGENT_MODEL` tùy chọn, là tên mô hình của nhà cung cấp. Để trống thì agent dùng mặc định. |
 | Cấu hình | Số nhân và GiB nguyên trong danh sách cho phép: Claude Code và Codex 1, 2 hoặc 4 nhân và 2, 4 hoặc 8 GiB; Pi 1 hoặc 2 nhân và 1, 2 hoặc 4 GiB. |
 | Lưu trữ | Ổ đĩa bền vững gồm `/workspace` và `/home/agent` (1 GiB). Bạn chọn dung lượng `/workspace` khi cài: 5 GiB (mặc định), 10, 20 hoặc 50 GiB (`workspace_disk_gib`), và sau đó không đổi được. Ổ đĩa giữ dữ liệu của bạn qua các lần khởi động lại, và bị tính phí khi còn tồn tại, kể cả khi đã dừng. |
-| Mạng | Egress `approved` (**Chỉ nhà cung cấp mô hình**: máy chủ API và đăng nhập của nhà cung cấp, mặc định), `development` (**Phát triển (giới hạn)**: nhà cung cấp cùng các máy chủ git, npm và PyPI đã rà soát cho những công cụ có trong image) hoặc `internet` (**Internet công khai không giới hạn**). Không có `none`, vì agent không gọi được nhà cung cấp nếu không có egress. Ingress luôn là `private`: console của agent không bao giờ công khai. |
+| Mạng | Egress `approved` (**Hạn chế**, mặc định: máy chủ API và đăng nhập của nhà cung cấp cùng các máy chủ GitHub, npm, PyPI và Go đã rà soát, cổng 443) hoặc `internet` (**Internet công khai không giới hạn**). `development` của các kế hoạch trước đây vẫn được chấp nhận và truy cập cùng các máy chủ như `approved`; dashboard không còn cung cấp nó. Xem [Chế độ mạng](/vi/guide/agent-network-modes). Không có `none`, vì agent không gọi được nhà cung cấp nếu không có egress. Ingress luôn là `private`: console của agent không bao giờ công khai. |
 | Thiết lập | Chỉ `image_entrypoint`: entrypoint đã rà soát của image phát hành. Không có bước build, lệnh khởi động, hook, đối tượng Kubernetes hay `privileged`; trường lạ bị từ chối. |
 | Bản phát hành | Mỗi bản ghim image OCI bằng digest `sha256` và ghi phiên bản upstream, ngày và liên kết https tới bằng chứng. Nhà phát hành (TOSE) được đặt một lần trên định nghĩa. Bản này được chuyển thành manifest `tose.dev/v1` thông thường và được kiểm tra theo các quy tắc ở trên. |
 
@@ -215,7 +215,7 @@ Mở **Cloud Agents** ở thanh bên của workspace (`/w/<workspace>/agents`). 
 - **Ứng dụng**: tên ứng dụng.
 - **Đăng nhập**: nhà cung cấp (với Pi là một trong các nhà cung cấp của Pi) và, khi cần, khóa API của bạn ngay tại đó. Đăng nhập bằng gói (gói ChatGPT hoặc gói Claude) không cần khóa và được thực hiện sau khi triển khai.
 - **Cấu hình**: số nhân CPU và bộ nhớ trong các mức được đưa ra, **Ổ đĩa workspace** (mặc định 5 GiB, hoặc 10, 20 hay 50 GiB, mỗi mức kèm giá mỗi tháng), cùng **Tự động ngủ khi không hoạt động** (mặc định tắt).
-- **Truy cập mạng**: **Chỉ nhà cung cấp mô hình** (mặc định), **Phát triển (giới hạn)** hoặc **Internet công khai không giới hạn**, mỗi chế độ kèm mô tả agent kết nối được tới đâu.
+- **Truy cập mạng**: **Hạn chế** (mặc định) hoặc **Internet công khai không giới hạn**, mỗi chế độ kèm mô tả agent kết nối được tới đâu.
 - **Kho mã (không bắt buộc)**: một kho GitHub của workspace để tải vào `/workspace` khi agent khởi động lần đầu, và tùy chọn **Cho phép agent push lên kho mã này** ([push](/vi/guide/agent-repository-checkout#cho-agent-push-len-kho-ma), mặc định tắt).
 - **Nâng cao: phiên bản, model và biến môi trường**: bản phát hành (mặc định Pi 1.1.0), model tùy chọn, cùng các biến và bí mật của riêng bạn.
 
@@ -250,7 +250,7 @@ Admin nền tảng có thể thu hồi một version phát hành hoặc đình c
 
 ### Lập plan cho mẫu tuyển chọn
 
-`POST /api/workspaces/{slug}/template-deployment-plans` nhận `curated_template` (`pi`, `claude-code` hoặc `codex`) **thay cho** `definition_slug`, cùng `network_mode` (`approved`, `development` hoặc `internet`). `GET /api/workspaces/{slug}/curated-templates` liệt kê các trường nhập của biểu mẫu. Xem [tham chiếu API](/vi/api/template-registry#curated-agent-templates).
+`POST /api/workspaces/{slug}/template-deployment-plans` nhận `curated_template` (`pi`, `claude-code` hoặc `codex`) **thay cho** `definition_slug`, cùng `network_mode` (`approved` hoặc `internet`; `development` của các kế hoạch trước đây vẫn được nhận và truy cập cùng các máy chủ như `approved`). `GET /api/workspaces/{slug}/curated-templates` liệt kê các trường nhập của biểu mẫu. Xem [tham chiếu API](/vi/api/template-registry#curated-agent-templates).
 
 - **`max_hourly_cost_cents` không bắt buộc.** Plan luôn tính chi phí giờ cao nhất (compute cộng storage, theo mức giá được kiểm tra cho plan) và hiển thị mức trần đó để phê duyệt. Khi bạn đặt giới hạn, plan có mức trần vượt giới hạn sẽ bị chặn với `COST_CEILING_EXCEEDED`. Dashboard không hỏi trường này; hãy đặt qua API nếu muốn giới hạn một plan. Ví trống bị chặn với `INSUFFICIENT_BALANCE`. Trang này không nhắc lại mức giá nào: xem [Bảng giá](/vi/guide/pricing).
 - **Khóa nhà cung cấp không bao giờ nằm trong plan.** Gửi trong `variables` sẽ nhận `422 PLAN_INPUT_INVALID` kèm một mục `errors[]` là `SECRET_VALUE_IN_PLAN` tại `variables.<KEY>`, và lỗi không lặp lại giá trị. Khóa chỉ thuộc về `secrets` của yêu cầu cài đặt.
