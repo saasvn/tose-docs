@@ -41,7 +41,7 @@ Creating, changing and deleting an instance needs the workspace **admin** role. 
 
 ### Dashboard
 
-1. Open **Installed apps** in your workspace (under **Apps & agents**), select **New Template** and choose **Dewee**.
+1. Open **Installed apps** in your workspace (under **Apps & templates**), select **New Template** and choose **Dewee**.
 2. Pay the unlock fee if asked.
 3. Pick CPU and RAM, then create.
 4. Open **Environment** and set the three required variables (below).

@@ -251,13 +251,15 @@ Thanh bên của workspace nhóm các trang theo việc bạn làm. Địa chỉ
 |------|-------|
 | (đầu) | **Tổng quan** |
 | **Xây dựng & triển khai** | **Dự án**, **Cơ sở dữ liệu**, **CI** (ẩn khi nền tảng chưa bật CI) |
-| **Ứng dụng & agent** | **Ứng dụng đã cài** (`/w/<slug>/templates`), **Kho mẫu** (`/w/<slug>/registry/deploy`), **Desktop đám mây** (ẩn khi chưa bật Cloud Desktop) |
+| **Cloud Agents** | **Agent** (`/w/<slug>/agents`): các agent Claude Code, Codex và Pi của bạn và các agent triển khai được |
+| **Ứng dụng & mẫu** | **Ứng dụng đã cài** (`/w/<slug>/templates`), **Kho mẫu** (`/w/<slug>/registry/deploy`), **Desktop đám mây** (ẩn khi chưa bật Cloud Desktop) |
 | **Giám sát** | **Thông báo**, **Nhật ký** |
 | **Workspace** | **Thành viên**, **Ví & thanh toán**, **Giới thiệu**, **Cài đặt** |
 
 **Ứng dụng đã cài** trước đây là **Mẫu**, **Ví & thanh toán** là **Thanh toán**, và **Desktop
-đám mây** là **Desktop**. Để cài một agent được tuyển chọn như Codex hoặc Claude Code, hãy mở
-**Kho mẫu** và làm theo [Triển khai coding agent](/vi/guide/deploy-coding-agent).
+đám mây** là **Desktop**. Nhóm này từng tên là **Ứng dụng & agent**, trước khi các coding agent chuyển
+sang menu riêng **Cloud Agents**. Để cài một agent được tuyển chọn như Codex, Claude Code hoặc Pi,
+hãy mở **Cloud Agents** và làm theo [Triển khai coding agent](/vi/guide/deploy-coding-agent).
 
 ## Quy trình làm việc phổ biến
 

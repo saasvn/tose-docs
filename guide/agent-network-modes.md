@@ -2,7 +2,7 @@
 
 TOSE publishes curated coding agents: **Pi**, **Codex** and **Claude Code**. Each one runs in its own container with its own network policy. You choose how much of the Internet the agent can reach when you plan the installation, and the plan you approve is the one that is enforced.
 
-This page explains the three modes, what each one can and cannot reach, which toolchains the Development mode offers per agent, and the risk that remains. To install an agent, open **Template catalog** in the dashboard ([dashboard overview](/guide/getting-started#find-your-way-around-the-dashboard)).
+This page explains the three modes, what each one can and cannot reach, which toolchains the Development mode offers per agent, and the risk that remains. To install an agent, open **Cloud Agents** in the dashboard ([dashboard overview](/guide/getting-started#find-your-way-around-the-dashboard)).
 
 ::: warning Availability and verification
 Development (restricted) is implemented and covered by policy and plan tests. It has not yet been proven on a live enforcing cluster, and TOSE has not finished accepting its [residual risk](#residual-risk) for general release. Which modes you can pick follows what the server reports for your workspace.

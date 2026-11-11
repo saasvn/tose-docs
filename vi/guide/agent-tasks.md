@@ -16,7 +16,7 @@ Mỗi agent chỉ chạy một tác vụ tại một thời điểm. Không có 
 
 ## Bật hoặc tắt {#bat-tinh-nang}
 
-Công tắc **Nhận tác vụ từ ứng dụng đã kết nối và khóa API** (Accept tasks from connected apps and API keys) trên trang của agent đã cài quyết định agent có nhận tác vụ hay không.
+Công tắc **Nhận tác vụ từ ứng dụng đã kết nối và khóa API** (Accept tasks from connected apps and API keys) trên trang của agent đã cài quyết định agent có nhận tác vụ hay không. Mở trang đó từ **Cloud Agents** ở thanh bên của workspace; mục **Agent của bạn** cũng cho biết agent nào đang nhận việc.
 
 - Công tắc **bật sẵn** cho bản cài đặt mới của bản phát hành có trình chạy tác vụ (Claude Code 1.1.0, Codex 1.1.0, Pi 1.2.0 hoặc mới hơn), kể từ tose-app [#701](https://github.com/saasvn/tose-app/pull/701). Khi đó ứng dụng được kết nối hoặc API key có `agents:execute` giao được tác vụ cho agent ngay từ lần khởi động đầu tiên.
 - Công tắc vẫn **tắt** với bản cài đặt đã có từ trước, cho tới khi owner hoặc admin bật. Bản phát hành không có trình chạy tác vụ thì không nhận tác vụ được: bật công tắc bị từ chối với `409 TASKS_UNSUPPORTED`.
@@ -34,10 +34,10 @@ Khi máy chủ cung cấp tác vụ, client được kết nối thấy bốn c�
 
 | Công cụ | Scope | Chức năng |
 |---------|-------|-----------|
-| `list_template_agents` | `agents:read` | Liệt kê các agent tuyển chọn với `installation_id`, `name`, `agent`, `release`, `status`, delegation đã bật chưa, có hỗ trợ tác vụ không, có tiếp tục được tác vụ đã xong không (`resume_supported`), tác vụ đang chạy và liên kết tới trang của agent. |
-| `run_template_agent_task` | `agents:execute` | Giao tác vụ: `installation_id`, `prompt`, tùy chọn `timeout_minutes`, tùy chọn `continue_task_id` (tiếp tục tác vụ đã xong khi bản phát hành hỗ trợ) và tùy chọn `request_id` để thử lại an toàn. |
-| `get_template_agent_task` | `agents:read` | Đọc một tác vụ. Truyền `after` (con trỏ của lần gọi trước) để chỉ nhận sự kiện mới, và `wait_seconds` (0 đến 25) để chờ thay đổi thay vì hỏi liên tục. |
-| `cancel_template_agent_task` | `agents:control` | Dừng tác vụ đang `starting` hoặc đang chạy. Tác vụ đã kết thúc được trả về nguyên trạng. |
+| `cloud_agent_list` | `agents:read` | Liệt kê các agent tuyển chọn với `installation_id`, `name`, `agent`, `release`, `status`, delegation đã bật chưa, có hỗ trợ tác vụ không, có tiếp tục được tác vụ đã xong không (`resume_supported`), tác vụ đang chạy và liên kết tới trang của agent. |
+| `cloud_agent_run_task` | `agents:execute` | Giao tác vụ: `installation_id`, `prompt`, tùy chọn `timeout_minutes`, tùy chọn `continue_task_id` (tiếp tục tác vụ đã xong khi bản phát hành hỗ trợ) và tùy chọn `request_id` để thử lại an toàn. |
+| `cloud_agent_get_task` | `agents:read` | Đọc một tác vụ. Truyền `after` (con trỏ của lần gọi trước) để chỉ nhận sự kiện mới, và `wait_seconds` (0 đến 25) để chờ thay đổi thay vì hỏi liên tục. |
+| `cloud_agent_cancel_task` | `agents:control` | Dừng tác vụ đang `starting` hoặc đang chạy. Tác vụ đã kết thúc được trả về nguyên trạng. |
 
 Các công cụ không bao giờ bật delegation, không mở console và không nhận bí mật. Khi một lần từ chối có cách khắc phục trên trang của agent (`TASKS_NOT_ALLOWED`, `TASKS_UNSUPPORTED`, `AGENT_SLEEPING`, `PROVIDER_SIGN_IN_REQUIRED`), thông báo chỉ ra trang đó. Các host có MCP Apps hiển thị tác vụ trong một khung trạng thái nhỏ. Màn hình đồng ý ghi về `agents:execute`: "A task can read and send back anything the agent can, including its sign-in."
 
@@ -45,11 +45,11 @@ Các công cụ không bao giờ bật delegation, không mở console và khôn
 
 > **Bạn:** Tôi có những coding agent nào trong TOSE?
 >
-> **Trợ lý:** *(gọi `list_template_agents`)* Bạn có **claude-code-main** (Claude Code 1.1.0, đang chạy, đã bật tác vụ) và **codex-old** (Codex 1.0.0, chưa có trình chạy tác vụ).
+> **Trợ lý:** *(gọi `cloud_agent_list`)* Bạn có **claude-code-main** (Claude Code 1.1.0, đang chạy, đã bật tác vụ) và **codex-old** (Codex 1.0.0, chưa có trình chạy tác vụ).
 >
 > **Bạn:** Nhờ claude-code-main sửa test đang lỗi trong `api/` rồi cho tôi biết đã đổi gì.
 >
-> **Trợ lý:** *(gọi `run_template_agent_task`, sau đó `get_template_agent_task` với `wait_seconds`)* Tác vụ đã xong với trạng thái `succeeded`. Agent báo test lỗi do thiếu kiểm tra nil; nó đã sửa trong `api/handler.go` và thêm một ca kiểm thử vào `api/handler_test.go`.
+> **Trợ lý:** *(gọi `cloud_agent_run_task`, sau đó `cloud_agent_get_task` với `wait_seconds`)* Tác vụ đã xong với trạng thái `succeeded`. Agent báo test lỗi do thiếu kiểm tra nil; nó đã sửa trong `api/handler.go` và thêm một ca kiểm thử vào `api/handler_test.go`.
 
 ## Scope
 

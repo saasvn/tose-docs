@@ -16,7 +16,7 @@ An agent runs one task at a time. There is no queue.
 
 ## Turn it on or off {#turn-it-on}
 
-The switch **Accept tasks from connected apps and API keys** on the installed agent's page says whether the agent accepts tasks.
+The switch **Accept tasks from connected apps and API keys** on the installed agent's page says whether the agent accepts tasks. Open that page from **Cloud Agents** in the workspace sidebar, where **Your agents** also shows which agents accept tasks.
 
 - It starts **on** for a new installation of a release with a task runner (Claude Code 1.1.0, Codex 1.1.0, Pi 1.2.0 or newer), since tose-app [#701](https://github.com/saasvn/tose-app/pull/701). A connected app or API key with `agents:execute` can then give the agent tasks from its first start.
 - It stays **off** for an installation that existed before, until an owner or admin turns it on. A release without a task runner cannot take tasks at all: turning the switch on is refused with `409 TASKS_UNSUPPORTED`.
@@ -34,10 +34,10 @@ When the server offers tasks, a connected client sees four tools. The person who
 
 | Tool | Scope | What it does |
 |------|-------|--------------|
-| `list_template_agents` | `agents:read` | Lists your curated agents with their `installation_id`, `name`, `agent`, `release`, `status`, whether delegation is on, whether tasks are supported, whether it can continue a finished task (`resume_supported`), the active task and the link to the agent's page. |
-| `run_template_agent_task` | `agents:execute` | Gives an agent a task: `installation_id`, `prompt`, optional `timeout_minutes`, optional `continue_task_id` (continue a finished task when the release supports it) and optional `request_id` to retry safely. |
-| `get_template_agent_task` | `agents:read` | Reads a task. Pass `after` (the cursor from the previous call) to get only new events, and `wait_seconds` (0 to 25) to wait for a change instead of polling fast. |
-| `cancel_template_agent_task` | `agents:control` | Stops a `starting` or running task. A task that already ended is returned unchanged. |
+| `cloud_agent_list` | `agents:read` | Lists your curated agents with their `installation_id`, `name`, `agent`, `release`, `status`, whether delegation is on, whether tasks are supported, whether it can continue a finished task (`resume_supported`), the active task and the link to the agent's page. |
+| `cloud_agent_run_task` | `agents:execute` | Gives an agent a task: `installation_id`, `prompt`, optional `timeout_minutes`, optional `continue_task_id` (continue a finished task when the release supports it) and optional `request_id` to retry safely. |
+| `cloud_agent_get_task` | `agents:read` | Reads a task. Pass `after` (the cursor from the previous call) to get only new events, and `wait_seconds` (0 to 25) to wait for a change instead of polling fast. |
+| `cloud_agent_cancel_task` | `agents:control` | Stops a `starting` or running task. A task that already ended is returned unchanged. |
 
 The tools never turn delegation on, never open the console and never take a secret. When a refusal has a fix on the agent's page (`TASKS_NOT_ALLOWED`, `TASKS_UNSUPPORTED`, `AGENT_SLEEPING`, `PROVIDER_SIGN_IN_REQUIRED`), the message names that page. Hosts with MCP Apps show the task in a small status view. The consent screen says of `agents:execute`: "A task can read and send back anything the agent can, including its sign-in."
 
@@ -45,11 +45,11 @@ The tools never turn delegation on, never open the console and never take a secr
 
 > **You:** Which coding agents do I have in TOSE?
 >
-> **Assistant:** *(calls `list_template_agents`)* You have **claude-code-main** (Claude Code 1.1.0, running, tasks on) and **codex-old** (Codex 1.0.0, no task runner).
+> **Assistant:** *(calls `cloud_agent_list`)* You have **claude-code-main** (Claude Code 1.1.0, running, tasks on) and **codex-old** (Codex 1.0.0, no task runner).
 >
 > **You:** Ask claude-code-main to fix the failing test in `api/` and tell me what changed.
 >
-> **Assistant:** *(calls `run_template_agent_task`, then `get_template_agent_task` with `wait_seconds`)* The task finished with status `succeeded`. The agent says the test failed on a nil check; it fixed it in `api/handler.go` and added a case in `api/handler_test.go`.
+> **Assistant:** *(calls `cloud_agent_run_task`, then `cloud_agent_get_task` with `wait_seconds`)* The task finished with status `succeeded`. The agent says the test failed on a nil check; it fixed it in `api/handler.go` and added a case in `api/handler_test.go`.
 
 ## Scopes
 

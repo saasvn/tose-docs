@@ -134,12 +134,13 @@ At the top, the workspace name links to **All workspaces**.
 |-------|-------|
 | (top) | **Overview** |
 | **Build & deploy** | **Projects**, **Databases**, **CI** (hidden when CI is not enabled on the platform) |
-| **Apps & agents** | **Installed apps** (`/w/<slug>/templates`), **Template catalog** (`/w/<slug>/registry/deploy`), **Cloud desktops** (hidden when Cloud Desktops are not enabled) |
+| **Cloud Agents** | **Agents** (`/w/<slug>/agents`): your Claude Code, Codex and Pi agents and the ones you can deploy |
+| **Apps & templates** | **Installed apps** (`/w/<slug>/templates`), **Template catalog** (`/w/<slug>/registry/deploy`), **Cloud desktops** (hidden when Cloud Desktops are not enabled) |
 | **Monitor** | **Notifications**, **Logs** |
 | **Workspace** | **Members**, **Wallet & billing**, **Referrals**, **Settings** |
 
 **Installed apps** was called **Templates**, **Wallet & billing** was **Billing**, and **Cloud desktops**
-was **Desktops**. To install a curated agent such as Codex or Claude Code, open **Template catalog** and follow [Deploy a coding agent](/guide/deploy-coding-agent).
+was **Desktops**. The group was called **Apps & agents** until the coding agents moved to their own **Cloud Agents** menu. To install a curated agent such as Codex, Claude Code or Pi, open **Cloud Agents** and follow [Deploy a coding agent](/guide/deploy-coding-agent).
 
 ## Project Structure
 
