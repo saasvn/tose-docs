@@ -172,7 +172,7 @@ Every curated agent has a reviewed release, an image pinned by `sha256` digest w
 | Model | Optional `AGENT_MODEL`, the provider's model name. Empty uses the agent's default. |
 | Size | Whole cores and GiB from the allowed list: Claude Code and Codex 1, 2 or 4 cores and 2, 4 or 8 GiB; Pi 1 or 2 cores and 1, 2 or 4 GiB. |
 | Storage | A persistent disk with `/workspace` and `/home/agent` (1 GiB). You choose the size of `/workspace` at install: 5 GiB (the default), 10, 20 or 50 GiB (`workspace_disk_gib`), and it is fixed after that. The disk keeps your data across restarts, and is billed while it exists, also when stopped. |
-| Network | Egress `approved` (**Provider only**: the provider's API and sign-in hosts, the default), `development` (**Development (restricted)**: the provider plus the reviewed git, npm and PyPI hosts of the tools in the image) or `internet` (**Unrestricted public Internet**). `none` is not offered, because an agent cannot reach its provider without egress. Ingress is always `private`: the agent's console is never public. |
+| Network | Egress `approved` (**Restricted**, the default: the provider's API and sign-in hosts plus the reviewed GitHub, npm, PyPI and Go hosts, port 443) or `internet` (**Unrestricted public Internet**). `development`, from earlier plans, is still accepted and reaches the same hosts as `approved`; the dashboard no longer offers it. See [Network modes](/guide/agent-network-modes). `none` is not offered, because an agent cannot reach its provider without egress. Ingress is always `private`: the agent's console is never public. |
 | Setup | `image_entrypoint` only: the release image's own reviewed entrypoint. No build steps, startup commands, hooks, Kubernetes objects or `privileged`; unknown fields are refused. |
 | Release | Each release pins an OCI image by `sha256` digest and records the upstream version, the date and an https link to its evidence. The publisher (TOSE) is set once on the definition. It renders to a normal `tose.dev/v1` manifest checked by the rules above. |
 
@@ -213,7 +213,7 @@ Open **Cloud Agents** in the workspace sidebar (`/w/<workspace>/agents`). Curate
 - **App**: the app name.
 - **Sign in**: the provider (for Pi, one of its providers) and, when it needs one, your API key right there. A plan sign-in (ChatGPT or Claude plan) needs no key and happens after the deploy.
 - **Size**: CPU cores and memory from the offered sizes, the **Workspace disk** (5 GiB by default, or 10, 20 or 50 GiB, each with its monthly price), and **Auto-sleep after idle** (off by default).
-- **Network access**: **Provider only** (the default), **Development (restricted)** or **Unrestricted public Internet**, each with what it lets the agent reach.
+- **Network access**: **Restricted** (the default) or **Unrestricted public Internet**, each with what it lets the agent reach.
 - **Repository (optional)**: one GitHub repository of the workspace to check out into `/workspace` on first start, and optionally **Let the agent push to this repository** ([push](/guide/agent-repository-checkout#let-the-agent-push-to-your-repository), off by default).
 - **Advanced: release, model and environment variables**: the release (Pi 1.1.0 by default), an optional model, and your own variables and secrets.
 
@@ -248,7 +248,7 @@ Platform admins can revoke a release version or suspend the `tose-curated` publi
 
 ### Plan a curated template
 
-`POST /api/workspaces/{slug}/template-deployment-plans` takes `curated_template` (`pi`, `claude-code` or `codex`) **instead of** `definition_slug`, plus `network_mode` (`approved`, `development` or `internet`). `GET /api/workspaces/{slug}/curated-templates` lists the inputs for the form. See the [API reference](/api/template-registry#curated-agent-templates).
+`POST /api/workspaces/{slug}/template-deployment-plans` takes `curated_template` (`pi`, `claude-code` or `codex`) **instead of** `definition_slug`, plus `network_mode` (`approved` or `internet`; `development` from earlier plans is accepted and reaches the same hosts as `approved`). `GET /api/workspaces/{slug}/curated-templates` lists the inputs for the form. See the [API reference](/api/template-registry#curated-agent-templates).
 
 - **`max_hourly_cost_cents` is optional.** The plan always prices the highest hourly cost (compute plus storage, at the rates checked for the plan) and shows that ceiling for approval. When you set the limit, a plan whose ceiling is above it is blocked with `COST_CEILING_EXCEEDED`. The dashboard does not ask for it; set it through the API to cap a plan. An empty wallet is blocked with `INSUFFICIENT_BALANCE`. This page repeats no price: see [Pricing](/guide/pricing).
 - **The provider key never goes in a plan.** Sending it in `variables` is `422 PLAN_INPUT_INVALID` with an `errors[]` entry `SECRET_VALUE_IN_PLAN` at `variables.<KEY>`, and the error does not repeat the value. The key belongs only in the `secrets` of the installation request.
