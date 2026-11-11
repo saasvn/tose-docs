@@ -98,12 +98,12 @@ tose templates retry-checkout <installation-id> --json     # after a failed clon
 
 ### Change the repository after install {#repo-set-remove}
 
-An owner or admin (an API key with `deployments:execute`) can attach a repository to an installed curated agent, switch it to another one, turn push on or off, or remove it, without a new plan. See [Attach or change an agent's repository after install](/guide/agent-repository-checkout#attach-or-change-an-agents-repository-after-install) for what happens in `/workspace`.
+An owner or admin (an API key with `deployments:execute`) can add a repository to an installed curated agent, turn push on or off, or remove its repositories, without a new plan. An agent can have [up to 10 repositories](/guide/agent-repository-checkout#several-repositories-per-agent): `repo set` with a repository the agent does not have yet **adds** it next to the others (the server no longer replaces the first one), and `repo remove` removes **all** of them. Removing a single repository is not in the CLI yet (saasvn/tose-cli#116); use the agent's **Repository** card. See [Attach or change an agent's repository after install](/guide/agent-repository-checkout#attach-or-change-an-agents-repository-after-install) for what happens in `/workspace`.
 
 ```bash
-tose templates repo set <installation-id> --repo acme/app --yes                         # attach or switch, read-only
+tose templates repo set <installation-id> --repo acme/app --yes                         # add, read-only
 tose templates repo set <installation-id> --repo acme/app --push --push-branches agent --yes
-tose templates repo remove <installation-id> --yes                                      # files stay in /workspace
+tose templates repo remove <installation-id> --yes                                      # removes every repository; files stay in /workspace
 ```
 
 - `repo set` picks `--repo` from the repositories your GitHub connection lists, like `plan`. `--commit` and `--github-installation` work as in `plan`.
