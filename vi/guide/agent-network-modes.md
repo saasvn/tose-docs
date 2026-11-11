@@ -5,7 +5,7 @@ TOSE phát hành sẵn các coding agent được tuyển chọn: **Pi**, **Code
 Trang này giải thích các chế độ, mỗi chế độ truy cập được và không truy cập được gì, chế độ Hạn chế cho phép những máy chủ nào, và rủi ro còn lại. Để cài một agent, mở **Cloud Agents** trong dashboard ([tổng quan dashboard](/vi/guide/getting-started#lam-quen-voi-dashboard)).
 
 ::: warning Tình trạng và kiểm chứng
-Các máy chủ GitHub và kho gói của chế độ Hạn chế đã có kiểm thử cho chính sách và kế hoạch. TOSE chưa hoàn tất việc chấp nhận [rủi ro còn lại](#rui-ro-con-lai) của chúng cho bản phát hành rộng rãi. Bạn chọn được chế độ nào tùy theo những gì máy chủ báo cho workspace của bạn.
+Các máy chủ GitHub và kho gói của chế độ Hạn chế đã có kiểm thử cho chính sách và kế hoạch. Chúng chưa được chứng minh trên cluster thật có thực thi, và TOSE chưa hoàn tất việc chấp nhận [rủi ro còn lại](#rui-ro-con-lai) của chúng cho bản phát hành rộng rãi. Bạn chọn được chế độ nào tùy theo những gì máy chủ báo cho workspace của bạn.
 :::
 
 ## Các chế độ {#cac-che-do}
@@ -21,13 +21,13 @@ Dashboard cung cấp hai chế độ: **Hạn chế** và **Internet công khai 
 - Với Claude Code, máy chủ của nhà cung cấp là `api.anthropic.com`, `platform.claude.com` và `claude.ai`, để việc đăng nhập của chính nó hoạt động. Với Codex đăng nhập bằng gói ChatGPT, đó là `auth.openai.com` và `chatgpt.com`.
 - **Internet công khai không giới hạn có rủi ro cao nhất.** Mã và dữ liệu có thể bị gửi tới bất kỳ máy chủ công khai nào trong khi agent đang giữ khóa API hoặc phiên đăng nhập của bạn. Chỉ chọn chế độ này khi Hạn chế chưa đủ.
 - Địa chỉ nội bộ, link-local và metadata đám mây bị chặn ở mọi chế độ.
-- **`development` là giá trị cũ.** Các kế hoạch trước đây có thể chọn **Phát triển (giới hạn)** (`development`). API vẫn nhận giá trị này, và giờ nó truy cập cùng các máy chủ như Hạn chế. Dashboard không còn cung cấp nó, và phát lại một kế hoạch `development` cũ dưới dạng Hạn chế.
+- **`development` là giá trị cũ.** Các kế hoạch trước đây có thể chọn **Phát triển (giới hạn)** (`development`). API vẫn nhận giá trị này, và giờ nó truy cập cùng các máy chủ như Hạn chế. Dashboard không còn cung cấp nó, và mở lại một kế hoạch `development` cũ thành chế độ Hạn chế.
 
 ## Agent đã cài trước đây {#agent-da-cai-truoc-day}
 
 Trước chính sách `2026-11-11.1`, chế độ mặc định có tên **Chỉ nhà cung cấp mô hình** và chỉ truy cập được nhà cung cấp mô hình. Các agent đã cài với egress `approved` (Chỉ nhà cung cấp mô hình) hoặc `development` được thêm các máy chủ GitHub và kho gói một lần, khi máy chủ khởi động với bản phát hành này. Agent cài với Internet công khai không giới hạn không bị thay đổi.
 
-Agent đang chạy nhận các máy chủ mới ở lần triển khai tiếp theo, vốn áp dụng lại chính sách mạng của nó, ví dụ **Lưu và khởi động lại** sau khi bạn [đổi kho mã của nó](/vi/guide/agent-repository-checkout#gan-hoac-doi-kho-ma-sau-khi-cai). Ngoài thay đổi một lần này, cài đặt giữ nguyên các đích của kế hoạch bạn đã duyệt cho đến khi có người duyệt kế hoạch mới.
+Agent đang chạy nhận các máy chủ mới ở lần triển khai tiếp theo, vốn áp dụng lại chính sách mạng của nó. Lưu một thay đổi thật bằng **Lưu và khởi động lại** khi bạn [đổi kho mã của nó](/vi/guide/agent-repository-checkout#gan-hoac-doi-kho-ma-sau-khi-cai) sẽ triển khai lại agent; lưu khi không có gì thay đổi thì không khởi động lại. Ngoài thay đổi một lần này, cài đặt giữ nguyên các đích của kế hoạch bạn đã duyệt cho đến khi có người duyệt kế hoạch mới.
 
 ## Khi agent báo máy chủ bị chặn
 

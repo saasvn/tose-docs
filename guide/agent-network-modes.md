@@ -5,7 +5,7 @@ TOSE publishes curated coding agents: **Pi**, **Codex** and **Claude Code**. Eac
 This page explains the modes, what each one can and cannot reach, which hosts the Restricted mode allows, and the risk that remains. To install an agent, open **Cloud Agents** in the dashboard ([dashboard overview](/guide/getting-started#find-your-way-around-the-dashboard)).
 
 ::: warning Availability and verification
-The GitHub and package hosts of Restricted are covered by policy and plan tests. TOSE has not finished accepting their [residual risk](#residual-risk) for general release. Which modes you can pick follows what the server reports for your workspace.
+The GitHub and package hosts of Restricted are covered by policy and plan tests. They have not yet been proven on a live enforcing cluster, and TOSE has not finished accepting their [residual risk](#residual-risk) for general release. Which modes you can pick follows what the server reports for your workspace.
 :::
 
 ## The modes
@@ -27,7 +27,7 @@ The dashboard offers two modes: **Restricted** and **Unrestricted public Interne
 
 Before policy `2026-11-11.1`, the default mode was named **Provider only** and reached the model provider alone. Agents installed earlier with `approved` (Provider only) or `development` egress had the GitHub and package hosts added once, when the server started with this release. Agents installed with Unrestricted public Internet were not changed.
 
-A running agent gets the new hosts with its next deploy, which applies its network policy again, for example **Save and restart** after you [change its repository](/guide/agent-repository-checkout#attach-or-change-an-agents-repository-after-install). Apart from this one change, an installation keeps the destinations of the plan you approved until a person approves a new plan.
+A running agent gets the new hosts with its next deploy, which applies its network policy again. Saving a real change with **Save and restart** when you [change its repository](/guide/agent-repository-checkout#attach-or-change-an-agents-repository-after-install) deploys it; saving with nothing changed does not restart it. Apart from this one change, an installation keeps the destinations of the plan you approved until a person approves a new plan.
 
 ## When the agent reports a blocked host
 
