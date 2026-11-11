@@ -147,7 +147,7 @@ Agent đã cài có thể tạo và cập nhật issue và pull request của c�
 
 ### Bật tính năng {#bat-tinh-nang-issue-va-pull-request}
 
-1. **GitHub App cần quyền Issues và Pull requests.** GitHub App của TOSE phải có quyền kho **Issues: Read and write** và **Pull requests: Read and write**. Người vận hành nền tảng cấp các quyền này trong cài đặt của App trên GitHub, sau đó mọi tài khoản GitHub đã cài App phải chấp nhận chúng trên installation của mình. Trước khi đó, bật tính năng bị từ chối với `409 GITHUB_PERMISSION_MISSING`.
+1. **GitHub App cần quyền Issues và Pull requests.** GitHub App của TOSE phải có quyền kho **Issues: Read and write** và **Pull requests: Read and write**. Người vận hành nền tảng cấp các quyền này trong cài đặt của App trên GitHub, sau đó mọi tài khoản GitHub đã cài App phải chấp nhận chúng trên installation của mình. Cho tới lúc đó, mọi lần lưu với tính năng đang bật đều bị từ chối với `409 GITHUB_PERMISSION_MISSING`.
 2. **Bật cho một kho.** Trên trang của agent, chọn **Quyền** trên dòng của kho trong thẻ **Kho mã** và bật **Cho phép agent quản lý issue và pull request**. Chỉ owner hoặc admin của workspace đổi được. Chọn **Lưu và khởi động lại**: thay đổi tới agent ở lần deploy kế tiếp.
 3. Sau đó dòng của kho có nhãn **Issues/PR**, và dấu **?** cạnh dòng ghi "Issue và pull request qua TOSE".
 
@@ -198,7 +198,7 @@ Body phải là JSON, tối đa 1 MiB. Các liên kết phân trang của GitHub
 | Kho mã | Đọc thông tin kho, nhãn, người có thể được gán và milestone (`labels`, `assignees`, `milestones`). |
 | Pull request | Tạo, đọc và sửa (`pulls`, `pulls/{n}`); tệp và commit; bình luận review (`pulls/{n}/comments`); review (`pulls/{n}/reviews`); người được mời review. |
 
-**Mọi thứ khác bị từ chối** với `403 GITHUB_API_ENDPOINT_NOT_ALLOWED`: merge pull request, nội dung kho, cài đặt, webhook, Actions, deployment và mọi kho khác. Để đổi tệp, agent [push](#cho-agent-push-len-kho-ma) một nhánh; con người merge pull request trên GitHub.
+**Mọi thứ khác bị từ chối** với `403 GITHUB_API_ENDPOINT_NOT_ALLOWED`: merge pull request, nội dung kho, cài đặt, webhook, Actions, deployment và mọi kho khác. Để đổi tệp, agent [push](#cho-agent-push-len-kho-ma) một nhánh; một người merge pull request trên GitHub.
 
 GitHub gán issue cho **username GitHub** của collaborator của kho, không gán theo địa chỉ email.
 
@@ -206,10 +206,10 @@ GitHub gán issue cho **username GitHub** của collaborator của kho, không g
 
 - Agent **không bao giờ giữ token GitHub**. Với mỗi yêu cầu, proxy dùng một **token GitHub App ngắn hạn chỉ cho đúng kho đó**, chỉ có `issues: write`, `pull_requests: write` và `metadata: read` (không có quyền nội dung), và dùng lại token cho tới năm phút trước khi hết hạn.
 - Proxy không đi theo chuyển hướng và chỉ chuyển một tập header phản hồi cố định.
-- **Mọi thao tác ghi và mọi lần từ chối đều được ghi nhật ký kiểm toán** là `template_installation.github_api`, kèm kho mã, phương thức, đường dẫn và kết quả. Không mục nào chứa bí mật hay token GitHub.
+- **Mọi thao tác ghi và mọi yêu cầu bị từ chối đều được ghi nhật ký kiểm toán** là `template_installation.github_api`, kèm kho mã, phương thức, đường dẫn và kết quả; bí mật sai được ghi tối đa một lần mỗi phút cho mỗi kho. Không mục nào chứa bí mật hay token GitHub.
 - Proxy chỉ trả lời khi agent đang chạy, GitHub App installation vẫn kết nối với workspace và kho vẫn cho phép. Tắt tính năng, hoặc gỡ kho, làm bí mật của agent hết hiệu lực ngay; lần deploy kế tiếp cấp bí mật mới cho các kho vẫn cho push hoặc API.
 - Khi còn kho nào cho push hoặc API, mạng của agent cho phép máy chủ API của TOSE ở cổng 443, trong mọi chế độ mạng.
-- Proxy dùng chung giới hạn của git proxy cho từng kho, tính gộp với git: 4 yêu cầu cùng lúc và 60 yêu cầu mỗi phút, vượt quá thì `429 GIT_RATE_LIMITED`.
+- Proxy có cùng giới hạn với git proxy nhưng đếm riêng với git: 4 yêu cầu cùng lúc và 60 yêu cầu mỗi phút cho mỗi kho, vượt quá thì `429 GIT_RATE_LIMITED`.
 
 ::: warning Bất kỳ ai chạy được lệnh trong agent đều ghi được issue và pull request
 Gồm bạn và các owner hoặc admin khác trong console của agent, một [tác vụ được giao](/vi/guide/agent-tasks), và một prompt injection mà agent làm theo. Cách này không merge hay đổi tệp được, nhưng mở, sửa, đóng và bình luận được. Chỉ bật cho agent mà bạn tin tưởng với những việc đó, và giữ branch protection cho các nhánh quan trọng.
@@ -221,15 +221,17 @@ Proxy trả JSON `{"code": "…", "message": "…"}`:
 
 | Mã trạng thái và mã lỗi | Lý do |
 |-------------------------|-------|
-| `401 GIT_TOKEN_INVALID` | Không có bearer token, hoặc không phải `TOSE_GIT_TOKEN` hiện tại của agent. Mỗi lần deploy cấp bí mật mới, và bí mật cũ hết hiệu lực ngay sau đó. |
-| `403 GITHUB_API_DISABLED` | Tính năng đang tắt cho kho này. Con người bật nó trong **Quyền** ở thẻ **Kho mã**. |
+| `401 GIT_TOKEN_INVALID` | Không có bearer token, hoặc không phải `TOSE_GIT_TOKEN` hiện tại của agent. Mỗi lần deploy cấp bí mật mới, và bí mật cũ hết hiệu lực một lúc sau đó. |
+| `403 GITHUB_API_DISABLED` | Tính năng đang tắt cho kho này. Owner hoặc admin bật nó trong **Quyền** ở thẻ **Kho mã**. |
 | `403 GITHUB_API_ENDPOINT_NOT_ALLOWED` | Yêu cầu không nằm trong [danh sách được phép](#agent-duoc-va-khong-duoc-lam-gi). |
 | `403 INSTALLATION_NOT_RUNNING`, `INSTALLATION_DELETED`, `INSTALLATION_SUSPENDED`, `SCOPE_REVOKED` | Như trong [Khi git từ chối](#khi-git-tu-choi). |
 | `400 GIT_REQUEST_INVALID` | Body không phải JSON. |
 | `413`/`414 GIT_REQUEST_TOO_LARGE` | Body vượt 1 MiB, hoặc query quá dài. |
 | `429 GIT_RATE_LIMITED` | Quá 4 yêu cầu cùng lúc hoặc 60 yêu cầu mỗi phút cho kho này. Hãy thử lại sau. |
 | `502 GITHUB_PERMISSION_MISSING` | GitHub App của TOSE thiếu **Issues** hoặc **Pull requests: Read and write**, hoặc installation này chưa chấp nhận. |
+| `502 NO_INSTALLATION`, `PERMISSION_DENIED`, `REPO_REMOVED` | GitHub từ chối cấp token cho kho, như trong [Trạng thái và các trường hợp lỗi](#trang-thai-va-cac-truong-hop-loi). |
 | `502 GITHUB_UNAVAILABLE` | Không kết nối được tới GitHub. Hãy thử lại. |
+| `503 GITHUB_UNAVAILABLE` | TOSE không đọc được bản ghi kho của agent. Hãy thử lại. |
 | `503 GIT_PROXY_NOT_CONFIGURED` | Máy chủ này chưa có GitHub API proxy. |
 
 Mọi mã trạng thái khác là câu trả lời của chính GitHub, được chuyển nguyên: ví dụ `422` khi người được gán hoặc nhãn không hợp lệ, hay `404` khi issue không tồn tại.
@@ -249,7 +251,7 @@ Bạn không phải cài lại agent để thêm hay đổi kho mã (tose-app [#
 - Một agent có **tối đa 10 kho mã**. Mỗi kho được clone vào thư mục riêng, `/workspace/<tên>`, trong đó `<tên>` là tên kho không kèm owner.
 - Hai kho cùng tên (không phân biệt hoa thường) không dùng chung được một thư mục: thêm `other-org/app` vào agent đã có `acme/app` bị từ chối với `REPOSITORY_FOLDER_TAKEN`. Hãy gỡ kho thứ nhất rồi thêm kho kia.
 - Các kho được clone **lần lượt, kho cũ nhất trước**, trước khi agent khởi động. **Lần clone thất bại đầu tiên dừng cả lần deploy**: các kho sau đó không được clone. Agent đang chạy được khởi động lại như trước, với các kho đã clone xong; agent chưa chạy thì vẫn dừng. Hãy sửa nguyên nhân rồi [thử lại](#thu-lai-checkout-that-bai).
-- **Push và issue/pull request được đặt riêng cho từng kho.** Agent giữ **một** bí mật, `TOSE_GIT_TOKEN`, cho mọi kho mà nó được push hoặc quản lý issue và pull request. Tắt một trong hai cho một kho, hoặc gỡ một kho, làm bí mật đó hết hiệu lực ngay; lần deploy kế tiếp cấp bí mật mới cho các kho vẫn cho phép. Khi không còn kho nào cho phép cả hai, lần deploy kế tiếp cũng bỏ máy chủ API của TOSE khỏi mạng của agent.
+- **Push và issue/pull request được đặt riêng cho từng kho.** Agent giữ **một** bí mật, `TOSE_GIT_TOKEN`, cho mọi kho mà nó được push hoặc quản lý issue và pull request. Tắt một trong hai cho một kho, hoặc gỡ một kho, làm bí mật đó hết hiệu lực ngay; lần deploy kế tiếp cấp bí mật mới cho các kho vẫn cho phép. Khi không còn kho nào cho push hay API nữa, lần deploy kế tiếp cũng bỏ máy chủ API của TOSE khỏi mạng của agent.
 - Kho chọn lúc triển khai là kho đầu tiên. Installation vẫn có `repository`, chính là phần tử đầu của `repositories`, nên các client chỉ biết một kho vẫn hoạt động.
 
 ### Dùng thẻ Kho mã

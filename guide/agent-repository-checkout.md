@@ -147,7 +147,7 @@ An installed agent can create and update the issues and pull requests of its rep
 
 ### Turn it on
 
-1. **The GitHub App needs Issues and Pull requests.** The TOSE GitHub App must have the repository permissions **Issues: Read and write** and **Pull requests: Read and write**. The platform operator grants them in the App's settings on GitHub, and every GitHub account that installed the App must then accept them on its installation. Until then, turning the option on is refused with `409 GITHUB_PERMISSION_MISSING`.
+1. **The GitHub App needs Issues and Pull requests.** The TOSE GitHub App must have the repository permissions **Issues: Read and write** and **Pull requests: Read and write**. The platform operator grants them in the App's settings on GitHub, and every GitHub account that installed the App must then accept them on its installation. Until then, any save with the option on is refused with `409 GITHUB_PERMISSION_MISSING`.
 2. **Turn it on for one repository.** On the agent's page, choose **Permissions** on the repository's row in the **Repository** card and turn on **Let the agent manage issues and pull requests**. Only a workspace owner or admin can change it. Choose **Save and restart**: the change reaches the agent on its next deploy.
 3. The row then shows an **Issues/PR** badge, and the **?** next to it says "Issues and pull requests through TOSE".
 
@@ -206,10 +206,10 @@ GitHub assigns issues to the **GitHub usernames** of the repository's collaborat
 
 - The agent **never holds a GitHub token**. For each request the proxy uses a **short-lived GitHub App token for that one repository**, with only `issues: write`, `pull_requests: write` and `metadata: read` (no contents), and reuses it until five minutes before it expires.
 - The proxy does not follow redirects and passes only a fixed set of response headers.
-- **Every write and every refusal is audited** as `template_installation.github_api`, with the repository, the method, the path and the outcome. No audit entry holds the secret or a GitHub token.
+- **Every write and every refused request is audited** as `template_installation.github_api`, with the repository, the method, the path and the outcome; a wrong secret is audited at most once a minute per repository. No audit entry holds the secret or a GitHub token.
 - It answers only while the agent runs, its GitHub App installation is connected to the workspace and the repository still allows it. Turning the option off, or removing the repository, ends the agent's secret at once; the next deploy issues a new one for the repositories that still allow push or the API.
 - While any repository allows push or the API, the agent's network allows the TOSE API host on port 443, in every network mode.
-- It shares the git proxy's limits for each repository, counted together with git: 4 requests at once and 60 a minute, then `429 GIT_RATE_LIMITED`.
+- It has the same limits as the git proxy, counted separately from git: 4 requests at once and 60 a minute for each repository, then `429 GIT_RATE_LIMITED`.
 
 ::: warning Anyone who can run commands in the agent can write issues and pull requests
 That includes you and other owners or admins in its console, a [delegated task](/guide/agent-tasks), and a prompt injection the agent follows. It cannot merge or change files this way, but it can open, edit, close and comment. Turn it on only for an agent you trust with those, and keep branch protection on the branches that matter.
@@ -222,14 +222,16 @@ The proxy answers with JSON `{"code": "…", "message": "…"}`:
 | Status and code | Why |
 |-----------------|-----|
 | `401 GIT_TOKEN_INVALID` | No bearer token, or not the agent's current `TOSE_GIT_TOKEN`. Each deploy issues a new secret, and the previous one stops working shortly after. |
-| `403 GITHUB_API_DISABLED` | The option is off for this repository. A person turns it on under **Permissions** in the **Repository** card. |
+| `403 GITHUB_API_DISABLED` | The option is off for this repository. An owner or admin turns it on under **Permissions** in the **Repository** card. |
 | `403 GITHUB_API_ENDPOINT_NOT_ALLOWED` | The request is not in the [allowed list](#what-the-agent-can-and-cannot-do). |
 | `403 INSTALLATION_NOT_RUNNING`, `INSTALLATION_DELETED`, `INSTALLATION_SUSPENDED`, `SCOPE_REVOKED` | As in [When git refuses](#when-git-refuses). |
 | `400 GIT_REQUEST_INVALID` | The body is not JSON. |
 | `413`/`414 GIT_REQUEST_TOO_LARGE` | The body is over 1 MiB, or the query is too long. |
 | `429 GIT_RATE_LIMITED` | More than 4 requests at once or 60 a minute for this repository. Retry later. |
 | `502 GITHUB_PERMISSION_MISSING` | The TOSE GitHub App lacks **Issues** or **Pull requests: Read and write**, or this installation has not accepted it. |
+| `502 NO_INSTALLATION`, `PERMISSION_DENIED`, `REPO_REMOVED` | GitHub refused a token for the repository, as in [Status and failure states](#status-and-failure-states). |
 | `502 GITHUB_UNAVAILABLE` | GitHub could not be reached. Retry. |
+| `503 GITHUB_UNAVAILABLE` | TOSE could not read the agent's repository record. Retry. |
 | `503 GIT_PROXY_NOT_CONFIGURED` | This server has no GitHub API proxy. |
 
 Any other status is GitHub's own answer, passed through: for example `422` when an assignee or a label is invalid, or `404` when an issue does not exist.
