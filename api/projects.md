@@ -139,6 +139,7 @@ Unlike the rest of this page, reading is open to any workspace member.
 
 - **The server endpoint is empty.** The `server` object in project detail has `endpoint: ""`, so project detail does not include the Kubernetes control-plane URL. Use `server.id` and `server.name`.
 - **`latest_deployment`.** The status response carries the most recent deployment as `latest_deployment` (`id`, `status`, `created_at`, optional `service_url`), and leaves it out when the project was never deployed. The older camelCase `latestDeployment` is still sent with the same value; read `latest_deployment` in new code.
+- **Resource metrics.** `GET .../metrics/resources` returns observed memory, readiness and network counters; see [Workload metrics](/guide/workload-metrics#api).
 - **Registry credentials.** A project's `registry` object has `id`, `name`, `provider`, `namespace`, `url`, `status`, `created_at` and `updated_at`. The registry username and password are never part of any response.
 
 ## Post-deploy health gate {#health-gate}
