@@ -31,10 +31,10 @@ Trang triển khai không hỏi giới hạn chi phí. Kế hoạch vẫn hiển
 
 | Agent | Nhà cung cấp | Bạn cần |
 |-------|--------------|---------|
-| Claude Code | **Claude plan (Pro or Max)** | Không cần gì khi triển khai. Sau khi ứng dụng chạy, chọn **Kết nối Claude** ở trang ứng dụng, hoặc đăng nhập bằng `/login` trong console của agent. |
+| Claude Code | **Claude plan (Pro or Max)** | Không cần gì khi triển khai. Sau khi ứng dụng chạy, chọn **Kết nối Claude** ở đầu tab **Tổng quan** của trang agent, hoặc đăng nhập bằng `/login` trong console của agent. |
 | Claude Code | **Anthropic API key** | `ANTHROPIC_API_KEY`, nhập trên trang triển khai. |
 | Codex | **OpenAI API** | `OPENAI_API_KEY`, nhập trên trang triển khai. |
-| Codex | **ChatGPT plan** | Không cần gì khi triển khai. Sau khi ứng dụng chạy, chọn **Kết nối ChatGPT** ở trang ứng dụng. |
+| Codex | **ChatGPT plan** | Không cần gì khi triển khai. Sau khi ứng dụng chạy, chọn **Kết nối ChatGPT** ở đầu tab **Tổng quan** của trang agent. |
 | Pi | Một trong mười nhà cung cấp từ bản 1.1.0 (bản 1.0.0 có Anthropic, OpenAI và Google); xem [Nhà cung cấp model cho Pi](/vi/guide/agent-pi-providers) | `PI_API_KEY` của nhà cung cấp đã chọn, nhập trên trang triển khai. Cloudflare Workers AI cần thêm account ID của bạn. |
 
 Nhà cung cấp là một phần của kế hoạch đã duyệt. Để đổi một ứng dụng từ API key sang gói ChatGPT (hoặc ngược lại), hãy cài một ứng dụng mới và dừng ứng dụng cũ.
@@ -43,7 +43,7 @@ Nhà cung cấp là một phần của kế hoạch đã duyệt. Để đổi m
 
 Từ trang ứng dụng, ở máy chủ có cung cấp cách này:
 
-1. Chờ ứng dụng ở trạng thái **Đang chạy**. Tab **Cài đặt** của trang agent hiện bảng **Gói Claude** với nút **Kết nối Claude**.
+1. Chờ ứng dụng ở trạng thái **Đang chạy**. Bảng **Gói Claude**, nằm đầu tiên ở tab **Tổng quan** của trang agent, hiện nút **Kết nối Claude**. Cho đến khi bạn đăng nhập, bảng có viền màu.
 2. Chọn nút đó, mở liên kết tới trang đăng nhập của Anthropic và đăng nhập ở đó trong trình duyệt của bạn.
 3. Dán mã mà trang của Anthropic hiển thị vào bảng. TOSE chuyển mã một lần cho Claude Code, không lưu, không ghi log và không trả lại.
 
@@ -59,7 +59,7 @@ Bảng **Gói Claude** được cung cấp ở máy chủ bật `CURATED_SUBSCRI
 
 ### Đăng nhập bằng gói ChatGPT
 
-1. Chờ ứng dụng ở trạng thái **Đang chạy**. Tab **Cài đặt** của trang agent hiện bảng **Gói ChatGPT** với nút **Kết nối ChatGPT**.
+1. Chờ ứng dụng ở trạng thái **Đang chạy**. Bảng **Gói ChatGPT**, nằm đầu tiên ở tab **Tổng quan** của trang agent, hiện nút **Kết nối ChatGPT**. Cho đến khi bạn đăng nhập, bảng có viền màu.
 2. Chọn nút đó. Bảng hiển thị một mã dùng một lần và liên kết tới `https://auth.openai.com/codex/device`.
 3. Mở liên kết trong trình duyệt của bạn, đăng nhập ChatGPT và nhập mã.
 4. Bảng sau đó hiển thị tài khoản, gói và mức sử dụng, cùng các nút **Kết nối lại** và **Ngắt kết nối**.
@@ -80,19 +80,17 @@ Trang của agent Claude Code, Codex hay Pi được viết cho người không 
 
 | Tab | Có gì trong đó |
 | --- | --- |
-| **Tổng quan** | Sáu ô: **Tác vụ**, **Kho mã**, **Ổ đĩa**, **Tự động ngủ**, **Cấu hình** và **Hoạt động**, bên dưới là khối **Ổ đĩa** (dung lượng, giá mỗi tháng, **Tăng dung lượng**) và khối **Cấu hình** (trạng thái, CPU, RAM, cổng, nút **Đổi CPU và RAM**; tose-app [#779](https://github.com/saasvn/tose-app/pull/779)). Mỗi ô hiển thị một con số và một dòng trạng thái; chọn một ô sẽ đưa bạn tới nơi quản lý mục đó. Dòng trạng thái của ô chuyển sang màu cảnh báo khi có tác vụ lỗi trong 24 giờ qua hoặc có kho mã checkout thất bại, còn dòng của ô **Hoạt động** chuyển sang màu đỏ khi lần khởi động gần nhất thất bại. |
+| **Tổng quan** | Đầu tiên, với agent đăng nhập bằng gói ở máy chủ có cung cấp tính năng này, là bảng **Gói Claude** hoặc **Gói ChatGPT**: agent đã đăng nhập hay chưa, nút **Kết nối Claude** hoặc **Kết nối ChatGPT**, và với gói ChatGPT là mức sử dụng của gói sau khi đăng nhập (với gói Claude, gõ `/usage` trong console). Bảng có viền màu cho đến khi bạn đăng nhập (tose-app [#780](https://github.com/saasvn/tose-app/pull/780)). Agent dùng khóa API không có bảng này, nên **Tổng quan** của nó bắt đầu bằng các ô. Tiếp theo là bốn ô, nằm trên một hàng khi màn hình đủ rộng: **Tác vụ**, **Kho mã**, **Tự động ngủ** và **Hoạt động**. Bên dưới là khối **Ổ đĩa** (dung lượng, giá mỗi tháng, **Tăng dung lượng**) và khối **Cấu hình** (trạng thái, CPU, RAM, cổng, nút **Đổi CPU và RAM**; tose-app [#779](https://github.com/saasvn/tose-app/pull/779)). Mỗi ô hiển thị một con số và một dòng trạng thái; chọn một ô sẽ đưa bạn tới nơi quản lý mục đó. Dòng trạng thái của ô chuyển sang màu cảnh báo khi có tác vụ lỗi trong 24 giờ qua hoặc có kho mã checkout thất bại, còn dòng của ô **Hoạt động** chuyển sang màu đỏ khi lần khởi động gần nhất thất bại. |
 | **Tác vụ** | Bảng 20 [tác vụ](#giao-tac-vu) gần nhất chia ba cột **Đang chạy**, **Hoàn thành** và **Lỗi hoặc đã dừng** (xem [Bảng tác vụ](/vi/guide/agent-tasks#task-board)), bên dưới là **Cài đặt tác vụ** với công tắc **Nhận tác vụ từ ứng dụng đã kết nối và khóa API**. Tab và ô của nó bị ẩn khi máy chủ không cung cấp tác vụ. |
 | **Kho mã** | Các kho mã của agent, **Quyền** của từng kho, **+ Thêm kho mã** và **Thử tải lại** (xem [Gắn hoặc đổi kho mã của agent](/vi/guide/agent-repository-checkout#gan-hoac-doi-kho-ma-sau-khi-cai)). |
-| **Cài đặt** | Thẻ **Tự động ngủ** (các quy tắc được gấp trong **Tự động ngủ hoạt động thế nào**), bảng đăng nhập gói, **Nâng cao** (luôn mở: **Nguồn mẫu** và **Phiên bản mẫu** để nâng cấp hoặc rollback; tose-app [#779](https://github.com/saasvn/tose-app/pull/779)), **Bí mật và biến môi trường**, và **Dừng hoặc xóa** (**Dừng agent**, **Xóa agent**). Ổ đĩa, CPU và RAM được đổi ở **Tổng quan**, không phải ở đây. |
+| **Cài đặt** | Thẻ **Tự động ngủ** (các quy tắc được gấp trong **Tự động ngủ hoạt động thế nào**), **Nâng cao** (luôn mở: **Nguồn mẫu** và **Phiên bản mẫu** để nâng cấp hoặc rollback; tose-app [#779](https://github.com/saasvn/tose-app/pull/779)), **Bí mật và biến môi trường**, và **Dừng hoặc xóa** (**Dừng agent**, **Xóa agent**). Ổ đĩa, CPU, RAM và việc kết nối gói đều ở **Tổng quan**, không phải ở đây. |
 | **Hoạt động** | **Lịch sử** (các lần deploy) và **Nhật ký trực tiếp**. |
 
 Các ô hiển thị:
 
 - **Tác vụ**: số tác vụ đang chạy, nếu không có thì số tác vụ nhận trong 24 giờ qua, kèm "Chưa có tác vụ nào", "Hôm nay không có lỗi" hoặc "… lỗi hôm nay" (tính trên 20 tác vụ mới nhất của agent). Ô hiện **Đang tắt** khi agent không nhận tác vụ.
 - **Kho mã**: số kho sẵn sàng (hoặc đang clone, hoặc lỗi) và tên các kho, hoặc **Chưa có** kèm gợi ý thêm kho.
-- **Ổ đĩa**: dung lượng và giá mỗi tháng, kèm liên kết **Tăng dung lượng**. Ô cuộn **Tổng quan** xuống khối **Ổ đĩa**, nơi bạn [tăng dung lượng ổ đĩa](#grow-the-disk).
 - **Tự động ngủ**: "Sau … phút" hoặc **Đang tắt**, và agent đang thức, đang ngủ hay đang thức dậy. Ô mở tab **Cài đặt** và cuộn tới thẻ **Tự động ngủ**.
-- **Cấu hình**: số nhân CPU và bộ nhớ. Ô cuộn **Tổng quan** xuống khối **Cấu hình**, nơi nút **Đổi CPU và RAM** cho phép đổi chúng.
 - **Hoạt động**: lần gần nhất agent khởi động và lần đó có thành công không. Ô mở tab **Hoạt động**.
 
 Liên kết có `?tab=` vẫn dùng được: `?tab=variables`, `?tab=advanced` và `?tab=danger` mở **Cài đặt**, còn `?tab=deployments` và `?tab=logs` mở **Hoạt động**. Mọi giá trị `tab` khác sẽ mở **Tổng quan**.

@@ -31,10 +31,10 @@ The page does not ask for a cost limit. The plan still shows the cost ceiling so
 
 | Agent | Provider | What you need |
 |-------|----------|---------------|
-| Claude Code | **Claude plan (Pro or Max)** | Nothing at deploy. After the app runs, select **Connect Claude** on the app page, or sign in with `/login` in the agent's console. |
+| Claude Code | **Claude plan (Pro or Max)** | Nothing at deploy. After the app runs, select **Connect Claude** at the top of the agent page's **Overview** tab, or sign in with `/login` in the agent's console. |
 | Claude Code | **Anthropic API key** | `ANTHROPIC_API_KEY`, entered on the deploy page. |
 | Codex | **OpenAI API** | `OPENAI_API_KEY`, entered on the deploy page. |
-| Codex | **ChatGPT plan** | Nothing at deploy. After the app runs, select **Connect ChatGPT** on the app page. |
+| Codex | **ChatGPT plan** | Nothing at deploy. After the app runs, select **Connect ChatGPT** at the top of the agent page's **Overview** tab. |
 | Pi | One of ten providers from release 1.1.0 (Anthropic, OpenAI and Google in release 1.0.0); see [Pi model providers](/guide/agent-pi-providers) | `PI_API_KEY` for the chosen provider, entered on the deploy page. Cloudflare Workers AI also needs your account ID. |
 
 The provider is part of the approved plan. To switch an app from an API key to a ChatGPT plan (or the other way), install a new app and stop the old one.
@@ -43,7 +43,7 @@ The provider is part of the approved plan. To switch an app from an API key to a
 
 From the app page, where the server offers it:
 
-1. Wait until the app is **Running**. The **Settings** tab of the agent's page shows a **Claude plan** panel with a **Connect Claude** button.
+1. Wait until the app is **Running**. The **Claude plan** panel, first on the **Overview** tab of the agent's page, shows a **Connect Claude** button. Until you have signed in, the panel has a coloured outline.
 2. Select it, open the link to Anthropic's sign-in page and sign in there in your own browser.
 3. Paste the code Anthropic's page shows into the panel. TOSE passes it once to Claude Code and does not store, log or return it.
 
@@ -59,7 +59,7 @@ The **Claude plan** panel is offered where the server enables `CURATED_SUBSCRIPT
 
 ### Sign in with a ChatGPT plan
 
-1. Wait until the app is **Running**. The **Settings** tab of the agent's page shows a **ChatGPT plan** panel with a **Connect ChatGPT** button.
+1. Wait until the app is **Running**. The **ChatGPT plan** panel, first on the **Overview** tab of the agent's page, shows a **Connect ChatGPT** button. Until you have signed in, the panel has a coloured outline.
 2. Select it. The panel shows a one-time code and a link to `https://auth.openai.com/codex/device`.
 3. Open the link in your own browser, sign in to ChatGPT and enter the code.
 4. The panel then shows the account, the plan and its usage. It also offers **Reconnect** and **Disconnect**.
@@ -80,19 +80,17 @@ The page of a Claude Code, Codex or Pi agent is written for people who do not ru
 
 | Tab | What is there |
 | --- | --- |
-| **Overview** | Six tiles: **Tasks**, **Repositories**, **Disk**, **Auto-sleep**, **Power** and **Activity**, and under them the **Disk** block (size, monthly price, **Make it larger**) and the **Power** block (status, CPU, RAM, port, **Change CPU and RAM**; tose-app [#779](https://github.com/saasvn/tose-app/pull/779)). Each tile shows one number and one line of status, and selecting a tile takes you to where that thing is managed. A tile's line turns to the warning colour when a task failed in the last 24 hours or a repository checkout failed, and the **Activity** tile's line turns red when the last start failed. |
+| **Overview** | First, for an agent that signs in with a plan where the server offers it, the **Claude plan** or **ChatGPT plan** panel: whether the agent is signed in, **Connect Claude** or **Connect ChatGPT**, and, for a ChatGPT plan, the plan's usage once signed in (for a Claude plan, type `/usage` in the console). It has a coloured outline until you have signed in (tose-app [#780](https://github.com/saasvn/tose-app/pull/780)). An agent that uses an API key has no such panel, so its **Overview** starts with the tiles. Then four tiles, in one row on a wide screen: **Tasks**, **Repositories**, **Auto-sleep** and **Activity**. Under them are the **Disk** block (size, monthly price, **Make it larger**) and the **Power** block (status, CPU, RAM, port, **Change CPU and RAM**; tose-app [#779](https://github.com/saasvn/tose-app/pull/779)). Each tile shows one number and one line of status, and selecting a tile takes you to where that thing is managed. A tile's line turns to the warning colour when a task failed in the last 24 hours or a repository checkout failed, and the **Activity** tile's line turns red when the last start failed. |
 | **Tasks** | A board of the last 20 [tasks](#delegate-tasks) in three columns, **Running**, **Done** and **Failed or stopped** (see [The task board](/guide/agent-tasks#task-board)), and under it **Task settings** with the switch **Accept tasks from connected apps and API keys**. The tab and its tile are hidden when the server does not offer tasks. |
 | **Repositories** | The agent's repositories, their **Permissions**, **+ Add repository** and **Retry checkout** (see [Attach or change an agent's repositories](/guide/agent-repository-checkout#attach-or-change-an-agents-repository-after-install)). |
-| **Settings** | The **Auto-sleep** card (its rules fold under **How auto-sleep works**), the sign-in panel for a plan, **Advanced** (always open: the **Template Source** and the template version, to upgrade or roll back; tose-app [#779](https://github.com/saasvn/tose-app/pull/779)), **Secrets and variables**, and **Stop or delete** (**Stop agent**, **Delete agent**). Disk, CPU and RAM are changed on **Overview**, not here. |
+| **Settings** | The **Auto-sleep** card (its rules fold under **How auto-sleep works**), **Advanced** (always open: the **Template Source** and the template version, to upgrade or roll back; tose-app [#779](https://github.com/saasvn/tose-app/pull/779)), **Secrets and variables**, and **Stop or delete** (**Stop agent**, **Delete agent**). Disk, CPU and RAM are changed, and a plan is connected, on **Overview**, not here. |
 | **Activity** | **History** (the deploys) and **Live logs**. |
 
 What the tiles say:
 
 - **Tasks**: how many tasks are running, otherwise how many came in over the last 24 hours, then "No tasks yet", "None failed today" or "… failed today" (counted over the agent's 20 latest tasks). It reads **Off** while the agent does not accept tasks.
 - **Repositories**: how many are ready (or cloning, or failed) and their names, or **None** with a hint to add one.
-- **Disk**: the size and the monthly price, with a **Make it larger** link. It scrolls down **Overview** to the **Disk** block, where you can [grow the disk](#grow-the-disk).
 - **Auto-sleep**: "After … min" or **Off**, and whether the agent is awake, asleep or waking up. It opens **Settings** at the **Auto-sleep** card.
-- **Power**: CPU cores and memory. It scrolls down **Overview** to the **Power** block, where **Change CPU and RAM** changes them.
 - **Activity**: when the agent last started and whether that start succeeded. It opens **Activity**.
 
 A link with `?tab=` still works: `?tab=variables`, `?tab=advanced` and `?tab=danger` open **Settings**, and `?tab=deployments` and `?tab=logs` open **Activity**. Any other unknown tab opens **Overview**.
