@@ -2,7 +2,7 @@
 
 TOSE publishes ready-made coding agents, **Claude Code**, **Codex** and **Pi**, in the **Cloud Agents** menu of your workspace (`/w/<workspace>/agents`). Each one runs in its own private pod in your workspace, with a persistent disk, and you work with it in a console that only workspace owners and admins can open.
 
-The released versions are **Codex 1.0.0**, **Claude Code 1.0.0**, and **Pi 1.0.0** and **1.1.0**. Pi 1.1.0 is the default for new Pi agents: it adds seven providers, Node.js with npm, uv for Python, and instructions that describe the container to Pi. Each release is pinned to an image by digest, and the agent's page shows that image as its **Template Source**, under **Advanced**.
+The released versions are **Codex 1.0.0**, **Claude Code 1.0.0**, and **Pi 1.0.0** and **1.1.0**. Pi 1.1.0 is the default for new Pi agents: it adds seven providers, Node.js with npm, uv for Python, and instructions that describe the container to Pi. Each release is pinned to an image by digest, and the agent's page shows that image as its **Template Source**, under **Advanced** in the **Settings** tab.
 
 ## Before you start
 
@@ -74,16 +74,32 @@ Codex receives its tokens from OpenAI directly and keeps them on the agent's dis
 
 The page of a Claude Code, Codex or Pi agent is written for people who do not run servers. Other templates keep their own page.
 
-- **Open agent**, a large button at the top, opens the agent (see [Open the agent](#open-the-console)).
-- The summary shows **Power** (CPU cores · memory), **Disk** (the size of the agent's disk) and **Last started**.
-- The status reads **Running**, **Sleeping**, **Starting…**, **Stopped**, **Needs attention** (the agent failed) or **Paused: wallet empty**.
-- The actions are **Restart**, **Stop agent** and **Delete agent**.
-- The tabs are **Overview**, **Variables**, **History** (the deploys) and **Logs**. An agent has no **Domains** tab: its console is always private.
-- **Overview** holds the sign-in panel for a plan, the **Repository** card, the **Auto-sleep** card (its rules fold under **How auto-sleep works**), the **Disk** card and, for releases with a task runner, the tasks. **Advanced**, at the bottom and folded, holds changing CPU and memory, the **Template Source** and the template version (upgrade or roll back).
+- **Open agent**, a large button above the tabs, opens the agent (see [Open the agent](#open-the-console)).
+- The status reads **Running**, **Sleeping**, **Starting…**, **Stopped**, **Needs attention** (the agent failed) or **Paused: wallet empty**. **Restart** sits at the top of the page.
+- The page has five tabs: **Overview**, **Tasks**, **Repositories**, **Settings** and **Activity** (tose-app [#770](https://github.com/saasvn/tose-app/pull/770)). An agent has no **Domains** tab: its console is always private.
+
+| Tab | What is there |
+| --- | --- |
+| **Overview** | Six tiles: **Tasks**, **Repositories**, **Disk**, **Auto-sleep**, **Power** and **Activity**. Each shows one number and one line of status, and selecting a tile opens the tab where that thing is managed. A tile's line turns to the warning colour when a task failed in the last 24 hours or a repository checkout failed. |
+| **Tasks** | The [tasks](#delegate-tasks) and the switch **Accept tasks from connected apps and API keys**. The tab and its tile are hidden when the server does not offer tasks. |
+| **Repositories** | The agent's repositories, their **Permissions**, **+ Add repository** and **Retry checkout** (see [Attach or change an agent's repositories](/guide/agent-repository-checkout#attach-or-change-an-agents-repository-after-install)). |
+| **Settings** | The **Auto-sleep** card (its rules fold under **How auto-sleep works**), the **Disk** card, the sign-in panel for a plan, **Advanced** (folded: changing CPU and memory, the **Template Source** and the template version, to upgrade or roll back), **Secrets and variables**, and **Stop or delete** (**Stop agent**, **Delete agent**). |
+| **Activity** | **History** (the deploys) and **Live logs**. |
+
+What the tiles say:
+
+- **Tasks**: how many tasks are running, otherwise how many came in today, then "None failed today" or "… failed today". It reads **Off** while the agent does not accept tasks.
+- **Repositories**: how many are ready (or cloning, or failed) and their names, or **None** with a hint to add one.
+- **Disk**: the size and the monthly price. It opens **Settings**, where you can [grow the disk](#grow-the-disk).
+- **Auto-sleep**: "After … min" or **Off**, and whether the agent is awake, asleep or waking up.
+- **Power**: CPU cores and memory. It opens **Settings**, where **Advanced** changes them.
+- **Activity**: when the agent last started and whether that start succeeded. It opens **Activity**.
+
+A link with `?tab=` still works: `?tab=variables`, `?tab=advanced` and `?tab=danger` open **Settings**, and `?tab=deployments` and `?tab=logs` open **Activity**. Any other unknown tab opens **Overview**.
 
 ## Grow the disk {#grow-the-disk}
 
-The **Disk** card on the agent's page shows the size of the agent's disk and its monthly price. The disk holds both `/workspace` and `/home/agent`, so an agent installed with the default 5 GiB `/workspace` shows **6 GB**.
+The **Disk** card, in the **Settings** tab of the agent's page, shows the size of the agent's disk and its monthly price. The disk holds both `/workspace` and `/home/agent`, so an agent installed with the default 5 GiB `/workspace` shows **6 GB**.
 
 1. In the size list (**New disk size**), pick a larger size. The card offers 10, 20, 50, 100 and 200 GB, only those larger than the current disk, each with its monthly price. The card appears once the agent has a disk; to go above 200 GB, use the API.
 2. Select **Make it larger**, check the size and price, then select **Grow to … GB** (or **Cancel**).

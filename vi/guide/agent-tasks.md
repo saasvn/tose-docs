@@ -8,7 +8,7 @@ Mỗi agent chỉ chạy một tác vụ tại một thời điểm. Không có 
 
 | Điều kiện | Cần làm |
 |-----------|---------|
-| Máy chủ có cung cấp tác vụ. | Người vận hành đặt `TEMPLATE_AGENT_TASKS_ENABLED=true`. Mặc định **tắt**. Khi tắt, mọi route tác vụ trả `404 TASKS_DISABLED` và dashboard ẩn thẻ Tác vụ. |
+| Máy chủ có cung cấp tác vụ. | Người vận hành đặt `TEMPLATE_AGENT_TASKS_ENABLED=true`. Mặc định **tắt**. Khi tắt, mọi route tác vụ trả `404 TASKS_DISABLED` và dashboard ẩn tab **Tác vụ** và ô của nó trên trang agent. |
 | Bản phát hành của agent có trình chạy tác vụ. | Dùng Claude Code 1.1.0, Codex 1.1.0 hoặc Pi 1.2.0 (hoặc mới hơn). Bản cài đặt cũ vẫn chạy như cũ và từ chối tác vụ với `409 TASKS_UNSUPPORTED`. Chưa nâng cấp tại chỗ được bản tuyển chọn, nên hãy [triển khai](/vi/guide/deploy-coding-agent) bản mới thành một bản cài đặt mới rồi chuyển công việc sang bằng git. |
 | Chủ sở hữu cho phép. | Mặc định bật với agent mới có trình chạy tác vụ; xem [Bật hoặc tắt](#bat-tinh-nang). |
 | Agent đang chạy và đã đăng nhập. | Tác vụ không bao giờ đánh thức agent đang ngủ, không khởi động agent đã dừng và không dùng tài khoản hay key khác. |
@@ -16,7 +16,7 @@ Mỗi agent chỉ chạy một tác vụ tại một thời điểm. Không có 
 
 ## Bật hoặc tắt {#bat-tinh-nang}
 
-Công tắc **Nhận tác vụ từ ứng dụng đã kết nối và khóa API** (Accept tasks from connected apps and API keys) trên trang của agent đã cài quyết định agent có nhận tác vụ hay không. Mở trang đó từ **Cloud Agents** ở thanh bên của workspace; mục **Agent của bạn** cũng cho biết agent nào đang nhận việc.
+Công tắc **Nhận tác vụ từ ứng dụng đã kết nối và khóa API** (Accept tasks from connected apps and API keys), trong tab **Tác vụ** của trang agent đã cài, quyết định agent có nhận tác vụ hay không. Mở trang đó từ **Cloud Agents** ở thanh bên của workspace; mục **Agent của bạn** cũng cho biết agent nào đang nhận việc.
 
 - Công tắc **bật sẵn** cho bản cài đặt mới của bản phát hành có trình chạy tác vụ (Claude Code 1.1.0, Codex 1.1.0, Pi 1.2.0 hoặc mới hơn), kể từ tose-app [#701](https://github.com/saasvn/tose-app/pull/701). Khi đó ứng dụng được kết nối hoặc API key có `agents:execute` giao được tác vụ cho agent ngay từ lần khởi động đầu tiên.
 - Công tắc vẫn **tắt** với bản cài đặt đã có từ trước, cho tới khi owner hoặc admin bật. Bản phát hành không có trình chạy tác vụ thì không nhận tác vụ được: bật công tắc bị từ chối với `409 TASKS_UNSUPPORTED`.

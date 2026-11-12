@@ -225,7 +225,7 @@ The same flow works through the API: `POST /template-deployment-plans` with `cur
 
 ### Source shown on an installed app
 
-An app installed from a registry version shows its **Template Source** (on a curated agent's page, under **Advanced**). For an image-based version (every curated agent) that is the pinned image reference, `…@sha256:<digest>`, not a Git URL; a build from Git keeps its repository URL, and an empty source shows `—` (tose-app [#568](https://github.com/saasvn/tose-app/pull/568)). The field is a display of where the app came from; it does not change what runs. The API returns the same `template_source` value (an image reference or a Git URL, and `""` when empty; `—` is only how the page displays an empty value), so do not parse it as a URL.
+An app installed from a registry version shows its **Template Source** (on a curated agent's page, under **Advanced** in the **Settings** tab). For an image-based version (every curated agent) that is the pinned image reference, `…@sha256:<digest>`, not a Git URL; a build from Git keeps its repository URL, and an empty source shows `—` (tose-app [#568](https://github.com/saasvn/tose-app/pull/568)). The field is a display of where the app came from; it does not change what runs. The API returns the same `template_source` value (an image reference or a Git URL, and `""` when empty; `—` is only how the page displays an empty value), so do not parse it as a URL.
 
 ### The private console
 

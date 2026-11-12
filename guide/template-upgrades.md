@@ -55,7 +55,7 @@ An installed app moves to another published version of its definition through th
 
 ### 1. Review the plan
 
-In the dashboard, open the installed app (`/w/<workspace>/templates/<app>`). The **Template version** card on the Overview tab shows the installed version, its probes and its latest health state. Choose a newer version, or use **Roll back** after an upgrade, and the plan appears as the server returned it:
+In the dashboard, open the installed app (`/w/<workspace>/templates/<app>`). The **Template version** card on the Overview tab (on a Claude Code, Codex or Pi agent's page, under **Advanced** in the **Settings** tab) shows the installed version, its probes and its latest health state. Choose a newer version, or use **Roll back** after an upgrade, and the plan appears as the server returned it:
 
 1. **Blockers** first. Nothing can be approved while one is listed.
 2. A before/after table: image digest, build mode, port, size, inputs added and kept, each volume, the disk, the probes and egress. Rows where data could be at risk are highlighted.

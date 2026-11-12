@@ -8,7 +8,7 @@ An agent runs one task at a time. There is no queue.
 
 | Requirement | What to do |
 |-------------|------------|
-| The server offers tasks. | An operator sets `TEMPLATE_AGENT_TASKS_ENABLED=true`. It is **off by default**. While it is off, every task route answers `404 TASKS_DISABLED` and the dashboard hides the Tasks card. |
+| The server offers tasks. | An operator sets `TEMPLATE_AGENT_TASKS_ENABLED=true`. It is **off by default**. While it is off, every task route answers `404 TASKS_DISABLED` and the dashboard hides the agent page's **Tasks** tab and its tile. |
 | The agent's release has a task runner. | Use Claude Code 1.1.0, Codex 1.1.0 or Pi 1.2.0 (or newer). Older installations keep running unchanged and refuse tasks with `409 TASKS_UNSUPPORTED`. Curated upgrades in place are not available yet, so [deploy](/guide/deploy-coding-agent) the new release as a new installation and move your work over with git. |
 | The owner allows it. | On by default for a new agent with a task runner; see [Turn it on or off](#turn-it-on). |
 | The agent is running and signed in. | A task never wakes a sleeping agent, never starts a stopped one and never uses another account or key. |
@@ -16,7 +16,7 @@ An agent runs one task at a time. There is no queue.
 
 ## Turn it on or off {#turn-it-on}
 
-The switch **Accept tasks from connected apps and API keys** on the installed agent's page says whether the agent accepts tasks. Open that page from **Cloud Agents** in the workspace sidebar, where **Your agents** also shows which agents accept tasks.
+The switch **Accept tasks from connected apps and API keys**, in the **Tasks** tab of the installed agent's page, says whether the agent accepts tasks. Open that page from **Cloud Agents** in the workspace sidebar, where **Your agents** also shows which agents accept tasks.
 
 - It starts **on** for a new installation of a release with a task runner (Claude Code 1.1.0, Codex 1.1.0, Pi 1.2.0 or newer), since tose-app [#701](https://github.com/saasvn/tose-app/pull/701). A connected app or API key with `agents:execute` can then give the agent tasks from its first start.
 - It stays **off** for an installation that existed before, until an owner or admin turns it on. A release without a task runner cannot take tasks at all: turning the switch on is refused with `409 TASKS_UNSUPPORTED`.
