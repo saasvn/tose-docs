@@ -63,7 +63,7 @@ tose disk set --size 30 --mount /data
 tose redeploy
 ```
 
-Thay đổi dung lượng hoặc đường dẫn mount có hiệu lực ở lần triển khai tiếp theo, vì vậy hãy redeploy sau đó. Ổ đĩa của template và cơ sở dữ liệu được mở rộng bằng [`tose volumes resize`](/vi/commands/disk#tose-volumes-resize). Ổ đĩa của coding agent còn có thể tăng ở thẻ **Ổ đĩa** trên trang của agent, và được tăng trong khi agent vẫn chạy ([Tăng dung lượng ổ đĩa](/vi/guide/deploy-coding-agent#grow-the-disk)).
+Thay đổi dung lượng hoặc đường dẫn mount có hiệu lực ở lần triển khai tiếp theo, vì vậy hãy redeploy sau đó. Ổ đĩa của template và cơ sở dữ liệu được mở rộng bằng [`tose volumes resize`](/vi/commands/disk#tose-volumes-resize). Ổ đĩa của coding agent còn có thể tăng ở khối **Ổ đĩa** trong tab **Tổng quan** của trang agent, và được tăng trong khi agent vẫn chạy ([Tăng dung lượng ổ đĩa](/vi/guide/deploy-coding-agent#grow-the-disk)).
 
 Không thể giảm dung lượng. Để chuyển sang ổ đĩa nhỏ hơn, hãy di chuyển dữ liệu: sao chép dữ liệu ra khỏi ổ hiện tại, xóa ổ đĩa, tạo ổ mới nhỏ hơn rồi chép dữ liệu trở lại.
 
