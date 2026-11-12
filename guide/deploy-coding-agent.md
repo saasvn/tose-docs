@@ -89,7 +89,7 @@ The **Disk** card on the agent's page shows the size of the agent's disk and its
 2. Select **Make it larger**, check the size and price, then select **Grow to … GB** (or **Cancel**).
 3. The card shows **The disk is now … GB.** when it is done.
 
-The disk grows in place: your files are kept and the agent keeps running. A disk can never be made smaller, and storage is billed for the new size while the disk exists, also while the agent is stopped or asleep. Only a workspace owner or admin can grow it (anyone else sees **Only a workspace owner or admin can grow the disk.**), and growing needs a positive wallet balance.
+The disk grows in place: your files are kept and the agent keeps running. A disk can never be made smaller, and storage is billed for the new size while the disk exists, also while the agent is stopped or asleep. Only a workspace owner or admin can grow it (anyone else sees **Only a workspace owner or admin can grow the disk.**), and growing needs a positive wallet balance: with an empty wallet the card says **The wallet is empty. Top up to grow the disk.** and links to **Top up the wallet**.
 
 Through the API, find the agent's disk in `GET /api/workspaces/{slug}/volumes` (`workload_type` `template` and `workload_id` the installation's app ID), then send `PATCH /api/workspaces/{slug}/volumes/{volume_id}` with `{"size_gib": 20}`. A smaller size returns `400`. See [Disks API](/api/disks). The agent's recorded disk size follows the volume, so its page and later plans show the disk it really has.
 
