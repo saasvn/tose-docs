@@ -278,7 +278,7 @@ You do not have to reinstall an agent to give it repositories or to change them 
 
 ### The clone and a running agent
 
-The clone runs in its own one-shot Job. **If the agent is running, the deploy stops it first**, so the Job can mount the agent's disk on any node with room, then the deploy starts the agent again. If a clone fails, the agent is started again as it was. This fixes deploys that stayed in "deploying" until `DeadlineExceeded` when the agent's node was full (tose-app [#745](https://github.com/saasvn/tose-app/pull/745)).
+The clone runs in its own one-shot Job. **If the agent is running, the deploy stops it first**, so the Job can mount the agent's disk on any node with room, then the deploy starts the agent again. If a clone fails, the agent is started again as it was. This fixes deploys that stayed in "deploying" until `DeadlineExceeded` when the agent's node was full (tose-app [#745](https://github.com/saasvn/tose-app/pull/745)). The Job prefers the node the agent just ran on, where its disk is still attached, so the disk does not have to move; it is a preference, not a requirement, so a full or missing node does not strand the checkout. This fixes `BOOTSTRAP_FAILED` (the Job's `DeadlineExceeded` while the disk moved to another node) when adding a repository to a running agent (tose-app [#764](https://github.com/saasvn/tose-app/pull/764)).
 
 ### Through the API
 

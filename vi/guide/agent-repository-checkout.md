@@ -278,7 +278,7 @@ Bạn không phải cài lại agent để thêm hay đổi kho mã (tose-app [#
 
 ### Clone và agent đang chạy
 
-Việc clone chạy trong một Job chạy một lần riêng. **Nếu agent đang chạy, lần deploy dừng nó trước**, để Job gắn được ổ đĩa của agent trên bất kỳ node nào còn chỗ, rồi lần deploy khởi động lại agent. Nếu clone thất bại, agent được khởi động lại như trước. Điều này sửa lỗi deploy bị kẹt ở "deploying" tới khi `DeadlineExceeded` khi node của agent đã đầy (tose-app [#745](https://github.com/saasvn/tose-app/pull/745)).
+Việc clone chạy trong một Job chạy một lần riêng. **Nếu agent đang chạy, lần deploy dừng nó trước**, để Job gắn được ổ đĩa của agent trên bất kỳ node nào còn chỗ, rồi lần deploy khởi động lại agent. Nếu clone thất bại, agent được khởi động lại như trước. Điều này sửa lỗi deploy bị kẹt ở "deploying" tới khi `DeadlineExceeded` khi node của agent đã đầy (tose-app [#745](https://github.com/saasvn/tose-app/pull/745)). Job ưu tiên node mà agent vừa chạy, nơi ổ đĩa của nó vẫn đang được gắn, nên ổ đĩa không phải di chuyển; đây chỉ là ưu tiên, không phải bắt buộc, nên node đã đầy hoặc không còn cũng không làm kẹt việc checkout. Điều này sửa lỗi `BOOTSTRAP_FAILED` (Job bị `DeadlineExceeded` trong lúc ổ đĩa chuyển sang node khác) khi thêm kho mã cho một agent đang chạy (tose-app [#764](https://github.com/saasvn/tose-app/pull/764)).
 
 ### Qua API
 
