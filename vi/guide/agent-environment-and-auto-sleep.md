@@ -55,7 +55,7 @@ Script thiết lập tùy chọn chạy một lần cho agent chưa được cun
 Thiết lập là `auto_sleep_minutes`: **Tắt** (`0`, mặc định), **15**, **30**, **60** hoặc **120** phút. Các cài đặt hiện có không bao giờ ngủ trừ khi bạn bật. Bạn chọn:
 
 - ở thẻ **Cấu hình** của trang triển khai;
-- sau này, trên trang của ứng dụng đã cài;
+- sau này, ở thẻ **Tự động ngủ** trên trang của agent (các quy tắc được gấp trong **Tự động ngủ hoạt động thế nào**);
 - bằng `PUT /api/workspaces/{slug}/template-installations/{id}/auto-sleep`, body `{"minutes": 30, "expected_revision": 0}`. Dùng `auto_sleep.revision` hiện tại; revision cũ trả về `409 REVISION_CONFLICT`.
 
 ### Khi nào agent ngủ
@@ -72,9 +72,9 @@ Tự động ngủ cần image có bộ dò hoạt động (`tose-agent-console 
 - Tệp (`/workspace`, `/home/agent`) và trạng thái đăng nhập nhà cung cấp được giữ.
 - Phiên tmux đang chạy **không** được giữ. Việc tiếp tục cuộc hội thoại phụ thuộc vào tính năng lưu điểm và tiếp tục của chính agent, không phụ thuộc TOSE.
 
-### Đánh thức
+### Đánh thức {#waking}
 
-Chỉ nút **Đánh thức và mở console** (`POST /api/workspaces/{slug}/template-installations/{id}/wake`) mới đánh thức agent. Đọc ứng dụng, polling và health check không bao giờ làm vậy. Cần ví còn tiền (nếu không sẽ có `402 INSUFFICIENT_BALANCE` và agent vẫn ngủ) và mất thời gian khởi động lại từ đầu. `auto_sleep.last_wake.outcome` là `pending` cho tới khi agent phản hồi, sau đó là `ok`, `failed` hoặc `insufficient_balance`.
+Chỉ nút **Đánh thức và mở** trên trang của agent (`POST /api/workspaces/{slug}/template-installations/{id}/wake`) mới đánh thức agent. Đọc ứng dụng, polling và health check không bao giờ làm vậy. Cần ví còn tiền (nếu không sẽ có `402 INSUFFICIENT_BALANCE` và agent vẫn ngủ) và mất thời gian khởi động lại từ đầu. `auto_sleep.last_wake.outcome` là `pending` cho tới khi agent phản hồi, sau đó là `ok`, `failed` hoặc `insufficient_balance`.
 
 ### Agent đã bị thu hồi không thể đánh thức
 

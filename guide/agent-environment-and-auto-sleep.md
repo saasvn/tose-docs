@@ -55,7 +55,7 @@ Closing the browser does not stop an agent: its session keeps running and comput
 The setting is `auto_sleep_minutes`: **Off** (`0`, the default), **15**, **30**, **60** or **120** minutes. Existing installations never sleep unless you turn it on. Choose it:
 
 - in the **Size** card of the deploy page;
-- on the installed app's page, later;
+- later, in the **Auto-sleep** card on the agent's page (its rules fold under **How auto-sleep works**);
 - with `PUT /api/workspaces/{slug}/template-installations/{id}/auto-sleep`, body `{"minutes": 30, "expected_revision": 0}`. Use the current `auto_sleep.revision`; a stale one returns `409 REVISION_CONFLICT`.
 
 ### When an agent sleeps
@@ -74,7 +74,7 @@ Sleep needs an image that carries the activity probe (`tose-agent-console activi
 
 ### Waking
 
-Only an explicit **Wake and open console** (`POST /api/workspaces/{slug}/template-installations/{id}/wake`) wakes the agent. Reading the app, polling and health checks never do. It needs a funded wallet (otherwise `402 INSUFFICIENT_BALANCE` and the agent stays asleep) and takes a cold start. `auto_sleep.last_wake.outcome` is `pending` until the agent answers, then `ok`, `failed` or `insufficient_balance`.
+Only an explicit **Wake and open** on the agent's page (`POST /api/workspaces/{slug}/template-installations/{id}/wake`) wakes the agent. Reading the app, polling and health checks never do. It needs a funded wallet (otherwise `402 INSUFFICIENT_BALANCE` and the agent stays asleep) and takes a cold start. `auto_sleep.last_wake.outcome` is `pending` until the agent answers, then `ok`, `failed` or `insufficient_balance`.
 
 ### Reclaimed agents cannot be woken
 

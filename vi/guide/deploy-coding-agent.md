@@ -2,11 +2,11 @@
 
 TOSE phát hành sẵn các coding agent **Claude Code**, **Codex** và **Pi** trong menu **Cloud Agents** của workspace (`/w/<workspace>/agents`). Mỗi agent chạy trong một pod riêng tư của workspace, có ổ đĩa bền vững, và bạn làm việc với nó qua một console mà chỉ owner và admin của workspace mới mở được.
 
-Các phiên bản đã phát hành là **Codex 1.0.0**, **Claude Code 1.0.0**, cùng **Pi 1.0.0** và **1.1.0**. Pi 1.1.0 là mặc định cho agent Pi mới: bản này thêm bảy nhà cung cấp, Node.js kèm npm, uv cho Python và hướng dẫn mô tả container cho Pi. Mỗi bản phát hành được ghim vào một image theo digest, và ứng dụng bạn cài hiển thị image đó ở mục **Nguồn mẫu**.
+Các phiên bản đã phát hành là **Codex 1.0.0**, **Claude Code 1.0.0**, cùng **Pi 1.0.0** và **1.1.0**. Pi 1.1.0 là mặc định cho agent Pi mới: bản này thêm bảy nhà cung cấp, Node.js kèm npm, uv cho Python và hướng dẫn mô tả container cho Pi. Mỗi bản phát hành được ghim vào một image theo digest, và trang của agent hiển thị image đó ở mục **Nguồn mẫu**, trong phần **Nâng cao**.
 
 ## Trước khi bắt đầu
 
-- Bạn là **owner hoặc admin** của workspace. Triển khai (tức là duyệt kế hoạch) và mở console đều cần vai trò này. Thành viên thường có thể điền trang triển khai rồi gửi kế hoạch cho owner hoặc admin.
+- Bạn là **owner hoặc admin** của workspace. Triển khai (tức là duyệt kế hoạch) và mở agent đều cần vai trò này. Thành viên thường có thể điền trang triển khai rồi gửi kế hoạch cho owner hoặc admin.
 - Ví còn số dư. TOSE chỉ tính phí tính toán và lưu trữ từ [ví trả trước](/vi/guide/pricing). Chi phí dùng model do nhà cung cấp tính: qua API key của bạn, hoặc trừ vào gói Claude hay ChatGPT của bạn.
 - Thẻ của agent cho thấy nó sẵn sàng. Thẻ ghi **Chưa sẵn sàng** không thể triển khai, và **Lý do chưa triển khai được** giải thích điều chặn.
 - Bạn có API key của nhà cung cấp hoặc một gói để đăng nhập (xem [Chọn nhà cung cấp](#chon-nha-cung-cap)).
@@ -17,13 +17,13 @@ Các phiên bản đã phát hành là **Codex 1.0.0**, **Claude Code 1.0.0**, c
 2. Chọn một agent rồi chọn **Triển khai**. Agent được triển khai trên một trang duy nhất, **Triển khai** kèm tên agent, gồm các thẻ sau:
    - **Ứng dụng**: **Tên ứng dụng**.
    - **Đăng nhập**: nhà cung cấp (xem [Chọn nhà cung cấp](#chon-nha-cung-cap)). Nếu dùng API key, hãy nhập key ngay tại đây. Key được mã hóa, chỉ gửi đi cùng lần triển khai, không hiển thị lại và không nằm trong kế hoạch. Đăng nhập bằng gói không cần key: bạn đăng nhập sau khi triển khai.
-   - **Cấu hình**: **Số nhân CPU** và **Bộ nhớ (GiB)** trong danh sách có sẵn, **Ổ đĩa workspace** (dung lượng của `/workspace`: mặc định **5 GiB**, hoặc 10, 20 hay 50 GiB, mỗi mức kèm giá mỗi tháng), cùng **Tự động ngủ khi không hoạt động** (mặc định **Tắt**). Dung lượng ổ đĩa cố định sau khi cài agent.
+   - **Cấu hình**: **Số nhân CPU** và **Bộ nhớ (GiB)** trong danh sách có sẵn, **Ổ đĩa workspace** (dung lượng của `/workspace`: mặc định **5 GiB**, hoặc 10, 20 hay 50 GiB, mỗi mức kèm giá mỗi tháng), cùng **Tự động ngủ khi không hoạt động** (mặc định **Tắt**). Sau này bạn có thể [tăng dung lượng ổ đĩa](#grow-the-disk) trên trang của agent, nhưng không giảm được.
    - **Truy cập mạng**: **Hạn chế** (mặc định: nhà cung cấp cùng GitHub và các kho gói npm, PyPI và Go, cổng 443) hoặc **Internet công khai không giới hạn** (mọi host công khai, rủi ro cao hơn). Xem [Chế độ mạng](/vi/guide/agent-network-modes). Thẻ này cho thấy agent kết nối được tới đâu trong từng chế độ.
    - **Kho mã (không bắt buộc)**: một kho GitHub của workspace, được tải vào `/workspace` khi agent khởi động lần đầu. Bỏ qua mục này để bắt đầu với workspace trống. Bật **Cho phép agent push lên kho mã này** để agent push commit ngược lên kho ([cách push hoạt động](/vi/guide/agent-repository-checkout#cho-agent-push-len-kho-ma)); mặc định tắt.
    - **Nâng cao: phiên bản, model và biến môi trường**: **Bản phát hành** (mặc định là bản mới nhất, với Pi là 1.1.0), **Mô hình** tùy chọn (để trống thì dùng model mặc định của agent) và **Biến môi trường** của riêng bạn.
 3. Xem kế hoạch bên cạnh nút **Triển khai**. Khi bạn thay đổi các ô nhập, trang tự lập kế hoạch và hiển thị mức trần chi phí (số tiền tối đa agent có thể tốn mỗi giờ), số giờ ví còn đủ, cùng các điều chặn và cảnh báo nếu có. Sửa các ô được đánh dấu để xem chi phí.
 4. Chọn **Triển khai**. Nút này duyệt đúng kế hoạch đang hiển thị, cài đặt và theo dõi tiến trình: duyệt kế hoạch, cài đặt, khởi động agent, cho tới khi **Agent đang chạy**. Thành viên không có quyền duyệt sẽ nhận một liên kết tới kế hoạch để gửi cho owner hoặc admin.
-5. Mở trang của agent: chọn **Mở ứng dụng** khi triển khai xong, hoặc sau đó chọn agent trong mục **Agent của bạn** ở **Cloud Agents**. Bản thân trang vẫn là `/w/<workspace>/templates/<app>`, trong đó `<app>` là tên ứng dụng bạn đã đặt. Dùng **Mở console**, hoặc kết nối gói của bạn như mô tả bên dưới.
+5. Mở trang của agent: chọn **Mở ứng dụng** khi triển khai xong, hoặc sau đó chọn agent trong mục **Agent của bạn** ở **Cloud Agents**. Bản thân trang vẫn là `/w/<workspace>/templates/<app>`, trong đó `<app>` là tên ứng dụng bạn đã đặt. Chọn **Mở agent** ở đầu trang, hoặc kết nối gói của bạn như mô tả bên dưới. Trang này được mô tả ở [Trang của agent](#the-agents-page).
 
 Trang triển khai không hỏi giới hạn chi phí. Kế hoạch vẫn hiển thị mức trần chi phí để bạn cân nhắc trước khi triển khai. Nếu tạo kế hoạch qua API, bạn vẫn có thể gửi `max_hourly_cost_cents`; khi đó kế hoạch bị chặn nếu mức trần cao hơn.
 
@@ -49,7 +49,7 @@ Từ trang ứng dụng, ở máy chủ có cung cấp cách này:
 
 Hoặc từ console, cách này luôn dùng được:
 
-1. Mở console của ứng dụng bằng **Mở console**.
+1. Mở agent bằng **Mở agent**.
 2. Lần đầu khởi động, Claude Code hỏi cách đăng nhập. Dùng `/login`; nó hiện một liên kết tới trang của Anthropic.
 3. Đăng nhập ở đó trong trình duyệt của bạn rồi dán mã trang hiển thị vào terminal.
 
@@ -70,9 +70,32 @@ Codex nhận token trực tiếp từ OpenAI và giữ chúng trên ổ đĩa c�
 
 `tose templates plan|deploy --curated <tên>` lập kế hoạch và cài cùng các agent này từ terminal. Với Pi, CLI kiểm tra nhà cung cấp trước khi lập kế hoạch: nhà cung cấp mới hơn bản Pi mới nhất bị từ chối kèm danh sách được cung cấp, và `cloudflare-workers-ai` cần `CLOUDFLARE_ACCOUNT_ID` trong `variables`. Xem [Nhà cung cấp Pi curated](/vi/commands/templates#curated-pi-providers).
 
-## Mở console
+## Trang của agent {#the-agents-page}
 
-**Mở console** mở agent trong một tab mới. Console không có địa chỉ công khai: chỉ owner và admin của workspace đã đăng nhập mới mở được, một phiên kéo dài tối đa 8 giờ, và nó đóng khi ứng dụng dừng hoặc bạn mất quyền truy cập. API key và ứng dụng được kết nối không thể mở console.
+Trang của agent Claude Code, Codex hay Pi được viết cho người không vận hành máy chủ. Các template khác giữ trang riêng của chúng.
+
+- **Mở agent**, nút lớn ở đầu trang, mở agent (xem [Mở agent](#open-the-console)).
+- Phần tóm tắt hiển thị **Cấu hình** (số nhân CPU · bộ nhớ), **Ổ đĩa** (dung lượng ổ đĩa của agent) và **Lần chạy gần nhất**.
+- Trạng thái là **Đang chạy**, **Đang ngủ**, **Đang khởi động…**, **Đã dừng**, **Cần xem lại** (agent gặp lỗi) hoặc **Tạm dừng: ví hết tiền**.
+- Các thao tác là **Khởi động lại**, **Dừng agent** và **Xóa agent**.
+- Các tab là **Tổng quan**, **Biến**, **Lịch sử** (các lần deploy) và **Nhật ký**. Agent không có tab **Tên miền**: console của nó luôn riêng tư.
+- **Tổng quan** chứa bảng đăng nhập gói, thẻ **Tự động ngủ** (các quy tắc được gấp trong **Tự động ngủ hoạt động thế nào**), thẻ **Ổ đĩa** và, với bản phát hành có trình chạy tác vụ, các tác vụ. **Nâng cao**, ở cuối trang và được gấp lại, chứa phần đổi CPU và bộ nhớ, **Nguồn mẫu** và phiên bản template (nâng cấp hoặc rollback).
+
+## Tăng dung lượng ổ đĩa {#grow-the-disk}
+
+Thẻ **Ổ đĩa** trên trang của agent hiển thị dung lượng ổ đĩa của agent và giá mỗi tháng. Ổ đĩa chứa cả `/workspace` lẫn `/home/agent`, nên agent cài với `/workspace` mặc định 5 GiB hiển thị **6 GB**.
+
+1. Ở **Dung lượng mới**, chọn một mức lớn hơn. Thẻ đưa ra 10, 20, 50, 100 và 200 GB, chỉ những mức lớn hơn ổ đĩa hiện tại, mỗi mức kèm giá mỗi tháng.
+2. Chọn **Tăng dung lượng**, kiểm tra dung lượng và giá, rồi chọn **Tăng lên … GB** (hoặc **Hủy**).
+3. Khi xong, thẻ hiển thị **Ổ đĩa hiện là … GB.**
+
+Ổ đĩa được tăng tại chỗ: tệp của bạn được giữ nguyên và agent vẫn chạy. Ổ đĩa không bao giờ giảm được, và lưu trữ tính phí theo dung lượng mới chừng nào ổ đĩa còn tồn tại, kể cả khi agent dừng hoặc ngủ. Chỉ chủ sở hữu hoặc quản trị viên workspace mới tăng được (người khác thấy **Chỉ chủ sở hữu hoặc quản trị viên workspace mới tăng được dung lượng ổ đĩa.**), và cần ví có số dư dương.
+
+Qua API, tìm ổ đĩa của agent trong `GET /api/workspaces/{slug}/volumes` (`workload_type` là `template` và `workload_id` là ID ứng dụng của bản cài), rồi gửi `PATCH /api/workspaces/{slug}/volumes/{volume_id}` với `{"size_gib": 20}`. Dung lượng nhỏ hơn trả về `400`. Xem [API ổ đĩa](/vi/api/disks). Dung lượng ổ đĩa ghi nhận của agent đi theo volume, nên trang của nó và các plan sau hiển thị đúng ổ đĩa nó thực sự có.
+
+## Mở agent {#open-the-console}
+
+**Mở agent** mở console của agent trong một tab mới (hãy cho phép cửa sổ bật lên nếu trình duyệt chặn). Console không có địa chỉ công khai: chỉ owner và admin của workspace đã đăng nhập mới mở được, một phiên kéo dài tối đa 8 giờ, và nó đóng khi ứng dụng dừng hoặc bạn mất quyền truy cập. API key và ứng dụng được kết nối không thể mở console. Khi agent đang ngủ, nút hiển thị **Đánh thức và mở**: việc đánh thức mất một đến hai phút và ví cần còn tiền (xem [Đánh thức](/vi/guide/agent-environment-and-auto-sleep#waking)).
 
 ## Giao tác vụ
 
@@ -81,7 +104,7 @@ Codex nhận token trực tiếp từ OpenAI và giữ chúng trên ổ đĩa c�
 ## Chi phí và quyền kiểm soát
 
 - Tính toán được tính phí khi agent chạy; lưu trữ (dung lượng `/workspace` bạn chọn, mặc định 5 GiB, cộng 1 GiB cho `/home/agent`) được tính phí khi ổ đĩa còn tồn tại, kể cả lúc agent đã dừng. Plan tính giá cả ổ đĩa vào mức trần chi phí.
-- Ổ đĩa giữ công việc của bạn qua các lần khởi động lại, ngủ và deploy lại. Dung lượng cố định khi cài, nên hãy chọn đủ chỗ cho kho mã và kết quả build.
+- Ổ đĩa giữ công việc của bạn qua các lần khởi động lại, ngủ và deploy lại. Sau này bạn có thể [tăng dung lượng](#grow-the-disk) trên trang của agent mà không mất tệp, nhưng không bao giờ giảm được, nên nếu chưa chắc hãy bắt đầu nhỏ.
 - Owner hoặc admin nào cũng có thể dừng hoặc xóa agent bất cứ lúc nào. Agent không giữ thông tin xác thực API TOSE nào cho workspace (khi có push, chỉ có bí mật git proxy cho các kho mã mà nó được push) nên không thể tự thay đổi.
 - Với API key, hãy đặt thêm giới hạn chi tiêu ở nhà cung cấp.
 

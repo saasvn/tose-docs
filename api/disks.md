@@ -78,6 +78,8 @@ PATCH /api/workspaces/{slug}/volumes/{volume_id}
 
 Sizes are grow-only. A smaller `size_gib` returns `400` with guidance on migrating data to a new, smaller disk. Growing a disk on an empty wallet returns `403`. A cloud desktop's home disk can be grown only once it has bound (`409` before the desktop first starts) and up to the platform's desktop disk limit (`400` above it).
 
+A curated coding agent (Claude Code, Codex, Pi) has one disk holding `/workspace` and `/home/agent` (`workload_type` `template`, `workload_id` the app ID). Growing it keeps the files, the agent keeps running, and the installation's recorded disk size follows the new size. The agent's page offers the same through its **Disk** card ([Grow the disk](/guide/deploy-coding-agent#grow-the-disk)).
+
 ## Project Disk
 
 ### Get Project Disk

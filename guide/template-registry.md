@@ -217,7 +217,7 @@ Open **Cloud Agents** in the workspace sidebar (`/w/<workspace>/agents`). Curate
 - **Repository (optional)**: one GitHub repository of the workspace to check out into `/workspace` on first start, and optionally **Let the agent push to this repository** ([push](/guide/agent-repository-checkout#let-the-agent-push-to-your-repository), off by default).
 - **Advanced: release, model and environment variables**: the release (Pi 1.1.0 by default), an optional model, and your own variables and secrets.
 
-As you change the inputs, the page plans them and shows the live plan: the cost ceiling, the wallet runway, blockers and warnings, next to one **Deploy** button. There is no cost-limit field. **Deploy** approves exactly that plan (its plan hash), installs it with your key and an `Idempotency-Key`, and follows the installation until the agent runs. It then links to the app with the next step: open the console, **Connect** a plan, or `/login`. Your key is sent only with the install request, stored encrypted and never shown again.
+As you change the inputs, the page plans them and shows the live plan: the cost ceiling, the wallet runway, blockers and warnings, next to one **Deploy** button. There is no cost-limit field. **Deploy** approves exactly that plan (its plan hash), installs it with your key and an `Idempotency-Key`, and follows the installation until the agent runs. It then links to the app with the next step: **Open agent**, **Connect** a plan, or `/login`. Your key is sent only with the install request, stored encrypted and never shown again.
 
 Only a workspace **owner or admin** can approve a deploy. A member gets a link to the plan to send to an owner or admin.
 
@@ -225,14 +225,14 @@ The same flow works through the API: `POST /template-deployment-plans` with `cur
 
 ### Source shown on an installed app
 
-An app installed from a registry version shows its **Template Source**. For an image-based version (every curated agent) that is the pinned image reference, `…@sha256:<digest>`, not a Git URL; a build from Git keeps its repository URL, and an empty source shows `—` (tose-app [#568](https://github.com/saasvn/tose-app/pull/568)). The field is a display of where the app came from; it does not change what runs. The API returns the same `template_source` value (an image reference or a Git URL, and `""` when empty; `—` is only how the page displays an empty value), so do not parse it as a URL.
+An app installed from a registry version shows its **Template Source** (on a curated agent's page, under **Advanced**). For an image-based version (every curated agent) that is the pinned image reference, `…@sha256:<digest>`, not a Git URL; a build from Git keeps its repository URL, and an empty source shows `—` (tose-app [#568](https://github.com/saasvn/tose-app/pull/568)). The field is a display of where the app came from; it does not change what runs. The API returns the same `template_source` value (an image reference or a Git URL, and `""` when empty; `—` is only how the page displays an empty value), so do not parse it as a URL.
 
 ### The private console
 
 An installed agent has no public address, no domain and a default-deny network policy. You open its console through TOSE:
 
 - **Who.** Only a workspace **owner or admin who is signed in** to the dashboard or CLI. API keys and connected apps (MCP) are refused whatever their scopes: the console is an interactive shell that holds your provider key, so only a person opens it. This is a written exception to "agents are first-class users".
-- **How.** On the installed app's page, choose **Open console**. It opens in a new tab (allow pop-ups if the browser blocks it). The app must be running; otherwise the button explains that the console is not available and asks you to start the app. The request is audited.
+- **How.** On the agent's page, choose **Open agent** (**Wake and open** while it sleeps). It opens in a new tab (allow pop-ups if the browser blocks it). The app must be running; otherwise the button explains that the console is not available and asks you to start the app. The request is audited.
 - **Session.** The console address carries a signed token, valid for 8 hours. It is the only credential in the address, so do not share the URL. TOSE proxies HTTP and WebSocket to the agent's port 8080, so the pod is never exposed.
 - **Revoking access closes the console.** Every request, and every open WebSocket every five seconds, checks again that your sign-in is active, that you are still an owner or admin of the workspace and that the app is running. Signing out, losing the role, being removed from the workspace or stopping the app refuses the next request and closes the open socket. Rotating the server's signing secret ends every open console. Each WebSocket start is audited.
 - **The page is untrusted.** The agent controls the console page and can run any code, so TOSE serves it in a CSP sandbox (an opaque origin that cannot use your TOSE sign-in), strips your cookies and credentials from requests to the agent, drops cookies the console sets, sends no referrer and redacts the token from access logs.
