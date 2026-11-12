@@ -90,7 +90,7 @@ Các ô hiển thị:
 
 - **Tác vụ**: số tác vụ đang chạy, nếu không có thì số tác vụ nhận trong 24 giờ qua, kèm "Chưa có tác vụ nào", "Hôm nay không có lỗi" hoặc "… lỗi hôm nay" (tính trên 20 tác vụ mới nhất của agent). Ô hiện **Đang tắt** khi agent không nhận tác vụ.
 - **Kho mã**: số kho sẵn sàng (hoặc đang clone, hoặc lỗi) và tên các kho, hoặc **Chưa có** kèm gợi ý thêm kho.
-- **Ổ đĩa**: dung lượng và giá mỗi tháng. Ô cuộn **Tổng quan** xuống khối **Ổ đĩa**, nơi bạn [tăng dung lượng ổ đĩa](#grow-the-disk).
+- **Ổ đĩa**: dung lượng và giá mỗi tháng, kèm liên kết **Tăng dung lượng**. Ô cuộn **Tổng quan** xuống khối **Ổ đĩa**, nơi bạn [tăng dung lượng ổ đĩa](#grow-the-disk).
 - **Tự động ngủ**: "Sau … phút" hoặc **Đang tắt**, và agent đang thức, đang ngủ hay đang thức dậy. Ô mở tab **Cài đặt** và cuộn tới thẻ **Tự động ngủ**.
 - **Cấu hình**: số nhân CPU và bộ nhớ. Ô cuộn **Tổng quan** xuống khối **Cấu hình**, nơi nút **Đổi CPU và RAM** cho phép đổi chúng.
 - **Hoạt động**: lần gần nhất agent khởi động và lần đó có thành công không. Ô mở tab **Hoạt động**.

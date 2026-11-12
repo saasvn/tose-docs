@@ -83,14 +83,14 @@ The page of a Claude Code, Codex or Pi agent is written for people who do not ru
 | **Overview** | Six tiles: **Tasks**, **Repositories**, **Disk**, **Auto-sleep**, **Power** and **Activity**, and under them the **Disk** block (size, monthly price, **Make it larger**) and the **Power** block (status, CPU, RAM, port, **Change CPU and RAM**; tose-app [#779](https://github.com/saasvn/tose-app/pull/779)). Each tile shows one number and one line of status, and selecting a tile takes you to where that thing is managed. A tile's line turns to the warning colour when a task failed in the last 24 hours or a repository checkout failed, and the **Activity** tile's line turns red when the last start failed. |
 | **Tasks** | A board of the last 20 [tasks](#delegate-tasks) in three columns, **Running**, **Done** and **Failed or stopped** (see [The task board](/guide/agent-tasks#task-board)), and under it **Task settings** with the switch **Accept tasks from connected apps and API keys**. The tab and its tile are hidden when the server does not offer tasks. |
 | **Repositories** | The agent's repositories, their **Permissions**, **+ Add repository** and **Retry checkout** (see [Attach or change an agent's repositories](/guide/agent-repository-checkout#attach-or-change-an-agents-repository-after-install)). |
-| **Settings** | The **Auto-sleep** card (its rules fold under **How auto-sleep works**), the sign-in panel for a plan, **Advanced** (open: the **Template Source** and the template version, to upgrade or roll back; tose-app [#779](https://github.com/saasvn/tose-app/pull/779)), **Secrets and variables**, and **Stop or delete** (**Stop agent**, **Delete agent**). Disk, CPU and RAM are changed on **Overview**, not here. |
+| **Settings** | The **Auto-sleep** card (its rules fold under **How auto-sleep works**), the sign-in panel for a plan, **Advanced** (always open: the **Template Source** and the template version, to upgrade or roll back; tose-app [#779](https://github.com/saasvn/tose-app/pull/779)), **Secrets and variables**, and **Stop or delete** (**Stop agent**, **Delete agent**). Disk, CPU and RAM are changed on **Overview**, not here. |
 | **Activity** | **History** (the deploys) and **Live logs**. |
 
 What the tiles say:
 
 - **Tasks**: how many tasks are running, otherwise how many came in over the last 24 hours, then "No tasks yet", "None failed today" or "… failed today" (counted over the agent's 20 latest tasks). It reads **Off** while the agent does not accept tasks.
 - **Repositories**: how many are ready (or cloning, or failed) and their names, or **None** with a hint to add one.
-- **Disk**: the size and the monthly price. It scrolls down **Overview** to the **Disk** block, where you can [grow the disk](#grow-the-disk).
+- **Disk**: the size and the monthly price, with a **Make it larger** link. It scrolls down **Overview** to the **Disk** block, where you can [grow the disk](#grow-the-disk).
 - **Auto-sleep**: "After … min" or **Off**, and whether the agent is awake, asleep or waking up. It opens **Settings** at the **Auto-sleep** card.
 - **Power**: CPU cores and memory. It scrolls down **Overview** to the **Power** block, where **Change CPU and RAM** changes them.
 - **Activity**: when the agent last started and whether that start succeeded. It opens **Activity**.
