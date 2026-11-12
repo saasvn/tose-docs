@@ -60,7 +60,7 @@ GET /api/workspaces/{slug}/volumes
 }
 ```
 
-### Resize Volume
+### Resize Volume {#resize-volume}
 
 Grow a disk. Requires admin.
 

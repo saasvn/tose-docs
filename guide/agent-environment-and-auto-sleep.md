@@ -72,7 +72,7 @@ Sleep needs an image that carries the activity probe (`tose-agent-console activi
 - Files (`/workspace`, `/home/agent`) and provider sign-in state are kept.
 - A running tmux session is **not** kept. Continuing a conversation depends on the agent's own checkpoint and resume, not on TOSE.
 
-### Waking
+### Waking {#waking}
 
 Only an explicit **Wake and open** on the agent's page (`POST /api/workspaces/{slug}/template-installations/{id}/wake`) wakes the agent. Reading the app, polling and health checks never do. It needs a funded wallet (otherwise `402 INSUFFICIENT_BALANCE` and the agent stays asleep) and takes a cold start. `auto_sleep.last_wake.outcome` is `pending` until the agent answers, then `ok`, `failed` or `insufficient_balance`.
 

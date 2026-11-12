@@ -79,13 +79,13 @@ The page of a Claude Code, Codex or Pi agent is written for people who do not ru
 - The status reads **Running**, **Sleeping**, **Starting…**, **Stopped**, **Needs attention** (the agent failed) or **Paused: wallet empty**.
 - The actions are **Restart**, **Stop agent** and **Delete agent**.
 - The tabs are **Overview**, **Variables**, **History** (the deploys) and **Logs**. An agent has no **Domains** tab: its console is always private.
-- **Overview** holds the sign-in panel for a plan, the **Auto-sleep** card (its rules fold under **How auto-sleep works**), the **Disk** card and, for releases with a task runner, the tasks. **Advanced**, at the bottom and folded, holds changing CPU and memory, the **Template Source** and the template version (upgrade or roll back).
+- **Overview** holds the sign-in panel for a plan, the **Repository** card, the **Auto-sleep** card (its rules fold under **How auto-sleep works**), the **Disk** card and, for releases with a task runner, the tasks. **Advanced**, at the bottom and folded, holds changing CPU and memory, the **Template Source** and the template version (upgrade or roll back).
 
 ## Grow the disk {#grow-the-disk}
 
 The **Disk** card on the agent's page shows the size of the agent's disk and its monthly price. The disk holds both `/workspace` and `/home/agent`, so an agent installed with the default 5 GiB `/workspace` shows **6 GB**.
 
-1. In **New disk size**, pick a larger size. The card offers 10, 20, 50, 100 and 200 GB, only those larger than the current disk, each with its monthly price.
+1. In the size list (**New disk size**), pick a larger size. The card offers 10, 20, 50, 100 and 200 GB, only those larger than the current disk, each with its monthly price. The card appears once the agent has a disk; to go above 200 GB, use the API.
 2. Select **Make it larger**, check the size and price, then select **Grow to … GB** (or **Cancel**).
 3. The card shows **The disk is now … GB.** when it is done.
 
@@ -103,7 +103,7 @@ A connected app or API key with `agents:execute` can give the agent a task and r
 
 ## Cost and control
 
-- Compute is billed while the agent runs, and storage (the `/workspace` size you chose, 5 GiB by default, plus 1 GiB for `/home/agent`) while the disk exists, also when the agent is stopped. The plan prices the whole disk in its cost ceiling.
+- Compute is billed while the agent runs, and storage (the `/workspace` size you chose, 5 GiB by default, plus 1 GiB for `/home/agent`, or the size you grew the disk to) while the disk exists, also when the agent is stopped. The plan prices the whole disk in its cost ceiling.
 - The disk keeps your work across restarts, sleep and redeploys. You can [grow it](#grow-the-disk) later from the agent's page without losing files, but never shrink it, so start small if you are unsure.
 - Any owner or admin can stop or delete the agent at any time. The agent holds no TOSE API credential for the workspace (with push, only a git proxy secret for the repositories it may push to), so it cannot change itself.
 - With an API key, set a spending limit at the provider as well.

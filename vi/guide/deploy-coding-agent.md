@@ -79,13 +79,13 @@ Trang của agent Claude Code, Codex hay Pi được viết cho người không 
 - Trạng thái là **Đang chạy**, **Đang ngủ**, **Đang khởi động…**, **Đã dừng**, **Cần xem lại** (agent gặp lỗi) hoặc **Tạm dừng: ví hết tiền**.
 - Các thao tác là **Khởi động lại**, **Dừng agent** và **Xóa agent**.
 - Các tab là **Tổng quan**, **Biến**, **Lịch sử** (các lần deploy) và **Nhật ký**. Agent không có tab **Tên miền**: console của nó luôn riêng tư.
-- **Tổng quan** chứa bảng đăng nhập gói, thẻ **Tự động ngủ** (các quy tắc được gấp trong **Tự động ngủ hoạt động thế nào**), thẻ **Ổ đĩa** và, với bản phát hành có trình chạy tác vụ, các tác vụ. **Nâng cao**, ở cuối trang và được gấp lại, chứa phần đổi CPU và bộ nhớ, **Nguồn mẫu** và phiên bản template (nâng cấp hoặc rollback).
+- **Tổng quan** chứa bảng đăng nhập gói, thẻ **Kho mã**, thẻ **Tự động ngủ** (các quy tắc được gấp trong **Tự động ngủ hoạt động thế nào**), thẻ **Ổ đĩa** và, với bản phát hành có trình chạy tác vụ, các tác vụ. **Nâng cao**, ở cuối trang và được gấp lại, chứa phần đổi CPU và bộ nhớ, **Nguồn mẫu** và **Phiên bản mẫu** (nâng cấp hoặc rollback).
 
 ## Tăng dung lượng ổ đĩa {#grow-the-disk}
 
 Thẻ **Ổ đĩa** trên trang của agent hiển thị dung lượng ổ đĩa của agent và giá mỗi tháng. Ổ đĩa chứa cả `/workspace` lẫn `/home/agent`, nên agent cài với `/workspace` mặc định 5 GiB hiển thị **6 GB**.
 
-1. Ở **Dung lượng mới**, chọn một mức lớn hơn. Thẻ đưa ra 10, 20, 50, 100 và 200 GB, chỉ những mức lớn hơn ổ đĩa hiện tại, mỗi mức kèm giá mỗi tháng.
+1. Trong danh sách dung lượng (**Dung lượng mới**), chọn một mức lớn hơn. Thẻ đưa ra 10, 20, 50, 100 và 200 GB, chỉ những mức lớn hơn ổ đĩa hiện tại, mỗi mức kèm giá mỗi tháng. Thẻ chỉ hiện khi agent đã có ổ đĩa; để vượt quá 200 GB, hãy dùng API.
 2. Chọn **Tăng dung lượng**, kiểm tra dung lượng và giá, rồi chọn **Tăng lên … GB** (hoặc **Hủy**).
 3. Khi xong, thẻ hiển thị **Ổ đĩa hiện là … GB.**
 
@@ -103,8 +103,8 @@ Qua API, tìm ổ đĩa của agent trong `GET /api/workspaces/{slug}/volumes` (
 
 ## Chi phí và quyền kiểm soát
 
-- Tính toán được tính phí khi agent chạy; lưu trữ (dung lượng `/workspace` bạn chọn, mặc định 5 GiB, cộng 1 GiB cho `/home/agent`) được tính phí khi ổ đĩa còn tồn tại, kể cả lúc agent đã dừng. Plan tính giá cả ổ đĩa vào mức trần chi phí.
-- Ổ đĩa giữ công việc của bạn qua các lần khởi động lại, ngủ và deploy lại. Sau này bạn có thể [tăng dung lượng](#grow-the-disk) trên trang của agent mà không mất tệp, nhưng không bao giờ giảm được, nên nếu chưa chắc hãy bắt đầu nhỏ.
+- Tính toán được tính phí khi agent chạy; lưu trữ (dung lượng `/workspace` bạn chọn, mặc định 5 GiB, cộng 1 GiB cho `/home/agent`, hoặc dung lượng bạn đã tăng lên) được tính phí khi ổ đĩa còn tồn tại, kể cả lúc agent đã dừng. Plan tính giá cả ổ đĩa vào mức trần chi phí.
+- Ổ đĩa giữ công việc của bạn qua các lần khởi động lại, ngủ và deploy lại. Sau này bạn có thể [tăng dung lượng](#grow-the-disk) trên trang của agent mà không mất tệp, nhưng không bao giờ giảm được, nên nếu chưa chắc, hãy bắt đầu với dung lượng nhỏ.
 - Owner hoặc admin nào cũng có thể dừng hoặc xóa agent bất cứ lúc nào. Agent không giữ thông tin xác thực API TOSE nào cho workspace (khi có push, chỉ có bí mật git proxy cho các kho mã mà nó được push) nên không thể tự thay đổi.
 - Với API key, hãy đặt thêm giới hạn chi tiêu ở nhà cung cấp.
 
