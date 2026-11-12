@@ -89,7 +89,7 @@ Thẻ **Ổ đĩa** trên trang của agent hiển thị dung lượng ổ đĩa
 2. Chọn **Tăng dung lượng**, kiểm tra dung lượng và giá, rồi chọn **Tăng lên … GB** (hoặc **Hủy**).
 3. Khi xong, thẻ hiển thị **Ổ đĩa hiện là … GB.**
 
-Ổ đĩa được tăng tại chỗ: tệp của bạn được giữ nguyên và agent vẫn chạy. Ổ đĩa không bao giờ giảm được, và lưu trữ tính phí theo dung lượng mới chừng nào ổ đĩa còn tồn tại, kể cả khi agent dừng hoặc ngủ. Chỉ chủ sở hữu hoặc quản trị viên workspace mới tăng được (người khác thấy **Chỉ chủ sở hữu hoặc quản trị viên workspace mới tăng được dung lượng ổ đĩa.**), và cần ví có số dư dương.
+Ổ đĩa được tăng tại chỗ: tệp của bạn được giữ nguyên và agent vẫn chạy. Ổ đĩa không bao giờ giảm được, và lưu trữ tính phí theo dung lượng mới chừng nào ổ đĩa còn tồn tại, kể cả khi agent dừng hoặc ngủ. Chỉ chủ sở hữu hoặc quản trị viên workspace mới tăng được (người khác thấy **Chỉ chủ sở hữu hoặc quản trị viên workspace mới tăng được dung lượng ổ đĩa.**), và cần ví có số dư dương: khi ví hết tiền, thẻ hiện **Ví đã hết tiền. Hãy nạp thêm để tăng dung lượng ổ đĩa.** kèm liên kết **Nạp tiền vào ví**.
 
 Qua API, tìm ổ đĩa của agent trong `GET /api/workspaces/{slug}/volumes` (`workload_type` là `template` và `workload_id` là ID ứng dụng của bản cài), rồi gửi `PATCH /api/workspaces/{slug}/volumes/{volume_id}` với `{"size_gib": 20}`. Dung lượng nhỏ hơn trả về `400`. Xem [API ổ đĩa](/vi/api/disks). Dung lượng ổ đĩa ghi nhận của agent đi theo volume, nên trang của nó và các plan sau hiển thị đúng ổ đĩa nó thực sự có.
 
