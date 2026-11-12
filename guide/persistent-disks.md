@@ -63,7 +63,7 @@ tose disk set --size 30 --mount /data
 tose redeploy
 ```
 
-Changing the size or mount path takes effect on the next deploy, so redeploy afterwards. Disks of templates and databases are resized with [`tose volumes resize`](/commands/disk#tose-volumes-resize). A coding agent's disk can also be grown from the **Disk** card on the agent's page, and it grows while the agent keeps running ([Grow the disk](/guide/deploy-coding-agent#grow-the-disk)).
+Changing the size or mount path takes effect on the next deploy, so redeploy afterwards. Disks of templates and databases are resized with [`tose volumes resize`](/commands/disk#tose-volumes-resize). A coding agent's disk can also be grown from the **Disk** block on the **Overview** tab of the agent's page, and it grows while the agent keeps running ([Grow the disk](/guide/deploy-coding-agent#grow-the-disk)).
 
 Shrinking is rejected. To move to a smaller disk, migrate the data: copy it out of the current disk, delete the disk, create a new smaller one, and copy the data back.
 

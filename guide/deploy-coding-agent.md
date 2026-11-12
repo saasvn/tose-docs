@@ -2,7 +2,7 @@
 
 TOSE publishes ready-made coding agents, **Claude Code**, **Codex** and **Pi**, in the **Cloud Agents** menu of your workspace (`/w/<workspace>/agents`). Each one runs in its own private pod in your workspace, with a persistent disk, and you work with it in a console that only workspace owners and admins can open.
 
-The released versions are **Codex 1.0.0**, **Claude Code 1.0.0**, and **Pi 1.0.0** and **1.1.0**. Pi 1.1.0 is the default for new Pi agents: it adds seven providers, Node.js with npm, uv for Python, and instructions that describe the container to Pi. Each release is pinned to an image by digest, and the agent's page shows that image as its **Template Source**, in the **Configuration** block of the **Settings** tab.
+The released versions are **Codex 1.0.0**, **Claude Code 1.0.0**, and **Pi 1.0.0** and **1.1.0**. Pi 1.1.0 is the default for new Pi agents: it adds seven providers, Node.js with npm, uv for Python, and instructions that describe the container to Pi. Each release is pinned to an image by digest, and the agent's page shows that image as its **Template Source**, in the **Advanced** block of the **Settings** tab.
 
 ## Before you start
 
@@ -80,32 +80,32 @@ The page of a Claude Code, Codex or Pi agent is written for people who do not ru
 
 | Tab | What is there |
 | --- | --- |
-| **Overview** | Six tiles: **Tasks**, **Repositories**, **Disk**, **Auto-sleep**, **Power** and **Activity**. Each shows one number and one line of status, and selecting a tile opens the tab where that thing is managed. A tile's line turns to the warning colour when a task failed in the last 24 hours or a repository checkout failed, and the **Activity** tile's line turns red when the last start failed. |
+| **Overview** | Six tiles: **Tasks**, **Repositories**, **Disk**, **Auto-sleep**, **Power** and **Activity**, and under them the **Disk** block (size, monthly price, **Make it larger**) and the **Power** block (status, CPU, RAM, port, **Change CPU and RAM**; tose-app [#779](https://github.com/saasvn/tose-app/pull/779)). Each tile shows one number and one line of status, and selecting a tile takes you to where that thing is managed. A tile's line turns to the warning colour when a task failed in the last 24 hours or a repository checkout failed, and the **Activity** tile's line turns red when the last start failed. |
 | **Tasks** | A board of the last 20 [tasks](#delegate-tasks) in three columns, **Running**, **Done** and **Failed or stopped** (see [The task board](/guide/agent-tasks#task-board)), and under it **Task settings** with the switch **Accept tasks from connected apps and API keys**. The tab and its tile are hidden when the server does not offer tasks. |
 | **Repositories** | The agent's repositories, their **Permissions**, **+ Add repository** and **Retry checkout** (see [Attach or change an agent's repositories](/guide/agent-repository-checkout#attach-or-change-an-agents-repository-after-install)). |
-| **Settings** | The **Auto-sleep** card (its rules fold under **How auto-sleep works**), the **Disk** card, the sign-in panel for a plan, **Configuration** (open: **Change CPU and RAM**, the **Template Source** and the template version, to upgrade or roll back; tose-app [#773](https://github.com/saasvn/tose-app/pull/773)), **Secrets and variables**, and **Stop or delete** (**Stop agent**, **Delete agent**). |
+| **Settings** | The **Auto-sleep** card (its rules fold under **How auto-sleep works**), the sign-in panel for a plan, **Advanced** (always open: the **Template Source** and the template version, to upgrade or roll back; tose-app [#779](https://github.com/saasvn/tose-app/pull/779)), **Secrets and variables**, and **Stop or delete** (**Stop agent**, **Delete agent**). Disk, CPU and RAM are changed on **Overview**, not here. |
 | **Activity** | **History** (the deploys) and **Live logs**. |
 
 What the tiles say:
 
 - **Tasks**: how many tasks are running, otherwise how many came in over the last 24 hours, then "No tasks yet", "None failed today" or "… failed today" (counted over the agent's 20 latest tasks). It reads **Off** while the agent does not accept tasks.
 - **Repositories**: how many are ready (or cloning, or failed) and their names, or **None** with a hint to add one.
-- **Disk**: the size and the monthly price. It opens **Settings** at the **Disk** card, where you can [grow the disk](#grow-the-disk).
+- **Disk**: the size and the monthly price, with a **Make it larger** link. It scrolls down **Overview** to the **Disk** block, where you can [grow the disk](#grow-the-disk).
 - **Auto-sleep**: "After … min" or **Off**, and whether the agent is awake, asleep or waking up. It opens **Settings** at the **Auto-sleep** card.
-- **Power**: CPU cores and memory. It opens **Settings** at the **Configuration** block, where **Change CPU and RAM** changes them.
+- **Power**: CPU cores and memory. It scrolls down **Overview** to the **Power** block, where **Change CPU and RAM** changes them.
 - **Activity**: when the agent last started and whether that start succeeded. It opens **Activity**.
 
 A link with `?tab=` still works: `?tab=variables`, `?tab=advanced` and `?tab=danger` open **Settings**, and `?tab=deployments` and `?tab=logs` open **Activity**. Any other unknown tab opens **Overview**.
 
 ## Grow the disk {#grow-the-disk}
 
-The **Disk** card, in the **Settings** tab of the agent's page, shows the size of the agent's disk and its monthly price. The disk holds both `/workspace` and `/home/agent`, so an agent installed with the default 5 GiB `/workspace` shows **6 GB**.
+The **Disk** block, on the **Overview** tab of the agent's page under the tiles, shows the size of the agent's disk and its monthly price. The disk holds both `/workspace` and `/home/agent`, so an agent installed with the default 5 GiB `/workspace` shows **6 GB**.
 
-1. In the size list (**New disk size**), pick a larger size. The card offers 10, 20, 50, 100 and 200 GB, only those larger than the current disk, each with its monthly price. The card appears once the agent has a disk; to go above 200 GB, use the API.
+1. In the size list (**New disk size**), pick a larger size. The block offers 10, 20, 50, 100 and 200 GB, only those larger than the current disk, each with its monthly price. The block appears once the agent has a disk; to go above 200 GB, use the API.
 2. Select **Make it larger**, check the size and price, then select **Grow to … GB** (or **Cancel**).
-3. The card shows **The disk is now … GB.** when it is done.
+3. The block shows **The disk is now … GB.** when it is done.
 
-The disk grows in place: your files are kept and the agent keeps running. A disk can never be made smaller, and storage is billed for the new size while the disk exists, also while the agent is stopped or asleep. Only a workspace owner or admin can grow it (anyone else sees **Only a workspace owner or admin can grow the disk.**), and growing needs a positive wallet balance: with an empty wallet the card says **The wallet is empty. Top up to grow the disk.** and links to **Top up the wallet**.
+The disk grows in place: your files are kept and the agent keeps running. A disk can never be made smaller, and storage is billed for the new size while the disk exists, also while the agent is stopped or asleep. Only a workspace owner or admin can grow it (anyone else sees **Only a workspace owner or admin can grow the disk.**), and growing needs a positive wallet balance: with an empty wallet the block says **The wallet is empty. Top up to grow the disk.** and links to **Top up the wallet**.
 
 Through the API, find the agent's disk in `GET /api/workspaces/{slug}/volumes` (`workload_type` `template` and `workload_id` the installation's app ID), then send `PATCH /api/workspaces/{slug}/volumes/{volume_id}` with `{"size_gib": 20}`. A smaller size returns `400`. See [Disks API](/api/disks). The agent's recorded disk size follows the volume, so its page and later plans show the disk it really has.
 

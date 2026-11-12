@@ -78,7 +78,7 @@ PATCH /api/workspaces/{slug}/volumes/{volume_id}
 
 Chỉ được tăng dung lượng. `size_gib` nhỏ hơn sẽ trả về `400` kèm hướng dẫn di chuyển dữ liệu sang ổ đĩa mới nhỏ hơn. Tăng dung lượng khi ví hết tiền sẽ trả về `403` kèm `"code": "INSUFFICIENT_BALANCE"`; `403` của người gọi không có quyền admin không có mã này, nên client phân biệt được hai trường hợp. Không đọc được ví thì trả về `500`. Ổ đĩa home của cloud desktop chỉ tăng được sau khi đã bind (trả về `409` trước lần khởi động đầu tiên) và không vượt quá giới hạn ổ đĩa desktop của nền tảng (vượt quá trả về `400`).
 
-Coding agent tuyển chọn (Claude Code, Codex, Pi) có một ổ đĩa chứa `/workspace` và `/home/agent` (`workload_type` là `template`, `workload_id` là ID ứng dụng). Tăng dung lượng giữ nguyên tệp, agent vẫn chạy, và dung lượng ổ đĩa ghi nhận của bản cài đi theo dung lượng mới. Trang của agent cũng cho phép làm việc này qua thẻ **Ổ đĩa** ([Tăng dung lượng ổ đĩa](/vi/guide/deploy-coding-agent#grow-the-disk)).
+Coding agent tuyển chọn (Claude Code, Codex, Pi) có một ổ đĩa chứa `/workspace` và `/home/agent` (`workload_type` là `template`, `workload_id` là ID ứng dụng). Tăng dung lượng giữ nguyên tệp, agent vẫn chạy, và dung lượng ổ đĩa ghi nhận của bản cài đi theo dung lượng mới. Trang của agent cũng cho phép làm việc này qua khối **Ổ đĩa** ở tab **Tổng quan** ([Tăng dung lượng ổ đĩa](/vi/guide/deploy-coding-agent#grow-the-disk)).
 
 ## Ổ đĩa dự án {#project-disk}
 
