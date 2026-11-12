@@ -16,7 +16,7 @@ An agent runs one task at a time. There is no queue.
 
 ## Turn it on or off {#turn-it-on}
 
-The switch **Accept tasks from connected apps and API keys**, in the **Tasks** tab of the installed agent's page, says whether the agent accepts tasks. Open that page from **Cloud Agents** in the workspace sidebar, where **Your agents** also shows which agents accept tasks.
+The switch **Accept tasks from connected apps and API keys**, under **Task settings** below the [task board](#task-board) in the **Tasks** tab of the installed agent's page, says whether the agent accepts tasks. Open that page from **Cloud Agents** in the workspace sidebar, where **Your agents** also shows which agents accept tasks.
 
 - It starts **on** for a new installation of a release with a task runner (Claude Code 1.1.0, Codex 1.1.0, Pi 1.2.0 or newer), since tose-app [#701](https://github.com/saasvn/tose-app/pull/701). A connected app or API key with `agents:execute` can then give the agent tasks from its first start.
 - It stays **off** for an installation that existed before, until an owner or admin turns it on. A release without a task runner cannot take tasks at all: turning the switch on is refused with `409 TASKS_UNSUPPORTED`.
@@ -27,6 +27,20 @@ A task can read and send back anything the agent can, including its sign-in (for
 :::
 
 Tasks run in every provider mode, including Claude Code with your Claude plan and Codex with your ChatGPT plan. A task uses whatever the agent is signed in with at that moment.
+
+## The task board {#task-board}
+
+The **Tasks** tab shows the last 20 tasks as a board with three columns, each with its count (tose-app [#773](https://github.com/saasvn/tose-app/pull/773)):
+
+| Column | Tasks in it |
+|--------|-------------|
+| **Running** | `starting`, `running` |
+| **Done** | `succeeded` |
+| **Failed or stopped** | `failed`, `timed_out`, `lost`, `cancelled` (shown as **Stopped**) |
+
+A card shows the task's status, who gave it and through what (a signed-in session, an API key or a connected app), when, and the first two lines of the agent's final message; the full message is under **Result**. A running card has a **Stop** button. **Refresh** reads the list again, and while a task runs the board refreshes itself every few seconds. Cards cannot be dragged: a column is the task's real status, which only the agent and TOSE change. On a narrow screen the columns stack.
+
+Under the board, **Task settings** holds the switch described above and its warning.
 
 ## MCP tools
 
@@ -131,7 +145,7 @@ A refusal always has its own code, never a quiet fallback.
 
 - The agent counts as busy, so auto-sleep never interrupts it. Stopping the agent or putting it to sleep cancels the running task.
 - TOSE checks running tasks about every 30 seconds, so a task ends in TOSE even when nobody follows it, and it ends a task past its timeout.
-- Typing in the console does not block a task. Both work in the same `/workspace`, so use **Stop** on the Tasks list when you want control back.
+- Typing in the console does not block a task. Both work in the same `/workspace`, so use **Stop** on the task's card in the [task board](#task-board) when you want control back.
 - The audit log records the switch, each task created, who cancelled it and how it ended, never the prompt.
 
 Related: [Deploy a coding agent](/guide/deploy-coding-agent), [Agent access](/mcp/agent-access), [API keys and scopes](/api/api-keys).

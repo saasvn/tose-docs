@@ -16,7 +16,7 @@ Mỗi agent chỉ chạy một tác vụ tại một thời điểm. Không có 
 
 ## Bật hoặc tắt {#bat-tinh-nang}
 
-Công tắc **Nhận tác vụ từ ứng dụng đã kết nối và khóa API** (Accept tasks from connected apps and API keys), trong tab **Tác vụ** của trang agent đã cài, quyết định agent có nhận tác vụ hay không. Mở trang đó từ **Cloud Agents** ở thanh bên của workspace; mục **Agent của bạn** cũng cho biết agent nào đang nhận việc.
+Công tắc **Nhận tác vụ từ ứng dụng đã kết nối và khóa API** (Accept tasks from connected apps and API keys), trong **Cài đặt tác vụ** bên dưới [bảng tác vụ](#task-board) ở tab **Tác vụ** của trang agent đã cài, quyết định agent có nhận tác vụ hay không. Mở trang đó từ **Cloud Agents** ở thanh bên của workspace; mục **Agent của bạn** cũng cho biết agent nào đang nhận việc.
 
 - Công tắc **bật sẵn** cho bản cài đặt mới của bản phát hành có trình chạy tác vụ (Claude Code 1.1.0, Codex 1.1.0, Pi 1.2.0 hoặc mới hơn), kể từ tose-app [#701](https://github.com/saasvn/tose-app/pull/701). Khi đó ứng dụng được kết nối hoặc API key có `agents:execute` giao được tác vụ cho agent ngay từ lần khởi động đầu tiên.
 - Công tắc vẫn **tắt** với bản cài đặt đã có từ trước, cho tới khi owner hoặc admin bật. Bản phát hành không có trình chạy tác vụ thì không nhận tác vụ được: bật công tắc bị từ chối với `409 TASKS_UNSUPPORTED`.
@@ -27,6 +27,20 @@ Một tác vụ có thể đọc và gửi lại mọi thứ agent đọc đư�
 :::
 
 Tác vụ chạy ở mọi chế độ nhà cung cấp, kể cả Claude Code với gói Claude và Codex với gói ChatGPT của bạn. Tác vụ dùng thông tin mà agent đang đăng nhập tại thời điểm đó.
+
+## Bảng tác vụ {#task-board}
+
+Tab **Tác vụ** hiển thị 20 tác vụ gần nhất dưới dạng bảng ba cột, mỗi cột kèm số lượng (tose-app [#773](https://github.com/saasvn/tose-app/pull/773)):
+
+| Cột | Tác vụ trong cột |
+|-----|------------------|
+| **Đang chạy** | `starting`, `running` |
+| **Hoàn thành** | `succeeded` |
+| **Lỗi hoặc đã dừng** | `failed`, `timed_out`, `lost`, `cancelled` (hiển thị là **Đã dừng**) |
+
+Mỗi thẻ cho biết trạng thái, ai giao tác vụ và qua đâu (phiên đăng nhập, khóa API hoặc ứng dụng đã kết nối), thời điểm, và hai dòng đầu của thông điệp cuối cùng của agent; toàn bộ thông điệp nằm trong **Kết quả**. Thẻ đang chạy có nút **Dừng**. **Làm mới** tải lại danh sách, và khi có tác vụ đang chạy thì bảng tự làm mới vài giây một lần. Không kéo thả được thẻ: cột chính là trạng thái thật của tác vụ, chỉ agent và TOSE thay đổi được. Trên màn hình hẹp, các cột xếp chồng lên nhau.
+
+Bên dưới bảng, **Cài đặt tác vụ** chứa công tắc ở trên cùng lời cảnh báo của nó.
 
 ## Công cụ MCP
 
@@ -131,7 +145,7 @@ Mỗi lần từ chối có mã riêng, không bao giờ lặng lẽ chuyển sa
 
 - Agent được tính là đang bận nên tự động ngủ không ngắt nó. Dừng agent hoặc cho ngủ sẽ hủy tác vụ đang chạy.
 - TOSE kiểm tra các tác vụ đang chạy khoảng 30 giây một lần, nên tác vụ vẫn kết thúc trong TOSE dù không ai theo dõi, và tác vụ quá thời hạn bị kết thúc.
-- Gõ trong console không chặn tác vụ. Cả hai làm việc trong cùng `/workspace`, nên hãy dùng nút **Stop** trong danh sách tác vụ khi muốn lấy lại quyền kiểm soát.
+- Gõ trong console không chặn tác vụ. Cả hai làm việc trong cùng `/workspace`, nên hãy dùng nút **Dừng** trên thẻ của tác vụ trong [bảng tác vụ](#task-board) khi muốn lấy lại quyền kiểm soát.
 - Nhật ký kiểm toán ghi công tắc, mỗi tác vụ được tạo, ai đã hủy và tác vụ kết thúc ra sao, không bao giờ ghi prompt.
 
 Liên quan: [Triển khai coding agent](/vi/guide/deploy-coding-agent), [Quyền truy cập của agent](/vi/mcp/agent-access), [API key và scope](/vi/api/api-keys).
