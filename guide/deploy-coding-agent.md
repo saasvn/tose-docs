@@ -43,7 +43,7 @@ The provider is part of the approved plan. To switch an app from an API key to a
 
 From the app page, where the server offers it:
 
-1. Wait until the app is **Running**. The app page shows a **Claude plan** panel with a **Connect Claude** button.
+1. Wait until the app is **Running**. The **Settings** tab of the agent's page shows a **Claude plan** panel with a **Connect Claude** button.
 2. Select it, open the link to Anthropic's sign-in page and sign in there in your own browser.
 3. Paste the code Anthropic's page shows into the panel. TOSE passes it once to Claude Code and does not store, log or return it.
 
@@ -59,7 +59,7 @@ The **Claude plan** panel is offered where the server enables `CURATED_SUBSCRIPT
 
 ### Sign in with a ChatGPT plan
 
-1. Wait until the app is **Running**. The app page shows a **ChatGPT plan** panel with a **Connect ChatGPT** button.
+1. Wait until the app is **Running**. The **Settings** tab of the agent's page shows a **ChatGPT plan** panel with a **Connect ChatGPT** button.
 2. Select it. The panel shows a one-time code and a link to `https://auth.openai.com/codex/device`.
 3. Open the link in your own browser, sign in to ChatGPT and enter the code.
 4. The panel then shows the account, the plan and its usage. It also offers **Reconnect** and **Disconnect**.
@@ -80,7 +80,7 @@ The page of a Claude Code, Codex or Pi agent is written for people who do not ru
 
 | Tab | What is there |
 | --- | --- |
-| **Overview** | Six tiles: **Tasks**, **Repositories**, **Disk**, **Auto-sleep**, **Power** and **Activity**. Each shows one number and one line of status, and selecting a tile opens the tab where that thing is managed. A tile's line turns to the warning colour when a task failed in the last 24 hours or a repository checkout failed. |
+| **Overview** | Six tiles: **Tasks**, **Repositories**, **Disk**, **Auto-sleep**, **Power** and **Activity**. Each shows one number and one line of status, and selecting a tile opens the tab where that thing is managed. A tile's line turns to the warning colour when a task failed in the last 24 hours or a repository checkout failed, and the **Activity** tile's line turns red when the last start failed. |
 | **Tasks** | The [tasks](#delegate-tasks) and the switch **Accept tasks from connected apps and API keys**. The tab and its tile are hidden when the server does not offer tasks. |
 | **Repositories** | The agent's repositories, their **Permissions**, **+ Add repository** and **Retry checkout** (see [Attach or change an agent's repositories](/guide/agent-repository-checkout#attach-or-change-an-agents-repository-after-install)). |
 | **Settings** | The **Auto-sleep** card (its rules fold under **How auto-sleep works**), the **Disk** card, the sign-in panel for a plan, **Advanced** (folded: changing CPU and memory, the **Template Source** and the template version, to upgrade or roll back), **Secrets and variables**, and **Stop or delete** (**Stop agent**, **Delete agent**). |
@@ -88,7 +88,7 @@ The page of a Claude Code, Codex or Pi agent is written for people who do not ru
 
 What the tiles say:
 
-- **Tasks**: how many tasks are running, otherwise how many came in today, then "None failed today" or "… failed today". It reads **Off** while the agent does not accept tasks.
+- **Tasks**: how many tasks are running, otherwise how many came in over the last 24 hours, then "No tasks yet", "None failed today" or "… failed today" (counted over the agent's 20 latest tasks). It reads **Off** while the agent does not accept tasks.
 - **Repositories**: how many are ready (or cloning, or failed) and their names, or **None** with a hint to add one.
 - **Disk**: the size and the monthly price. It opens **Settings**, where you can [grow the disk](#grow-the-disk).
 - **Auto-sleep**: "After … min" or **Off**, and whether the agent is awake, asleep or waking up.

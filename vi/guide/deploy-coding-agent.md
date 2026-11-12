@@ -43,7 +43,7 @@ Nhà cung cấp là một phần của kế hoạch đã duyệt. Để đổi m
 
 Từ trang ứng dụng, ở máy chủ có cung cấp cách này:
 
-1. Chờ ứng dụng ở trạng thái **Đang chạy**. Trang ứng dụng hiện bảng **Gói Claude** với nút **Kết nối Claude**.
+1. Chờ ứng dụng ở trạng thái **Đang chạy**. Tab **Cài đặt** của trang agent hiện bảng **Gói Claude** với nút **Kết nối Claude**.
 2. Chọn nút đó, mở liên kết tới trang đăng nhập của Anthropic và đăng nhập ở đó trong trình duyệt của bạn.
 3. Dán mã mà trang của Anthropic hiển thị vào bảng. TOSE chuyển mã một lần cho Claude Code, không lưu, không ghi log và không trả lại.
 
@@ -59,7 +59,7 @@ Bảng **Gói Claude** được cung cấp ở máy chủ bật `CURATED_SUBSCRI
 
 ### Đăng nhập bằng gói ChatGPT
 
-1. Chờ ứng dụng ở trạng thái **Đang chạy**. Trang ứng dụng hiện bảng **Gói ChatGPT** với nút **Kết nối ChatGPT**.
+1. Chờ ứng dụng ở trạng thái **Đang chạy**. Tab **Cài đặt** của trang agent hiện bảng **Gói ChatGPT** với nút **Kết nối ChatGPT**.
 2. Chọn nút đó. Bảng hiển thị một mã dùng một lần và liên kết tới `https://auth.openai.com/codex/device`.
 3. Mở liên kết trong trình duyệt của bạn, đăng nhập ChatGPT và nhập mã.
 4. Bảng sau đó hiển thị tài khoản, gói và mức sử dụng, cùng các nút **Kết nối lại** và **Ngắt kết nối**.
@@ -80,7 +80,7 @@ Trang của agent Claude Code, Codex hay Pi được viết cho người không 
 
 | Tab | Có gì trong đó |
 | --- | --- |
-| **Tổng quan** | Sáu ô: **Tác vụ**, **Kho mã**, **Ổ đĩa**, **Tự động ngủ**, **Cấu hình** và **Hoạt động**. Mỗi ô hiển thị một con số và một dòng trạng thái; chọn một ô sẽ mở tab nơi bạn quản lý mục đó. Dòng trạng thái của ô chuyển sang màu cảnh báo khi có tác vụ lỗi trong 24 giờ qua hoặc có kho mã checkout thất bại. |
+| **Tổng quan** | Sáu ô: **Tác vụ**, **Kho mã**, **Ổ đĩa**, **Tự động ngủ**, **Cấu hình** và **Hoạt động**. Mỗi ô hiển thị một con số và một dòng trạng thái; chọn một ô sẽ mở tab nơi bạn quản lý mục đó. Dòng trạng thái của ô chuyển sang màu cảnh báo khi có tác vụ lỗi trong 24 giờ qua hoặc có kho mã checkout thất bại, còn dòng của ô **Hoạt động** chuyển sang màu đỏ khi lần khởi động gần nhất thất bại. |
 | **Tác vụ** | Danh sách [tác vụ](#giao-tac-vu) và công tắc **Nhận tác vụ từ ứng dụng đã kết nối và khóa API**. Tab và ô của nó bị ẩn khi máy chủ không cung cấp tác vụ. |
 | **Kho mã** | Các kho mã của agent, **Quyền** của từng kho, **+ Thêm kho mã** và **Thử tải lại** (xem [Gắn hoặc đổi kho mã của agent](/vi/guide/agent-repository-checkout#gan-hoac-doi-kho-ma-sau-khi-cai)). |
 | **Cài đặt** | Thẻ **Tự động ngủ** (các quy tắc được gấp trong **Tự động ngủ hoạt động thế nào**), thẻ **Ổ đĩa**, bảng đăng nhập gói, **Nâng cao** (được gấp lại: đổi CPU và bộ nhớ, **Nguồn mẫu** và **Phiên bản mẫu** để nâng cấp hoặc rollback), **Bí mật và biến môi trường**, và **Dừng hoặc xóa** (**Dừng agent**, **Xóa agent**). |
@@ -88,14 +88,14 @@ Trang của agent Claude Code, Codex hay Pi được viết cho người không 
 
 Các ô hiển thị:
 
-- **Tác vụ**: số tác vụ đang chạy, nếu không có thì số tác vụ nhận trong hôm nay, kèm "Hôm nay không có lỗi" hoặc "… lỗi hôm nay". Ô hiện **Đang tắt** khi agent không nhận tác vụ.
+- **Tác vụ**: số tác vụ đang chạy, nếu không có thì số tác vụ nhận trong 24 giờ qua, kèm "Chưa có tác vụ nào", "Hôm nay không có lỗi" hoặc "… lỗi hôm nay" (tính trên 20 tác vụ mới nhất của agent). Ô hiện **Đang tắt** khi agent không nhận tác vụ.
 - **Kho mã**: số kho sẵn sàng (hoặc đang clone, hoặc lỗi) và tên các kho, hoặc **Chưa có** kèm gợi ý thêm kho.
 - **Ổ đĩa**: dung lượng và giá mỗi tháng. Ô mở tab **Cài đặt**, nơi bạn [tăng dung lượng ổ đĩa](#grow-the-disk).
 - **Tự động ngủ**: "Sau … phút" hoặc **Đang tắt**, và agent đang thức, đang ngủ hay đang thức dậy.
 - **Cấu hình**: số nhân CPU và bộ nhớ. Ô mở tab **Cài đặt**, nơi phần **Nâng cao** cho phép đổi chúng.
 - **Hoạt động**: lần gần nhất agent khởi động và lần đó có thành công không. Ô mở tab **Hoạt động**.
 
-Liên kết có `?tab=` vẫn dùng được: `?tab=variables`, `?tab=advanced` và `?tab=danger` mở **Cài đặt**, còn `?tab=deployments` và `?tab=logs` mở **Hoạt động**. Tab khác không còn tồn tại sẽ mở **Tổng quan**.
+Liên kết có `?tab=` vẫn dùng được: `?tab=variables`, `?tab=advanced` và `?tab=danger` mở **Cài đặt**, còn `?tab=deployments` và `?tab=logs` mở **Hoạt động**. Mọi giá trị `tab` khác sẽ mở **Tổng quan**.
 
 ## Tăng dung lượng ổ đĩa {#grow-the-disk}
 

@@ -55,7 +55,7 @@ App đã cài chuyển sang version đã publish khác của definition qua đú
 
 ### 1. Xem lại plan
 
-Trong dashboard, mở app đã cài (`/w/<workspace>/templates/<app>`). Thẻ **Template version** ở tab Overview (trên trang của agent Claude Code, Codex hay Pi: trong phần **Nâng cao** của tab **Cài đặt**) hiển thị version đang cài, các probe của nó và trạng thái health gần nhất. Chọn version mới hơn, hoặc dùng **Roll back** sau một lần nâng cấp, và plan hiện ra đúng như server trả về:
+Trong dashboard, mở app đã cài (`/w/<workspace>/templates/<app>`). Thẻ **Phiên bản mẫu** (Template version) ở tab **Tổng quan** (trên trang của agent Claude Code, Codex hay Pi: trong phần **Nâng cao** của tab **Cài đặt**) hiển thị version đang cài, các probe của nó và trạng thái health gần nhất. Chọn version mới hơn, hoặc dùng **Roll back** sau một lần nâng cấp, và plan hiện ra đúng như server trả về:
 
 1. **Blocker** trước tiên. Không thể phê duyệt khi còn blocker.
 2. Bảng trước/sau: image digest, build mode, port, kích thước, input được thêm và giữ lại, từng volume, ổ đĩa, các probe và egress. Các dòng có thể ảnh hưởng dữ liệu được làm nổi bật.
