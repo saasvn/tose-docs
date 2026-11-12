@@ -38,7 +38,7 @@ Tab **Tác vụ** hiển thị 20 tác vụ gần nhất dưới dạng bảng b
 | **Hoàn thành** | `succeeded` |
 | **Lỗi hoặc đã dừng** | `failed`, `timed_out`, `lost`, `cancelled` (hiển thị là **Đã dừng**) |
 
-Mỗi thẻ cho biết trạng thái, ai giao tác vụ và qua đâu (phiên đăng nhập, khóa API hoặc ứng dụng đã kết nối), thời điểm, và hai dòng đầu của thông điệp cuối cùng của agent; toàn bộ thông điệp nằm trong **Kết quả**. Thẻ đang chạy có nút **Dừng**. **Làm mới** tải lại danh sách, và khi có tác vụ đang chạy thì bảng tự làm mới vài giây một lần. Không kéo thả được thẻ: cột chính là trạng thái thật của tác vụ, chỉ agent và TOSE thay đổi được. Trên màn hình hẹp, các cột xếp chồng lên nhau.
+Mỗi thẻ cho biết trạng thái, ai giao tác vụ và qua đâu (phiên đăng nhập, khóa API hoặc ứng dụng đã kết nối), thời điểm, và phần đầu thông điệp cuối cùng của agent, gói gọn trong hai dòng, còn toàn bộ thông điệp nằm trong **Kết quả**. Tác vụ kết thúc có sự cố còn hiển thị thông báo sự cố đó. Thẻ đang chạy có nút **Dừng**. **Làm mới** tải lại danh sách, và khi có tác vụ đang chạy thì bảng tự làm mới vài giây một lần. Không kéo thả được thẻ: cột chính là trạng thái thật của tác vụ, nên thẻ chỉ chuyển cột khi trạng thái đổi, ví dụ khi tác vụ kết thúc hoặc bạn chọn **Dừng**. Trên màn hình hẹp, các cột xếp chồng lên nhau.
 
 Bên dưới bảng, **Cài đặt tác vụ** chứa công tắc ở trên cùng lời cảnh báo của nó.
 

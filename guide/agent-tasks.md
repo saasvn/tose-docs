@@ -38,7 +38,7 @@ The **Tasks** tab shows the last 20 tasks as a board with three columns, each wi
 | **Done** | `succeeded` |
 | **Failed or stopped** | `failed`, `timed_out`, `lost`, `cancelled` (shown as **Stopped**) |
 
-A card shows the task's status, who gave it and through what (a signed-in session, an API key or a connected app), when, and the first two lines of the agent's final message; the full message is under **Result**. A running card has a **Stop** button. **Refresh** reads the list again, and while a task runs the board refreshes itself every few seconds. Cards cannot be dragged: a column is the task's real status, which only the agent and TOSE change. On a narrow screen the columns stack.
+A card shows the task's status, who gave it and through what (a signed-in session, an API key or a connected app), when, and the start of the agent's final message, clamped to two lines, with the full message under **Result**. A task that ended with a problem also shows its problem message. A running card has a **Stop** button. **Refresh** reads the list again, and while a task runs the board refreshes itself every few seconds. Cards cannot be dragged: a column is the task's real status, so a card moves only when that status changes, for example when the task ends or you select **Stop**. On a narrow screen the columns stack.
 
 Under the board, **Task settings** holds the switch described above and its warning.
 
