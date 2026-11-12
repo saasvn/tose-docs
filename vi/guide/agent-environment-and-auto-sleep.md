@@ -55,7 +55,7 @@ Script thiết lập tùy chọn chạy một lần cho agent chưa được cun
 Thiết lập là `auto_sleep_minutes`: **Tắt** (`0`, mặc định), **15**, **30**, **60** hoặc **120** phút. Các cài đặt hiện có không bao giờ ngủ trừ khi bạn bật. Bạn chọn:
 
 - ở thẻ **Cấu hình** của trang triển khai;
-- sau này, ở thẻ **Tự động ngủ** trên trang của agent (các quy tắc được gấp trong **Tự động ngủ hoạt động thế nào**);
+- sau này, ở thẻ **Tự động ngủ** trong tab **Cài đặt** của trang agent (các quy tắc được gấp trong **Tự động ngủ hoạt động thế nào**; ô **Tự động ngủ** ở **Tổng quan** mở thẻ này);
 - bằng `PUT /api/workspaces/{slug}/template-installations/{id}/auto-sleep`, body `{"minutes": 30, "expected_revision": 0}`. Dùng `auto_sleep.revision` hiện tại; revision cũ trả về `409 REVISION_CONFLICT`.
 
 ### Khi nào agent ngủ

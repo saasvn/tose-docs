@@ -2,7 +2,7 @@
 
 TOSE phát hành sẵn các coding agent **Claude Code**, **Codex** và **Pi** trong menu **Cloud Agents** của workspace (`/w/<workspace>/agents`). Mỗi agent chạy trong một pod riêng tư của workspace, có ổ đĩa bền vững, và bạn làm việc với nó qua một console mà chỉ owner và admin của workspace mới mở được.
 
-Các phiên bản đã phát hành là **Codex 1.0.0**, **Claude Code 1.0.0**, cùng **Pi 1.0.0** và **1.1.0**. Pi 1.1.0 là mặc định cho agent Pi mới: bản này thêm bảy nhà cung cấp, Node.js kèm npm, uv cho Python và hướng dẫn mô tả container cho Pi. Mỗi bản phát hành được ghim vào một image theo digest, và trang của agent hiển thị image đó ở mục **Nguồn mẫu**, trong phần **Nâng cao**.
+Các phiên bản đã phát hành là **Codex 1.0.0**, **Claude Code 1.0.0**, cùng **Pi 1.0.0** và **1.1.0**. Pi 1.1.0 là mặc định cho agent Pi mới: bản này thêm bảy nhà cung cấp, Node.js kèm npm, uv cho Python và hướng dẫn mô tả container cho Pi. Mỗi bản phát hành được ghim vào một image theo digest, và trang của agent hiển thị image đó ở mục **Nguồn mẫu**, trong phần **Nâng cao** của tab **Cài đặt**.
 
 ## Trước khi bắt đầu
 
@@ -43,7 +43,7 @@ Nhà cung cấp là một phần của kế hoạch đã duyệt. Để đổi m
 
 Từ trang ứng dụng, ở máy chủ có cung cấp cách này:
 
-1. Chờ ứng dụng ở trạng thái **Đang chạy**. Trang ứng dụng hiện bảng **Gói Claude** với nút **Kết nối Claude**.
+1. Chờ ứng dụng ở trạng thái **Đang chạy**. Tab **Cài đặt** của trang agent hiện bảng **Gói Claude** với nút **Kết nối Claude**.
 2. Chọn nút đó, mở liên kết tới trang đăng nhập của Anthropic và đăng nhập ở đó trong trình duyệt của bạn.
 3. Dán mã mà trang của Anthropic hiển thị vào bảng. TOSE chuyển mã một lần cho Claude Code, không lưu, không ghi log và không trả lại.
 
@@ -59,7 +59,7 @@ Bảng **Gói Claude** được cung cấp ở máy chủ bật `CURATED_SUBSCRI
 
 ### Đăng nhập bằng gói ChatGPT
 
-1. Chờ ứng dụng ở trạng thái **Đang chạy**. Trang ứng dụng hiện bảng **Gói ChatGPT** với nút **Kết nối ChatGPT**.
+1. Chờ ứng dụng ở trạng thái **Đang chạy**. Tab **Cài đặt** của trang agent hiện bảng **Gói ChatGPT** với nút **Kết nối ChatGPT**.
 2. Chọn nút đó. Bảng hiển thị một mã dùng một lần và liên kết tới `https://auth.openai.com/codex/device`.
 3. Mở liên kết trong trình duyệt của bạn, đăng nhập ChatGPT và nhập mã.
 4. Bảng sau đó hiển thị tài khoản, gói và mức sử dụng, cùng các nút **Kết nối lại** và **Ngắt kết nối**.
@@ -74,16 +74,32 @@ Codex nhận token trực tiếp từ OpenAI và giữ chúng trên ổ đĩa c�
 
 Trang của agent Claude Code, Codex hay Pi được viết cho người không vận hành máy chủ. Các template khác giữ trang riêng của chúng.
 
-- **Mở agent**, nút lớn ở đầu trang, mở agent (xem [Mở agent](#open-the-console)).
-- Phần tóm tắt hiển thị **Cấu hình** (số nhân CPU · bộ nhớ), **Ổ đĩa** (dung lượng ổ đĩa của agent) và **Lần chạy gần nhất**.
-- Trạng thái là **Đang chạy**, **Đang ngủ**, **Đang khởi động…**, **Đã dừng**, **Cần xem lại** (agent gặp lỗi) hoặc **Tạm dừng: ví hết tiền**.
-- Các thao tác là **Khởi động lại**, **Dừng agent** và **Xóa agent**.
-- Các tab là **Tổng quan**, **Biến**, **Lịch sử** (các lần deploy) và **Nhật ký**. Agent không có tab **Tên miền**: console của nó luôn riêng tư.
-- **Tổng quan** chứa bảng đăng nhập gói, thẻ **Kho mã**, thẻ **Tự động ngủ** (các quy tắc được gấp trong **Tự động ngủ hoạt động thế nào**), thẻ **Ổ đĩa** và, với bản phát hành có trình chạy tác vụ, các tác vụ. **Nâng cao**, ở cuối trang và được gấp lại, chứa phần đổi CPU và bộ nhớ, **Nguồn mẫu** và **Phiên bản mẫu** (nâng cấp hoặc rollback).
+- **Mở agent**, nút lớn phía trên các tab, mở agent (xem [Mở agent](#open-the-console)).
+- Trạng thái là **Đang chạy**, **Đang ngủ**, **Đang khởi động…**, **Đã dừng**, **Cần xem lại** (agent gặp lỗi) hoặc **Tạm dừng: ví hết tiền**. Nút **Khởi động lại** nằm ở đầu trang.
+- Trang có năm tab: **Tổng quan**, **Tác vụ**, **Kho mã**, **Cài đặt** và **Hoạt động** (tose-app [#770](https://github.com/saasvn/tose-app/pull/770)). Agent không có tab **Tên miền**: console của nó luôn riêng tư.
+
+| Tab | Có gì trong đó |
+| --- | --- |
+| **Tổng quan** | Sáu ô: **Tác vụ**, **Kho mã**, **Ổ đĩa**, **Tự động ngủ**, **Cấu hình** và **Hoạt động**. Mỗi ô hiển thị một con số và một dòng trạng thái; chọn một ô sẽ mở tab nơi bạn quản lý mục đó. Dòng trạng thái của ô chuyển sang màu cảnh báo khi có tác vụ lỗi trong 24 giờ qua hoặc có kho mã checkout thất bại, còn dòng của ô **Hoạt động** chuyển sang màu đỏ khi lần khởi động gần nhất thất bại. |
+| **Tác vụ** | Danh sách [tác vụ](#giao-tac-vu) và công tắc **Nhận tác vụ từ ứng dụng đã kết nối và khóa API**. Tab và ô của nó bị ẩn khi máy chủ không cung cấp tác vụ. |
+| **Kho mã** | Các kho mã của agent, **Quyền** của từng kho, **+ Thêm kho mã** và **Thử tải lại** (xem [Gắn hoặc đổi kho mã của agent](/vi/guide/agent-repository-checkout#gan-hoac-doi-kho-ma-sau-khi-cai)). |
+| **Cài đặt** | Thẻ **Tự động ngủ** (các quy tắc được gấp trong **Tự động ngủ hoạt động thế nào**), thẻ **Ổ đĩa**, bảng đăng nhập gói, **Nâng cao** (được gấp lại: đổi CPU và bộ nhớ, **Nguồn mẫu** và **Phiên bản mẫu** để nâng cấp hoặc rollback), **Bí mật và biến môi trường**, và **Dừng hoặc xóa** (**Dừng agent**, **Xóa agent**). |
+| **Hoạt động** | **Lịch sử** (các lần deploy) và **Nhật ký trực tiếp**. |
+
+Các ô hiển thị:
+
+- **Tác vụ**: số tác vụ đang chạy, nếu không có thì số tác vụ nhận trong 24 giờ qua, kèm "Chưa có tác vụ nào", "Hôm nay không có lỗi" hoặc "… lỗi hôm nay" (tính trên 20 tác vụ mới nhất của agent). Ô hiện **Đang tắt** khi agent không nhận tác vụ.
+- **Kho mã**: số kho sẵn sàng (hoặc đang clone, hoặc lỗi) và tên các kho, hoặc **Chưa có** kèm gợi ý thêm kho.
+- **Ổ đĩa**: dung lượng và giá mỗi tháng. Ô mở tab **Cài đặt**, nơi bạn [tăng dung lượng ổ đĩa](#grow-the-disk).
+- **Tự động ngủ**: "Sau … phút" hoặc **Đang tắt**, và agent đang thức, đang ngủ hay đang thức dậy.
+- **Cấu hình**: số nhân CPU và bộ nhớ. Ô mở tab **Cài đặt**, nơi phần **Nâng cao** cho phép đổi chúng.
+- **Hoạt động**: lần gần nhất agent khởi động và lần đó có thành công không. Ô mở tab **Hoạt động**.
+
+Liên kết có `?tab=` vẫn dùng được: `?tab=variables`, `?tab=advanced` và `?tab=danger` mở **Cài đặt**, còn `?tab=deployments` và `?tab=logs` mở **Hoạt động**. Mọi giá trị `tab` khác sẽ mở **Tổng quan**.
 
 ## Tăng dung lượng ổ đĩa {#grow-the-disk}
 
-Thẻ **Ổ đĩa** trên trang của agent hiển thị dung lượng ổ đĩa của agent và giá mỗi tháng. Ổ đĩa chứa cả `/workspace` lẫn `/home/agent`, nên agent cài với `/workspace` mặc định 5 GiB hiển thị **6 GB**.
+Thẻ **Ổ đĩa**, trong tab **Cài đặt** của trang agent, hiển thị dung lượng ổ đĩa của agent và giá mỗi tháng. Ổ đĩa chứa cả `/workspace` lẫn `/home/agent`, nên agent cài với `/workspace` mặc định 5 GiB hiển thị **6 GB**.
 
 1. Trong danh sách dung lượng (**Dung lượng mới**), chọn một mức lớn hơn. Thẻ đưa ra 10, 20, 50, 100 và 200 GB, chỉ những mức lớn hơn ổ đĩa hiện tại, mỗi mức kèm giá mỗi tháng. Thẻ chỉ hiện khi agent đã có ổ đĩa; để vượt quá 200 GB, hãy dùng API.
 2. Chọn **Tăng dung lượng**, kiểm tra dung lượng và giá, rồi chọn **Tăng lên … GB** (hoặc **Hủy**).

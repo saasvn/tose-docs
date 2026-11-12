@@ -55,7 +55,7 @@ Closing the browser does not stop an agent: its session keeps running and comput
 The setting is `auto_sleep_minutes`: **Off** (`0`, the default), **15**, **30**, **60** or **120** minutes. Existing installations never sleep unless you turn it on. Choose it:
 
 - in the **Size** card of the deploy page;
-- later, in the **Auto-sleep** card on the agent's page (its rules fold under **How auto-sleep works**);
+- later, in the **Auto-sleep** card in the **Settings** tab of the agent's page (its rules fold under **How auto-sleep works**; the **Auto-sleep** tile on **Overview** opens it);
 - with `PUT /api/workspaces/{slug}/template-installations/{id}/auto-sleep`, body `{"minutes": 30, "expected_revision": 0}`. Use the current `auto_sleep.revision`; a stale one returns `409 REVISION_CONFLICT`.
 
 ### When an agent sleeps
