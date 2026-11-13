@@ -1,4 +1,6 @@
 import { defineConfig } from 'vitepress'
+import { copyFileSync, mkdirSync } from 'node:fs'
+import { dirname, join } from 'node:path'
 import { SITE_URL, seoHead } from './seo-head.js'
 
 export default defineConfig({
@@ -9,6 +11,15 @@ export default defineConfig({
   cleanUrls: true,
   sitemap: { hostname: SITE_URL },
   transformHead: seoHead,
+
+  // Publish each page's Markdown source next to its HTML, for "Copy as Markdown" and for agents.
+  buildEnd(siteConfig) {
+    for (const page of siteConfig.pages) {
+      const target = join(siteConfig.outDir, page)
+      mkdirSync(dirname(target), { recursive: true })
+      copyFileSync(join(siteConfig.srcDir, page), target)
+    }
+  },
 
   // Dark is the brand default; visitors can still switch to light.
   appearance: 'dark',
@@ -32,22 +43,26 @@ export default defineConfig({
       themeConfig: {
         nav: [
           { text: 'Home', link: '/' },
-          { text: 'Guide', link: '/guide/getting-started' },
-          { text: 'Commands', link: '/commands/overview' },
-          { text: 'API', link: '/api/reference' }
+          { text: 'Deploy', link: '/guide/deploy-an-app' },
+          { text: 'CLI', link: '/commands/overview' },
+          { text: 'MCP', link: '/guide/connect-an-agent' },
+          { text: 'API', link: '/guide/integrate-the-api' }
         ],
 
         sidebar: [
           {
-            text: 'Introduction',
+            text: 'Start here',
             items: [
-              { text: 'What is TOSE CLI?', link: '/' },
+              { text: 'What is TOSE CLI?', link: '/guide/introduction' },
               { text: 'Installation', link: '/guide/installation' },
-              { text: 'Getting Started', link: '/guide/getting-started' }
+              { text: 'Getting Started', link: '/guide/getting-started' },
+              { text: 'Deploy an app', link: '/guide/deploy-an-app' },
+              { text: 'Connect an AI agent (MCP)', link: '/guide/connect-an-agent' },
+              { text: 'Integrate via REST API', link: '/guide/integrate-the-api' }
             ]
           },
           {
-            text: 'Commands',
+            text: 'CLI commands',
             items: [
               { text: 'Overview', link: '/commands/overview' },
               { text: 'tose login / logout', link: '/commands/login' },
@@ -57,7 +72,6 @@ export default defineConfig({
               { text: 'tose deployment', link: '/commands/deployment' },
               { text: 'tose ci', link: '/commands/ci' },
               { text: 'tose analytics', link: '/commands/analytics' },
-
               { text: 'tose runbook', link: '/commands/runbook' },
               { text: 'tose status', link: '/commands/status' },
               { text: 'tose logs', link: '/commands/logs' },
@@ -79,75 +93,87 @@ export default defineConfig({
             ]
           },
           {
-            text: 'Configuration',
+            text: 'Deploy and configure',
             items: [
               { text: 'Configuration File', link: '/guide/configuration' },
               { text: 'Environment Variables', link: '/guide/environment' },
               { text: 'Git Integration', link: '/guide/git' },
               { text: 'Deploy on TOSE button', link: '/guide/deploy-button' },
               { text: 'Dockerfile Examples', link: '/guide/dockerfile' },
-              { text: 'CI impact selection', link: '/guide/ci-impact-selection' },
-              { text: 'CI usage and budget caps', link: '/guide/ci-usage-and-budgets' },
               { text: 'Persistent Disks', link: '/guide/persistent-disks' },
-              { text: 'Deploy a coding agent', link: '/guide/deploy-coding-agent' },
-              { text: 'Delegate tasks to a coding agent', link: '/guide/agent-tasks' },
-              { text: 'Autoscaling budgets', link: '/guide/autoscaling-budgets' },
-              { text: 'Recovery runbooks', link: '/guide/recovery-runbooks' },
               { text: 'Project Sidecars', link: '/guide/project-sidecars' },
               { text: 'Dewee Template Runbook', link: '/guide/dewee-template' },
               { text: 'Template registry (early access)', link: '/guide/template-registry' },
               { text: 'Registry templates: probes and upgrade', link: '/guide/template-upgrades' },
+              { text: 'Template directory', link: '/guide/template-directory' },
+              { text: 'Custom domains', link: '/guide/custom-domains' }
+            ]
+          },
+          {
+            text: 'CI',
+            items: [
+              { text: 'CI impact selection', link: '/guide/ci-impact-selection' },
+              { text: 'CI usage and budget caps', link: '/guide/ci-usage-and-budgets' },
+              { text: 'CI in the dashboard', link: '/guide/ci-dashboard' },
+              { text: 'CI artifacts, reports and issue drafts', link: '/guide/ci-artifacts' },
+              { text: 'CI triggers and fork approval', link: '/guide/ci-triggers-and-forks' }
+            ]
+          },
+          {
+            text: 'Operate and troubleshoot',
+            items: [
+              { text: 'Autoscaling budgets', link: '/guide/autoscaling-budgets' },
+              { text: 'Recovery runbooks', link: '/guide/recovery-runbooks' },
+              { text: 'Report a problem', link: '/guide/dashboard-feedback' },
+              { text: 'Operations across workspaces', link: '/guide/operations-overview' },
+              { text: 'Workload metrics', link: '/guide/workload-metrics' },
+              { text: 'Notifications inbox', link: '/guide/notifications' },
+              { text: 'Troubleshooting', link: '/guide/troubleshooting' }
+            ]
+          },
+          {
+            text: 'AI agents and MCP',
+            items: [
+              { text: 'Deploy a coding agent', link: '/guide/deploy-coding-agent' },
+              { text: 'Delegate tasks to a coding agent', link: '/guide/agent-tasks' },
               { text: 'GitHub repository for coding agents', link: '/guide/agent-repository-checkout' },
               { text: 'Network modes for coding agents', link: '/guide/agent-network-modes' },
               { text: 'Pi model providers', link: '/guide/agent-pi-providers' },
               { text: 'Agent environment and auto-sleep', link: '/guide/agent-environment-and-auto-sleep' },
-              { text: 'Template directory', link: '/guide/template-directory' },
-              { text: 'Custom domains', link: '/guide/custom-domains' },
-              { text: 'Report a problem', link: '/guide/dashboard-feedback' },
-              { text: 'Operations across workspaces', link: '/guide/operations-overview' },
-              { text: 'Workload metrics', link: '/guide/workload-metrics' },
-              { text: 'Pricing', link: '/guide/pricing' },
-              { text: 'CI in the dashboard', link: '/guide/ci-dashboard' },
               { text: 'Agent Runtime pricing', link: '/guide/agent-runtime-pricing' },
-              { text: 'Self-hosting', link: '/guide/self-hosting' },
-              { text: 'Notifications inbox', link: '/guide/notifications' },
-              { text: 'Referral program', link: '/guide/referral' },
-              { text: 'Promo codes', link: '/guide/promo-codes' },
-              { text: 'Link an earlier enquiry', link: '/guide/link-enquiry' },
-              { text: 'CI artifacts, reports and issue drafts', link: '/guide/ci-artifacts' },
-              { text: 'CI triggers and fork approval', link: '/guide/ci-triggers-and-forks' },
-              { text: 'Blog publishing via MCP', link: '/guide/blog-and-editorial-mcp' }
-            ]
-          },
-          {
-            text: 'Cloud Desktops',
-            items: [
-              { text: 'Cloud Desktops Guide (Coming soon)', link: '/guide/cloud-desktops' },
-              { text: 'tose desktop', link: '/commands/desktop' },
-              { text: 'Desktops API', link: '/api/desktops' }
-            ]
-          },
-          {
-            text: 'Cloud Harness',
-            items: [
-              { text: 'Cloud Harness Guide', link: '/guide/cloud-harness' },
-              { text: 'Runtimes API', link: '/api/runtimes' }
-            ]
-          },
-          {
-            text: 'MCP and Agents',
-            items: [
+              { text: 'Blog publishing via MCP', link: '/guide/blog-and-editorial-mcp' },
               { text: 'Protocol, OAuth and scopes', link: '/mcp/oauth' },
               { text: 'Tasks', link: '/mcp/tasks' },
               { text: 'Apps', link: '/mcp/apps' },
               { text: 'Skills', link: '/mcp/skills' },
               { text: 'Agent access', link: '/mcp/agent-access' },
               { text: 'Dewee template routes', link: '/mcp/dewee-template' },
-              { text: 'Client compatibility', link: '/mcp/clients' }
+              { text: 'Client compatibility', link: '/mcp/clients' },
+              { text: 'MCP Connector', link: '/mcp' }
             ]
           },
           {
-            text: 'API Reference',
+            text: 'Cloud Harness and Desktops',
+            items: [
+              { text: 'Cloud Desktops Guide (Coming soon)', link: '/guide/cloud-desktops' },
+              { text: 'tose desktop', link: '/commands/desktop' },
+              { text: 'Desktops API', link: '/api/desktops' },
+              { text: 'Cloud Harness Guide', link: '/guide/cloud-harness' },
+              { text: 'Runtimes API', link: '/api/runtimes' }
+            ]
+          },
+          {
+            text: 'Billing and account',
+            items: [
+              { text: 'Pricing', link: '/guide/pricing' },
+              { text: 'Self-hosting', link: '/guide/self-hosting' },
+              { text: 'Referral program', link: '/guide/referral' },
+              { text: 'Promo codes', link: '/guide/promo-codes' },
+              { text: 'Link an earlier enquiry', link: '/guide/link-enquiry' }
+            ]
+          },
+          {
+            text: 'REST API reference',
             items: [
               { text: 'REST API', link: '/api/reference' },
               { text: 'Authentication', link: '/api/authentication' },
@@ -156,7 +182,6 @@ export default defineConfig({
               { text: 'Feedback', link: '/api/feedback' },
               { text: 'Support assistant token', link: '/api/support-assistant' },
               { text: 'Promo codes', link: '/api/promo-codes' },
-              { text: 'MCP Connector', link: '/mcp' },
               { text: 'Errors', link: '/api/errors' },
               { text: 'Sign-up Attribution', link: '/api/signup-attribution' },
               { text: 'Desktops', link: '/api/desktops' },
@@ -185,22 +210,26 @@ export default defineConfig({
       themeConfig: {
         nav: [
           { text: 'Trang chủ', link: '/vi/' },
-          { text: 'Hướng dẫn', link: '/vi/guide/getting-started' },
-          { text: 'Lệnh', link: '/vi/commands/overview' },
-          { text: 'API', link: '/vi/api/reference' }
+          { text: 'Triển khai', link: '/vi/guide/deploy-an-app' },
+          { text: 'CLI', link: '/vi/commands/overview' },
+          { text: 'MCP', link: '/vi/guide/connect-an-agent' },
+          { text: 'API', link: '/vi/guide/integrate-the-api' }
         ],
 
         sidebar: [
           {
-            text: 'Giới thiệu',
+            text: 'Bắt đầu',
             items: [
               { text: 'TOSE CLI là gì?', link: '/vi/guide/introduction' },
               { text: 'Cài đặt', link: '/vi/guide/installation' },
-              { text: 'Bắt đầu', link: '/vi/guide/getting-started' }
+              { text: 'Bắt đầu', link: '/vi/guide/getting-started' },
+              { text: 'Triển khai ứng dụng', link: '/vi/guide/deploy-an-app' },
+              { text: 'Kết nối AI agent (MCP)', link: '/vi/guide/connect-an-agent' },
+              { text: 'Tích hợp REST API', link: '/vi/guide/integrate-the-api' }
             ]
           },
           {
-            text: 'Các lệnh',
+            text: 'Lệnh CLI',
             items: [
               { text: 'Tổng quan', link: '/vi/commands/overview' },
               { text: 'tose login / logout (tiếng Anh)', link: '/commands/login' },
@@ -210,7 +239,6 @@ export default defineConfig({
               { text: 'tose deployment', link: '/vi/commands/deployment' },
               { text: 'tose ci', link: '/vi/commands/ci' },
               { text: 'tose analytics', link: '/vi/commands/analytics' },
-
               { text: 'tose runbook', link: '/vi/commands/runbook' },
               { text: 'tose status', link: '/vi/commands/status' },
               { text: 'tose logs', link: '/vi/commands/logs' },
@@ -232,74 +260,86 @@ export default defineConfig({
             ]
           },
           {
-            text: 'Cấu hình',
+            text: 'Triển khai và cấu hình',
             items: [
               { text: 'File cấu hình', link: '/vi/guide/configuration' },
               { text: 'Biến môi trường', link: '/vi/guide/environment' },
               { text: 'Tích hợp Git', link: '/vi/guide/git' },
               { text: 'Nút Deploy on TOSE', link: '/vi/guide/deploy-button' },
               { text: 'Ví dụ Dockerfile', link: '/vi/guide/dockerfile' },
-              { text: 'Chọn job CI theo ảnh hưởng', link: '/vi/guide/ci-impact-selection' },
-              { text: 'Mức sử dụng CI và hạn mức', link: '/vi/guide/ci-usage-and-budgets' },
               { text: 'Ổ đĩa bền vững', link: '/vi/guide/persistent-disks' },
-              { text: 'Triển khai coding agent', link: '/vi/guide/deploy-coding-agent' },
-              { text: 'Giao tác vụ cho coding agent', link: '/vi/guide/agent-tasks' },
-              { text: 'Ngân sách autoscaling', link: '/vi/guide/autoscaling-budgets' },
-              { text: 'Runbook khôi phục', link: '/vi/guide/recovery-runbooks' },
               { text: 'Sidecar của dự án', link: '/vi/guide/project-sidecars' },
               { text: 'Runbook template Dewee', link: '/vi/guide/dewee-template' },
               { text: 'Template registry (truy cập sớm)', link: '/vi/guide/template-registry' },
               { text: 'Template registry: probe và nâng cấp', link: '/vi/guide/template-upgrades' },
+              { text: 'Thư mục template', link: '/vi/guide/template-directory' },
+              { text: 'Tên miền tùy chỉnh', link: '/vi/guide/custom-domains' }
+            ]
+          },
+          {
+            text: 'CI',
+            items: [
+              { text: 'Chọn job CI theo ảnh hưởng', link: '/vi/guide/ci-impact-selection' },
+              { text: 'Mức sử dụng CI và hạn mức', link: '/vi/guide/ci-usage-and-budgets' },
+              { text: 'CI trong dashboard', link: '/vi/guide/ci-dashboard' },
+              { text: 'Artifact CI, báo cáo và bản nháp issue', link: '/vi/guide/ci-artifacts' },
+              { text: 'Trigger CI và duyệt fork', link: '/vi/guide/ci-triggers-and-forks' }
+            ]
+          },
+          {
+            text: 'Vận hành và khắc phục sự cố',
+            items: [
+              { text: 'Ngân sách autoscaling', link: '/vi/guide/autoscaling-budgets' },
+              { text: 'Runbook khôi phục', link: '/vi/guide/recovery-runbooks' },
+              { text: 'Báo vấn đề từ dashboard', link: '/vi/guide/dashboard-feedback' },
+              { text: 'Vận hành trên nhiều workspace', link: '/vi/guide/operations-overview' },
+              { text: 'Số liệu workload', link: '/vi/guide/workload-metrics' },
+              { text: 'Hộp thư thông báo', link: '/vi/guide/notifications' },
+              { text: 'Troubleshooting (tiếng Anh)', link: '/guide/troubleshooting' }
+            ]
+          },
+          {
+            text: 'AI agent và MCP',
+            items: [
+              { text: 'Triển khai coding agent', link: '/vi/guide/deploy-coding-agent' },
+              { text: 'Giao tác vụ cho coding agent', link: '/vi/guide/agent-tasks' },
               { text: 'Kho mã GitHub cho coding agent', link: '/vi/guide/agent-repository-checkout' },
               { text: 'Chế độ mạng cho coding agent', link: '/vi/guide/agent-network-modes' },
               { text: 'Nhà cung cấp model cho Pi', link: '/vi/guide/agent-pi-providers' },
               { text: 'Biến môi trường và tự động ngủ của agent', link: '/vi/guide/agent-environment-and-auto-sleep' },
-              { text: 'Thư mục template', link: '/vi/guide/template-directory' },
-              { text: 'Tên miền tùy chỉnh', link: '/vi/guide/custom-domains' },
-              { text: 'Báo vấn đề từ dashboard', link: '/vi/guide/dashboard-feedback' },
-              { text: 'Vận hành trên nhiều workspace', link: '/vi/guide/operations-overview' },
-              { text: 'Số liệu workload', link: '/vi/guide/workload-metrics' },
-              { text: 'Bảng giá', link: '/vi/guide/pricing' },
-              { text: 'CI trong dashboard', link: '/vi/guide/ci-dashboard' },
               { text: 'Giá Agent Runtime', link: '/vi/guide/agent-runtime-pricing' },
-              { text: 'Tự host', link: '/vi/guide/self-hosting' },
-              { text: 'Hộp thư thông báo', link: '/vi/guide/notifications' },
-              { text: 'Chương trình giới thiệu', link: '/vi/guide/referral' },
-              { text: 'Mã khuyến mãi', link: '/vi/guide/promo-codes' },
-              { text: 'Liên kết yêu cầu trước đó', link: '/vi/guide/link-enquiry' },
-              { text: 'Artifact CI, báo cáo và bản nháp issue', link: '/vi/guide/ci-artifacts' },
-              { text: 'Trigger CI và duyệt fork', link: '/vi/guide/ci-triggers-and-forks' },
-              { text: 'Đăng blog qua MCP', link: '/vi/guide/blog-and-editorial-mcp' }
-            ]
-          },
-          {
-            text: 'Cloud Desktop',
-            items: [
-              { text: 'Hướng dẫn Cloud Desktop (Coming soon)', link: '/vi/guide/cloud-desktops' },
-              { text: 'API Desktops (tiếng Anh)', link: '/api/desktops' }
-            ]
-          },
-          {
-            text: 'Cloud Harness',
-            items: [
-              { text: 'Hướng dẫn Cloud Harness', link: '/vi/guide/cloud-harness' },
-              { text: 'API Runtimes', link: '/vi/api/runtimes' }
-            ]
-          },
-          {
-            text: 'MCP và Agent',
-            items: [
+              { text: 'Đăng blog qua MCP', link: '/vi/guide/blog-and-editorial-mcp' },
               { text: 'Giao thức, OAuth và scope', link: '/vi/mcp/oauth' },
               { text: 'Tasks', link: '/vi/mcp/tasks' },
               { text: 'Apps', link: '/vi/mcp/apps' },
               { text: 'Skills', link: '/vi/mcp/skills' },
               { text: 'Agent access', link: '/vi/mcp/agent-access' },
               { text: 'Route của template Dewee', link: '/vi/mcp/dewee-template' },
-              { text: 'Tương thích client', link: '/vi/mcp/clients' }
+              { text: 'Tương thích client', link: '/vi/mcp/clients' },
+              { text: 'MCP Connector', link: '/vi/mcp' }
             ]
           },
           {
-            text: 'Tài liệu API',
+            text: 'Cloud Harness và Desktop',
+            items: [
+              { text: 'Hướng dẫn Cloud Desktop (Coming soon)', link: '/vi/guide/cloud-desktops' },
+              { text: 'API Desktops (tiếng Anh)', link: '/api/desktops' },
+              { text: 'Hướng dẫn Cloud Harness', link: '/vi/guide/cloud-harness' },
+              { text: 'API Runtimes', link: '/vi/api/runtimes' }
+            ]
+          },
+          {
+            text: 'Thanh toán và tài khoản',
+            items: [
+              { text: 'Bảng giá', link: '/vi/guide/pricing' },
+              { text: 'Tự host', link: '/vi/guide/self-hosting' },
+              { text: 'Chương trình giới thiệu', link: '/vi/guide/referral' },
+              { text: 'Mã khuyến mãi', link: '/vi/guide/promo-codes' },
+              { text: 'Liên kết yêu cầu trước đó', link: '/vi/guide/link-enquiry' }
+            ]
+          },
+          {
+            text: 'Tài liệu REST API',
             items: [
               { text: 'REST API', link: '/vi/api/reference' },
               { text: 'Xác thực', link: '/vi/api/authentication' },
@@ -308,7 +348,6 @@ export default defineConfig({
               { text: 'Feedback', link: '/vi/api/feedback' },
               { text: 'Support token của trợ lý', link: '/vi/api/support-assistant' },
               { text: 'Mã khuyến mãi', link: '/vi/api/promo-codes' },
-              { text: 'MCP Connector', link: '/vi/mcp' },
               { text: 'Mã lỗi', link: '/vi/api/errors' },
               { text: 'Runtimes', link: '/vi/api/runtimes' },
               { text: 'Usage và hạn mức agent', link: '/vi/api/agent-usage' },
