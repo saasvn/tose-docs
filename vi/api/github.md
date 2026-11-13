@@ -90,11 +90,11 @@ POST /api/github/check-install
 
 | Request | Kết quả |
 |---------|--------|
-| Không có body | Trạng thái hiện tại: `installed`, kèm `install_url` khi app chưa được cài |
+| Không có body | Trạng thái hiện tại: `installed`, kèm `install_url` (và `github_install_url`, trang của app trên github.com) khi app chưa được cài, hoặc, với `workspace_slug`, khi workspace đã gắn một installation |
 | `{ "installation_id": 123 }` | Liên kết một installation đã biết vào tài khoản của bạn, sau khi kiểm tra danh tính GitHub của chính bạn truy cập được nó (`403` nếu không, `400` khi GitHub không thấy nó) |
 | `?poll=true&timeout=120` | Chờ tối đa `timeout` giây (1-300, mặc định 120) cho tới khi installation xuất hiện rồi trả về |
 
-Với `workspace_slug`, câu trả lời được thu hẹp theo workspace đó và có thể đặt `needs_workspace_attach`. `install_url` chứa một token ngắn hạn định danh bạn: hãy mở nó trong trình duyệt, nhưng không ghi log hay chia sẻ.
+Với `workspace_slug`, câu trả lời được thu hẹp theo workspace đó và có thể đặt `needs_workspace_attach`. Workspace đã gắn một installation vẫn nhận `install_url`, để một người có thể kết nối thêm tài khoản GitHub khác, ví dụ tài khoản cá nhân bên cạnh một tổ chức, và installation đó được ghi là của họ (tose-app [#784](https://github.com/saasvn/tose-app/pull/784)). `install_url` chứa một token ngắn hạn định danh bạn: hãy mở nó trong trình duyệt, nhưng không ghi log hay chia sẻ.
 
 ### Gắn vào workspace {#attach}
 
