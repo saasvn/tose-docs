@@ -90,11 +90,11 @@ POST /api/github/check-install
 
 | Request | Result |
 |---------|--------|
-| No body | Current status: `installed`, and `install_url` when the app is not installed |
+| No body | Current status: `installed`, and `install_url` (with `github_install_url`, the app's own page on github.com) when the app is not installed, or, with `workspace_slug`, when the workspace already has an installation attached |
 | `{ "installation_id": 123 }` | Links a known installation to your account, after checking that your own GitHub identity can access it (`403` otherwise, `400` when GitHub cannot see it) |
 | `?poll=true&timeout=120` | Waits up to `timeout` seconds (1-300, default 120) for the installation to appear, then returns |
 
-With `workspace_slug`, the answer is narrowed to that workspace and may set `needs_workspace_attach`. `install_url` embeds a short-lived token that identifies you: open it in a browser, but never log or share it.
+With `workspace_slug`, the answer is narrowed to that workspace and may set `needs_workspace_attach`. A workspace that already has an installation attached still gets `install_url`, so a person can connect another GitHub account, for example a personal account next to an organization, and have that install marked as theirs (tose-app [#784](https://github.com/saasvn/tose-app/pull/784)). `install_url` embeds a short-lived token that identifies you: open it in a browser, but never log or share it.
 
 ### Attach to a workspace
 
