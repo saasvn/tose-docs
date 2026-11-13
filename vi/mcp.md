@@ -18,12 +18,12 @@ Muốn kết nối workspace khác thì thêm connector lần nữa và chọn w
 
 ## Tools {#tools}
 
-Số lượng tool không cố định. `tools/list` chỉ cho một kết nối thấy những tool mà các [scope](/vi/mcp/oauth#scope) đã duyệt cho phép, và một số nhóm chỉ có khi đơn vị vận hành server bật tính năng tương ứng. Kết nối chỉ-đọc thấy các tool đọc về project, deployment, log, incident và template; mọi tool khác cần một scope được cấp trên màn hình đồng ý.
+Số lượng tool không cố định. `tools/list` chỉ cho một kết nối thấy những tool mà các [scope](/vi/mcp/oauth#scope) đã duyệt cho phép, và một số nhóm chỉ có khi đơn vị vận hành server bật tính năng tương ứng. Kết nối chỉ-đọc thấy các tool đọc về project, deployment, log, incident, runbook và template, cùng `autoscaling_budget_get` và `get_feedback` khi các tính năng đó được bật. Mọi tool khác cần một scope được cấp trên màn hình đồng ý.
 
 | Nhóm | Scope | Có khi | Chi tiết |
 |------|-------|--------|----------|
 | [Project, deployment, log, incident và runbook](#deployment-tools) | `deployments:read`, `projects:read`, `logs:read`; `deployments:execute`, `deployments:rollback` (hoặc `deployments:write`) để thay đổi | Luôn có | Trang này |
-| [Template](#template-tools) | `deployments:read`; `projects:write` để tạo bản nháp và publish; thêm `deployments:execute` để cài đặt | Luôn có | [Template registry](/vi/guide/template-registry) |
+| [Template](#template-tools) | `projects:read`, `deployments:read`; `projects:write` để tạo bản nháp và publish; thêm `deployments:execute` để cài đặt | Luôn có | [Template registry](/vi/guide/template-registry) |
 | [CI](#ci-tools) | `ci:read`, `ci:diagnose`, `ci:execute` | Luôn có | [Trigger và dispatch CI](/vi/guide/ci-triggers-and-forks), [Artifact CI](/vi/guide/ci-artifacts), [Mức dùng và ngân sách CI](/vi/guide/ci-usage-and-budgets) |
 | [Biến môi trường](#tool-metadata-env) | `env:read`, `env:write` | Luôn có | Trang này |
 | [Ngân sách autoscaling](#tool-ngan-sach-autoscaling) | `projects:read`, `projects:write` | `AUTOSCALING_BUDGET_ENABLED` | [Ngân sách autoscaling](/vi/guide/autoscaling-budgets) |
@@ -32,7 +32,7 @@ Số lượng tool không cố định. `tools/list` chỉ cho một kết nối
 | Blog | `blog:write`, chỉ platform admin | `BLOG_ENABLED` | [Blog và MCP biên tập](/vi/guide/blog-and-editorial-mcp) |
 | Mã giảm giá | `admin:discounts`, chỉ platform admin | Luôn có | [Mã khuyến mãi](/vi/api/promo-codes#admin) |
 
-Instance chạy Agent Runtime (`AGENT_RUNTIME_ENABLED`) còn có các tool agent riêng của nó, như `list_agents` và `run_agent`, dưới cùng các scope `agents:*`.
+Instance chạy Agent Runtime (`AGENT_RUNTIME_ENABLED`) còn có các tool agent riêng của nó, như `list_agents` và `run_agent`, dưới các scope `agents:*`, gồm cả `agents:write` và `agents:usage:read`.
 
 Cột "Có thay đổi gì không?" bên dưới cho biết một lần gọi có thay đổi gì trong TOSE không và có cần một người duyệt trước không. Việc duyệt luôn diễn ra trên trình duyệt khi đã đăng nhập TOSE, không bao giờ trong chat; xem [Cơ chế phê duyệt](#co-che-phe-duyet).
 
@@ -49,7 +49,7 @@ Cột "Có thay đổi gì không?" bên dưới cho biết một lần gọi c�
 | `deploy_project` | Build và deploy commit đầu của branch đã kết nối, đúng commit hiển thị trong kế hoạch. | `deployments:execute` | **Có**, cần phê duyệt |
 | `deploy_image` | Deploy một OCI image được ghim bằng digest (`registry/repository[:tag]@sha256:…`; chỉ có tag sẽ bị từ chối), không cần build hay kết nối Git. Có thể truyền `registry_credential_id` cho image riêng tư mà một người đã thêm, và `idempotency_key`. | `deployments:execute` | **Có**, cần phê duyệt |
 | `rollback_deployment` | Đưa image của một deployment cũ lên chạy lại. | `deployments:rollback` | **Có**, cần phê duyệt |
-| `plan_runbook` | Lập kế hoạch restart hoặc rollback chỉ-đọc và trả về `approval_url`. | `deployments:execute` | Không |
+| `plan_runbook` | Lập kế hoạch restart, rollback hoặc scale chỉ-đọc và trả về `approval_url`. Kế hoạch rollback cần thêm `deployments:rollback`. | `deployments:execute` | Không |
 | `execute_runbook` | Chạy kế hoạch bạn đã duyệt, một lần cho mỗi `idempotency_key`. Runbook rollback cần thêm `deployments:rollback`. | `deployments:execute` | **Có**, cần phê duyệt khi đã đăng nhập |
 | `get_runbook` | Đọc kế hoạch, trạng thái phê duyệt và kết quả đã xác minh. | `deployments:read` | Không |
 
@@ -59,9 +59,9 @@ Cột "Có thay đổi gì không?" bên dưới cho biết một lần gọi c�
 
 | Tool | Chức năng | Scope | Có thay đổi gì không? |
 |------|-----------|-------|-----------------------|
-| `search_templates` | Tìm trong template registry của workspace, hoặc với `scope: "directory"` tìm trong [thư mục template](/vi/guide/template-directory) công khai khi nền tảng bật nó. | `deployments:read` | Không |
-| `get_template` | Một definition và version: nguồn gốc, workload, tên biến và tên secret, và `manifest_hash`. | `deployments:read` | Không |
-| `validate_template` | Kiểm tra một manifest `tose.dev/v1`, gửi dưới dạng `manifest_yaml` hoặc chỉ định bằng definition và version, mà không lưu gì. | `deployments:read` | Không |
+| `search_templates` | Tìm trong template registry của workspace, hoặc với `scope: "directory"` tìm trong [thư mục template](/vi/guide/template-directory) công khai khi nền tảng bật nó. | `projects:read` | Không |
+| `get_template` | Một definition và version: nguồn gốc, workload, tên biến và tên secret, và `manifest_hash`. | `projects:read` | Không |
+| `validate_template` | Kiểm tra một manifest `tose.dev/v1`, gửi dưới dạng `manifest_yaml` hoặc chỉ định bằng definition và version, mà không lưu gì. | `projects:read` | Không |
 | `plan_template_deployment` | Lập kế hoạch cài một version đã publish. Không tạo gì: kế hoạch ghim version, đích, cấu hình và trần chi phí theo giờ, rồi trả về `approval_url`. | `deployments:read` | Không, trả về kế hoạch và link phê duyệt |
 | `get_template_deployment` | Theo dõi một kế hoạch (`plan_id`) hoặc một bản cài (`installation_id`). | `deployments:read` | Không |
 | `create_template_draft` | Lưu một manifest làm bản nháp trong registry của workspace. | `projects:write` | **Có** |
@@ -87,16 +87,16 @@ Tạo bản nháp và publish cần owner hoặc admin. Không tool nào duyệt
 | `ci_list_suggestions` | Các đề xuất tối ưu impact của một pipeline. Chỉ đọc: chấp nhận đề xuất cần một người trên dashboard. | `ci:read` | Không |
 | `ci_diagnose` | Giải thích vì sao một run không qua: loại lỗi, gợi ý, bước lỗi và phần cuối log. | `ci:diagnose` | Không |
 | `ci_propose_issue` | Soạn nháp một GitHub issue cho run lỗi. Chỉ trả về bản nháp, không tạo issue. | `ci:diagnose` | Không |
-| `ci_run` | Khởi chạy thủ công một run cho commit mà pipeline đã ghi nhận. | `ci:execute` | **Có**, chạy ngay và trả từ ví |
-| `ci_dispatch` | Khởi chạy một run `workflow_dispatch` có input kiểu cho một branch. | `ci:execute` | **Có**, chạy ngay và trả từ ví |
-| `ci_cancel` | Huỷ một run. Job đang chạy bị tính tiền theo số giây đã chạy. | `ci:execute` | **Có** |
+| `ci_run` | Khởi chạy thủ công một run cho commit mà pipeline đã ghi nhận. | `ci:execute` | **Có**, chạy ngay và trừ vào ví |
+| `ci_dispatch` | Khởi chạy một run `workflow_dispatch` cho một branch, với input theo kiểu khai báo. | `ci:execute` | **Có**, chạy ngay và trừ vào ví |
+| `ci_cancel` | Hủy một run. Job đang chạy bị tính tiền theo số giây đã chạy. | `ci:execute` | **Có** |
 | `ci_set_budget` | Thêm hoặc hạ một trần ngân sách CI. Chỉ owner và admin. | `ci:execute` | **Có**, chỉ làm trần chặt hơn |
 
-`ci:diagnose` và `ci:execute` bao gồm mọi thứ `ci:read` cho phép; các scope deployment không cấp quyền CI nào. **`ci_run` và `ci_dispatch` khởi chạy mà không cần duyệt trên trình duyệt**, và mỗi job được trả từ ví trả trước của workspace, nên chỉ cấp `ci:execute` cho client bạn tin để tiêu tiền đó. Nâng hoặc bỏ trần ngân sách CI, duyệt run của pull request từ fork và chấp nhận đề xuất impact cần một người đăng nhập TOSE; không tool nào làm được.
+`ci:diagnose` và `ci:execute` bao gồm mọi thứ `ci:read` cho phép; các scope deployment không cấp quyền CI nào. **`ci_run` và `ci_dispatch` khởi chạy mà không cần duyệt trên trình duyệt**, và mỗi job được trừ vào ví trả trước của workspace, nên chỉ cấp `ci:execute` cho client bạn tin để tiêu tiền đó. Nâng hoặc bỏ trần ngân sách CI, duyệt run của pull request từ fork và chấp nhận đề xuất impact cần một người đăng nhập TOSE; không tool nào làm được.
 
 ### Tool cloud agent {#cloud-agent-tools}
 
-Khi server bật tính năng giao tác vụ cho agent (`TEMPLATE_AGENT_TASKS_ENABLED`), owner hoặc admin của workspace có thể giao tác vụ cho các agent Claude Code, Codex và Pi tuyển chọn của workspace. Xem [Giao tác vụ cho coding agent](/vi/guide/agent-tasks).
+Khi server bật tính năng giao tác vụ cho agent (`TEMPLATE_AGENT_TASKS_ENABLED`), owner hoặc admin của workspace có thể giao tác vụ cho các agent Claude Code, Codex và Pi tuyển chọn của workspace. Cả bốn tool, kể cả tool đọc, đều cần owner hoặc admin; member nhận `FORBIDDEN`. Xem [Giao tác vụ cho coding agent](/vi/guide/agent-tasks).
 
 | Tool | Chức năng | Scope | Có thay đổi gì không? |
 |------|-----------|-------|-----------------------|
@@ -226,7 +226,7 @@ Khi tool lỗi, nội dung trả về bắt đầu bằng một mã cố định
 
 ## Dữ liệu và quyền riêng tư
 
-- **Connector đọc gì:** project, deployment, build log và runtime log của workspace bạn đã chọn. Với `env:read`, còn đọc tên và trạng thái đã đặt của biến môi trường trong project, không bao giờ đọc giá trị. Với `env:write`, còn lập và áp dụng thay đổi biến mà bạn duyệt trong TOSE, nhưng vẫn không bao giờ nhận giá trị.
+- **Connector đọc gì:** project, deployment, build log, runtime log và incident của workspace bạn đã chọn, và khi có scope tương ứng, cả template, run CI kèm log và artifact đã che secret, và kết quả tác vụ của cloud agent. Với `env:read`, còn đọc tên và trạng thái đã đặt của biến môi trường trong project, không bao giờ đọc giá trị. Với `env:write`, còn lập và áp dụng thay đổi biến mà bạn duyệt trong TOSE, nhưng vẫn không bao giờ nhận giá trị.
 - **Không bao giờ trả về:** giá trị biến môi trường, thông tin đăng nhập database, registry hay cluster, và API key.
   - Trước khi trả log, commit message và thông báo lỗi, TOSE xóa giá trị biến môi trường của project và các dạng credential phổ biến: URL có mật khẩu, bearer token, private key, token cloud và GitHub, JWT.
   - Việc xóa này chỉ là best effort, vì vậy đừng in secret ra log ứng dụng.

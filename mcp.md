@@ -18,12 +18,12 @@ To connect another workspace, add the connector again and pick the other workspa
 
 ## Tools {#tools}
 
-There is no fixed number of tools. `tools/list` shows a connection only the tools its approved [scopes](/mcp/oauth#scopes) allow, and some groups exist only while the server operator has a feature turned on. A read-only connection sees the project, deployment, log, incident and template read tools; every other tool needs a scope granted on the consent screen.
+There is no fixed number of tools. `tools/list` shows a connection only the tools its approved [scopes](/mcp/oauth#scopes) allow, and some groups exist only while the server operator has a feature turned on. A read-only connection sees the project, deployment, log, incident, runbook and template read tools, plus `autoscaling_budget_get` and `get_feedback` where those features are on. Every other tool needs a scope granted on the consent screen.
 
 | Group | Scopes | Offered when | Details |
 |-------|--------|--------------|---------|
 | [Projects, deployments, logs, incidents and runbooks](#deployment-tools) | `deployments:read`, `projects:read`, `logs:read`; `deployments:execute`, `deployments:rollback` (or `deployments:write`) for changes | Always | This page |
-| [Templates](#template-tools) | `deployments:read`; `projects:write` for drafts and publishing; with `deployments:execute` to install | Always | [Template registry](/guide/template-registry) |
+| [Templates](#template-tools) | `projects:read`, `deployments:read`; `projects:write` for drafts and publishing; with `deployments:execute` to install | Always | [Template registry](/guide/template-registry) |
 | [CI](#ci-tools) | `ci:read`, `ci:diagnose`, `ci:execute` | Always | [CI triggers and dispatch](/guide/ci-triggers-and-forks), [CI artifacts](/guide/ci-artifacts), [CI usage and budgets](/guide/ci-usage-and-budgets) |
 | [Environment variables](#env-metadata-tools) | `env:read`, `env:write` | Always | This page |
 | [Autoscaling budget](#autoscaling-budget-tools) | `projects:read`, `projects:write` | `AUTOSCALING_BUDGET_ENABLED` | [Autoscaling budgets](/guide/autoscaling-budgets) |
@@ -32,7 +32,7 @@ There is no fixed number of tools. `tools/list` shows a connection only the tool
 | Blog | `blog:write`, platform admins only | `BLOG_ENABLED` | [Blog and editorial MCP](/guide/blog-and-editorial-mcp) |
 | Discount codes | `admin:discounts`, platform admins only | Always | [Promo codes](/api/promo-codes#admin) |
 
-Instances that run Agent Runtime (`AGENT_RUNTIME_ENABLED`) also offer its own agent tools, such as `list_agents` and `run_agent`, under the same `agents:*` scopes.
+Instances that run Agent Runtime (`AGENT_RUNTIME_ENABLED`) also offer its own agent tools, such as `list_agents` and `run_agent`, under the `agents:*` scopes, including `agents:write` and `agents:usage:read`.
 
 "Changes anything?" below says whether a call changes something in TOSE and whether a person must approve it first. An approval always happens in the browser, signed in to TOSE, never in the chat; see [How approval works](#how-approval-works).
 
@@ -49,7 +49,7 @@ Instances that run Agent Runtime (`AGENT_RUNTIME_ENABLED`) also offer its own ag
 | `deploy_project` | Builds and deploys the head commit of the project's connected branch, as shown in the plan. | `deployments:execute` | **Yes**, needs approval |
 | `deploy_image` | Deploys an OCI image pinned by digest (`registry/repository[:tag]@sha256:…`; a tag alone is refused), without a build or a Git connection. Optional `registry_credential_id` for a private image that a person added, and `idempotency_key`. | `deployments:execute` | **Yes**, needs approval |
 | `rollback_deployment` | Puts the image of an earlier deployment live again. | `deployments:rollback` | **Yes**, needs approval |
-| `plan_runbook` | Makes a read-only restart or rollback plan and returns an `approval_url`. | `deployments:execute` | No |
+| `plan_runbook` | Makes a read-only restart, rollback or scale plan and returns an `approval_url`. A rollback plan also needs `deployments:rollback`. | `deployments:execute` | No |
 | `execute_runbook` | Runs a plan you approved, once per `idempotency_key`. A rollback runbook also needs `deployments:rollback`. | `deployments:execute` | **Yes**, needs a signed-in approval |
 | `get_runbook` | Reads a plan, its approval and its verified result. | `deployments:read` | No |
 
@@ -59,9 +59,9 @@ Instances that run Agent Runtime (`AGENT_RUNTIME_ENABLED`) also offer its own ag
 
 | Tool | What it does | Scope | Changes anything? |
 |------|--------------|-------|-------------------|
-| `search_templates` | Searches the workspace's template registry, or with `scope: "directory"` the public [template directory](/guide/template-directory) when the platform has it on. | `deployments:read` | No |
-| `get_template` | One definition and version: provenance, workload, variable and secret names, and the `manifest_hash`. | `deployments:read` | No |
-| `validate_template` | Checks a `tose.dev/v1` manifest, sent as `manifest_yaml` or named by definition and version, without storing anything. | `deployments:read` | No |
+| `search_templates` | Searches the workspace's template registry, or with `scope: "directory"` the public [template directory](/guide/template-directory) when the platform has it on. | `projects:read` | No |
+| `get_template` | One definition and version: provenance, workload, variable and secret names, and the `manifest_hash`. | `projects:read` | No |
+| `validate_template` | Checks a `tose.dev/v1` manifest, sent as `manifest_yaml` or named by definition and version, without storing anything. | `projects:read` | No |
 | `plan_template_deployment` | Plans installing a published version. Nothing is created: the plan pins the version, target, configuration and an hourly cost ceiling, and returns an `approval_url`. | `deployments:read` | No, returns a plan and an approval link |
 | `get_template_deployment` | Follows a plan (`plan_id`) or an installation (`installation_id`). | `deployments:read` | No |
 | `create_template_draft` | Stores a manifest as a draft in the workspace's registry. | `projects:write` | **Yes** |
@@ -96,7 +96,7 @@ Drafts and publishing need an owner or admin. No tool approves a template plan, 
 
 ### Cloud agent tools {#cloud-agent-tools}
 
-When the server has agent tasks turned on (`TEMPLATE_AGENT_TASKS_ENABLED`), a workspace owner or admin can give tasks to the workspace's curated Claude Code, Codex and Pi agents. See [Delegate tasks to a coding agent](/guide/agent-tasks).
+When the server has agent tasks turned on (`TEMPLATE_AGENT_TASKS_ENABLED`), a workspace owner or admin can give tasks to the workspace's curated Claude Code, Codex and Pi agents. All four tools, the read tools included, need an owner or admin; a member gets `FORBIDDEN`. See [Delegate tasks to a coding agent](/guide/agent-tasks).
 
 | Tool | What it does | Scope | Changes anything? |
 |------|--------------|-------|-------------------|
@@ -226,7 +226,7 @@ Failed tool calls return text that starts with a stable code:
 
 ## Data and privacy
 
-- **What the connector reads:** projects, deployments, build logs and runtime logs of the workspace you picked. With `env:read`, also the names and set state of a project's environment variables, never a value. With `env:write`, it can plan and apply a variable change that you approve in TOSE, but it still never receives a value.
+- **What the connector reads:** projects, deployments, build logs, runtime logs and incidents of the workspace you picked, and, with the matching scopes, its templates, CI runs with their redacted logs and artifacts, and the results of cloud agent tasks. With `env:read`, also the names and set state of a project's environment variables, never a value. With `env:write`, it can plan and apply a variable change that you approve in TOSE, but it still never receives a value.
 - **What it never returns:** environment variable values, database credentials, registry or cluster credentials, and API keys. Before logs, commit messages and error messages are returned, TOSE removes the project's environment variable values and common credential patterns (URLs with passwords, bearer tokens, private keys, cloud and GitHub tokens, JWTs). Redaction is best effort. Do not print secrets in application logs.
 - **What TOSE stores:**
   - The registered client: name and redirect URIs.
