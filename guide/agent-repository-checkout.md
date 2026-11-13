@@ -46,7 +46,7 @@ You can connect a GitHub account that is not the one you sign in to TOSE with: f
 
 The confirmation page appears only when all of these hold:
 
-- Your TOSE account's email is verified. A Google sign-in is verified when Google vouches for the email. A GitHub sign-in is verified only when your GitHub account's public email is a verified address on GitHub; otherwise make that email public and verified on GitHub, then sign in to TOSE with GitHub again. An email sign-up must verify its email first.
+- Your TOSE account's email is verified. A Google sign-in is verified when Google vouches for the email. A GitHub sign-in is verified when GitHub lists the address as verified: your public profile email if it is verified, otherwise your primary email if it is verified. Your GitHub email can stay private, which is GitHub's default; only the primary address must be verified on GitHub (tose-app [#788](https://github.com/saasvn/tose-app/pull/788)). If you signed in with GitHub before this change, your account gets the verified mark at your next GitHub sign-in. An email sign-up must verify its email first.
 - You started the install from TOSE in the same browser, while signed in to the dashboard, and finished it within 10 minutes.
 - The GitHub account that installed the app can see the installation.
 
@@ -56,7 +56,7 @@ When you sign in to TOSE with the same GitHub account that installed the app, th
 
 This page means TOSE could not prove that the installation is yours, so nothing was linked. The installation stays on GitHub. To link it:
 
-1. Make sure your TOSE account's email is verified: verify it if you signed up with email, or, if you sign in with GitHub, make your GitHub email public and verified and sign in to TOSE again.
+1. Make sure your TOSE account's email is verified: verify it if you signed up with email, or, if you sign in with GitHub, verify your primary email on GitHub (it can stay private) and sign in to TOSE with GitHub again.
 2. Go back to TOSE and start again from **Connect GitHub** (or **Connect another GitHub account**) in the same browser, while signed in to the dashboard, and finish within 10 minutes. An install finished in another browser, or more than 10 minutes after you started it, ends on this page with "Your GitHub account could not be confirmed to have access to this installation, so it was not linked.", or, when it runs out during the authorize or confirm step, "This install link has expired or was not started from this browser. Start again from Tose."
 3. Or sign in to TOSE with the GitHub account that installed the app.
 
