@@ -1,6 +1,6 @@
 # TOSE MCP Connector
 
-The TOSE MCP connector lets an MCP client such as Claude check deployments, read logs, and, with your explicit approval, deploy or roll back projects in one TOSE workspace.
+The TOSE MCP connector lets an MCP client such as Claude check deployments, read logs and incidents, work with templates and CI, and, with your explicit approval, deploy or roll back projects in one TOSE workspace.
 
 - **Server URL:** `https://app.tose.sh/mcp` (Streamable HTTP). The OAuth issuer is `https://app.tose.sh`. If you run your own TOSE instance, use your own origin instead, as described in [Self-hosted instances](/mcp/oauth#self-hosted-instances).
 - **Authentication:** OAuth 2.1 with your TOSE account. The client discovers everything from the server URL, so there is no API key to paste.
@@ -16,25 +16,98 @@ The TOSE MCP connector lets an MCP client such as Claude check deployments, read
 
 To connect another workspace, add the connector again and pick the other workspace.
 
-## Tools
+## Tools {#tools}
 
-| Tool | What it does | Changes anything? |
-|------|--------------|-------------------|
-| `list_projects` | Lists projects in the workspace with their latest deployment. Optional `query` and `limit` (up to 100). | No |
-| `get_deployment_status` | Status of one deployment, or the latest one, plus the 5 most recent deployments. | No |
-| `inspect_deployment` | Commit, branch, author, image, trigger, timings, URL and error of one deployment. | No |
-| `read_logs` | `source=build` reads a deployment's build log. `source=runtime` reads recent application logs (up to 24 hours back, optional `level`). Returns at most 500 lines and 64 KB. | No |
-| `list_project_env_keys` | Lists the names of a project's environment variables and whether each is set. Needs the `env:read` scope. Never returns a value. | No |
-| `inspect_project_env` | The same metadata for one variable name. Needs the `env:read` scope. Never returns a value. | No |
-| `plan_project_env_update` | Plans a `set`, `rotate` or `delete` for up to 20 variables. Takes names and operations only. Needs the `env:write` scope. | No, returns a plan and an approval link |
-| `apply_project_env_update` | Saves the changes you approved in TOSE. Takes the project and the approval token only. Needs the `env:write` scope. | **Yes**, needs approval |
-| `deploy_project` | Builds and deploys the head commit of the project's connected branch, as shown in the plan. | **Yes**, needs approval |
-| `rollback_deployment` | Puts the image of an earlier deployment live again. | **Yes**, needs approval |
-| `plan_runbook` | Makes a read-only restart or rollback plan and returns an `approval_url`. | No |
-| `execute_runbook` | Runs a plan you approved, once per `idempotency_key`. | **Yes**, needs a signed-in approval |
-| `get_runbook` | Reads a plan, its approval and its verified result. | No |
+There is no fixed number of tools. `tools/list` shows a connection only the tools its approved [scopes](/mcp/oauth#scopes) allow, and some groups exist only while the server operator has a feature turned on. A read-only connection sees the project, deployment, log, incident and template read tools; every other tool needs a scope granted on the consent screen.
 
-### Autoscaling budget tools
+| Group | Scopes | Offered when | Details |
+|-------|--------|--------------|---------|
+| [Projects, deployments, logs, incidents and runbooks](#deployment-tools) | `deployments:read`, `projects:read`, `logs:read`; `deployments:execute`, `deployments:rollback` (or `deployments:write`) for changes | Always | This page |
+| [Templates](#template-tools) | `deployments:read`; `projects:write` for drafts and publishing; with `deployments:execute` to install | Always | [Template registry](/guide/template-registry) |
+| [CI](#ci-tools) | `ci:read`, `ci:diagnose`, `ci:execute` | Always | [CI triggers and dispatch](/guide/ci-triggers-and-forks), [CI artifacts](/guide/ci-artifacts), [CI usage and budgets](/guide/ci-usage-and-budgets) |
+| [Environment variables](#env-metadata-tools) | `env:read`, `env:write` | Always | This page |
+| [Autoscaling budget](#autoscaling-budget-tools) | `projects:read`, `projects:write` | `AUTOSCALING_BUDGET_ENABLED` | [Autoscaling budgets](/guide/autoscaling-budgets) |
+| [Feedback about TOSE](#feedback-tools) | `feedback:write`, `workspace:read` | `FEEDBACK_ENABLED` | [Feedback API](/api/feedback) |
+| [Cloud agents](#cloud-agent-tools) | `agents:read`, `agents:execute`, `agents:control` | `TEMPLATE_AGENT_TASKS_ENABLED` | [Delegate tasks to a coding agent](/guide/agent-tasks) |
+| Blog | `blog:write`, platform admins only | `BLOG_ENABLED` | [Blog and editorial MCP](/guide/blog-and-editorial-mcp) |
+| Discount codes | `admin:discounts`, platform admins only | Always | [Promo codes](/api/promo-codes#admin) |
+
+Instances that run Agent Runtime (`AGENT_RUNTIME_ENABLED`) also offer its own agent tools, such as `list_agents` and `run_agent`, under the same `agents:*` scopes.
+
+"Changes anything?" below says whether a call changes something in TOSE and whether a person must approve it first. An approval always happens in the browser, signed in to TOSE, never in the chat; see [How approval works](#how-approval-works).
+
+### Deployment tools {#deployment-tools}
+
+| Tool | What it does | Scope | Changes anything? |
+|------|--------------|-------|-------------------|
+| `list_projects` | Lists projects in the workspace with their latest deployment. Optional `query` and `limit` (up to 100). | `projects:read` | No |
+| `get_deployment_status` | Status of one deployment, or the latest one, plus the 5 most recent deployments. | `deployments:read` | No |
+| `inspect_deployment` | Commit, branch, author, image, trigger, timings, URL and error of one deployment. | `deployments:read` | No |
+| `read_logs` | `source=build` reads a deployment's build log. `source=runtime` reads recent application logs (up to 24 hours back, optional `level`). Returns at most 500 lines and 64 KB. | `logs:read` | No |
+| `list_incidents` | Lists operations incidents of the workspace (site down, failing deployments, failed backups, low balance), newest first. | `deployments:read` | No |
+| `inspect_incident` | One incident and the newest entries of its timeline: the events that opened and joined it, owner changes, notes, actions and verification results. | `deployments:read` | No |
+| `deploy_project` | Builds and deploys the head commit of the project's connected branch, as shown in the plan. | `deployments:execute` | **Yes**, needs approval |
+| `deploy_image` | Deploys an OCI image pinned by digest (`registry/repository[:tag]@sha256:…`; a tag alone is refused), without a build or a Git connection. Optional `registry_credential_id` for a private image that a person added, and `idempotency_key`. | `deployments:execute` | **Yes**, needs approval |
+| `rollback_deployment` | Puts the image of an earlier deployment live again. | `deployments:rollback` | **Yes**, needs approval |
+| `plan_runbook` | Makes a read-only restart or rollback plan and returns an `approval_url`. | `deployments:execute` | No |
+| `execute_runbook` | Runs a plan you approved, once per `idempotency_key`. A rollback runbook also needs `deployments:rollback`. | `deployments:execute` | **Yes**, needs a signed-in approval |
+| `get_runbook` | Reads a plan, its approval and its verified result. | `deployments:read` | No |
+
+`deployments:read` is the default when a client requests no scope, and includes `projects:read` and `logs:read`. `deployments:write` includes `deployments:execute` and `deployments:rollback`. Only an owner or admin can grant the write scopes.
+
+### Template tools {#template-tools}
+
+| Tool | What it does | Scope | Changes anything? |
+|------|--------------|-------|-------------------|
+| `search_templates` | Searches the workspace's template registry, or with `scope: "directory"` the public [template directory](/guide/template-directory) when the platform has it on. | `deployments:read` | No |
+| `get_template` | One definition and version: provenance, workload, variable and secret names, and the `manifest_hash`. | `deployments:read` | No |
+| `validate_template` | Checks a `tose.dev/v1` manifest, sent as `manifest_yaml` or named by definition and version, without storing anything. | `deployments:read` | No |
+| `plan_template_deployment` | Plans installing a published version. Nothing is created: the plan pins the version, target, configuration and an hourly cost ceiling, and returns an `approval_url`. | `deployments:read` | No, returns a plan and an approval link |
+| `get_template_deployment` | Follows a plan (`plan_id`) or an installation (`installation_id`). | `deployments:read` | No |
+| `create_template_draft` | Stores a manifest as a draft in the workspace's registry. | `projects:write` | **Yes** |
+| `publish_template` | Freezes a draft version inside the workspace so it can be planned. Send the `manifest_hash` you reviewed. | `projects:write` | **Yes** |
+| `deploy_template` | Installs a plan, or applies an upgrade or rollback plan, that an owner or admin approved at its `approval_url`. | `projects:write` and `deployments:execute` | **Yes**, needs approval |
+
+Drafts and publishing need an owner or admin. No tool approves a template plan, and an install meets the same [security gate](/guide/template-registry#install-security-gate-gated) as the dashboard.
+
+### CI tools {#ci-tools}
+
+| Tool | What it does | Scope | Changes anything? |
+|------|--------------|-------|-------------------|
+| `ci_list_pipelines` | Lists the workspace's CI pipelines. | `ci:read` | No |
+| `ci_list_runs` | The newest runs of one pipeline, with commit and status. | `ci:read` | No |
+| `ci_plan` | Says whether `ci_run` would accept a run of a commit now, and lists its jobs with their worst-case cost. Starts and reserves nothing. | `ci:read` | No |
+| `ci_get_status` | One run and its job statuses, with queue, setup, execution and cleanup time. | `ci:read` | No |
+| `ci_get_logs` | Up to 64 KiB of a job's stored, redacted log. | `ci:read` | No |
+| `ci_get_report` | A run's report: each job's status, steps with exit codes, reason and cost, and totals. | `ci:read` | No |
+| `ci_get_usage` | CI usage by day, run, pipeline, job or kind. | `ci:read` | No |
+| `ci_get_budget` | The workspace's and pipelines' CI budget caps. | `ci:read` | No |
+| `ci_list_artifacts` | Metadata of the artifacts a run uploaded. | `ci:read` | No |
+| `ci_get_artifact` | Up to 64 KiB of a redacted text artifact. | `ci:read` | No |
+| `ci_list_suggestions` | A pipeline's impact optimisation suggestions. Read-only: accepting one needs a person in the dashboard. | `ci:read` | No |
+| `ci_diagnose` | Explains why a run did not pass: category, hint, failing step and the end of its log. | `ci:diagnose` | No |
+| `ci_propose_issue` | Drafts a GitHub issue for a failed run. It returns the draft and files nothing. | `ci:diagnose` | No |
+| `ci_run` | Starts a manual run of a commit the pipeline already recorded. | `ci:execute` | **Yes**, starts at once and is paid from the wallet |
+| `ci_dispatch` | Starts a typed `workflow_dispatch` run of a branch. | `ci:execute` | **Yes**, starts at once and is paid from the wallet |
+| `ci_cancel` | Cancels a run. Running jobs are billed for the seconds they ran. | `ci:execute` | **Yes** |
+| `ci_set_budget` | Adds or lowers a CI budget cap. Owners and admins only. | `ci:execute` | **Yes**, can only make a cap stricter |
+
+`ci:diagnose` and `ci:execute` include everything `ci:read` grants; deployment scopes grant no CI access. **`ci_run` and `ci_dispatch` start without a browser approval**, and each job is paid from the workspace's prepaid wallet, so grant `ci:execute` only to a client you trust to spend it. Raising or removing a CI budget cap, approving a fork pull request run and accepting an impact suggestion need a person signed in to TOSE; no tool does them.
+
+### Cloud agent tools {#cloud-agent-tools}
+
+When the server has agent tasks turned on (`TEMPLATE_AGENT_TASKS_ENABLED`), a workspace owner or admin can give tasks to the workspace's curated Claude Code, Codex and Pi agents. See [Delegate tasks to a coding agent](/guide/agent-tasks).
+
+| Tool | What it does | Scope | Changes anything? |
+|------|--------------|-------|-------------------|
+| `cloud_agent_list` | Lists the workspace's cloud agents and whether each accepts tasks. | `agents:read` | No |
+| `cloud_agent_get_task` | Reads a task and its new events. | `agents:read` | No |
+| `cloud_agent_run_task` | Gives an agent a task in plain language. | `agents:execute` | **Yes**, starts at once |
+| `cloud_agent_cancel_task` | Stops a starting or running task. | `agents:control` | **Yes** |
+
+**`cloud_agent_run_task` starts the task at once, without a browser approval.** It runs only on an agent whose owner turned delegation on, and a task can read and send back anything the agent can, including its sign-in.
+
+### Autoscaling budget tools {#autoscaling-budget-tools}
 
 When the platform has [autoscaling budgets](/guide/autoscaling-budgets) turned on, two more tools are listed:
 
@@ -56,11 +129,11 @@ A project plan without `floor` keeps the floor of the budget revision the plan i
 
 An agent can never approve its own budget plan: no MCP tool approves, and approval needs a person's signed-in session, in practice the dashboard. A plan expires after 30 minutes. Proposing the same change again returns the same pending plan.
 
-With budgets on, `deploy_project` refuses a start that would break a cap (`BUDGET_CAP`) or the floor reserve (`INSUFFICIENT_BALANCE`). If the budget cannot be checked, nothing is started and the tool returns the retryable `UNAVAILABLE`; try again shortly. See [Errors](/api/errors#mcp-budget-codes).
+With budgets on, `deploy_project` and `deploy_image` refuse a start that would break a cap (`BUDGET_CAP`) or the floor reserve (`INSUFFICIENT_BALANCE`). If the budget cannot be checked, nothing is started and the tool returns the retryable `UNAVAILABLE`; try again shortly. See [Errors](/api/errors#mcp-budget-codes).
 
-There is no generic API tool. The connector cannot read the value of an environment variable, and it cannot reach domains, databases, billing or members. It can change variables only through the approval-gated [env update tools](#env-update-tools), where you type every value in TOSE, never in the chat.
+There is no generic API tool. The connector cannot read the value of an environment variable, and it cannot reach domains, databases, workspace billing or members. It can change variables only through the approval-gated [env update tools](#env-update-tools), where you type every value in TOSE, never in the chat.
 
-### Env metadata tools
+### Env metadata tools {#env-metadata-tools}
 
 `list_project_env_keys` and `inspect_project_env` answer "is this variable configured?" without a value ever leaving TOSE. Use them to tell a missing setting such as `S3_ENDPOINT` from a wrong one instead of guessing from logs.
 
@@ -77,7 +150,7 @@ There is no generic API tool. The connector cannot read the value of an environm
 - **Other workspaces:** a project in another workspace answers `NOT_FOUND`, the same as a missing project.
 - **Redeploy:** changing a variable never deploys by itself. A variable changed after the running deployment needs a redeploy.
 
-### Env update tools
+### Env update tools {#env-update-tools}
 
 `plan_project_env_update` and `apply_project_env_update` let an agent change environment variables without ever handling a value. The agent says which variables to change, you enter the values in TOSE and approve, and the agent then applies the approved plan.
 
@@ -93,7 +166,7 @@ There is no generic API tool. The connector cannot read the value of an environm
 - **Values never travel over MCP.** No tool accepts or returns a value, and there is no tool that reveals or pulls one. The audit history records operation names and variable names only.
 - **Typing "ok" in the chat does not approve anything.** Approval happens only on the TOSE page, as described in [How approval works](#how-approval-works).
 
-### Feedback tools
+### Feedback tools {#feedback-tools}
 
 Two tools let an agent report a defect in TOSE itself or request a feature, through the same service as the [Feedback API](/api/feedback). They exist only where feedback is enabled.
 
@@ -104,11 +177,11 @@ Two tools let an agent report a defect in TOSE itself or request a feature, thro
 
 `feedback:write` has its own consent checkbox on the connect screen, and any member may grant it for their own connection. For an MCP connection it is never part of a default request or of another MCP scope, and it grants nothing else. For API keys, `workspace:write` implies it, so existing keys keep filing reports. Publishing is asynchronous: a new report is never shown as published, and `issue_url` appears only once GitHub confirmed the issue. Secrets and personal data are redacted first, diagnostics are opt-in, and the limits are 20 reports per user and 60 per workspace each hour (`RATE_LIMITED`). A retry with the same `idempotency_key` returns the first report. See [Scopes](/mcp/oauth#scopes).
 
-### How approval works
+### How approval works {#how-approval-works}
 
-`deploy_project` and `rollback_deployment` always run in two steps:
+`deploy_project`, `deploy_image` and `rollback_deployment` always run in two steps:
 
-1. The first call changes nothing. It returns a **plan**, an `approval_url` and a one-time `approval_token`. The plan shows the project, what is live now and the effect. A deploy plan also shows the repository, branch and the commit it will build. A rollback plan shows the target deployment.
+1. The first call changes nothing. It returns a **plan**, an `approval_url` and a one-time `approval_token`. The plan shows the project, what is live now and the effect. A deploy plan also shows the repository, branch and the commit it will build, and an image deploy plan the pinned image. A rollback plan shows the target deployment.
 2. Open the `approval_url` in your browser. TOSE shows the plan, signed in as you. Click **Approve** or **Decline**.
 3. Tell the client to continue. It calls the tool again with the token, and only then does TOSE deploy or roll back.
 
