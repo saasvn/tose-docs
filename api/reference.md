@@ -1,3 +1,8 @@
+---
+title: "TOSE REST API reference"
+description: "The TOSE REST API is described by one versioned OpenAPI 3.1 contract. Find the spec, authentication and how to call it."
+---
+
 # REST API Reference
 
 The TOSE API is described by one versioned OpenAPI 3.1 contract. The API serves it, and the TOSE

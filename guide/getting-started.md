@@ -1,3 +1,8 @@
+---
+title: "Getting started with TOSE"
+description: "Deploy your first application to TOSE with the CLI: install, log in, link a project and run tose up."
+---
+
 # Getting Started
 
 Deploy your first application with TOSE CLI in under 5 minutes.

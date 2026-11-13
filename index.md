@@ -1,5 +1,8 @@
 ---
 layout: home
+title: "TOSE Docs: deploy apps, connect AI agents, integrate the API"
+titleTemplate: false
+description: "Documentation for the TOSE cloud platform: deploy apps with the CLI, connect AI agents over MCP, and integrate with the REST API."
 
 hero:
   name: TOSE CLI
@@ -118,7 +121,7 @@ tose generate                           # Generate Dockerfile with AI
 ## Technology Stack
 
 - **Language**: TypeScript
-- **Runtime**: Node.js 14+
+- **Runtime**: Node.js 18+
 - **CLI Framework**: Commander.js
 - **API**: REST + WebSocket (for log streaming)
 - **Package**: `@tosesh/tose` on npm

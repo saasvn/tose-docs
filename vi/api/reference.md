@@ -1,3 +1,8 @@
+---
+title: "Tài liệu REST API của TOSE"
+description: "REST API của TOSE được mô tả bằng một hợp đồng OpenAPI 3.1 có phiên bản. Tìm spec, cách xác thực và cách gọi API."
+---
+
 # Tài liệu REST API
 
 TOSE API được mô tả bằng một hợp đồng OpenAPI 3.1 có đánh phiên bản. API tự phục vụ file này,

@@ -1,3 +1,8 @@
+---
+title: "TOSE pricing"
+description: "Pay-as-you-go TOSE pricing: compute while a workload runs and storage for persistent disks, deducted from your workspace wallet."
+---
+
 # Pricing
 
 TOSE is pay-as-you-go. Usage is deducted from your workspace wallet. You are billed for two things:

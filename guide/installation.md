@@ -1,10 +1,15 @@
+---
+title: "Install the TOSE CLI"
+description: "Install the @tosesh/tose CLI with npm, check the Node.js requirement and set up your API key."
+---
+
 # Installation
 
 Install TOSE CLI on your system.
 
 ## Prerequisites
 
-- **Node.js** 14.0.0 or higher
+- **Node.js** 18.0.0 or higher
 - **npm**, **yarn**, **pnpm**, or **bun**
 - **Git** (for deployment features)
 - A **TOSE account** with an API key
@@ -160,18 +165,6 @@ npm uninstall -g @tosesh/tose
 
 # Optionally remove config
 rm -rf ~/.tose
-```
-
-## Development Installation
-
-For contributing to TOSE CLI:
-
-```bash
-git clone https://github.com/tosesh/tose-cli.git
-cd tose-cli
-npm install
-npm run build
-npm link
 ```
 
 ## Troubleshooting

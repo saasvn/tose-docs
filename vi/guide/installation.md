@@ -1,3 +1,8 @@
+---
+title: "Cài đặt TOSE CLI"
+description: "Cài đặt CLI @tosesh/tose bằng npm, kiểm tra yêu cầu Node.js và thiết lập API key."
+---
+
 # Cài đặt
 
 Hướng dẫn này sẽ giúp bạn cài đặt TOSE CLI trên hệ thống.
@@ -6,7 +11,7 @@ Hướng dẫn này sẽ giúp bạn cài đặt TOSE CLI trên hệ thống.
 
 Trước khi cài đặt TOSE CLI, đảm bảo bạn có:
 
-- **Node.js** phiên bản 14.0.0 trở lên
+- **Node.js** phiên bản 18.0.0 trở lên
 - **npm** hoặc **yarn** package manager
 - **Git** (tùy chọn, cho tính năng tích hợp Git)
 - Tài khoản **TOSE** với API key
@@ -308,5 +313,5 @@ Bây giờ TOSE CLI đã được cài đặt:
 
 Gặp vấn đề với cài đặt?
 
-- Kiểm tra [GitHub Issues](https://github.com/tosesh/tose/issues)
+- Kiểm tra [Báo vấn đề từ dashboard](/vi/guide/dashboard-feedback)
 - Email: tobi@wearetopgroup.com

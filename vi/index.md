@@ -1,5 +1,8 @@
 ---
 layout: home
+title: "Tài liệu TOSE: triển khai ứng dụng, kết nối AI agent, tích hợp API"
+titleTemplate: false
+description: "Tài liệu nền tảng đám mây TOSE: triển khai ứng dụng bằng CLI, kết nối AI agent qua MCP và tích hợp REST API."
 
 hero:
   name: TOSE CLI
@@ -13,8 +16,8 @@ hero:
       text: Xem các lệnh
       link: /vi/commands/overview
     - theme: alt
-      text: GitHub
-      link: https://github.com/tosesh/tose
+      text: Cài đặt
+      link: /vi/guide/installation
 
 features:
   - icon: 🚀
@@ -107,7 +110,7 @@ Tự động phát hiện Git repository, nhánh và file môi trường của b
 
 ## Cộng đồng & Hỗ trợ
 
-- [GitHub Issues](https://github.com/tosesh/tose/issues) - Báo cáo lỗi hoặc yêu cầu tính năng
+- [Báo vấn đề từ dashboard](/vi/guide/dashboard-feedback) - Báo cáo lỗi hoặc yêu cầu tính năng
 - [Tài liệu](/) - Hướng dẫn đầy đủ và tài liệu API
 - Email: tobi@wearetopgroup.com
 
@@ -115,5 +118,5 @@ Tự động phát hiện Git repository, nhánh và file môi trường của b
 
 <div style="text-align: center; margin-top: 2rem; color: #6b7280;">
   <p>Được xây dựng với ❤️ bởi đội ngũ TOSE</p>
-  <p style="font-size: 0.875rem;">Phiên bản 0.0.2 | Phát hành theo giấy phép ISC</p>
+  <p style="font-size: 0.875rem;">Phát hành theo giấy phép ISC</p>
 </div>

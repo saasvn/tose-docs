@@ -183,7 +183,7 @@ If issues persist:
    - [Commands Overview](/commands/overview)
 
 2. **Search GitHub Issues**
-   - [GitHub Issues](https://github.com/tosesh/tose/issues)
+   - [Report a problem](/guide/dashboard-feedback)
    - Check if issue already reported
 
 3. **Create New Issue**
@@ -274,4 +274,4 @@ tose up
 - [Installation](/guide/installation)
 - [Getting Started](/guide/getting-started)
 - [Configuration](/guide/configuration)
-- [GitHub Issues](https://github.com/tosesh/tose/issues)
+- [Report a problem](/guide/dashboard-feedback)

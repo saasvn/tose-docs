@@ -1,3 +1,8 @@
+---
+title: "TOSE MCP connector"
+description: "Connect an MCP client such as Claude to TOSE to check deployments, read logs and, with your approval, deploy or roll back."
+---
+
 # TOSE MCP Connector
 
 The TOSE MCP connector lets an MCP client such as Claude check deployments, read logs, and, with your explicit approval, deploy or roll back projects in one TOSE workspace.
