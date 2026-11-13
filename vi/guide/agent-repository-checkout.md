@@ -20,7 +20,7 @@ Trang triển khai của agent có thẻ **Kho mã (không bắt buộc)**. Ch�
 
 1. Nếu workspace chưa kết nối tài khoản GitHub nào, chọn **Kết nối GitHub**. GitHub mở trong thẻ mới: cài ứng dụng TOSE trên tài khoản sở hữu kho mã và cho phép kho mã đó, sau đó quay lại thẻ trình duyệt này và chọn **Kiểm tra lại**. Các câu trả lời của bạn trên trang này được giữ nguyên.
 2. Nếu tài khoản GitHub của bạn đã kết nối nhưng chưa gắn với workspace này, chọn **Gắn** kèm tên tài khoản. Chỉ owner hoặc admin mới gắn được tài khoản.
-3. Chọn một **Kho mã**, rồi chọn **Nhánh**. Cả hai đều là ô chọn có tìm kiếm: bấm vào ô, gõ một phần `chủ sở hữu/tên` (hoặc tên nhánh) để thu hẹp danh sách, rồi chọn mục khớp. Mỗi kho mã hiện **Riêng tư** hoặc **Công khai**. Phím mũi tên để di chuyển giữa các mục khớp, Enter để chọn và Escape để đóng (tose-app [#785](https://github.com/saasvn/tose-app/pull/785)); không còn ô lọc riêng.
+3. Chọn một **Kho mã**, rồi chọn **Nhánh**. Cả hai đều là ô chọn có tìm kiếm: bấm vào ô, gõ một phần `chủ sở hữu/tên` (hoặc tên nhánh) để thu hẹp danh sách, rồi chọn mục khớp. Trong danh sách, kho mã riêng tư có ghi **Riêng tư**; khi đã chọn, nhãn **Riêng tư** hoặc **Công khai** hiện cạnh tiêu đề ô. Dùng phím mũi tên để di chuyển giữa các mục khớp, Enter để chọn và Escape để đóng (tose-app [#785](https://github.com/saasvn/tose-app/pull/785)); không còn ô lọc riêng.
 4. Thẻ hiện "`<repo>` ở nhánh `<branch>` sẽ được tải về." Chọn **Bỏ kho mã** để quay lại workspace trống.
 5. Tùy chọn: bật **Cho phép agent push lên kho mã này** và chọn các nhánh agent được push. Mặc định push tắt. Xem [Cho agent push lên kho mã](#cho-agent-push-len-kho-ma).
 

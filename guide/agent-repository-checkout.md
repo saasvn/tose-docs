@@ -20,7 +20,7 @@ The agent's deploy page has a **Repository (optional)** card. Choose **Add a Git
 
 1. If no GitHub account is connected to the workspace, choose **Connect GitHub**. GitHub opens in a new tab: install the TOSE app on the account that owns the repository and allow that repository, then come back to this tab and choose **Check again**. Your answers on this page are kept.
 2. If your GitHub account is connected but not to this workspace, choose **Attach** followed by the account's name. Only an owner or admin can attach an account.
-3. Choose a **Repository**, then a **Branch**. Both are searchable selects: click one, type part of `owner/name` (or of the branch name) to narrow the list, and pick a match. Each repository shows **Private** or **Public**. Arrow keys move through the matches, Enter chooses and Escape closes (tose-app [#785](https://github.com/saasvn/tose-app/pull/785)); there is no separate filter box.
+3. Choose a **Repository**, then a **Branch**. Both are searchable selects: click one, type part of `owner/name` (or of the branch name) to narrow the list, and pick a match. In the list, private repositories are marked **Private**; once you choose one, a **Private** or **Public** badge appears next to the label. Arrow keys move through the matches, Enter chooses and Escape closes (tose-app [#785](https://github.com/saasvn/tose-app/pull/785)); there is no separate filter box.
 4. The card shows "`<repo>` on branch `<branch>` will be checked out." Choose **Remove repository** to go back to an empty workspace.
 5. Optional: turn on **Let the agent push to this repository** and choose which branches it may push to. Push is off by default. See [Let the agent push to your repository](#let-the-agent-push-to-your-repository).
 
