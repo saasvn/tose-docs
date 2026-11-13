@@ -41,12 +41,12 @@ Bạn có thể kết nối một tài khoản GitHub không phải tài khoản
 
 1. Bắt đầu từ TOSE: chọn **Kết nối GitHub** hoặc **Kết nối tài khoản GitHub khác** khi đang đăng nhập dashboard. GitHub mở trong thẻ mới.
 2. Cài ứng dụng TOSE trên tài khoản GitHub đó và cho phép các kho mã. Nếu GitHub yêu cầu ủy quyền cho ứng dụng TOSE, hãy ủy quyền một lần.
-3. GitHub đưa bạn về trang **Link this GitHub account?**. Trang ghi **GitHub account** (tài khoản đã cài ứng dụng) và **Tose account** của bạn (cùng tài khoản GitHub bạn đang đăng nhập trên GitHub, khi nó khác).
+3. GitHub đưa bạn về trang **Link this GitHub account?**. Trang ghi **GitHub account** (tài khoản đã cài ứng dụng) và **Tose account** của bạn (và, khi khác tài khoản trên, cả tài khoản GitHub mà bạn đang đăng nhập trên GitHub).
 4. Kiểm tra cả hai tên, rồi chọn **Link account**. Trang báo **GitHub App Installed Successfully**; đóng thẻ và quay lại TOSE, nơi bạn có thể [gắn](#kho-ma-cua-mot-tai-khoan-github-khac) tài khoản vào workspace. Không phải bạn? Đóng thẻ: không có gì được liên kết cho tới khi bạn bấm nút.
 
 Trang xác nhận chỉ xuất hiện khi đủ tất cả các điều kiện:
 
-- Email của tài khoản TOSE đã được xác minh. Đăng nhập bằng Google hoặc GitHub đã được xác minh sẵn; tài khoản đăng ký bằng email phải xác minh email trước.
+- Email của tài khoản TOSE đã được xác minh. Đăng nhập bằng Google được xác minh khi Google xác nhận email. Đăng nhập bằng GitHub chỉ được xác minh khi email công khai của tài khoản GitHub là địa chỉ đã xác minh trên GitHub; nếu không, hãy đặt email đó ở chế độ công khai và xác minh nó trên GitHub, rồi đăng nhập lại TOSE bằng GitHub. Tài khoản đăng ký bằng email phải xác minh email trước.
 - Bạn bắt đầu cài đặt từ TOSE trên cùng trình duyệt, khi đang đăng nhập dashboard, và hoàn tất trong vòng 10 phút.
 - Tài khoản GitHub đã cài ứng dụng nhìn thấy installation đó.
 
@@ -56,8 +56,8 @@ Khi bạn đăng nhập TOSE bằng chính tài khoản GitHub đã cài ứng d
 
 Trang này nghĩa là TOSE không chứng minh được installation là của bạn, nên không có gì được liên kết. Installation vẫn còn trên GitHub. Để liên kết:
 
-1. Xác minh email của tài khoản TOSE nếu bạn đăng ký bằng email.
-2. Quay lại TOSE và bắt đầu lại từ **Kết nối GitHub** (hoặc **Kết nối tài khoản GitHub khác**) trên cùng trình duyệt, khi đang đăng nhập dashboard, và hoàn tất trong vòng 10 phút. Liên kết mở ở trình duyệt khác, hoặc bắt đầu quá 10 phút trước, hiện "This install link has expired or was not started from this browser."
+1. Bảo đảm email của tài khoản TOSE đã được xác minh: xác minh email nếu bạn đăng ký bằng email, hoặc, nếu bạn đăng nhập bằng GitHub, đặt email GitHub ở chế độ công khai và đã xác minh rồi đăng nhập lại TOSE.
+2. Quay lại TOSE và bắt đầu lại từ **Kết nối GitHub** (hoặc **Kết nối tài khoản GitHub khác**) trên cùng trình duyệt, khi đang đăng nhập dashboard, và hoàn tất trong vòng 10 phút. Cài đặt hoàn tất ở trình duyệt khác, hoặc sau hơn 10 phút kể từ lúc bắt đầu, kết thúc ở trang này với "Your GitHub account could not be confirmed to have access to this installation, so it was not linked.", hoặc, khi hết hạn trong bước ủy quyền hay xác nhận, "This install link has expired or was not started from this browser. Start again from Tose."
 3. Hoặc đăng nhập TOSE bằng tài khoản GitHub đã cài ứng dụng.
 
 Liên kết từ terminal bằng [`POST /api/github/check-install`](/vi/api/github#check-install) kèm `installation_id` vẫn cần chính danh tính GitHub của tài khoản TOSE truy cập được installation; cách này không có trang xác nhận.
