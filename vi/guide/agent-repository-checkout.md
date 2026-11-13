@@ -18,7 +18,7 @@ Tính năng checkout đã được triển khai và có test, nhưng chưa đư�
 
 Trang triển khai của agent có thẻ **Kho mã (không bắt buộc)**. Chọn **Thêm kho mã GitHub** để mở thẻ. Bỏ qua mục này thì agent bắt đầu với workspace trống.
 
-1. Nếu workspace chưa kết nối tài khoản GitHub nào, chọn **Kết nối GitHub**. GitHub mở trong thẻ mới: cài ứng dụng TOSE trên tài khoản sở hữu kho mã và cho phép kho mã đó, sau đó quay lại thẻ trình duyệt này và chọn **Kiểm tra lại**. Các câu trả lời của bạn trên trang này được giữ nguyên.
+1. Nếu workspace chưa kết nối tài khoản GitHub nào, chọn **Kết nối GitHub**. GitHub mở trong thẻ mới: cài ứng dụng TOSE trên tài khoản sở hữu kho mã và cho phép kho mã đó, sau đó quay lại thẻ trình duyệt này và chọn **Kiểm tra lại**. Các câu trả lời của bạn trên trang này được giữ nguyên. Nếu GitHub đưa bạn về trang **Link this GitHub account?**, xem [Liên kết tài khoản GitHub khác tài khoản đăng nhập](#lien-ket-tai-khoan-github-khac-tai-khoan-dang-nhap).
 2. Nếu tài khoản GitHub của bạn đã kết nối nhưng chưa gắn với workspace này, chọn **Gắn** kèm tên tài khoản. Chỉ owner hoặc admin mới gắn được tài khoản.
 3. Chọn một **Kho mã**, rồi chọn **Nhánh**. Cả hai đều là ô chọn có tìm kiếm: bấm vào ô, gõ một phần `chủ sở hữu/tên` (hoặc tên nhánh) để thu hẹp danh sách, rồi chọn mục khớp. Trong danh sách, kho mã riêng tư có ghi **Riêng tư**; khi đã chọn, nhãn **Riêng tư** hoặc **Công khai** hiện cạnh tiêu đề ô. Dùng phím mũi tên để di chuyển giữa các mục khớp, Enter để chọn và Escape để đóng (tose-app [#785](https://github.com/saasvn/tose-app/pull/785)); không còn ô lọc riêng.
 4. Thẻ hiện "`<repo>` ở nhánh `<branch>` sẽ được tải về." Chọn **Bỏ kho mã** để quay lại workspace trống.
@@ -34,6 +34,33 @@ Danh sách chỉ hiện kho mã của các tài khoản GitHub đã gắn với 
 - **Kết nối tài khoản GitHub khác**: GitHub mở trong thẻ mới. Cài ứng dụng TOSE trên tài khoản kia (tài khoản cá nhân hoặc một tổ chức khác) và cho phép kho mã, sau đó quay lại thẻ này. Trang đọc lại các danh sách, và tài khoản mới hiện kèm nút **Gắn**; chọn nút đó để thêm kho mã của nó.
 
 Gắn một tài khoản chỉ cho workspace dùng tài khoản đó; các tài khoản đã gắn vẫn giữ nguyên. Muốn gỡ một tài khoản, dùng [Gỡ khỏi workspace](/vi/api/github#detach) trong API.
+
+### Liên kết tài khoản GitHub khác tài khoản đăng nhập {#lien-ket-tai-khoan-github-khac-tai-khoan-dang-nhap}
+
+Bạn có thể kết nối một tài khoản GitHub không phải tài khoản bạn dùng để đăng nhập TOSE: ví dụ khi bạn đăng nhập bằng Google, hoặc khi cài ứng dụng TOSE trên một tổ chức hay trên tài khoản GitHub thứ hai (tose-app [#786](https://github.com/saasvn/tose-app/pull/786)).
+
+1. Bắt đầu từ TOSE: chọn **Kết nối GitHub** hoặc **Kết nối tài khoản GitHub khác** khi đang đăng nhập dashboard. GitHub mở trong thẻ mới.
+2. Cài ứng dụng TOSE trên tài khoản GitHub đó và cho phép các kho mã. Nếu GitHub yêu cầu ủy quyền cho ứng dụng TOSE, hãy ủy quyền một lần.
+3. GitHub đưa bạn về trang **Link this GitHub account?**. Trang ghi **GitHub account** (tài khoản đã cài ứng dụng) và **Tose account** của bạn (cùng tài khoản GitHub bạn đang đăng nhập trên GitHub, khi nó khác).
+4. Kiểm tra cả hai tên, rồi chọn **Link account**. Trang báo **GitHub App Installed Successfully**; đóng thẻ và quay lại TOSE, nơi bạn có thể [gắn](#kho-ma-cua-mot-tai-khoan-github-khac) tài khoản vào workspace. Không phải bạn? Đóng thẻ: không có gì được liên kết cho tới khi bạn bấm nút.
+
+Trang xác nhận chỉ xuất hiện khi đủ tất cả các điều kiện:
+
+- Email của tài khoản TOSE đã được xác minh. Đăng nhập bằng Google hoặc GitHub đã được xác minh sẵn; tài khoản đăng ký bằng email phải xác minh email trước.
+- Bạn bắt đầu cài đặt từ TOSE trên cùng trình duyệt, khi đang đăng nhập dashboard, và hoàn tất trong vòng 10 phút.
+- Tài khoản GitHub đã cài ứng dụng nhìn thấy installation đó.
+
+Khi bạn đăng nhập TOSE bằng chính tài khoản GitHub đã cài ứng dụng, không có trang xác nhận: installation được liên kết ngay.
+
+#### "GitHub App Not Linked" {#github-app-not-linked}
+
+Trang này nghĩa là TOSE không chứng minh được installation là của bạn, nên không có gì được liên kết. Installation vẫn còn trên GitHub. Để liên kết:
+
+1. Xác minh email của tài khoản TOSE nếu bạn đăng ký bằng email.
+2. Quay lại TOSE và bắt đầu lại từ **Kết nối GitHub** (hoặc **Kết nối tài khoản GitHub khác**) trên cùng trình duyệt, khi đang đăng nhập dashboard, và hoàn tất trong vòng 10 phút. Liên kết mở ở trình duyệt khác, hoặc bắt đầu quá 10 phút trước, hiện "This install link has expired or was not started from this browser."
+3. Hoặc đăng nhập TOSE bằng tài khoản GitHub đã cài ứng dụng.
+
+Liên kết từ terminal bằng [`POST /api/github/check-install`](/vi/api/github#check-install) kèm `installation_id` vẫn cần chính danh tính GitHub của tài khoản TOSE truy cập được installation; cách này không có trang xác nhận.
 
 ## Plan hiển thị những gì
 
