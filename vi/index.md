@@ -54,6 +54,6 @@ Sau đó làm theo [Triển khai ứng dụng](/vi/guide/deploy-an-app) để ki
 
 ## Tìm hiểu thêm
 
-- [Cloud Harness](/vi/guide/cloud-harness) và [coding agent](/vi/guide/deploy-coding-agent)
+- [Cloud Agents](/vi/guide/cloud-agents) (Claude Code, Codex, Pi) và [Cloud Harness](/vi/guide/cloud-harness)
 - [Cấu hình](/vi/guide/configuration), [biến môi trường](/vi/guide/environment) và [tên miền tùy chỉnh](/vi/guide/custom-domains)
 - [Bảng giá](/vi/guide/pricing) và [khắc phục sự cố](/guide/troubleshooting) (tiếng Anh)
