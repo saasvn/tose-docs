@@ -54,6 +54,6 @@ Then follow [Deploy an app](/guide/deploy-an-app) to verify the deployment.
 
 ## More to explore
 
-- [Cloud Harness](/guide/cloud-harness) and [coding agents](/guide/deploy-coding-agent)
+- [Cloud Agents](/guide/cloud-agents) (Claude Code, Codex, Pi) and [Cloud Harness](/guide/cloud-harness)
 - [Configuration](/guide/configuration), [environment variables](/guide/environment) and [custom domains](/guide/custom-domains)
 - [Pricing](/guide/pricing) and [troubleshooting](/guide/troubleshooting)

@@ -2,6 +2,7 @@ import { defineConfig } from 'vitepress'
 import { copyFileSync, mkdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { SITE_URL, seoHead } from './seo-head.js'
+import { writeLlmsTxt } from './llms-txt.js'
 
 export default defineConfig({
   title: 'TOSE Docs',
@@ -12,19 +13,24 @@ export default defineConfig({
   sitemap: { hostname: SITE_URL },
   transformHead: seoHead,
 
-  // Publish each page's Markdown source next to its HTML, for "Copy as Markdown" and for agents.
+  // Publish each page's Markdown source next to its HTML, for "Copy as Markdown" and for agents,
+  // and list them in /llms.txt.
   buildEnd(siteConfig) {
     for (const page of siteConfig.pages) {
       const target = join(siteConfig.outDir, page)
       mkdirSync(dirname(target), { recursive: true })
       copyFileSync(join(siteConfig.srcDir, page), target)
     }
+    writeLlmsTxt(siteConfig)
   },
 
   // Dark is the brand default; visitors can still switch to light.
   appearance: 'dark',
 
   head: [
+    ['link', { rel: 'icon', href: '/favicon.ico', sizes: '32x32' }],
+    ['link', { rel: 'icon', href: '/favicon.svg', type: 'image/svg+xml' }],
+    ['link', { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' }],
     ['link', { rel: 'preconnect', href: 'https://fonts.googleapis.com' }],
     ['link', { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' }],
     ['link', {
@@ -46,6 +52,7 @@ export default defineConfig({
           { text: 'Deploy', link: '/guide/deploy-an-app' },
           { text: 'CLI', link: '/commands/overview' },
           { text: 'MCP', link: '/guide/connect-an-agent' },
+          { text: 'Cloud Agents', link: '/guide/cloud-agents' },
           { text: 'API', link: '/guide/integrate-the-api' }
         ],
 
@@ -132,14 +139,20 @@ export default defineConfig({
             ]
           },
           {
-            text: 'AI agents and MCP',
+            text: 'Cloud Agents',
             items: [
+              { text: 'Overview', link: '/guide/cloud-agents' },
               { text: 'Deploy a coding agent', link: '/guide/deploy-coding-agent' },
               { text: 'Delegate tasks to a coding agent', link: '/guide/agent-tasks' },
               { text: 'GitHub repository for coding agents', link: '/guide/agent-repository-checkout' },
               { text: 'Network modes for coding agents', link: '/guide/agent-network-modes' },
               { text: 'Pi model providers', link: '/guide/agent-pi-providers' },
               { text: 'Agent environment and auto-sleep', link: '/guide/agent-environment-and-auto-sleep' },
+            ]
+          },
+          {
+            text: 'AI agents and MCP',
+            items: [
               { text: 'Agent Runtime pricing', link: '/guide/agent-runtime-pricing' },
               { text: 'Blog publishing via MCP', link: '/guide/blog-and-editorial-mcp' },
               { text: 'Protocol, OAuth and scopes', link: '/mcp/oauth' },
@@ -213,6 +226,7 @@ export default defineConfig({
           { text: 'Triển khai', link: '/vi/guide/deploy-an-app' },
           { text: 'CLI', link: '/vi/commands/overview' },
           { text: 'MCP', link: '/vi/guide/connect-an-agent' },
+          { text: 'Cloud Agents', link: '/vi/guide/cloud-agents' },
           { text: 'API', link: '/vi/guide/integrate-the-api' }
         ],
 
@@ -299,14 +313,20 @@ export default defineConfig({
             ]
           },
           {
-            text: 'AI agent và MCP',
+            text: 'Cloud Agents',
             items: [
+              { text: 'Tổng quan', link: '/vi/guide/cloud-agents' },
               { text: 'Triển khai coding agent', link: '/vi/guide/deploy-coding-agent' },
               { text: 'Giao tác vụ cho coding agent', link: '/vi/guide/agent-tasks' },
               { text: 'Kho mã GitHub cho coding agent', link: '/vi/guide/agent-repository-checkout' },
               { text: 'Chế độ mạng cho coding agent', link: '/vi/guide/agent-network-modes' },
               { text: 'Nhà cung cấp model cho Pi', link: '/vi/guide/agent-pi-providers' },
               { text: 'Biến môi trường và tự động ngủ của agent', link: '/vi/guide/agent-environment-and-auto-sleep' },
+            ]
+          },
+          {
+            text: 'AI agent và MCP',
+            items: [
               { text: 'Giá Agent Runtime', link: '/vi/guide/agent-runtime-pricing' },
               { text: 'Đăng blog qua MCP', link: '/vi/guide/blog-and-editorial-mcp' },
               { text: 'Giao thức, OAuth và scope', link: '/vi/mcp/oauth' },
