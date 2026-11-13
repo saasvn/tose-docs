@@ -1,3 +1,8 @@
+---
+title: "Bảng giá TOSE"
+description: "Bảng giá TOSE theo mức sử dụng: compute khi workload chạy và lưu trữ cho ổ đĩa bền vững, trừ vào ví của workspace."
+---
+
 # Bảng giá
 
 TOSE tính phí theo mức sử dụng thực tế, trừ trực tiếp vào ví của workspace. Bạn trả cho hai thứ:

@@ -124,7 +124,7 @@ Local configuration storage at `~/.tose/config.json`:
 TOSE CLI is built with modern, reliable technologies:
 
 - **Language**: TypeScript 5.9+
-- **Runtime**: Node.js 14+
+- **Runtime**: Node.js 18+
 - **CLI Framework**: Commander.js 14.x
 - **Prompts**: Enquirer 2.x
 - **HTTP Client**: node-fetch 2.x
@@ -167,7 +167,7 @@ TOSE CLI follows these design principles:
 
 ## Version & Support
 
-- **Current Version**: 0.0.2
+- **Current Version**: see [`@tosesh/tose` on npm](https://www.npmjs.com/package/@tosesh/tose)
 - **License**: ISC
 - **Package**: `@tosesh/tose` (npm)
 - **Support**: tobi@wearetopgroup.com

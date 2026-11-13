@@ -124,7 +124,7 @@ Lưu trữ cấu hình cục bộ tại `~/.tose/config.json`:
 TOSE CLI được xây dựng với các công nghệ hiện đại, đáng tin cậy:
 
 - **Ngôn ngữ**: TypeScript 5.9+
-- **Runtime**: Node.js 14+
+- **Runtime**: Node.js 18+
 - **CLI Framework**: Commander.js 14.x
 - **Prompts**: Enquirer 2.x
 - **HTTP Client**: node-fetch 2.x
@@ -167,7 +167,7 @@ TOSE CLI tuân theo các nguyên tắc thiết kế này:
 
 ## Phiên bản & Hỗ trợ
 
-- **Phiên bản hiện tại**: 0.0.2
+- **Phiên bản hiện tại**: xem [`@tosesh/tose` trên npm](https://www.npmjs.com/package/@tosesh/tose)
 - **Giấy phép**: ISC
 - **Package**: `@tosesh/tose` (npm)
 - **Hỗ trợ**: tobi@wearetopgroup.com

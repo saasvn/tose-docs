@@ -1,3 +1,8 @@
+---
+title: "Bắt đầu với TOSE"
+description: "Triển khai ứng dụng đầu tiên lên TOSE bằng CLI: cài đặt, đăng nhập, liên kết dự án và chạy tose up."
+---
+
 # Bắt đầu
 
 Hướng dẫn này sẽ đưa bạn qua việc triển khai ứng dụng đầu tiên với TOSE CLI.
@@ -6,7 +11,7 @@ Hướng dẫn này sẽ đưa bạn qua việc triển khai ứng dụng đầu
 
 Trước khi bắt đầu, đảm bảo bạn có:
 
-- [Node.js 14+](/vi/guide/installation#yêu-cầu) đã cài đặt
+- [Node.js 18+](/vi/guide/installation#yêu-cầu) đã cài đặt
 - [TOSE CLI](/vi/guide/installation) đã cài đặt toàn cục
 - Tài khoản TOSE với API key
 - Một dự án sẵn sàng triển khai (tùy chọn: có Git repository)
@@ -379,4 +384,4 @@ Cần hỗ trợ?
 - Kiểm tra lệnh cụ thể: `tose up --help`
 - Truy cập [tài liệu](/)
 - Email: tobi@wearetopgroup.com
-- [GitHub Issues](https://github.com/tosesh/tose/issues)
+- [Báo vấn đề từ dashboard](/vi/guide/dashboard-feedback)

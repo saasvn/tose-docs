@@ -1,3 +1,8 @@
+---
+title: "Cloud Harness"
+description: "Run coding agents and tools on your own Docker host through a TOSE template, reached over MCP with TOSE sign-in."
+---
+
 # Cloud Harness
 
 Cloud Harness is a template that runs coding agents and tools on your own Docker host, reached over

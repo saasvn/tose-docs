@@ -1,8 +1,14 @@
 import { defineConfig } from 'vitepress'
+import { SITE_URL, seoHead } from './seo-head.js'
 
 export default defineConfig({
-  title: 'TOSE CLI Documentation',
-  description: 'Complete documentation for TOSE CLI - Deploy and manage your applications from the command line',
+  title: 'TOSE Docs',
+  description: 'Documentation for the TOSE cloud platform: deploy apps with the CLI, connect AI agents over MCP, and integrate with the REST API.',
+
+  // Pages are served without the .html suffix; Cloudflare Pages redirects the suffixed form.
+  cleanUrls: true,
+  sitemap: { hostname: SITE_URL },
+  transformHead: seoHead,
 
   // Dark is the brand default; visitors can still switch to light.
   appearance: 'dark',
@@ -166,8 +172,7 @@ export default defineConfig({
               { text: 'Autoscaling budget', link: '/api/autoscaling-budget' },
               { text: 'CI suggestions', link: '/api/ci-suggestions' },
               { text: 'CI usage and budget', link: '/api/ci-usage-budget' },
-              { text: 'CI artifacts and reports', link: '/api/ci-artifacts' },
-              { text: 'Disks, Volumes & Pricing', link: '/api/disks' }
+              { text: 'CI artifacts and reports', link: '/api/ci-artifacts' }
             ]
           }
         ]
@@ -176,6 +181,7 @@ export default defineConfig({
     vi: {
       label: 'Tiếng Việt',
       lang: 'vi',
+      description: 'Tài liệu nền tảng đám mây TOSE: triển khai ứng dụng bằng CLI, kết nối AI agent qua MCP và tích hợp REST API.',
       themeConfig: {
         nav: [
           { text: 'Trang chủ', link: '/vi/' },
@@ -197,8 +203,8 @@ export default defineConfig({
             text: 'Các lệnh',
             items: [
               { text: 'Tổng quan', link: '/vi/commands/overview' },
-              { text: 'tose login / logout', link: '/vi/commands/login' },
-              { text: 'tose init / use', link: '/vi/commands/init' },
+              { text: 'tose login / logout (tiếng Anh)', link: '/commands/login' },
+              { text: 'tose init / use (tiếng Anh)', link: '/commands/init' },
               { text: 'tose up', link: '/vi/commands/up' },
               { text: 'tose deploy / redeploy', link: '/vi/commands/deploy' },
               { text: 'tose deployment', link: '/vi/commands/deployment' },
@@ -209,20 +215,20 @@ export default defineConfig({
               { text: 'tose status', link: '/vi/commands/status' },
               { text: 'tose logs', link: '/vi/commands/logs' },
               { text: 'tose down / restart', link: '/vi/commands/down' },
-              { text: 'tose open', link: '/vi/commands/open' },
+              { text: 'tose open (tiếng Anh)', link: '/commands/open' },
               { text: 'tose env', link: '/vi/commands/env' },
-              { text: 'tose domain', link: '/vi/commands/domain' },
+              { text: 'tose domain (tiếng Anh)', link: '/commands/domain' },
               { text: 'tose db', link: '/vi/commands/db' },
               { text: 'tose export', link: '/vi/commands/export' },
               { text: 'tose skills', link: '/vi/commands/skills' },
               { text: 'tose feedback', link: '/vi/commands/feedback' },
-              { text: 'tose desktop', link: '/commands/desktop' },
+              { text: 'tose desktop (tiếng Anh)', link: '/commands/desktop' },
               { text: 'tose template', link: '/vi/commands/template' },
               { text: 'tose sidecars', link: '/vi/commands/sidecars' },
               { text: 'tose templates', link: '/vi/commands/templates' },
               { text: 'tose disk / volumes / pricing', link: '/vi/commands/disk' },
               { text: 'tose autoscaling', link: '/vi/commands/autoscaling' },
-              { text: 'tose generate', link: '/vi/commands/generate' }
+              { text: 'tose generate (tiếng Anh)', link: '/commands/generate' }
             ]
           },
           {
@@ -317,8 +323,7 @@ export default defineConfig({
               { text: 'API ngân sách autoscaling', link: '/vi/api/autoscaling-budget' },
               { text: 'Gợi ý CI', link: '/vi/api/ci-suggestions' },
               { text: 'Mức sử dụng CI và hạn mức', link: '/vi/api/ci-usage-budget' },
-              { text: 'Artifact và báo cáo CI', link: '/vi/api/ci-artifacts' },
-              { text: 'Ổ đĩa, Volume & Bảng giá', link: '/vi/api/disks' }
+              { text: 'Artifact và báo cáo CI', link: '/vi/api/ci-artifacts' }
             ]
           }
         ],
@@ -341,7 +346,7 @@ export default defineConfig({
 
   themeConfig: {
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/tosesh/tose' }
+      { icon: 'npm', link: 'https://www.npmjs.com/package/@tosesh/tose' }
     ],
 
     footer: {

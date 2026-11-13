@@ -1,3 +1,8 @@
+---
+title: "TOSE MCP connector"
+description: "Kết nối MCP client như Claude với TOSE để kiểm tra deployment, đọc log và, khi bạn phê duyệt, deploy hoặc rollback."
+---
+
 # TOSE MCP Connector
 
 TOSE MCP connector cho phép một MCP client như Claude kiểm tra deployment, đọc log và incident, làm việc với template và CI trong một workspace TOSE. Khi bạn phê duyệt rõ ràng, client còn có thể deploy hoặc rollback project.
