@@ -18,7 +18,7 @@ The checkout is implemented and covered by tests, but it has not yet been proven
 
 The agent's deploy page has a **Repository (optional)** card. Choose **Add a GitHub repository** to open it. Leave it out and the agent starts with an empty workspace.
 
-1. If no GitHub account is connected to the workspace, choose **Connect GitHub**. GitHub opens in a new tab: install the TOSE app on the account that owns the repository and allow that repository, then come back to this tab and choose **Check again**. Your answers on this page are kept.
+1. If no GitHub account is connected to the workspace, choose **Connect GitHub**. GitHub opens in a new tab: install the TOSE app on the account that owns the repository and allow that repository, then come back to this tab and choose **Check again**. Your answers on this page are kept. If GitHub sends you back to a **Link this GitHub account?** page, see [Link a GitHub account other than your sign-in](#link-a-github-account-other-than-your-sign-in).
 2. If your GitHub account is connected but not to this workspace, choose **Attach** followed by the account's name. Only an owner or admin can attach an account.
 3. Choose a **Repository**, then a **Branch**. Both are searchable selects: click one, type part of `owner/name` (or of the branch name) to narrow the list, and pick a match. In the list, private repositories are marked **Private**; once you choose one, a **Private** or **Public** badge appears next to the label. Arrow keys move through the matches, Enter chooses and Escape closes (tose-app [#785](https://github.com/saasvn/tose-app/pull/785)); there is no separate filter box.
 4. The card shows "`<repo>` on branch `<branch>` will be checked out." Choose **Remove repository** to go back to an empty workspace.
@@ -34,6 +34,33 @@ The list shows only the repositories of the GitHub accounts attached to the work
 - **Connect another GitHub account**: GitHub opens in a new tab. Install the TOSE app on the other account (your personal account or another organization) and allow the repository, then come back to this tab. The page reads the lists again, and the new account shows with its **Attach** button; choose it to add its repositories.
 
 Attaching an account only lets the workspace use it; the accounts already attached stay. To take one away, use [Detach from a workspace](/api/github#detach-from-a-workspace) in the API.
+
+### Link a GitHub account other than your sign-in {#link-a-github-account-other-than-your-sign-in}
+
+You can connect a GitHub account that is not the one you sign in to TOSE with: for example when you signed in with Google, or when you install the TOSE app on an organization or on a second GitHub account (tose-app [#786](https://github.com/saasvn/tose-app/pull/786)).
+
+1. Start from TOSE: choose **Connect GitHub** or **Connect another GitHub account** while signed in to the dashboard. GitHub opens in a new tab.
+2. Install the TOSE app on the GitHub account and allow the repositories. If GitHub asks you to authorize the TOSE app, authorize it once.
+3. GitHub sends you back to a **Link this GitHub account?** page. It names the **GitHub account** the app was installed on and your **Tose account** (and, when it differs, the GitHub account you are signed in to GitHub as).
+4. Check both names, then choose **Link account**. The page confirms **GitHub App Installed Successfully**; close the tab and go back to TOSE, where the account can be [attached](#repository-of-another-github-account) to the workspace. Not you? Close the tab: nothing is linked until you press the button.
+
+The confirmation page appears only when all of these hold:
+
+- Your TOSE account's email is verified. A Google sign-in is verified when Google vouches for the email. A GitHub sign-in is verified only when your GitHub account's public email is a verified address on GitHub; otherwise make that email public and verified on GitHub, then sign in to TOSE with GitHub again. An email sign-up must verify its email first.
+- You started the install from TOSE in the same browser, while signed in to the dashboard, and finished it within 10 minutes.
+- The GitHub account that installed the app can see the installation.
+
+When you sign in to TOSE with the same GitHub account that installed the app, there is no confirmation page: the installation is linked at once.
+
+#### "GitHub App Not Linked" {#github-app-not-linked}
+
+This page means TOSE could not prove that the installation is yours, so nothing was linked. The installation stays on GitHub. To link it:
+
+1. Make sure your TOSE account's email is verified: verify it if you signed up with email, or, if you sign in with GitHub, make your GitHub email public and verified and sign in to TOSE again.
+2. Go back to TOSE and start again from **Connect GitHub** (or **Connect another GitHub account**) in the same browser, while signed in to the dashboard, and finish within 10 minutes. An install finished in another browser, or more than 10 minutes after you started it, ends on this page with "Your GitHub account could not be confirmed to have access to this installation, so it was not linked.", or, when it runs out during the authorize or confirm step, "This install link has expired or was not started from this browser. Start again from Tose."
+3. Or sign in to TOSE with the GitHub account that installed the app.
+
+Linking from a terminal with [`POST /api/github/check-install`](/api/github#check-or-link-the-installation) and an `installation_id` still needs your TOSE account's own GitHub identity to reach the installation; it has no confirmation page.
 
 ## What the plan shows
 
