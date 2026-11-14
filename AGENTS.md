@@ -10,8 +10,9 @@ out. Describe what shipped and link the merged PR.
 ## Issue workflow
 
 Before starting an issue, check its labels, assignees and open PRs so two people or agents do not
-work on the same thing. Then assign yourself (or the person you work for) and move the issue through
-these labels, keeping exactly one of them on it:
+work on the same thing. Then assign the GitHub user you work as (`gh api user -q .login`), including
+on issues you open yourself during a run, and move the issue through these labels, keeping exactly
+one of them on it:
 
 - `in progress`: someone is working on it.
 - `blocked`: waiting on something outside the issue; say what in a comment.
