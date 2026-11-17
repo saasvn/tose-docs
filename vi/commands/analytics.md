@@ -2,8 +2,8 @@
 
 Số liệu phân tích chỉ đọc cho một workspace: chi phí, tài nguyên và độ tin cậy. `tose analytics` gọi API analytics của workspace (`GET /api/workspaces/{slug}/analytics/{view}`); lệnh không bao giờ ghi dữ liệu, không phát cảnh báo và không thay đổi việc tính phí. Định nghĩa các chỉ số nằm trong tài liệu [workspace analytics](https://github.com/saasvn/tose-app/blob/master/docs/analytics.md).
 
-::: info Bản CLI tiếp theo
-`tose analytics` có trong bản CLI phát hành tiếp theo, sau [saasvn/tose-cli#108](https://github.com/saasvn/tose-cli/pull/108). Các bản CLI cũ hơn không có lệnh này.
+::: info Chưa có trong bản phát hành
+`tose analytics` đã được merge vào tose-cli ([saasvn/tose-cli#108](https://github.com/saasvn/tose-cli/pull/108)) nhưng chưa có trong bản phát hành nào (bản mới nhất là v0.2.0). Các bản phát hành đến v0.2.0 không có lệnh này.
 :::
 
 | Lệnh | Hiển thị | Scope của key |
@@ -35,7 +35,7 @@ Máy chủ tắt analytics trừ khi đặt `ANALYTICS_ENABLED`. Khi đang tắt
 
 - `null` nghĩa là chưa biết, không bao giờ là 0. Chế độ văn bản in là `unknown`.
 - Chi phí tính bằng nano-USD (1 USD = 1.000.000.000).
-- CPU và RAM được cấp là cấu hình, không phải mức dùng. Bộ nhớ quan sát được lấy từ một pod cho mỗi workload, nên chỉ mô tả một replica. Mức dùng CPU không được thu thập.
+- CPU và RAM được cấp là cấu hình, không phải mức dùng. Bộ nhớ quan sát được là bộ nhớ của từng workload cộng qua các pod đang chạy. Mức dùng CPU không được thu thập.
 - Uptime là lần kiểm tra gần nhất của monitor mỗi dự án. `stale`, `unknown` và `not_monitored` không bao giờ được tính là up, và không có tỉ lệ uptime vì lịch sử kiểm tra không được lưu.
 - Số phút CI không có ở đây: dùng [`tose ci usage`](/vi/commands/ci).
 

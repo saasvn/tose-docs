@@ -11,7 +11,7 @@ Tính năng này dành cho agent của Agent Runtime (`/api/workspaces/{slug}/ag
 
 ::: warning Tình trạng khả dụng
 - Instance phải chạy Agent Runtime (`AGENT_RUNTIME_ENABLED`) cùng cơ chế kiểm tra trả trước. Tính năng chưa phát hành rộng rãi.
-- Chỉ engine có `capabilities.steer` là `true` mới nhận steer. Hiện tại chỉ có **Pi**; mọi engine khác trả `409 NOT_SUPPORTED`. Steer cho Claude Code và Codex vẫn đang được xây dựng (tose-app [#538](https://github.com/saasvn/tose-app/issues/538)), nên đừng kỳ vọng mọi engine hoạt động giống nhau.
+- Chỉ engine có `capabilities.steer` là `true` mới nhận steer. Hiện Pi là engine duy nhất của Agent Runtime, và nó hỗ trợ steer. Steer cho các engine khác được theo dõi ở tose-app [#538](https://github.com/saasvn/tose-app/issues/538); đừng kỳ vọng mọi engine hoạt động giống nhau.
 - Image agent Pi vẫn cần một đợt canary trên staging với key nhà cung cấp của chính người dùng trước khi được coi là sẵn sàng cho run của khách hàng.
 :::
 
@@ -31,7 +31,7 @@ Steer chỉ được nhận khi tiến trình engine phục vụ run này đã x
 | `queued` | Đã lưu, chưa chuyển cho engine. |
 | `dispatching` | Đã chuyển, đang chờ engine xác nhận. |
 | `delivered` | Engine xác nhận đã xếp hàng chỉ dẫn. Điều này **không bao giờ** có nghĩa là model đã làm theo. |
-| `rejected` | Chắc chắn chưa bao giờ tới engine. |
+| `rejected` | Engine không đưa nó vào hàng đợi: nó chưa bao giờ tới engine, hoặc engine đã từ chối. |
 | `uncertain` | Có thể đã tới engine nhưng không xác nhận được, hoặc đã được xác nhận nhưng run kết thúc trước khi model đọc. Nó không bao giờ được gửi lại. |
 
 Chỉ dẫn `rejected` hoặc `uncertain` mang một mã:
@@ -42,7 +42,9 @@ Chỉ dẫn `rejected` hoặc `uncertain` mang một mã:
 | `RUN_CANCELING` | `rejected` | Lệnh hủy, ngủ cưỡng bức hoặc xóa agent có hiệu lực trước. |
 | `REVISION_CHANGED` | `rejected` | Agent được cập nhật sau khi run bắt đầu. |
 | `ACCESS_REVOKED` | `rejected` | Người hoặc thông tin xác thực đã gửi nó mất quyền trước khi nó được gửi (xem [Quyền được kiểm tra lại](#access-is-checked-again)). |
-| `ENGINE_REJECTED` | `rejected` | Engine từ chối. |
+| `ENGINE_REJECTED` | `rejected` | Engine từ chối, hoặc không thể chuyển giao chỉ dẫn. |
+| `RUN_NOT_ACTIVE` | `rejected` | Vòng lặp của engine đã dừng khi chỉ dẫn tới. |
+| `NOT_SUPPORTED` | `rejected` | Tiến trình engine đang phục vụ run không hỗ trợ steer. |
 | `NO_ACK` | `uncertain` | Không có xác nhận trước khi run kết thúc. |
 | `UNREAD` | `uncertain` | Engine đã xác nhận, nhưng run kết thúc trước khi model đọc. |
 | `RUN_OUTCOME_UNKNOWN` | `uncertain` | Run kết thúc bất ngờ, nên không rõ model đã đọc hay chưa. |
@@ -61,7 +63,7 @@ Nếu một bước kiểm tra không đạt, chỉ dẫn bị `rejected` với 
 
 Hủy, ngủ cưỡng bức, xóa agent, quyền bị thu hồi và ngân sách cạn luôn thắng: khi chúng có hiệu lực, các chỉ dẫn đang chờ bị từ chối. Steer không bao giờ đánh thức agent đang ngủ (`409 AGENT_SLEEPING` khi agent đang chuyển sang ngủ). Chỉ dẫn được chuyển ngay trước lệnh hủy vẫn có thể được engine xác nhận trong khoảng một giây; lệnh hủy vẫn kết thúc run, và chỉ dẫn mà model chưa đọc được báo `uncertain` (`UNREAD`).
 
-Chỉ dẫn mới cần vượt qua bước kiểm tra trả trước của agent. Trước khi chuyển các chỉ dẫn đang chờ cho engine, worker kiểm tra lại số dư và ngân sách của run; số dư vẫn có thể thay đổi sau bước kiểm tra đó.
+Chỉ dẫn mới cần vượt qua bước kiểm tra trả trước của agent. Trước khi chuyển các chỉ dẫn đang chờ cho engine, worker kiểm tra lại số dư và ngân sách của run; số dư vẫn có thể thay đổi sau bước kiểm tra đó. Chỉ dẫn không qua được bước này vẫn ở `queued` cho đến khi lần ngủ kéo theo hoặc việc run kết thúc từ chối nó (`RUN_CANCELING` hoặc `RUN_ENDED`).
 
 ## REST API {#rest-api}
 
@@ -78,7 +80,7 @@ Thử lại với cùng `Idempotency-Key` trả về cùng yêu cầu; dùng l�
 
 | Phản hồi | Khi nào |
 |--------|------|
-| `400` | Chỉ dẫn rỗng, dài hơn 8192 byte hoặc không phải văn bản hợp lệ, hoặc thiếu key. |
+| `400` | Chỉ dẫn rỗng, dài hơn 8192 byte hoặc không phải văn bản hợp lệ, hoặc `Idempotency-Key` bị thiếu hay không dài 8 đến 128 ký tự. |
 | `404` | Agent hoặc run không thuộc workspace này. |
 | `409 NOT_SUPPORTED` | Engine, hoặc tiến trình engine phục vụ run này, không hỗ trợ steer. |
 | `409 STEER_NOT_READY` | Engine phục vụ run này chưa xác nhận hỗ trợ steer. Hãy thử lại sau giây lát. |
@@ -105,7 +107,7 @@ Sự kiện của run có `steer_queued`, `steer_delivered`, `steer_rejected` v�
 
 ## Tool MCP {#mcp-tool}
 
-Instance chạy Agent Runtime cung cấp `steer_agent_run` (scope `agents:control`) với `agent_id`, `run_id`, `message` và `request_id` tùy chọn (8 đến 64 ký tự; dùng lại để thử lại an toàn). Tool áp dụng cùng quy tắc và mã từ chối như route REST, và trả `status`, `steer_id`, `seq`. Theo dõi kết quả trong sự kiện của run bằng `get_agent_run`.
+Instance chạy Agent Runtime cung cấp `steer_agent_run` (scope `agents:control`) với `agent_id`, `run_id`, `message` và `request_id` tùy chọn (8 đến 64 ký tự; dùng lại để thử lại an toàn). Tool áp dụng cùng quy tắc. Các mã từ chối steer (như `RUN_NOT_ACTIVE`, `STEER_NOT_READY`, `STEER_QUEUE_FULL` và `NOT_SUPPORTED`) giống REST, còn lỗi ngân sách, billing, xung đột, dữ liệu không hợp lệ và không tìm thấy dùng mã MCP `BUDGET_EXHAUSTED`, `BILLING_UNAVAILABLE`, `CONFLICT`, `INVALID_ARGUMENT` và `NOT_FOUND`. Nếu không có `request_id`, một giá trị mới được tạo, nên thử lại mà không có nó là một chỉ dẫn mới. Tool trả `status`, `steer_id`, `seq`. Theo dõi kết quả trong sự kiện của run bằng `get_agent_run`.
 
 ## Dashboard {#dashboard}
 

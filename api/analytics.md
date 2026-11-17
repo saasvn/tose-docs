@@ -189,15 +189,16 @@ Resources keep configuration and observation apart:
 
 - **Configured** is the size of one replica (`configured_cpu_cores`, `configured_ram_gib`).
 - **Allocated** is the configured size times replicas (`allocated_cpu_cores`, `allocated_ram_gib`). Neither is usage.
-- **Observed** memory comes from **one pod per workload**, read about every five minutes. It describes one replica
-  and is **not** multiplied by replicas. A reading of zero bytes means the pod could not be read and is ignored.
+- **Observed** memory is the workload's memory **summed over its running pods** (up to 10), read about every five
+  minutes. A sample in which some running pod could not be read is ignored, and so is a reading of zero bytes. Samples
+  stored before the collector read every pod describe one pod, so they count only for a workload with at most one pod.
 - **CPU use is not collected.** CPU appears only as configured and allocated.
 - A CPU size is read as a Kubernetes quantity, so `"0.5"` and `"500m"` are both half a core, the same way
   [billing](/guide/pricing#compute) reads it.
 
 | Field | Meaning |
 |-------|---------|
-| `series` | Per bucket: `at`, `workloads`, `memory_workloads`, `memory_bytes` (the sum, over workloads, of each one's average one-pod reading in the bucket; `null` when nothing was observed), `pods`, `ready_pods` |
+| `series` | Per bucket: `at`, `workloads`, `memory_workloads`, `memory_bytes` (the sum, over workloads, of each one's average all-pod reading in the bucket; `null` when nothing was observed), `pods`, `ready_pods` |
 | `totals` | `workloads` (every listed project and template), then for those running with replicas: `running`, `replicas`, `allocated_cpu_cores`, `allocated_ram_gib`, and `no_samples` (running workloads with no sample in the window) |
 | `workloads`, `workloads_truncated` | The largest workloads by allocated RAM, and whether some were left out |
 
@@ -276,8 +277,8 @@ Both read the routes above as the signed-in person, so they show nothing that pe
 - An unmeasured value shows as a dash (`—`), never as zero, and a missing bucket breaks the chart line.
 - Costs show actual metered spend (ended ledger periods) and live metered spend (the period in progress) as separate
   tiles. The month-end forecast and compute runway are shown apart from observed spend.
-- Resources show allocated CPU and RAM, each workload's per-replica size, and sampled memory: one sampled replica per
-  workload, summed across workloads. CPU in use is shown as not measured.
+- Resources show allocated CPU and RAM, each workload's per-replica size, and sampled memory: each workload's running pods, summed
+  across workloads. CPU in use is shown as not measured.
 - Service health shows open incidents by severity, the latest uptime check counts, deployment outcomes, the success
   ratio, and average and p95 deployment time. Its chart counts finished deployments.
 
@@ -289,7 +290,9 @@ Both read the routes above as the signed-in person, so they show nothing that pe
 - Alerts, anomaly detection, HTTP latency percentiles and any write.
 - CPU use, and history older than 30 days.
 
-[`tose analytics`](/commands/analytics) ships in the next CLI release. There are no analytics MCP tools or WebMCP
+[`tose analytics`](/commands/analytics) is merged in tose-cli
+([saasvn/tose-cli#108](https://github.com/saasvn/tose-cli/pull/108)) but is not in a released version yet (the latest
+is v0.2.0). There are no analytics MCP tools or WebMCP
 adapters yet; until there are, read these routes directly.
 
 ## Related documentation

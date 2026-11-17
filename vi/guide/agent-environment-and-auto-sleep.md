@@ -60,7 +60,7 @@ Một agent của Agent Runtime có thể mang một `environment` bên cạnh `
 - `secret_refs`: tên biến ánh xạ tới **tên** của một secret agent trong workspace. Giá trị secret không bao giờ nằm trong môi trường.
 - `install_script`: script cài đặt tùy chọn trong không gian người dùng, với `install_policy: on_revision_change` (mặc định khi có script).
 
-Đặt nó trong body của `POST /agents` hoặc `PUT /agents/{agent_id}`. Cả hai cần owner hoặc admin của workspace, hoặc scope `agents:write`. Khi cập nhật, bỏ trống `environment` (hoặc `null`) thì giữ nguyên, `{}` thì xóa, còn một object thì thay thế. Gửi `expected_revision` để cập nhật bị từ chối với `409` khi agent đã đổi trong lúc đó. Khi cờ đang tắt, yêu cầu có đặt môi trường bị từ chối với `409 NOT_SUPPORTED`; yêu cầu không hợp lệ trả `400` nêu tên trường, không bao giờ nêu giá trị.
+Đặt nó trong body của `POST /agents` hoặc `PUT /agents/{agent_id}`. Cả hai cần owner hoặc admin của workspace; API key hoặc ứng dụng đã kết nối còn cần thêm scope `agents:write`. Khi cập nhật, bỏ trống `environment` (hoặc `null`) thì giữ nguyên, `{}` thì xóa, còn một object thì thay thế. Gửi `expected_revision` để cập nhật bị từ chối với `409` khi agent đã đổi trong lúc đó. Khi cờ đang tắt, yêu cầu có đặt môi trường bị từ chối với `409 NOT_SUPPORTED`; yêu cầu không hợp lệ trả `400` nêu tên trường, không bao giờ nêu giá trị.
 
 Các quy tắc khác với agent tuyển chọn:
 
@@ -70,7 +70,7 @@ Các quy tắc khác với agent tuyển chọn:
 
 Giới hạn và mẫu chính xác nằm trong schema `AgentEnvironment` của [hợp đồng OpenAPI](https://github.com/saasvn/tose-app/blob/master/internal/apispec/openapi.yaml).
 
-`GET /agents/{agent_id}/environment` (owner và admin của workspace, hoặc `agents:write`) trả về các biến, tên các tham chiếu secret, metadata của script (`sha256`, `bytes`, `lines`), `hash` của thiết lập và `apply_status`. Nó không bao giờ trả về giá trị secret hay nội dung script, và bản thân agent (`GET /agents/{agent_id}`) không chứa môi trường. Khi cờ đang tắt, nó trả `409 NOT_SUPPORTED`.
+`GET /agents/{agent_id}/environment` (owner và admin của workspace; API key hoặc ứng dụng đã kết nối còn cần thêm `agents:write`) trả về các biến, tên các tham chiếu secret, metadata của script (`sha256`, `bytes`, `lines`), `hash` của thiết lập và `apply_status`. Nó không bao giờ trả về giá trị secret hay nội dung script, và bản thân agent (`GET /agents/{agent_id}`) không chứa môi trường. Khi cờ đang tắt, nó trả `409 NOT_SUPPORTED`.
 
 ## Tự động ngủ cho agent nhàn rỗi {#auto-sleep-for-idle-agents}
 

@@ -190,15 +190,16 @@ Resources tách cấu hình khỏi quan sát:
 - **Configured** (cấu hình) là kích thước một replica (`configured_cpu_cores`, `configured_ram_gib`).
 - **Allocated** (cấp phát) là kích thước cấu hình nhân số replica (`allocated_cpu_cores`, `allocated_ram_gib`). Cả hai
   đều không phải mức sử dụng.
-- Bộ nhớ **observed** (quan sát được) lấy từ **một pod mỗi workload**, đọc khoảng năm phút một lần. Nó mô tả một
-  replica và **không** được nhân với số replica. Giá trị 0 byte nghĩa là không đọc được pod và bị bỏ qua.
+- Bộ nhớ **observed** (quan sát được) là bộ nhớ của workload **cộng qua các pod đang chạy** (tối đa 10), đọc
+  khoảng năm phút một lần. Mẫu có pod đang chạy không đọc được bị bỏ qua, và số đo 0 byte cũng vậy. Các mẫu lưu trước
+  khi collector đọc mọi pod chỉ mô tả một pod, nên chỉ được tính cho workload có tối đa một pod.
 - **Mức sử dụng CPU không được thu thập.** CPU chỉ xuất hiện ở dạng cấu hình và cấp phát.
 - Kích thước CPU được đọc như một Kubernetes quantity, nên `"0.5"` và `"500m"` đều là nửa core, giống cách
   [billing](/vi/guide/pricing#compute) đọc nó.
 
 | Trường | Ý nghĩa |
 |--------|---------|
-| `series` | Mỗi bucket: `at`, `workloads`, `memory_workloads`, `memory_bytes` (tổng, qua các workload, của trung bình số đo một pod của từng workload trong bucket; `null` khi không quan sát được gì), `pods`, `ready_pods` |
+| `series` | Mỗi bucket: `at`, `workloads`, `memory_workloads`, `memory_bytes` (tổng, qua các workload, của trung bình số đo mọi pod của từng workload trong bucket; `null` khi không quan sát được gì), `pods`, `ready_pods` |
 | `totals` | `workloads` (mọi dự án và template được liệt kê), rồi với các workload đang chạy và có replica: `running`, `replicas`, `allocated_cpu_cores`, `allocated_ram_gib`, và `no_samples` (workload đang chạy nhưng không có mẫu nào trong window) |
 | `workloads`, `workloads_truncated` | Các workload lớn nhất theo RAM cấp phát, và có workload nào bị lược bớt không |
 
@@ -278,8 +279,8 @@ Cả hai đọc các route ở trên bằng quyền của người đang đăng 
 - Giá trị không đo được hiện là dấu gạch (`—`), không bao giờ là 0, và bucket bị thiếu làm đứt đường biểu đồ.
 - Chi phí hiện chi tiêu đo được thực tế (các kỳ sổ cái đã kết thúc) và chi tiêu đang đo (kỳ đang diễn ra) ở hai ô
   riêng. Dự báo cuối tháng và runway compute được hiện tách khỏi chi tiêu đã quan sát.
-- Tài nguyên hiện CPU và RAM cấp phát, kích thước mỗi replica của từng workload, và bộ nhớ lấy mẫu: một replica được
-  lấy mẫu mỗi workload, cộng qua các workload. CPU đang dùng được hiện là không đo.
+- Tài nguyên hiện CPU và RAM cấp phát, kích thước mỗi replica của từng workload, và bộ nhớ lấy mẫu: các pod đang chạy của từng
+  workload, cộng qua các workload. CPU đang dùng được hiện là không đo.
 - Tình trạng dịch vụ hiện số incident đang mở theo mức độ, số đếm của lần kiểm tra uptime mới nhất, kết quả
   deployment, tỉ lệ thành công, và thời gian deploy trung bình và p95. Biểu đồ của nó đếm các deployment đã kết thúc.
 
@@ -291,7 +292,9 @@ Cả hai đọc các route ở trên bằng quyền của người đang đăng 
 - Cảnh báo, phát hiện bất thường, phân vị độ trễ HTTP và mọi thao tác ghi.
 - Mức sử dụng CPU, và lịch sử cũ hơn 30 ngày.
 
-[`tose analytics`](/vi/commands/analytics) có trong bản phát hành CLI tiếp theo. Chưa có tool MCP hay adapter WebMCP
+[`tose analytics`](/vi/commands/analytics) đã được merge vào tose-cli
+([saasvn/tose-cli#108](https://github.com/saasvn/tose-cli/pull/108)) nhưng chưa có trong bản phát hành nào (bản mới
+nhất là v0.2.0). Chưa có tool MCP hay adapter WebMCP
 cho analytics; trong lúc chờ, hãy gọi trực tiếp các route này.
 
 ## Tài liệu liên quan

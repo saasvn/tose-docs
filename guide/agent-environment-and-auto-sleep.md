@@ -60,7 +60,7 @@ An Agent Runtime agent can carry an `environment` next to its engine `settings`.
 - `secret_refs`: a variable name mapped to the **name** of a workspace agent secret. The secret value is never part of the environment.
 - `install_script`: an optional user-space install script, with `install_policy: on_revision_change` (the default when a script is set).
 
-Set it in the body of `POST /agents` or `PUT /agents/{agent_id}`. Both need a workspace owner or admin, or the `agents:write` scope. On update, leaving `environment` out (or `null`) keeps it, `{}` clears it and an object replaces it. Send `expected_revision` to have the update refused with `409` when the agent changed in the meantime. While the flag is off, a request that sets an environment is refused with `409 NOT_SUPPORTED`; an invalid one answers `400` naming the field, never the value.
+Set it in the body of `POST /agents` or `PUT /agents/{agent_id}`. Both need a workspace owner or admin; an API key or connected app also needs the `agents:write` scope. On update, leaving `environment` out (or `null`) keeps it, `{}` clears it and an object replaces it. Send `expected_revision` to have the update refused with `409` when the agent changed in the meantime. While the flag is off, a request that sets an environment is refused with `409 NOT_SUPPORTED`; an invalid one answers `400` naming the field, never the value.
 
 Rules that differ from curated agents:
 
@@ -70,7 +70,7 @@ Rules that differ from curated agents:
 
 The exact limits and patterns are in the `AgentEnvironment` schema of the [OpenAPI contract](https://github.com/saasvn/tose-app/blob/master/internal/apispec/openapi.yaml).
 
-`GET /agents/{agent_id}/environment` (workspace owners and admins, or `agents:write`) returns the variables, the secret reference names, the script's metadata (`sha256`, `bytes`, `lines`), the setup `hash` and `apply_status`. It never returns a secret value or the script text, and the agent itself (`GET /agents/{agent_id}`) does not include the environment. While the flag is off it answers `409 NOT_SUPPORTED`.
+`GET /agents/{agent_id}/environment` (workspace owners and admins; an API key or connected app also needs `agents:write`) returns the variables, the secret reference names, the script's metadata (`sha256`, `bytes`, `lines`), the setup `hash` and `apply_status`. It never returns a secret value or the script text, and the agent itself (`GET /agents/{agent_id}`) does not include the environment. While the flag is off it answers `409 NOT_SUPPORTED`.
 
 ## Auto-sleep for idle agents
 

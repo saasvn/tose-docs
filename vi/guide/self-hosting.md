@@ -93,8 +93,8 @@ từ kho secret và CCP của bạn; không bao giờ commit chúng):
 - `DEWEE_IDENTITY_APP_ID`, `DEWEE_IDENTITY_ISSUER`, `DEWEE_IDENTITY_ASSERTION_SECRET`
 - `DEWEE_ALLOWED_ORIGINS`: origin chính xác của dashboard
 
-Không đặt bất kỳ biến `DEWEE_GATEWAY_*` nào: khi có một biến như vậy, dashboard từ chối khởi động
-chat. Chỉ đặt `DEWEE_TRUSTED_PROXY=true` khi mọi request tới dashboard đều đi qua reverse proxy ghi
+Không đặt bất kỳ biến gateway nào của template Dewee (`DEWEE_GATEWAY_URL`, `DEWEE_GATEWAY_TOKEN`, `DEWEE_TENANT_ID`, `DEWEE_AGENTS`, `DEWEE_DEFAULT_AGENT`, `DEWEE_ALLOW_CLIENT_CREDENTIALS` hay `DEWEE_CLIENT_CREDENTIAL_HOSTS`): chỉ cần có một biến, dashboard từ chối khởi động
+chat và `/api/dewee/status` báo lý do `gateway_vars_set`. Chỉ đặt `DEWEE_TRUSTED_PROXY=true` khi mọi request tới dashboard đều đi qua reverse proxy ghi
 đè hoặc loại bỏ `cf-connecting-ip`, `x-real-ip` và `x-forwarded-for`.
 
 Sau mỗi lần deploy, kiểm tra `GET /api/dewee/status` trên origin của dashboard. `available: false`

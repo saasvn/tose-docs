@@ -92,7 +92,7 @@ To turn it on for a self-hosted dashboard, set these in the dashboard process's 
 - `DEWEE_IDENTITY_APP_ID`, `DEWEE_IDENTITY_ISSUER`, `DEWEE_IDENTITY_ASSERTION_SECRET`
 - `DEWEE_ALLOWED_ORIGINS`: the exact dashboard origin
 
-Do not set any `DEWEE_GATEWAY_*` variable: with one set, the dashboard refuses to start the chat.
+Do not set any of the Dewee template's gateway variables (`DEWEE_GATEWAY_URL`, `DEWEE_GATEWAY_TOKEN`, `DEWEE_TENANT_ID`, `DEWEE_AGENTS`, `DEWEE_DEFAULT_AGENT`, `DEWEE_ALLOW_CLIENT_CREDENTIALS` or `DEWEE_CLIENT_CREDENTIAL_HOSTS`): with any one set, the dashboard refuses to start the chat and `/api/dewee/status` reports the reason `gateway_vars_set`.
 Set `DEWEE_TRUSTED_PROXY=true` only when every request reaches the dashboard through a reverse proxy
 that overwrites or strips `cf-connecting-ip`, `x-real-ip` and `x-forwarded-for`.
 

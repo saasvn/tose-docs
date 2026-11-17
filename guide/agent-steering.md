@@ -11,7 +11,7 @@ This is for agents of the Agent Runtime (`/api/workspaces/{slug}/agents`). Tasks
 
 ::: warning Availability
 - The instance must run the Agent Runtime (`AGENT_RUNTIME_ENABLED`) with prepaid admission. It is not generally available.
-- Only an engine whose `capabilities.steer` is `true` accepts a steer. Today that is **Pi** only; every other engine answers `409 NOT_SUPPORTED`. Steering for Claude Code and Codex is still being built (tose-app [#538](https://github.com/saasvn/tose-app/issues/538)), so do not expect the same behaviour across engines.
+- Only an engine whose `capabilities.steer` is `true` accepts a steer. Pi is the only Agent Runtime engine today, and it steers. Steering for further engines is tracked in tose-app [#538](https://github.com/saasvn/tose-app/issues/538); do not expect the same behaviour across engines.
 - The Pi agent image still needs a staging canary with a user's own provider key before it counts as ready for customer runs.
 :::
 
@@ -31,7 +31,7 @@ Steering is accepted only when the engine process serving this run confirmed, wh
 | `queued` | Stored, not yet handed to the engine. |
 | `dispatching` | Handed over, waiting for the engine to confirm. |
 | `delivered` | The engine confirmed it queued the instruction. This **never** means the model followed it. |
-| `rejected` | It provably never reached the engine. |
+| `rejected` | The engine did not queue it: it never reached the engine, or the engine refused it. |
 | `uncertain` | It may have reached the engine, but this could not be confirmed, or it was confirmed and the run ended before the model read it. It is never sent again. |
 
 A `rejected` or `uncertain` instruction carries a code:
@@ -42,7 +42,9 @@ A `rejected` or `uncertain` instruction carries a code:
 | `RUN_CANCELING` | `rejected` | A cancel, a forced sleep or deleting the agent took effect first. |
 | `REVISION_CHANGED` | `rejected` | The agent was updated after the run started. |
 | `ACCESS_REVOKED` | `rejected` | The person or credential that sent it lost access before it was sent (see [Access is checked again](#access-is-checked-again)). |
-| `ENGINE_REJECTED` | `rejected` | The engine refused it. |
+| `ENGINE_REJECTED` | `rejected` | The engine refused it, or it could not be handed over. |
+| `RUN_NOT_ACTIVE` | `rejected` | The engine's loop had already stopped when the instruction arrived. |
+| `NOT_SUPPORTED` | `rejected` | The engine process serving the run does not steer. |
 | `NO_ACK` | `uncertain` | No confirmation arrived before the run ended. |
 | `UNREAD` | `uncertain` | The engine confirmed it, but the run ended before the model read it. |
 | `RUN_OUTCOME_UNKNOWN` | `uncertain` | The run ended unexpectedly, so whether the model read it is unknown. |
@@ -61,7 +63,7 @@ If any check fails, the instruction is `rejected` with `ACCESS_REVOKED`, in its 
 
 Cancel, a forced sleep, deleting the agent, revoked access and an exhausted budget always win: when they take effect, queued instructions are rejected. A steer never wakes a sleeping agent (`409 AGENT_SLEEPING` while it is going to sleep). An instruction handed over just before a cancel can still be confirmed by the engine for about a second; the cancel still ends the run, and an instruction the model did not read is reported `uncertain` (`UNREAD`).
 
-A new instruction needs the agent's prepaid admission to pass. Before handing queued instructions to the engine, the worker checks funding and the run's budget again; funding can still change after that check.
+A new instruction needs the agent's prepaid admission to pass. Before handing queued instructions to the engine, the worker checks funding and the run's budget again; funding can still change after that check. An instruction that fails it stays `queued` until the resulting sleep or the end of the run rejects it (`RUN_CANCELING` or `RUN_ENDED`).
 
 ## REST API {#rest-api}
 
@@ -78,7 +80,7 @@ Retrying with the same `Idempotency-Key` returns the same request; reusing it wi
 
 | Answer | When |
 |--------|------|
-| `400` | The message is empty, longer than 8192 bytes or not valid text, or the key is missing. |
+| `400` | The message is empty, longer than 8192 bytes or not valid text, or the `Idempotency-Key` is missing or not 8 to 128 characters. |
 | `404` | The agent or run is not in this workspace. |
 | `409 NOT_SUPPORTED` | The engine, or the engine process serving this run, does not steer. |
 | `409 STEER_NOT_READY` | The engine serving this run has not yet confirmed it can steer. Retry shortly. |
@@ -105,7 +107,7 @@ The run's events carry `steer_queued`, `steer_delivered`, `steer_rejected` and `
 
 ## MCP tool {#mcp-tool}
 
-Instances that run the Agent Runtime offer `steer_agent_run` (scope `agents:control`) with `agent_id`, `run_id`, `message` and an optional `request_id` (8 to 64 characters; reuse it to retry safely). It applies the same rules and refusal codes as the REST route and returns `status`, `steer_id` and `seq`. Follow the outcome in the run's events with `get_agent_run`.
+Instances that run the Agent Runtime offer `steer_agent_run` (scope `agents:control`) with `agent_id`, `run_id`, `message` and an optional `request_id` (8 to 64 characters; reuse it to retry safely). It applies the same rules. The steer refusal codes (such as `RUN_NOT_ACTIVE`, `STEER_NOT_READY`, `STEER_QUEUE_FULL` and `NOT_SUPPORTED`) are the same, while budget, billing, conflict, validation and not-found errors use the MCP codes `BUDGET_EXHAUSTED`, `BILLING_UNAVAILABLE`, `CONFLICT`, `INVALID_ARGUMENT` and `NOT_FOUND`. Without `request_id` a new one is generated, so a retry without it is a new instruction. The tool returns `status`, `steer_id` and `seq`. Follow the outcome in the run's events with `get_agent_run`.
 
 ## Dashboard {#dashboard}
 

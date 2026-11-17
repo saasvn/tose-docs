@@ -2,8 +2,8 @@
 
 Read-only analytics for one workspace: costs, resources and reliability. `tose analytics` calls the workspace analytics API (`GET /api/workspaces/{slug}/analytics/{view}`); it never writes, raises alerts or changes billing. See the [workspace analytics](https://github.com/saasvn/tose-app/blob/master/docs/analytics.md) reference for the metric definitions.
 
-::: info Next CLI release
-`tose analytics` ships in the next CLI release, after [saasvn/tose-cli#108](https://github.com/saasvn/tose-cli/pull/108). Older CLI versions do not have the command.
+::: info Not in a release yet
+`tose analytics` is merged in tose-cli ([saasvn/tose-cli#108](https://github.com/saasvn/tose-cli/pull/108)) but is not in a released version yet (the latest is v0.2.0). Released versions up to v0.2.0 do not have the command.
 :::
 
 | Command | What it shows | Key scope |
@@ -35,7 +35,7 @@ The server keeps analytics off unless `ANALYTICS_ENABLED` is set. While it is of
 
 - `null` means unknown, never zero. The text view prints it as `unknown`.
 - Costs are nano-USD (1 USD = 1,000,000,000).
-- Allocated CPU and RAM are configuration, not usage. Observed memory comes from one pod per workload, so it describes one replica. CPU use is not collected.
+- Allocated CPU and RAM are configuration, not usage. Observed memory is each workload's memory summed over its running pods. CPU use is not collected.
 - Uptime is the latest check of each project's monitor. `stale`, `unknown` and `not_monitored` never count as up, and there is no uptime percentage because check history is not stored.
 - CI minutes are not here: use [`tose ci usage`](/commands/ci).
 
