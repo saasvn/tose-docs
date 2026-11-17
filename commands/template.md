@@ -8,7 +8,7 @@ All commands accept `--json`. See the [global options](/commands/overview#global
 
 ```bash
 tose template catalog                                  # keys, resources, storage, estimated TOSE charge
-tose template create demo --template multix --json     # --type is an alias; default is goclaw
+tose template create demo --template multix --json     # --type is an alias; default is goclaw; Multix only where enabled
 tose template env set demo --env-file provider.env     # file must be chmod 600
 printf 'GEMINI_API_KEY=%s\n' "$KEY" | tose template env set demo --env-stdin
 tose template env set demo GEMINI_API_KEY              # bare key name: masked prompt in a terminal
@@ -42,6 +42,7 @@ tose template create [name] [--template <key>]
 | `--type <key>` | Alias of `--template` |
 
 - The key is checked against the live catalog. An unknown key exits `2` and creates nothing.
+- `multix` is hidden unless the server enables the template, so on a server that has not, it is not in `tose template catalog` and `--template multix` is an unknown key. See [Multix](#multix).
 - Without `--template`, `goclaw` is used. In a terminal the CLI offers the catalog to pick from.
 - In terminal output, when the catalog provides it, the CLI states that AI provider usage is [BYOK](#ai-provider-usage-byok) and not billed to your wallet, and shows the estimated TOSE charge. The name is asked for in a terminal if you omit it.
 
@@ -222,6 +223,14 @@ A suspended template refuses `deploy` and `resume` while the wallet is empty. Th
 | `409` that raced a suspension | `retryable`. Nothing was started. The retry command is a next action and keeps your flags, except credentials (`--api-key`) and `--yes` |
 | `409` for a deployment already in progress | Not retryable. The next action is [`tose template info`](#tose-template-info) |
 | `409` for a resume of a template that is not suspended | Not retryable. The next action is [`tose template deploy`](#tose-template-deploy) |
+
+## Multix {#multix}
+
+The Multix Server template is off by default and is not offered until the server operator enables it (see [Self-hosting](/guide/self-hosting#multix-template)). Where it is enabled:
+
+- Its generated credentials (`SESSION_SECRET`, `SECRETS_ENCRYPTION_KEY`, `MULTIX_BOOTSTRAP_TOKEN`) are managed by TOSE. `tose template env set`, `env rm` and reveal are refused with `403 GENERATED_SECRET`.
+- It always runs the image TOSE configured. Use `--upgrade` to move to it or `--rollback` to go back. Setting a different image on the instance through the API is refused with `400`.
+- Media provider usage is [BYOK](#ai-provider-usage-byok), billed by the provider, not your TOSE wallet.
 
 ## AI provider usage (BYOK)
 
