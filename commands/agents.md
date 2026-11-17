@@ -50,7 +50,7 @@ tose agents steer <agent-id> <run-id> --message @steer.md --idempotency-key <key
 
 ### Refusals {#steer-refusals}
 
-Every refusal keeps its code, and nothing is queued:
+Every refusal keeps its code, and nothing is queued. A `503` without a code (for example from a proxy in front of the API) is different: the outcome is unknown, so check `tose agents steers` first, then retry with the same `--idempotency-key`, which stores the request at most once.
 
 | Code | Meaning | Next step |
 |------|---------|-----------|
@@ -61,6 +61,9 @@ Every refusal keeps its code, and nothing is queued:
 | `AGENT_SLEEPING` | The agent is going to sleep; a steer never wakes it | `tose agents steers` shows the run's requests |
 | `REVISION_CHANGED` | The agent was updated after the run started, so the run no longer takes steering | `tose agents steers` shows the run's requests |
 | `429 STEER_QUEUE_FULL` | Too many requests are pending for the run (8 pending or 50 in all) | Wait for them to be delivered, then retry |
+| `402 budget_exhausted` | The prepaid balance or the agent budget is exhausted | Top up the workspace wallet (or raise the agent budget), then retry with the same `--idempotency-key` |
+| `503 billing_unavailable` | Agent metering is not configured on the server | Nothing to retry; ask the platform operator |
+| `503` with another code | Agent compute admission refused the steer; the code says why | Retry later with the same `--idempotency-key` |
 
 ## tose agents steers {#tose-agents-steers}
 
