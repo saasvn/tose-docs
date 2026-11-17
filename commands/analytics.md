@@ -37,11 +37,12 @@ The server keeps analytics off unless `ANALYTICS_ENABLED` is set. While it is of
 - Costs are nano-USD (1 USD = 1,000,000,000).
 - Allocated CPU and RAM are configuration, not usage. Observed memory comes from one pod per workload, so it describes one replica. CPU use is not collected.
 - Uptime is the latest check of each project's monitor. `stale`, `unknown` and `not_monitored` never count as up, and there is no uptime percentage because check history is not stored.
+- Resource numbers may come with `meta.collector_stale: true` (in `resources`, and in the resources section of `overview`): the newest metrics sample is more than 30 minutes old, or missing for a workload that is due one. `complete` is then `false`, and the text view adds a note that resource numbers may be low. A server that does not report the flag leaves it out, and `--json` keeps it exactly as sent. See [Resources](/api/analytics#resources).
 - CI minutes are not here: use [`tose ci usage`](/commands/ci).
 
 ## JSON output
 
-`--json` puts the API answer unchanged in `data`, including `meta`: `complete`, `coverage`, `granularity`, `units` and `notes`, next to the window itself (`window`, `from`, `to`). `complete` is `false` when a closed bucket has no data or uptime evidence is stale, so check it before you trust a total.
+`--json` puts the API answer unchanged in `data`, including `meta`: `complete`, `coverage`, `granularity`, `units` and `notes`, plus `collector_stale` on resources when the server sends it, next to the window itself (`window`, `from`, `to`). `complete` is `false` when a closed bucket has no data, uptime evidence is stale or the metrics collector is stale, so check it before you trust a total.
 
 ```bash
 tose analytics costs --window 7d --json
