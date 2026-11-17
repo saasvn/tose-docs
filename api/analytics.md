@@ -140,7 +140,7 @@ Each section has a `status`:
 | `unavailable` | `null`. Its source could not be read. The route still answers `200` with the other sections; the three sections share one 10-second limit, so a timeout can mark more than one `unavailable` |
 
 The summaries are: `costs` with `meta`, `totals`, `prepaid`, `budget_status` and `unavailable`; `resources` with
-`meta`, `totals` and `latest_memory_bytes` (the newest bucket with observed memory, or `null`); `reliability` with
+`meta`, `totals` and `latest_memory_bytes` (the memory of the newest bucket that has samples; `null` when any workload in that bucket lacks a valid reading, never an older bucket's value); `reliability` with
 `meta`, `incidents`, `uptime` and `deployments`. For the full detail of a section, call its own route with the same
 window.
 

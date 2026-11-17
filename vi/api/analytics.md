@@ -140,7 +140,7 @@ Câu trả lời có `observed_at`, `window`, `from`, `to` (window trước khi 
 | `unavailable` | `null`. Không đọc được nguồn của phần đó. Route vẫn trả `200` cùng các phần khác; ba phần dùng chung một giới hạn 10 giây, nên khi timeout có thể nhiều phần cùng là `unavailable` |
 
 Các bản tóm tắt gồm: `costs` có `meta`, `totals`, `prepaid`, `budget_status` và `unavailable`; `resources` có
-`meta`, `totals` và `latest_memory_bytes` (bucket mới nhất có bộ nhớ quan sát được, hoặc `null`); `reliability` có
+`meta`, `totals` và `latest_memory_bytes` (bộ nhớ của bucket mới nhất có mẫu; `null` khi có workload trong bucket đó thiếu số đo hợp lệ, không bao giờ lấy giá trị của bucket cũ hơn); `reliability` có
 `meta`, `incidents`, `uptime` và `deployments`. Để xem chi tiết một phần, gọi route riêng của nó với cùng window.
 
 ```json
