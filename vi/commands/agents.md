@@ -50,7 +50,7 @@ tose agents steer <agent-id> <run-id> --message @steer.md --idempotency-key <key
 
 ### Các lỗi từ chối {#steer-refusals}
 
-Mọi lỗi từ chối giữ nguyên mã, và không có gì được xếp hàng:
+Mọi lỗi từ chối giữ nguyên mã, và không có gì được xếp hàng. Riêng `503` không kèm mã (ví dụ từ proxy đứng trước API) thì khác: chưa biết kết quả, nên hãy kiểm tra `tose agents steers` trước, rồi thử lại với cùng `--idempotency-key`, vốn chỉ lưu yêu cầu tối đa một lần.
 
 | Mã | Ý nghĩa | Bước tiếp theo |
 |----|---------|----------------|
@@ -61,6 +61,9 @@ Mọi lỗi từ chối giữ nguyên mã, và không có gì được xếp hà
 | `AGENT_SLEEPING` | Agent đang chuyển sang ngủ; steer không bao giờ đánh thức agent | `tose agents steers` hiển thị các yêu cầu của lượt chạy |
 | `REVISION_CHANGED` | Agent đã được cập nhật sau khi lượt chạy bắt đầu, nên lượt chạy không nhận steer nữa | `tose agents steers` hiển thị các yêu cầu của lượt chạy |
 | `429 STEER_QUEUE_FULL` | Lượt chạy có quá nhiều yêu cầu đang chờ (8 đang chờ hoặc tổng cộng 50) | Chờ các yêu cầu được giao, rồi thử lại |
+| `402 budget_exhausted` | Số dư trả trước hoặc ngân sách agent đã hết | Nạp tiền vào ví workspace (hoặc tăng ngân sách agent), rồi thử lại với cùng `--idempotency-key` |
+| `503 billing_unavailable` | Máy chủ chưa cấu hình đo lường (metering) cho agent | Không có gì để thử lại; hãy hỏi nhà vận hành nền tảng |
+| `503` với mã khác | Bộ kiểm soát tài nguyên compute của agent từ chối steer; mã lỗi cho biết lý do | Thử lại sau với cùng `--idempotency-key` |
 
 ## tose agents steers {#tose-agents-steers}
 
