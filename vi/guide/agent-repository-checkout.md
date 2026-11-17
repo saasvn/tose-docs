@@ -174,7 +174,7 @@ Khi push bật, bất kỳ ai chạy được lệnh trong agent đều push đ�
 ### Giới hạn {#gioi-han}
 
 - **Đổi push trên trang của agent, không phải bằng deploy lại thông thường.** Deploy lại từ trang của agent vẫn giữ lựa chọn cũ. Muốn bật, tắt push hoặc đổi nhánh được push, hãy dùng **Quyền** trên dòng của kho đó trong tab **Kho mã**; xem [Gắn hoặc đổi kho mã của agent sau khi cài](#gan-hoac-doi-kho-ma-sau-khi-cai).
-- **Đổi tên kho mã làm proxy ngừng hoạt động.** Proxy dùng tên kho mã đã ghim khi cài (hoặc ở lần đổi kho mã gần nhất) và không đi theo chuyển hướng của GitHub, nên sau khi đổi tên hoặc chuyển giao kho trên GitHub, git hiển thị `PERMISSION_DENIED`. Deploy lại không khắc phục được: trong tab **Kho mã** của agent, hãy [gỡ mục cũ rồi thêm kho mã](#gan-hoac-doi-kho-ma-sau-khi-cai) theo tên mới. Nếu `/workspace/<tên>` vẫn còn bản clone cũ và TOSE không nhận ra đó là cùng một kho, checkout thất bại với `WORKSPACE_NOT_EMPTY`; hãy chuyển thư mục đó sang chỗ khác trong agent trước.
+- **Đổi tên kho mã làm proxy ngừng hoạt động.** Proxy dùng tên kho mã đã ghim khi cài (hoặc ở lần đổi kho mã gần nhất) và không đi theo chuyển hướng của GitHub, nên sau khi đổi tên hoặc chuyển giao kho trên GitHub, git hiển thị `PERMISSION_DENIED`. Deploy lại không khắc phục được, và lưu kho với tên mới khi kho đã được clone cũng không (`REPOSITORY_RENAMED`): trong tab **Kho mã** của agent, hãy [gỡ mục cũ rồi thêm kho mã](#kho-ma-doi-ten-tren-github) theo tên mới. Nếu `/workspace/<tên>` vẫn còn bản clone cũ và TOSE không nhận ra đó là cùng một kho, checkout thất bại với `WORKSPACE_NOT_EMPTY`; hãy chuyển thư mục đó sang chỗ khác trong agent trước.
 - **Chỉ có push thì agent không mở pull request.** Bạn tự mở trên GitHub từ nhánh mà agent đã push, hoặc [cho agent quản lý issue và pull request](#cho-agent-quan-ly-issue-va-pull-request) để nó tự mở.
 
 ## Cho agent quản lý issue và pull request {#cho-agent-quan-ly-issue-va-pull-request}
@@ -309,6 +309,18 @@ Bạn không phải cài lại agent để thêm hay đổi kho mã (tose-app [#
 | Đổi nhánh được push của một kho | Quy tắc nhánh (`all` hoặc `agent`) có hiệu lực ngay; không có gì trong `/workspace` thay đổi. |
 | Chọn nhánh khác của kho đã clone | Bị từ chối với `REPOSITORY_ALREADY_CLONED`. Hãy đổi nhánh bằng git ngay trong agent (`git fetch`, `git switch`). Bản clone chưa thành công (đang chờ hoặc thất bại) vẫn đổi nhánh được. |
 | Gỡ một kho | Tệp của kho vẫn nằm trong `/workspace`, nhưng agent không thể fetch hay push kho đó qua TOSE nữa. |
+| Lưu một kho theo tên GitHub đặt cho nó sau khi đổi tên hoặc chuyển giao | Xem [Kho mã đổi tên trên GitHub](#kho-ma-doi-ten-tren-github). |
+
+### Kho mã đổi tên trên GitHub {#kho-ma-doi-ten-tren-github}
+
+Kho được đổi tên hoặc chuyển giao trên GitHub vẫn là cùng một kho. TOSE nhận ra kho qua mã định danh GitHub (`repo_id`), nên lưu kho với tên mới sẽ thay đổi bản checkout sẵn có của agent thay vì thêm một bản thứ hai (tose-app [#750](https://github.com/saasvn/tose-app/pull/750), [#752](https://github.com/saasvn/tose-app/pull/752)). Kết quả tùy vào việc agent đã clone kho hay chưa:
+
+- **Chưa clone** (TOSE chưa từng thử clone kho): bản checkout nhận tên mới và được clone vào `/workspace/<tên mới>`.
+- **Đã clone**, hoặc TOSE đã thử clone: kho được thiết lập theo tên cũ (thư mục và `origin`), mà TOSE kết nối GitHub không theo chuyển hướng của GitHub, nên tên cũ không còn dùng được. Lưu kho với tên mới bị từ chối với `409 REPOSITORY_RENAMED`. Thông báo nêu tên đang lưu, thư mục của nó và mã định danh kho, ví dụ: "GitHub now calls acme/old acme/new, and the agent's checkout of it was set up under the old name, in /workspace/old. Remove the repository (id 7654321) and add acme/new again; files already in /workspace are kept". Bảng điều khiển hiển thị "Kho mã này đã được đổi tên trên GitHub sau khi agent tải về. Hãy gỡ kho rồi thêm lại với tên mới; các tệp đã có trong /workspace được giữ nguyên." Đổi push, hoặc issue và pull request, bằng **Quyền** trên dòng của kho vẫn hoạt động, vì bảng điều khiển gọi kho theo `repo_id`: bản checkout giữ tên và thư mục cũ.
+
+Để khắc phục kho đã clone, hãy **gỡ** kho trên hàng của nó (hoặc `DELETE .../repositories/{repo_id}`), rồi **thêm** lại với tên mới. Kho được clone vào `/workspace/<tên mới>`. Thư mục cũ `/workspace/<tên cũ>` vẫn còn, cùng mọi thay đổi trong đó; hãy chuyển những gì cần ra khỏi thư mục đó ngay trong agent. Nếu chỉ chủ sở hữu thay đổi thì tên thư mục giữ nguyên. Bản clone cũ có `origin` vẫn là `https://github.com/<chủ cũ>/<tên>` (khi push tắt) được coi là kho khác, nên bản checkout mới thất bại với `WORKSPACE_NOT_EMPTY`: hãy chuyển thư mục đó sang chỗ khác trước. Bản có `origin` là remote git proxy của TOSE cho kho này (khi push bật) được nhận ra qua mã định danh GitHub và được dùng lại.
+
+Tên mới trùng thư mục với một kho khác của agent (ví dụ đổi `acme/old` thành `acme/docs` khi agent đã có `other-org/docs`) bị từ chối với `409 REPOSITORY_FOLDER_TAKEN`. Hãy gỡ kho đang giữ thư mục đó trước.
 
 **Bản clone còn sót lại không push được vào kho khác.** Mọi checkout tạo từ tose-app #741 trở đi có proxy remote ghi rõ kho mã, `https://<máy chủ API>/api/git/<template id>r<repository id>`. Proxy từ chối remote của kho khác, và từ chối remote trần `/api/git/<template id>` của checkout đó. Vì vậy thư mục mà một kho đã gỡ để lại trong `/workspace` không fetch được từ các kho hiện tại của agent, cũng không push được vào đó. Checkout cũ hơn mà kho chưa từng đổi vẫn giữ remote trần và vẫn hoạt động.
 
@@ -326,7 +338,7 @@ DELETE /api/workspaces/{slug}/template-installations/{id}/repositories/{repo_id}
 DELETE /api/workspaces/{slug}/template-installations/{id}/repository
 ```
 
-`PUT` thêm một kho mà agent chưa có, hoặc đổi push hay issue và pull request cho một kho agent đã có. Kho được so khớp theo `repo_id` khi bạn gửi trường này, nếu không thì theo `full_name`. Body giống `repository` của plan: bắt buộc `installation_id`, `full_name` và `branch`; tùy chọn `commit_sha`, `repo_id`, `push` (mặc định `false`), `push_branches` (`all`, mặc định, hoặc `agent`, chỉ đi kèm `push`) và `github_api` (mặc định `false`, xem [Cho agent quản lý issue và pull request](#cho-agent-quan-ly-issue-va-pull-request)). Không cần plan mới. Body thay toàn bộ thiết lập của kho đó, nên bỏ `push` hoặc `github_api` là tắt mục đó cho kho.
+`PUT` thêm một kho mà agent chưa có, hoặc đổi push hay issue và pull request cho một kho agent đã có. Kho được so khớp theo `repo_id` khi bạn gửi trường này, nếu không thì theo `full_name`, hoặc theo mã định danh GitHub mà tên đó trỏ tới hiện nay (xem [Kho mã đổi tên trên GitHub](#kho-ma-doi-ten-tren-github)). Body giống `repository` của plan: bắt buộc `installation_id`, `full_name` và `branch`; tùy chọn `commit_sha`, `repo_id`, `push` (mặc định `false`), `push_branches` (`all`, mặc định, hoặc `agent`, chỉ đi kèm `push`) và `github_api` (mặc định `false`, xem [Cho agent quản lý issue và pull request](#cho-agent-quan-ly-issue-va-pull-request)). Không cần plan mới. Body thay toàn bộ thiết lập của kho đó, nên bỏ `push` hoặc `github_api` là tắt mục đó cho kho.
 
 ```json
 {"installation_id": 12345678, "full_name": "acme/app", "branch": "main", "push": true, "push_branches": "agent"}
@@ -369,6 +381,7 @@ POST {deploy_path}
 | `409 REPOSITORY_LIMIT` | Agent đã có 10 kho mã. Hãy gỡ bớt một kho trước. |
 | `409 REPOSITORY_FOLDER_TAKEN` | Một kho khác của agent có cùng tên, nên sẽ dùng chung thư mục `/workspace/<tên>`. Hãy gỡ kho đó trước. |
 | `409 REPOSITORY_ALREADY_CLONED` | Nhánh khác của kho đã clone. Hãy đổi nhánh bằng git ngay trong agent. |
+| `409 REPOSITORY_RENAMED` | Kho đã được đổi tên hoặc chuyển giao trên GitHub sau khi agent clone nó theo tên cũ; thông báo nêu tên và thư mục đang lưu. Hãy gỡ kho rồi thêm lại với tên mới ([Kho mã đổi tên trên GitHub](#kho-ma-doi-ten-tren-github)). |
 | `409 REPOSITORY_CLONING` | Đang clone. Đợi lần deploy xong rồi thử lại. |
 | `409 REPOSITORY_CHANGED` | Người khác vừa đổi kho mã của agent. Tải lại rồi thử lại. |
 | `409 NOT_A_CLOUD_AGENT` | Chỉ agent Claude Code, Codex và Pi mới có kho mã. |
@@ -389,7 +402,7 @@ Duyệt và cài đặt, hai việc mà **Triển khai** thực hiện, đều k
 | `REPO_REMOVED` | Kho mã đã bị xóa hoặc bị gỡ khỏi installation. |
 | `BRANCH_MISSING` | Nhánh không còn, hoặc commit đã ghim không còn trên nhánh (ví dụ sau force-push). |
 | `SCOPE_REVOKED` | Installation không còn được kết nối với workspace. |
-| `REPO_ID_CHANGED` | Một kho mã khác hiện mang tên này (bị xóa rồi tạo lại, hoặc được chuyển giao). Hãy chọn lại để ghim kho mã mới. |
+| `REPO_ID_CHANGED` | Một kho mã khác hiện mang tên này (bị xóa rồi tạo lại, hoặc một kho khác được chuyển giao vào tên này). Hãy chọn lại để ghim kho mã mới. |
 
 Sau khi cài đặt, trang **Trạng thái** của installation hiển thị **Tải kho mã**, và tab **Kho mã** của agent hiển thị cùng trạng thái trên dòng của mỗi kho:
 
