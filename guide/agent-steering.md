@@ -115,6 +115,7 @@ The run page (`/w/<workspace>/agents/<agent_id>/runs/<run_id>`) has a **Steer th
 
 ## Related
 
+- [`tose agents steer`](/commands/agents), to steer from the command line
 - [Agent Runtime pricing and budgets](/guide/agent-runtime-pricing)
 - [Environment variables of Agent Runtime agents](/guide/agent-environment-and-auto-sleep#agent-runtime-environment)
 - [API keys and scopes](/api/api-keys)

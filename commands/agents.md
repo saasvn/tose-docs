@@ -82,6 +82,7 @@ tose agents steers <agent-id> <run-id> --json
 ## Related
 
 - [Commands overview](/commands/overview)
+- [Steer a running agent](/guide/agent-steering), for what each status and code means
 - [Agent Runtime pricing](/guide/agent-runtime-pricing)
 - [Protocol, OAuth and scopes](/mcp/oauth)
 - [Delegate tasks to a coding agent](/guide/agent-tasks), for curated agents installed from a template
