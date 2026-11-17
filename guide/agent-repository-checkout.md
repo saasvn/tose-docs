@@ -174,7 +174,7 @@ While push is on, anyone who can run commands in the agent can push to the repos
 ### Limits
 
 - **Push is changed on the agent's page, not by a plain redeploy.** Redeploying from the agent's page keeps the choice. To turn push on or off, or to change the branches, use **Permissions** on that repository in the **Repositories** tab; see [Attach or change an agent's repository after install](#attach-or-change-an-agents-repository-after-install).
-- **Renaming the repository breaks the proxy.** The proxy uses the repository name pinned at install (or at the last repository change) and does not follow GitHub's redirects, so after a rename or transfer on GitHub git shows `PERMISSION_DENIED`. A redeploy does not fix it: in the agent's **Repositories** tab, [remove the old entry and add the repository](#attach-or-change-an-agents-repository-after-install) under its new name. If `/workspace/<name>` still holds the old clone and TOSE cannot tell it is the same repository, the checkout fails with `WORKSPACE_NOT_EMPTY`; move that folder aside inside the agent first.
+- **Renaming the repository breaks the proxy.** The proxy uses the repository name pinned at install (or at the last repository change) and does not follow GitHub's redirects, so after a rename or transfer on GitHub git shows `PERMISSION_DENIED`. A redeploy does not fix it, and saving the repository under its new name is refused with `REPOSITORY_RENAMED` once the agent has cloned it (see [A repository renamed on GitHub](#repository-renamed-on-github)): in the agent's **Repositories** tab, [remove the old entry and add the repository](#attach-or-change-an-agents-repository-after-install) under its new name. If `/workspace/<name>` still holds the old clone and TOSE cannot tell it is the same repository, the checkout fails with `WORKSPACE_NOT_EMPTY`; move that folder aside inside the agent first.
 - **Push alone does not open pull requests.** Open them yourself on GitHub from the branch the agent pushed, or [let the agent manage issues and pull requests](#let-the-agent-manage-issues-and-pull-requests) so it opens them itself.
 
 ## Let the agent manage issues and pull requests {#let-the-agent-manage-issues-and-pull-requests}
@@ -309,6 +309,22 @@ You do not have to reinstall an agent to give it repositories or to change them 
 | Change the push branches of a repository | The branch rule (`all` or `agent`) takes effect at once; nothing in `/workspace` changes. |
 | Choose another branch of a repository already cloned | Refused with `REPOSITORY_ALREADY_CLONED`. Switch branches with git inside the agent (`git fetch`, `git switch`). A clone that has not succeeded yet (waiting or failed) can still change its branch. |
 | Remove a repository | Its files stay in `/workspace`, but the agent can no longer fetch or push it through TOSE. |
+| Save a repository under the name GitHub gives it after a rename or transfer | A checkout TOSE has not tried to clone yet takes the new name and is cloned into `/workspace/<new name>`. One already cloned (or whose clone was tried and failed) is refused with `REPOSITORY_RENAMED`; see [A repository renamed on GitHub](#repository-renamed-on-github). |
+
+### A repository renamed on GitHub {#repository-renamed-on-github}
+
+A repository renamed or transferred on GitHub keeps its GitHub id, so TOSE recognizes the new name as the repository the agent already has (tose-app [#752](https://github.com/saasvn/tose-app/pull/752)):
+
+- **Not cloned yet** (still waiting for its first clone): saving it under the new name updates the entry, and the next deploy clones it into `/workspace/<new name>`. A new name whose folder another repository of the agent uses is refused with `REPOSITORY_FOLDER_TAKEN`; the limit of 10 repositories still applies.
+- **Already cloned, or a clone was tried**: its folder and `origin` use the old name, and TOSE reaches GitHub without following redirects, so the old name no longer works for the clone or the git proxy. Saving it under the new name is refused with `409 REPOSITORY_RENAMED`. The message names the name TOSE stored and the folder, for example `/workspace/old`. The entry keeps its stored name and folder.
+
+To recover an already cloned repository:
+
+1. In the agent's **Repositories** tab, remove the entry with the old name (or `DELETE .../repositories/{repo_id}`). The files in `/workspace/<old name>` stay on disk.
+2. Add the repository again under its new name, then let the agent restart (or deploy it). It is cloned into `/workspace/<new name>`.
+3. Move any work you still need from the old folder inside the agent. If the new name has the same folder as the old one (a transfer to another owner), the old clone is still in that folder and the checkout may fail with `WORKSPACE_NOT_EMPTY`; move that folder aside inside the agent first, then [retry the checkout](#retry-a-failed-checkout).
+
+A change sent by `repo_id` with the stored (old) name, such as turning push off, still works: TOSE does not resolve the name again for a cloned checkout, so it keeps its name and folder.
 
 **A leftover clone cannot push into another repository.** Every checkout created since tose-app #741 has a proxy remote that names its repository, `https://<API host>/api/git/<template id>r<repository id>`. The proxy refuses a remote of another repository, and the bare `/api/git/<template id>` remote for such a checkout. So a folder left in `/workspace` by a removed repository can neither fetch from nor push to the agent's current ones. An older checkout whose repository never changed keeps its bare remote and keeps working.
 
@@ -369,6 +385,7 @@ POST {deploy_path}
 | `409 REPOSITORY_LIMIT` | The agent already has 10 repositories. Remove one first. |
 | `409 REPOSITORY_FOLDER_TAKEN` | Another repository of the agent has the same name, so it would use the same `/workspace/<name>` folder. Remove it first. |
 | `409 REPOSITORY_ALREADY_CLONED` | Another branch of a repository already cloned. Switch branches with git inside the agent. |
+| `409 REPOSITORY_RENAMED` | The repository was renamed or transferred on GitHub after the agent cloned it (or tried to). The message names the stored name and `/workspace` folder. Remove it by `repo_id` and add it again under the new name; the files stay. See [A repository renamed on GitHub](#repository-renamed-on-github). |
 | `409 REPOSITORY_CLONING` | A clone is running. Wait for the deploy to finish and try again. |
 | `409 REPOSITORY_CHANGED` | Someone else changed the agent's repositories meanwhile. Reload and try again. |
 | `409 NOT_A_CLOUD_AGENT` | Only Claude Code, Codex and Pi agents have repositories. |
