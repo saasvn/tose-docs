@@ -13,11 +13,11 @@ tose agents steers <agent-id> <run-id> --json                          # trạng
 
 | Lệnh | Ai được chạy | Tác dụng |
 |------|--------------|----------|
-| `env <agent_id>` | Owner hoặc admin workspace, hoặc key có `agents:write` | Hiển thị môi trường của agent, không có giá trị bí mật hay nội dung install script |
+| `env <agent_id>` | Owner hoặc admin workspace (API key còn cần thêm `agents:write`) | Hiển thị môi trường của agent, không có giá trị bí mật hay nội dung install script |
 | `steer <agent_id> <run_id> --message <text\|@file> [--idempotency-key <key>]` | Thành viên có `agents:control`, hoặc key có scope đó | Xếp hàng một chỉ dẫn cho lượt chạy đang thực thi |
 | `steers <agent_id> <run_id>` | `agents:read` | Liệt kê các yêu cầu steer của lượt chạy theo thứ tự, kèm trạng thái |
 
-Id của agent và lượt chạy lấy từ dashboard (`/w/{slug}/agents/{agent_id}/runs/{run_id}`) hoặc MCP. CLI chưa liệt kê được agent hay lượt chạy; việc này được theo dõi ở [saasvn/tose-cli#129](https://github.com/saasvn/tose-cli/issues/129).
+Id của agent và lượt chạy lấy từ dashboard (`/w/{slug}/agents/{agent_id}/runs/{run_id}`) hoặc MCP. CLI chưa liệt kê được agent hay lượt chạy.
 
 ## tose agents env {#tose-agents-env}
 
@@ -55,7 +55,7 @@ Mọi lỗi từ chối giữ nguyên mã, và không có gì được xếp hà
 | Mã | Ý nghĩa | Bước tiếp theo |
 |----|---------|----------------|
 | `NOT_SUPPORTED` | Engine phục vụ lượt chạy không nhận steer | Gửi thông điệp mới cho agent, hoặc hủy lượt chạy |
-| `STEER_NOT_READY` | Engine chưa xác nhận là nhận steer | Thử lại sau ít phút với cùng `--idempotency-key` |
+| `STEER_NOT_READY` | Engine chưa xác nhận là nhận steer | Thử lại sau giây lát với cùng `--idempotency-key` |
 | `RUN_NOT_ACTIVE` | Lượt chạy chưa bắt đầu hoặc đã kết thúc | `tose agents steers` hiển thị các yêu cầu của lượt chạy; steer chỉ đến được lượt chạy đang chạy |
 | `RUN_CANCELING` | Đang hủy lượt chạy; lệnh hủy được ưu tiên hơn steer | `tose agents steers` hiển thị các yêu cầu của lượt chạy |
 | `AGENT_SLEEPING` | Agent đang chuyển sang ngủ; steer không bao giờ đánh thức agent | `tose agents steers` hiển thị các yêu cầu của lượt chạy |
@@ -69,7 +69,7 @@ tose agents steers <agent-id> <run-id>
 tose agents steers <agent-id> <run-id> --json
 ```
 
-`steers` liệt kê các yêu cầu steer của lượt chạy theo thứ tự (`SEQ`, `ID`, `STATUS`, `CODE`, `DELIVERED`). Với `--json` kết quả là `{agent_id, run_id, steers}`. Khi còn yêu cầu đang chờ, bước tiếp theo là kiểm tra lại sau ít phút.
+`steers` liệt kê các yêu cầu steer của lượt chạy theo thứ tự (`SEQ`, `ID`, `STATUS`, `CODE`, `DELIVERED`). Với `--json` kết quả là `{agent_id, run_id, steers}`. Khi còn yêu cầu đang chờ, bước tiếp theo là kiểm tra lại sau giây lát.
 
 | Trạng thái | Ý nghĩa |
 |------------|---------|

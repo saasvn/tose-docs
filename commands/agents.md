@@ -13,11 +13,11 @@ tose agents steers <agent-id> <run-id> --json                          # each re
 
 | Command | Who may run it | What it does |
 |---------|----------------|--------------|
-| `env <agent_id>` | Workspace owner or admin, or a key with `agents:write` | Shows the agent's environment without secret values or the install script text |
+| `env <agent_id>` | Workspace owner or admin (an API key also needs `agents:write`) | Shows the agent's environment without secret values or the install script text |
 | `steer <agent_id> <run_id> --message <text\|@file> [--idempotency-key <key>]` | A member with `agents:control`, or a key with that scope | Queues an instruction for a run that is executing |
 | `steers <agent_id> <run_id>` | `agents:read` | Lists the run's steering requests in order, with their status |
 
-The agent and run ids come from the dashboard (`/w/{slug}/agents/{agent_id}/runs/{run_id}`) or MCP. The CLI cannot list agents or runs yet; that is tracked in [saasvn/tose-cli#129](https://github.com/saasvn/tose-cli/issues/129).
+The agent and run ids come from the dashboard (`/w/{slug}/agents/{agent_id}/runs/{run_id}`) or MCP. The CLI cannot list agents or runs yet.
 
 ## tose agents env {#tose-agents-env}
 
