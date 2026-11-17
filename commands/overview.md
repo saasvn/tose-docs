@@ -132,6 +132,14 @@ production yet.
 
 Budgets work only where the platform operator has turned them on.
 
+### Agent runtime
+
+| Command | Description |
+|---------|-------------|
+| [`tose agents env`](/commands/agents#tose-agents-env) | Show an agent's redacted environment (no secret values, no script text) |
+| [`tose agents steer`](/commands/agents#tose-agents-steer) | Queue an instruction for a run that is executing |
+| [`tose agents steers`](/commands/agents#tose-agents-steers) | List a run's steering requests and their status |
+
 ### Agent Skills
 
 | Command | Description |

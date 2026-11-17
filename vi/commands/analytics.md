@@ -37,11 +37,12 @@ Máy chủ tắt analytics trừ khi đặt `ANALYTICS_ENABLED`. Khi đang tắt
 - Chi phí tính bằng nano-USD (1 USD = 1.000.000.000).
 - CPU và RAM được cấp là cấu hình, không phải mức dùng. Bộ nhớ quan sát được là bộ nhớ của từng workload cộng qua các pod đang chạy. Mức dùng CPU không được thu thập.
 - Uptime là lần kiểm tra gần nhất của monitor mỗi dự án. `stale`, `unknown` và `not_monitored` không bao giờ được tính là up, và không có tỉ lệ uptime vì lịch sử kiểm tra không được lưu.
+- Số liệu tài nguyên có thể kèm `meta.collector_stale: true` (trong `resources`, và trong phần tài nguyên của `overview`): mẫu metrics mới nhất đã cũ hơn 30 phút, hoặc bị thiếu ở một workload lẽ ra phải có. Khi đó `complete` là `false`, và chế độ văn bản thêm ghi chú rằng số liệu tài nguyên có thể thấp hơn thực tế. Máy chủ không báo cờ này sẽ bỏ trống trường, và `--json` giữ nguyên trường như khi gửi. Xem [Tài nguyên](/vi/api/analytics#resources).
 - Số phút CI không có ở đây: dùng [`tose ci usage`](/vi/commands/ci).
 
 ## Đầu ra JSON
 
-`--json` đặt nguyên câu trả lời của API vào `data`, gồm cả `meta`: `complete`, `coverage`, `granularity`, `units` và `notes`, cạnh khoảng thời gian (`window`, `from`, `to`). `complete` là `false` khi một bucket đã đóng không có dữ liệu, bằng chứng uptime đã cũ, hoặc một nguồn dữ liệu bị chậm (`ledger_stale` trong `incomplete_reasons` với chi phí, `collector_stale: true` với tài nguyên; xem [Khi nguồn dữ liệu bị chậm](/vi/api/analytics#source-behind)), nên hãy kiểm tra trường này trước khi tin một con số tổng.
+`--json` đặt nguyên câu trả lời của API vào `data`, gồm cả `meta`: `complete`, `coverage`, `granularity`, `units` và `notes`, cùng `collector_stale` ở tài nguyên khi máy chủ gửi, cạnh khoảng thời gian (`window`, `from`, `to`). `complete` là `false` khi một bucket đã đóng không có dữ liệu, bằng chứng uptime đã cũ hoặc bộ thu thập metrics bị chậm (xem [Khi nguồn dữ liệu bị chậm](/vi/api/analytics#source-behind)), nên hãy kiểm tra trường này trước khi tin một con số tổng.
 
 ```bash
 tose analytics costs --window 7d --json
