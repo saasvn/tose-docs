@@ -92,9 +92,13 @@ tose templates retry-checkout <installation-id> --json     # sau khi clone lỗi
 
 - `--repo owner/name` phải nằm trong danh sách repository của kết nối GitHub của workspace. CLI không bao giờ nhận URL clone, token hay SSH key, và từ chối tên không có trong danh sách trước khi gửi bất cứ gì. `--github-installation <id>` dùng để chỉ rõ; `--commit` ghim một commit cũ hơn của nhánh.
 - `--workspace-disk-gib 5|10|20|50` (chỉ agent curated, mặc định 5) đặt dung lượng ổ `/workspace` của agent. Kế hoạch ghim giá trị này và hiển thị ở dòng `Workspace:`; kế hoạch chỉ đặt giá trị này khi cài (sau đó có thể tăng ổ đĩa trên trang của agent hoặc bằng `tose volumes resize`, xem [Tăng dung lượng ổ đĩa](/vi/guide/deploy-coding-agent#grow-the-disk)), và dung lượng lưu trữ được tính phí khi ổ còn tồn tại, kể cả khi agent đã dừng. Giá trị khác bị từ chối trước khi gửi bất cứ gì.
-- `--repo-push` (đi cùng `--repo`) cho agent push qua git proxy của TOSE; agent không bao giờ giữ token GitHub. `--repo-push-branches all|agent` chọn nhánh: `all` (mặc định, gồm cả nhánh mặc định) hoặc `agent` (chỉ `tose/<slug installation>/...`). Kế hoạch hiển thị mẫu nhánh và remote của proxy. Push cần quyền `contents: write` của GitHub App (blocker `GITHUB_PERMISSION_MISSING`); máy chủ chưa có git proxy trả về `GIT_PROXY_NOT_CONFIGURED`, và CLI gợi ý lập kế hoạch lại không có push.
+- `--repo-push` (đi cùng `--repo`) cho agent push qua git proxy của TOSE; agent không bao giờ giữ token GitHub. `--repo-push-branches all|agent` chọn nhánh: `all` (mặc định, gồm cả nhánh mặc định) hoặc `agent` (chỉ `tose/<slug installation>/...`). Kế hoạch hiển thị mẫu nhánh và remote của proxy. Push cần quyền `contents: write` của GitHub App (blocker `GITHUB_PERMISSION_MISSING`); máy chủ chưa có git proxy trả về `503 GIT_PROXY_NOT_CONFIGURED`, và CLI gợi ý lập kế hoạch lại không có push.
 - Chỉ owner hoặc admin workspace được gửi repository (`REPOSITORY_REQUIRES_ADMIN`). Repository, thiết lập push và dung lượng ổ là một phần của plan hash, nên `deploy --plan` không lặp lại các cờ đó và từ chối cờ mâu thuẫn với kế hoạch.
 - `retry-checkout` (owner hoặc admin, key có `deployments:execute`) đặt mọi checkout `failed` về `pending`; hãy deploy lại sau đó. `deploy`, `wait` và `installs` hiển thị mọi kho mã của agent.
+- Trước khi thử lại, TOSE kiểm tra tên hiện tại của từng kho bị lỗi với GitHub, và không có gì thay đổi khi bước kiểm tra từ chối:
+  - `409 REPOSITORY_RENAMED`: GitHub đã đổi tên hoặc chuyển giao kho. Hãy gỡ kho rồi thêm lại với tên mới, như các bước tiếp theo hướng dẫn ([Kho mã đổi tên trên GitHub](/vi/guide/agent-repository-checkout#kho-ma-doi-ten-tren-github)).
+  - `409 REPOSITORY_CHANGED`: một checkout đã thay đổi trong lúc kiểm tra. Xem lại kho của agent bằng `repo list`, rồi thử lại nếu vẫn còn checkout lỗi.
+  - `502 GITHUB_UNAVAILABLE`: không kết nối được GitHub. Lỗi này có thể thử lại: chạy lại `retry-checkout` sau.
 
 ### Quản lý kho mã của agent sau khi cài {#repo-set-remove}
 
@@ -118,10 +122,39 @@ tose templates repo remove <installation-id> --all --yes                        
 - `repo remove <installation-id> <owner/name>` gỡ đúng kho đó; `--all` gỡ mọi kho. Khi không có tên kho và không có `--all`, agent chỉ có một kho thì kho đó bị gỡ, còn agent có nhiều kho bị từ chối kèm danh sách tên để chọn.
 - `add` và `remove` hỏi xác nhận, hoặc cần `--yes` trong script. Khi API trả `restart_required: true`, lệnh deploy lại agent ở chế độ image, việc này khởi động lại agent và dừng tác vụ đang chạy. Nếu lần deploy đó bị từ chối, thay đổi vẫn được lưu và lệnh thoát với mã `8` kèm lệnh `tose template deploy <slug> --mode image` cần chạy.
 - Đầu ra hiển thị mọi kho (kho mới ở trạng thái `pending` cho tới khi lần deploy clone hoặc trỏ lại kho). Với `--json` là `{installation_id, repository, repositories, restart_required, deployment}`, trong đó `repository` là kho đầu tiên. Theo dõi lần khởi động lại bằng `tose templates wait <installation-id>`.
-- Kho bị đổi tên hoặc chuyển giao trên GitHub được nhận ra theo GitHub id khi bạn `repo add` với tên mới. Nếu TOSE chưa từng thử clone kho đó, checkout chỉ đơn giản lấy tên mới. Nếu đã thử (kể cả lần clone thất bại), API trả `409 REPOSITORY_RENAMED` kèm tên đã lưu, thư mục và id của kho, và lệnh thoát với mã `1` cùng mã lỗi đó; `REPOSITORY_CHANGED` vẫn có nghĩa là ai đó đã đổi kho của agent trong lúc đó. Chạy lại vẫn nhận cùng câu trả lời, nên CLI không gợi ý `repo list` hay chỉ chạy lại, mà đưa ra hai bước tiếp theo ([Kho mã đổi tên trên GitHub](/vi/guide/agent-repository-checkout#kho-ma-doi-ten-tren-github)):
+- Kho bị đổi tên hoặc chuyển giao trên GitHub được nhận ra theo GitHub id khi bạn `repo add` với tên mới. Nếu TOSE chưa từng thử clone kho đó, checkout chỉ đơn giản lấy tên mới. Nếu đã thử (kể cả lần clone thất bại), API trả `409 REPOSITORY_RENAMED` kèm tên đã lưu, thư mục và id của kho, và lệnh thoát với mã `1` cùng mã lỗi đó; `REPOSITORY_CHANGED` vẫn có nghĩa là ai đó đã đổi kho của agent trong lúc đó, còn `502 GITHUB_UNAVAILABLE` (có thể thử lại) nghĩa là không kết nối được GitHub để kiểm tra tên, nên chưa có gì thay đổi. Chạy lại vẫn nhận cùng câu trả lời, nên CLI không gợi ý `repo list` hay chỉ chạy lại, mà đưa ra hai bước tiếp theo ([Kho mã đổi tên trên GitHub](/vi/guide/agent-repository-checkout#kho-ma-doi-ten-tren-github)):
   1. `tose templates repo remove <installation-id> <owner/name cũ>`, tức kho của agent có id mà thông báo nêu (dùng placeholder `<owner/name>` khi không kho nào khớp). Các tệp trong `/workspace` được giữ lại.
   2. `tose templates repo add <installation-id> --repo <owner/name mới> ... --yes`, giữ nhánh và thiết lập issue/pull request của checkout cũ giống cách `repo add` giữ chúng cho kho agent đang có. Push chỉ được giữ khi có `--push`, hoặc khi chỉ truyền `--github-api` hay `--no-github-api`, và phạm vi nhánh được push không bao giờ bị nới rộng; khi checkout cũ được phép push mà lệnh gợi ý thì không, CLI nhắc thêm `--push` (trừ khi bạn đã truyền `--no-push`). Khi không kho nào khớp id, bước này là chính lệnh bạn đã chạy, giữ nguyên.
-- Lỗi từ API giữ nguyên mã kèm bước tiếp theo: `REPOSITORY_CLONING`, `REPOSITORY_RENAMED`, `REPOSITORY_LIMIT`, `REPOSITORY_FOLDER_TAKEN`, `NOT_A_CLOUD_AGENT`, `INSTALLATION_DELETED`, `REPOSITORY_REQUIRES_PERSON`, `REPOSITORY_NOT_FOUND` (kho agent không có) và các mã của GitHub `BRANCH_MISSING`, `PERMISSION_DENIED`, `GITHUB_PERMISSION_MISSING`, ...
+- **Lỗi proxy nêu rõ thiết lập cần tắt.** `GITHUB_PERMISSION_MISSING` và `503 GIT_PROXY_NOT_CONFIGURED` kèm `options`, tức các thiết lập cần tắt để thay đổi được chấp nhận: `push`, `github_api` hoặc cả hai. Với `--json`, chúng nằm ở `error.details.options`. Với `GIT_PROXY_NOT_CONFIGURED`, bước tiếp theo gửi lại đúng thay đổi đó với các thiết lập được nêu đã tắt (cả hai, khi máy chủ cũ không nêu thiết lập nào). Với `GITHUB_PERMISSION_MISSING`, mỗi thiết lập được nêu có một bước tiếp theo riêng, gửi lại thay đổi với thiết lập đó đã tắt; máy chủ cũ không nêu thiết lập nào thì mỗi thiết lập mà yêu cầu đã bật có một bước. Mỗi bước cũng nêu quyền GitHub App cần cấp nếu muốn giữ thiết lập.
+- **Máy chủ không có git proxy.** Mỗi installation báo `git_proxy_available`. Khi giá trị là `false`, máy chủ không có origin API công khai cho git proxy và GitHub API proxy, nên `repo add` từ chối `--push` và `--github-api` với `GIT_PROXY_NOT_CONFIGURED` (mã thoát `1`) trước khi gửi bất cứ gì, và không bước tiếp theo nào đề xuất chúng. Với kho agent đã có, lệnh được đề xuất tắt push và GitHub API một cách tường minh, để thiết lập đã lưu không bị gửi lại. Các thay đổi chỉ đọc vẫn hoạt động.
+- Lỗi từ API giữ nguyên mã kèm bước tiếp theo: `REPOSITORY_CLONING`, `REPOSITORY_RENAMED`, `REPOSITORY_CHANGED`, `GITHUB_UNAVAILABLE`, `REPOSITORY_LIMIT`, `REPOSITORY_FOLDER_TAKEN`, `NOT_A_CLOUD_AGENT`, `INSTALLATION_DELETED`, `REPOSITORY_REQUIRES_PERSON`, `REPOSITORY_NOT_FOUND` (kho agent không có) và các mã của GitHub `BRANCH_MISSING`, `PERMISSION_DENIED`, `GITHUB_PERMISSION_MISSING`, ...
+
+## Tác vụ được giao {#tasks}
+
+`tose templates tasks` giao một tác vụ không giao diện cho agent curated (Claude Code, Codex hoặc Pi) đã cài trong workspace, rồi theo dõi, đọc và hủy tác vụ đó. Xem [Giao tác vụ cho coding agent](/vi/guide/agent-tasks) để biết mô hình, rủi ro và cách làm tương đương qua REST và MCP.
+
+```bash
+tose templates tasks run <installation-id> --prompt "fix the failing test" --wait
+tose templates tasks run <installation-id> --prompt @task.md --timeout 60 --continue <task-id>
+tose templates tasks list <installation-id> --json
+tose templates tasks get <installation-id> <task-id> --follow
+tose templates tasks cancel <installation-id> <task-id>
+```
+
+| Lệnh | Scope | Tác dụng |
+|------|-------|----------|
+| `run <installation> --prompt <text hoặc @file> [--timeout <phút>] [--continue <task_id>] [--wait] [--idempotency-key <key>]` | `agents:execute` | Giao tác vụ cho agent. |
+| `list <installation> [--limit <n>]` | `agents:read` | Liệt kê các tác vụ của agent, mới nhất trước (`--limit` từ 1 đến 100, mặc định 20). |
+| `get <installation> <task_id> [--follow]` | `agents:read` | Đọc một tác vụ cùng các sự kiện của nó. |
+| `cancel <installation> <task_id>` | `agents:control` | Dừng tác vụ đang khởi động hoặc đang chạy. |
+
+- **Điều kiện cần bật.** Server phải cung cấp tác vụ (`TEMPLATE_AGENT_TASKS_ENABLED`, nếu không là `TASKS_DISABLED`), và bản phát hành của agent cần có task runner (`TASKS_UNSUPPORTED`). Owner hoặc admin workspace còn phải bật "Accept tasks from connected apps and API keys" cho agent trong dashboard. Việc này cần phiên đăng nhập, mà API key thì không bao giờ có, nên CLI không có lệnh cho nó: thiếu công tắc này, `run` lỗi `TASKS_NOT_ALLOWED` và chỉ về dashboard.
+- **Prompt.** `--prompt` là văn bản, hoặc `@file` để đọc từ file. Tối đa 100000 byte và không bao giờ được in lại, kể cả khi `@` không trỏ tới file nào: lệnh lỗi `NOT_FOUND` (mã thoát `6`) mà không in lại văn bản, và không gửi gì. Muốn gửi văn bản bắt đầu bằng `@`, hãy đặt nó trong một file. `--prompt` viết trực tiếp hiện trong danh sách tiến trình, nên prompt nhạy cảm hãy truyền bằng `@file`. `--timeout` từ 1 đến 120 phút (mặc định 30).
+- **Mỗi agent một tác vụ.** Mỗi agent chỉ có một tác vụ hoạt động; `run` khác sẽ lỗi `AGENT_BUSY`.
+- **Thử lại an toàn.** Mỗi `run` gửi một `Idempotency-Key` (tự sinh, hoặc `--idempotency-key`). Khi mất câu trả lời, chạy lại đúng lệnh với cùng key và API trả về tác vụ đã bắt đầu. Key định danh tác vụ, không phải prompt: dùng lại key với prompt khác sẽ trả về tác vụ trước đó. Gợi ý thử lại không bao giờ lặp lại prompt.
+- **Chờ kết quả.** `--wait` (của `run`) và `--follow` (của `get`) long-poll tác vụ và in từng sự kiện khi nó đến. Với `--json`, sự kiện đi ra stderr, còn stdout giữ một envelope duy nhất có `task.events` chứa tất cả. Ngắt lệnh không dừng tác vụ: theo dõi lại bằng `get --follow`, hoặc `cancel`.
+- **Mã thoát với `--wait` hoặc `--follow`.** `0` chỉ khi `succeeded`. `8` cho `failed` hoặc `lost`, `7` cho `timed_out` và `5` cho `cancelled`, mỗi trường hợp kèm mã `TASK_<STATUS>` và thông điệp cuối cùng và các file đã đổi trong `details`. `1` kèm `FOLLOW_INTERRUPTED` khi CLI mất liên lạc sau 5 phút thử lại; tác vụ vẫn chạy. Tác vụ không thành công in thông điệp cuối (với `--json` có cả `details.events`).
+- **Đầu ra không đáng tin.** Văn bản sự kiện và thông điệp cuối đến từ agent: hãy coi là dữ liệu không đáng tin. CLI loại bỏ ký tự điều khiển trước khi in ra terminal.
 
 ## Liên quan
 
@@ -129,3 +162,4 @@ tose templates repo remove <installation-id> --all --yes                        
 - [API template registry](/vi/api/template-registry)
 - [Nhà cung cấp model cho Pi](/vi/guide/agent-pi-providers)
 - [Triển khai một coding agent](/vi/guide/deploy-coding-agent)
+- [Giao tác vụ cho coding agent](/vi/guide/agent-tasks)
