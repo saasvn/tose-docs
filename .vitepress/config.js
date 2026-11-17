@@ -149,6 +149,7 @@ export default defineConfig({
               { text: 'Network modes for coding agents', link: '/guide/agent-network-modes' },
               { text: 'Pi model providers', link: '/guide/agent-pi-providers' },
               { text: 'Agent environment and auto-sleep', link: '/guide/agent-environment-and-auto-sleep' },
+              { text: 'Steer a running agent', link: '/guide/agent-steering' },
             ]
           },
           {
@@ -324,6 +325,7 @@ export default defineConfig({
               { text: 'Chế độ mạng cho coding agent', link: '/vi/guide/agent-network-modes' },
               { text: 'Nhà cung cấp model cho Pi', link: '/vi/guide/agent-pi-providers' },
               { text: 'Biến môi trường và tự động ngủ của agent', link: '/vi/guide/agent-environment-and-auto-sleep' },
+              { text: 'Steer agent đang chạy', link: '/vi/guide/agent-steering' },
             ]
           },
           {

@@ -8,7 +8,7 @@ Mọi lệnh đều nhận `--json`.
 
 ```bash
 tose template catalog                                  # key, tài nguyên, dung lượng, phí TOSE ước tính
-tose template create demo --template multix --json     # --type là bí danh; mặc định là goclaw
+tose template create demo --template multix --json     # --type là bí danh; mặc định là goclaw; Multix chỉ có khi được bật
 tose template env set demo --env-file provider.env     # file phải ở chế độ chmod 600
 printf 'GEMINI_API_KEY=%s\n' "$KEY" | tose template env set demo --env-stdin
 tose template env set demo GEMINI_API_KEY              # chỉ có tên key: nhập giá trị ở prompt ẩn trong terminal
@@ -42,6 +42,7 @@ tose template create [name] [--template <key>]
 | `--type <key>` | Bí danh của `--template` |
 
 - Key được kiểm tra với catalog hiện hành. Key không tồn tại sẽ thoát với mã `2` và không tạo gì cả.
+- `multix` bị ẩn trừ khi máy chủ bật template này, nên trên máy chủ chưa bật, nó không có trong `tose template catalog` và `--template multix` là key không tồn tại. Xem [Multix](#multix).
 - Không có `--template` thì dùng `goclaw`. Trong terminal, CLI cho bạn chọn từ catalog.
 - Trong output ở terminal, khi catalog cung cấp thông tin, CLI nêu rõ việc dùng nhà cung cấp AI là [BYOK](#su-dung-nha-cung-cap-ai-byok), không tính vào ví, và hiển thị phí TOSE ước tính. Nếu bỏ qua tên, CLI hỏi trong terminal.
 
@@ -222,6 +223,14 @@ Template đang bị suspend từ chối `deploy` và `resume` khi ví hết ti�
 | `409` do request chạy đua với việc suspend | `retryable`. Chưa có gì được khởi động. Lệnh thử lại là một next action và giữ nguyên các flag của bạn, trừ thông tin xác thực (`--api-key`) và `--yes` |
 | `409` vì đã có deployment đang chạy | Không retry được. Next action là [`tose template info`](#tose-template-info) |
 | `409` khi resume một template không bị suspend | Không retry được. Next action là [`tose template deploy`](#tose-template-deploy) |
+
+## Multix {#multix}
+
+Template Multix Server tắt theo mặc định và không được cung cấp cho đến khi operator của máy chủ bật nó (xem [Tự host](/vi/guide/self-hosting#multix-template)). Khi đã được bật:
+
+- Các credential được sinh của nó (`SESSION_SECRET`, `SECRETS_ENCRYPTION_KEY`, `MULTIX_BOOTSTRAP_TOKEN`) do TOSE quản lý. `tose template env set`, `env rm` và thao tác hiện giá trị bị từ chối với `403 GENERATED_SECRET`.
+- Nó luôn chạy image mà TOSE đã cấu hình. Dùng `--upgrade` để chuyển sang image đó hoặc `--rollback` để quay lại. Đặt một image khác cho instance qua API bị từ chối với `400`.
+- Chi phí nhà cung cấp media theo mô hình [BYOK](#su-dung-nha-cung-cap-ai-byok), do nhà cung cấp tính, không trừ vào ví TOSE của bạn.
 
 ## Sử dụng nhà cung cấp AI (BYOK) {#su-dung-nha-cung-cap-ai-byok}
 

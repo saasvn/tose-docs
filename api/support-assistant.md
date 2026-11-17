@@ -52,6 +52,14 @@ Each call goes through the same authorization as the dashboard and checks your l
 
 Logs and statuses are redacted before the assistant sees them: environment variable values and common credential shapes are removed. If redaction cannot load, the call fails with `503` instead of returning raw text.
 
+## Dashboard chat {#dashboard-chat}
+
+The dashboard chat that uses this broker is off by default and is not yet turned on for TOSE users. Until it is, the header **Support** link opens Discord. Operators enable it as described in [Self-hosting](/guide/self-hosting#support-chat).
+
+When the chat runs, the dashboard registers the operations above as chat actions for the workspace you are viewing; the assistant cannot pick another workspace, actor or role. Each call is checked against the user who started the conversation, so signing into another account in a different tab never sends that account's data to the older conversation.
+
+A proposed change shows the `approval_url` the broker returned, only when it points to the dashboard origin and the current workspace's approval page (`/w/{workspace}/support/approvals/{approval_id}`); any other link is withheld. You open that page and confirm or decline there. The confirmation token never reaches the conversation.
+
 ## Audit
 
 Every call is recorded in the [audit log](/api/audit) with `auth_type` `session`, including denied and unknown operations. Arguments and output are never stored.

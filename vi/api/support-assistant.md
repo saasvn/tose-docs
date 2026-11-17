@@ -52,6 +52,14 @@ Mỗi lệnh gọi đi qua cùng cơ chế phân quyền của dashboard và ki�
 
 Log và trạng thái được che trước khi trợ lý nhìn thấy: giá trị biến môi trường và các dạng credential phổ biến bị loại bỏ. Nếu không tải được quy tắc che, lệnh gọi thất bại với `503` thay vì trả văn bản gốc.
 
+## Chat trong dashboard {#dashboard-chat}
+
+Chat trong dashboard dùng broker này tắt theo mặc định và chưa được bật cho người dùng TOSE. Cho đến khi được bật, liên kết **Support** ở header mở Discord. Operator bật chat theo hướng dẫn tại [Tự host](/vi/guide/self-hosting#support-chat).
+
+Khi chat chạy, dashboard đăng ký các operation ở trên thành thao tác chat cho workspace bạn đang xem; trợ lý không chọn được workspace, người thực hiện hay vai trò khác. Mỗi lệnh gọi được đối chiếu với người dùng đã bắt đầu cuộc trò chuyện, nên đăng nhập tài khoản khác ở một tab khác không bao giờ đưa dữ liệu của tài khoản đó vào cuộc trò chuyện cũ.
+
+Một thay đổi được đề xuất hiển thị `approval_url` mà broker trả về, chỉ khi liên kết đó trỏ tới origin của dashboard và trang phê duyệt của workspace hiện tại (`/w/{workspace}/support/approvals/{approval_id}`); mọi liên kết khác bị giữ lại. Bạn mở trang đó và xác nhận hoặc từ chối tại đó. Token xác nhận không bao giờ đi vào cuộc trò chuyện.
+
 ## Audit
 
 Mỗi lệnh gọi được ghi vào [audit log](/vi/api/audit) với `auth_type` là `session`, kể cả lệnh bị từ chối hoặc operation không tồn tại. Tham số và kết quả không bao giờ được lưu.

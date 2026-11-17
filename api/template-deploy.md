@@ -17,6 +17,16 @@ When the wallet runs out, billing sets templates to `suspended`. A deploy restar
 
 Templates in any other status deploy as before, whatever the balance. Other errors of this endpoint (`400`, `404`, `409`) are covered in the OpenAPI spec.
 
+### Multix instances {#multix}
+
+The Multix template exists only on a server that enables it (see [Self-hosting](/guide/self-hosting#multix-template)). A Multix deployment fails, instead of starting, when:
+
+- the image is not digest-pinned, or is neither the configured Multix image nor one this instance ran before (`rollback_to` may pick such an earlier image);
+- one of the instance's generated secrets is missing, because a new value would make its stored data unreadable;
+- the platform has no HTTPS domain for the instance.
+
+Reading the instance (`GET /api/workspaces/{slug}/templates/{template_slug}`) returns `billing_notice`, which says that media provider usage is billed by the provider and not the TOSE wallet, and, once the instance is `running`, `links` to its dashboard, MCP endpoint, REST API and API docs on the default domain.
+
 ## Issue token and resume {#resume}
 
 `POST /api/workspaces/{slug}/templates/{template_slug}/resume` restarts a **suspended** Dewee or GoClaw instance that billing could not bring back (see [Dewee and GoClaw instances after a top-up](/guide/pricing#suspended-gateway-templates)).

@@ -40,11 +40,20 @@ overview. `projects:read` và `deployments:read` không bao giờ để lộ chi
 | `401` | Không có credential hợp lệ |
 | `403` | API key thiếu scope của route (`code: insufficient_scope`, kèm `required_scope`), hoặc key thuộc workspace khác hay gắn với một runtime (`code: forbidden`) |
 | `404` | Analytics đang tắt, workspace không tồn tại, hoặc bạn không phải thành viên |
+| `429` | Credential này đọc analytics quá nhiều (`code: rate_limited`, kèm `Retry-After: 5`). Xem [Giới hạn tần suất](#rate-limit) |
 | `500` | Không đọc được một nguồn dữ liệu (`"Failed to load analytics"`). Mỗi request giới hạn 10 giây |
 | `503` | Không chạy được bước kiểm tra quyền (`"Authorization is temporarily unavailable"`); hãy thử lại |
 
 Bảng trên chỉ ghi trường `error`; body lỗi đầy đủ được mô tả trong [Mã lỗi](/vi/api/errors). Key của workspace khác
 nhận `403` dù slug có tồn tại hay không, nên không dò được slug.
+
+### Giới hạn tần suất {#rate-limit}
+
+Mỗi credential (một API key, hoặc một người dùng đã đăng nhập) được đọc analytics 2 lần mỗi giây, dồn tối đa 20 lần,
+tính chung cho cả bốn route. API key có hạn mức riêng, tách khỏi phiên đăng nhập của chủ key. Mỗi replica của API giữ
+hạn mức trong bộ nhớ, nên khi có nhiều replica thì giới hạn áp dụng cho từng replica, và khởi động lại sẽ đặt lại nó.
+Giới hạn được kiểm tra trước công tắc `ANALYTICS_ENABLED`, nên caller vượt giới hạn nhận `429` ngay cả khi analytics
+đang tắt.
 
 ## Bộ lọc `window`
 
@@ -83,10 +92,37 @@ Mọi câu trả lời chi tiết, và mọi phần `ok` của overview, đều 
 | `from`, `to` | `from` được làm tròn xuống đầu bucket đầu tiên; `to` là thời điểm quan sát |
 | `window`, `granularity` | `24h`/`7d`/`30d` và `15m`/`1h`/`1d` |
 | `source` | Các bảng mà số liệu lấy từ đó |
-| `complete` | `false` khi một bucket đã đóng không có dữ liệu hoặc không bucket nào có dữ liệu. Với reliability, là `false` khi có dự án được giám sát ở trạng thái `stale` hoặc `unknown` (`coverage.ratio` của nó luôn là 1, vì bản ghi deployment và incident là đầy đủ) |
+| `complete` | `false` khi một bucket đã đóng không có dữ liệu hoặc không bucket nào có dữ liệu, hoặc khi nguồn dữ liệu bị chậm (xem [Khi nguồn dữ liệu bị chậm](#source-behind)). Với reliability, là `false` khi có dự án được giám sát ở trạng thái `stale` hoặc `unknown` (`coverage.ratio` của nó luôn là 1, vì bản ghi deployment và incident là đầy đủ) |
 | `coverage` | `expected_points`, `observed_points`, `ratio`, `first_at` và `last_at` của các bucket |
 | `units` | Đơn vị của từng loại số, ví dụ `{"cost":"nano_usd","balance":"usd_cents"}` |
+| `incomplete_reasons` | Các mã ổn định cho một nguồn bị chậm dù các bucket trông vẫn đủ. Mã duy nhất là `ledger_stale`, cho chi phí. Rỗng trong các trường hợp khác |
+| `collector_stale` | Chỉ có ở resources, và chỉ xuất hiện với giá trị `true` khi metrics collector bị chậm. Không có trong các trường hợp khác; server cũ hơn trường này không bao giờ gửi nó |
 | `notes` | Các câu nêu rõ số liệu có và không có nghĩa gì |
+
+### Khi nguồn dữ liệu bị chậm {#source-behind}
+
+Bucket được phủ đủ không chứng minh nguồn dữ liệu còn mới: một bucket theo ngày có thể được phủ bởi một mẫu lấy từ
+nhiều giờ trước. Hai bước kiểm tra xem bản ghi mới nhất, đặt `complete` thành `false` và thêm một câu vào `notes`.
+
+- **`ledger_stale`** trong `incomplete_reasons` (chi phí). Dòng sổ cái usage mới nhất đã kết thúc hơn 3 giờ trước
+  `observed_at` trong khi workspace có ví và đang chạy một dự án hoặc template mà billing tính phí, đã từng tính phí,
+  và không thay đổi trong 3 giờ đó. Workload vừa khởi động, tiếp tục hoặc đổi kích thước chưa cần có trong sổ cái, và
+  workload có chi phí mỗi giờ làm tròn về 0 cent không bao giờ có dòng nào. Các tổng dừng trước thời điểm hiện tại.
+  Workspace không chạy gì thì không bao giờ bị coi là chậm.
+- **`collector_stale: true`** (tài nguyên). Mẫu mới nhất trong window đã cũ hơn 30 phút, hoặc không có mẫu nào, trong
+  khi workspace có một workload cần lấy mẫu: dự án đang active hoặc template đang chạy, có ít nhất một replica, đã
+  được gán cho một server, và không được tạo hay thay đổi trong 30 phút gần nhất. Đây không phải một mã trong
+  `incomplete_reasons`; danh sách mã đó giữ nguyên.
+
+Trong overview, các phần `costs` và `resources` vẫn là `ok` và mang cùng `meta`, nên cờ và các ghi chú cũng hiện ở đó.
+
+`collector_stale` là phép kiểm tra trên toàn workspace dựa vào mẫu mới nhất của bất kỳ workload nào, nên có các giới
+hạn đã biết:
+
+- Một mẫu gần đây từ server này có thể che khoảng trống thu thập trên server khác. Hãy đọc `last_sample_at` và
+  `state` của từng workload để tìm các workload bị chậm.
+- Template vừa được đánh thức có thể mang cờ này cho tới khi có mẫu đầu tiên, vì việc đánh thức không đổi thời điểm
+  cập nhật của nó.
 
 ## Overview
 
@@ -104,7 +140,7 @@ Câu trả lời có `observed_at`, `window`, `from`, `to` (window trước khi 
 | `unavailable` | `null`. Không đọc được nguồn của phần đó. Route vẫn trả `200` cùng các phần khác; ba phần dùng chung một giới hạn 10 giây, nên khi timeout có thể nhiều phần cùng là `unavailable` |
 
 Các bản tóm tắt gồm: `costs` có `meta`, `totals`, `prepaid`, `budget_status` và `unavailable`; `resources` có
-`meta`, `totals` và `latest_memory_bytes` (bucket mới nhất có bộ nhớ quan sát được, hoặc `null`); `reliability` có
+`meta`, `totals` và `latest_memory_bytes` (bộ nhớ của bucket mới nhất có mẫu; `null` khi có workload trong bucket đó thiếu số đo hợp lệ, không bao giờ lấy giá trị của bucket cũ hơn); `reliability` có
 `meta`, `incidents`, `uptime` và `deployments`. Để xem chi tiết một phần, gọi route riêng của nó với cùng window.
 
 ```json
@@ -154,13 +190,16 @@ Resources tách cấu hình khỏi quan sát:
 - **Configured** (cấu hình) là kích thước một replica (`configured_cpu_cores`, `configured_ram_gib`).
 - **Allocated** (cấp phát) là kích thước cấu hình nhân số replica (`allocated_cpu_cores`, `allocated_ram_gib`). Cả hai
   đều không phải mức sử dụng.
-- Bộ nhớ **observed** (quan sát được) lấy từ **một pod mỗi workload**, đọc khoảng năm phút một lần. Nó mô tả một
-  replica và **không** được nhân với số replica. Giá trị 0 byte nghĩa là không đọc được pod và bị bỏ qua.
+- Bộ nhớ **observed** (quan sát được) là bộ nhớ của workload **cộng qua các pod đang chạy** (tối đa 10), đọc
+  khoảng năm phút một lần. Mẫu có pod đang chạy không đọc được bị bỏ qua, và số đo 0 byte cũng vậy. Các mẫu lưu trước
+  khi collector đọc mọi pod chỉ mô tả một pod, nên chỉ được tính cho workload có tối đa một pod.
 - **Mức sử dụng CPU không được thu thập.** CPU chỉ xuất hiện ở dạng cấu hình và cấp phát.
+- Kích thước CPU được đọc như một Kubernetes quantity, nên `"0.5"` và `"500m"` đều là nửa core, giống cách
+  [billing](/vi/guide/pricing#compute) đọc nó.
 
 | Trường | Ý nghĩa |
 |--------|---------|
-| `series` | Mỗi bucket: `at`, `workloads`, `memory_workloads`, `memory_bytes` (tổng, qua các workload, của trung bình số đo một pod của từng workload trong bucket; `null` khi không quan sát được gì), `pods`, `ready_pods` |
+| `series` | Mỗi bucket: `at`, `workloads`, `memory_workloads`, `memory_bytes` (tổng, qua các workload, của trung bình số đo mọi pod của từng workload trong bucket; `null` khi không quan sát được gì), `pods`, `ready_pods` |
 | `totals` | `workloads` (mọi dự án và template được liệt kê), rồi với các workload đang chạy và có replica: `running`, `replicas`, `allocated_cpu_cores`, `allocated_ram_gib`, và `no_samples` (workload đang chạy nhưng không có mẫu nào trong window) |
 | `workloads`, `workloads_truncated` | Các workload lớn nhất theo RAM cấp phát, và có workload nào bị lược bớt không |
 
@@ -220,6 +259,31 @@ không được lưu, nên **không có tỉ lệ uptime phần trăm**.
 
 `stale`, `unknown` và `not_monitored` không bao giờ được tính là up.
 
+## Dashboard {#dashboard}
+
+Khi `GET /api/public/features` trả `analytics: true`, dashboard hiện mục **Phân tích** trong nhóm **Giám sát** ở
+sidebar, tại `/w/{slug}/analytics?window=24h|7d|30d`, và trang **Tổng quan** của workspace có thêm phần **Phân tích**
+sau **Cần chú ý** và các incident đang mở. Phần này đọc route overview cho 24 giờ gần nhất và hiện một thẻ cho chi phí,
+một cho tài nguyên, một cho tình trạng dịch vụ kèm deployment; mỗi thẻ dẫn tới phần tương ứng của trang Phân tích. Nếu
+route overview trả `404`, phần này tự ẩn.
+
+Cả hai đọc các route ở trên bằng quyền của người đang đăng nhập, nên không hiện gì mà người đó không đọc được qua API.
+
+- Mỗi phần của trang Phân tích tải riêng. Phần mà người dùng không có quyền đọc hiện thông báo về quyền, các phần khác
+  vẫn tải. Request lỗi hoặc câu trả lời không đọc được hiện thông báo lỗi kèm nút **Thử lại**. Khi gặp `429`, trang
+  yêu cầu chờ năm giây. Phần có route trả `404` báo là không khả dụng trên nền tảng này. Trên trang Tổng quan, phần
+  `unavailable` hiện lỗi của nó trong khi các thẻ khác vẫn hiện.
+- Cảnh báo dựa theo `meta`: độ phủ lấy từ `coverage`, và `complete` cùng `incomplete_reasons`. `ledger_stale` cảnh
+  báo chi tiêu gần đây có thể bị thiếu. `collector_stale: true` cảnh báo collector đã ngừng báo cáo và ẩn các số đo
+  tài nguyên hiện tại thay vì hiện số cũ như số hiện tại.
+- Giá trị không đo được hiện là dấu gạch (`—`), không bao giờ là 0, và bucket bị thiếu làm đứt đường biểu đồ.
+- Chi phí hiện chi tiêu đo được thực tế (các kỳ sổ cái đã kết thúc) và chi tiêu đang đo (kỳ đang diễn ra) ở hai ô
+  riêng. Dự báo cuối tháng và runway compute được hiện tách khỏi chi tiêu đã quan sát.
+- Tài nguyên hiện CPU và RAM cấp phát, kích thước mỗi replica của từng workload, và bộ nhớ lấy mẫu: các pod đang chạy của từng
+  workload, cộng qua các workload. CPU đang dùng được hiện là không đo.
+- Tình trạng dịch vụ hiện số incident đang mở theo mức độ, số đếm của lần kiểm tra uptime mới nhất, kết quả
+  deployment, tỉ lệ thành công, và thời gian deploy trung bình và p95. Biểu đồ của nó đếm các deployment đã kết thúc.
+
 ## Chưa có trong v1
 
 - Analytics cấp tài khoản hoặc gộp nhiều workspace.
@@ -228,7 +292,10 @@ không được lưu, nên **không có tỉ lệ uptime phần trăm**.
 - Cảnh báo, phát hiện bất thường, phân vị độ trễ HTTP và mọi thao tác ghi.
 - Mức sử dụng CPU, và lịch sử cũ hơn 30 ngày.
 
-Lệnh CLI, tool MCP và adapter WebMCP cho analytics chưa được phát hành. Trong lúc chờ, hãy gọi trực tiếp các route này.
+[`tose analytics`](/vi/commands/analytics) đã được merge vào tose-cli
+([saasvn/tose-cli#108](https://github.com/saasvn/tose-cli/pull/108)) nhưng chưa có trong bản phát hành nào (bản mới
+nhất là v0.2.0). Chưa có tool MCP hay adapter WebMCP
+cho analytics; trong lúc chờ, hãy gọi trực tiếp các route này.
 
 ## Tài liệu liên quan
 

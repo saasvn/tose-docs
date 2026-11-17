@@ -65,9 +65,12 @@ dung `message`. Xem [Mã lỗi](/vi/api/errors) để có danh sách đầy đ�
 ## Tính năng của nền tảng {#platform-features}
 
 `GET /api/public/features` (tag `Platform`) không cần xác thực và không chứa dữ liệu tài khoản hay
-workspace. Endpoint trả về `{"ci": bool, "desktops": bool, "autoscaling_budget": bool}`, cho biết nền tảng đang phục vụ phần
-tùy chọn nào. Response được cache 60 giây. Dashboard dùng nó để ẩn **CI**, **Desktop đám mây** và
-mục **Autoscaling** (xem [Ngân sách autoscaling](/vi/guide/autoscaling-budgets)).
+workspace. Endpoint trả về `{"ci": bool, "desktops": bool, "autoscaling_budget": bool, "feedback": bool, "analytics": bool}`,
+cho biết nền tảng đang phục vụ phần tùy chọn nào. Mỗi trường phản ánh một cờ của server (`CI_ENABLED`,
+`DESKTOP_ENABLED`, `AUTOSCALING_BUDGET_ENABLED`, `FEEDBACK_ENABLED`, `ANALYTICS_ENABLED`). Response được cache
+60 giây. Dashboard dùng nó để ẩn **CI**, **Desktop đám mây**, mục **Autoscaling** (xem
+[Ngân sách autoscaling](/vi/guide/autoscaling-budgets)) và trang **Analytics** cùng phần tóm tắt trên Overview (xem
+[Phân tích workspace](/vi/api/analytics)) khi chúng tắt.
 
 ## Request ID
 

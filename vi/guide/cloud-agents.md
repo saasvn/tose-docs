@@ -58,4 +58,5 @@ Giao tác vụ cần bật `TEMPLATE_AGENT_TASKS_ENABLED` trên instance TOSE v�
 
 - [Cloud Harness](/vi/guide/cloud-harness): chạy agent và công cụ trên Docker host của riêng bạn.
 - [Giá Agent Runtime](/vi/guide/agent-runtime-pricing)
+- [Steer một run agent đang chạy](/vi/guide/agent-steering): chỉ cho run của Agent Runtime, không cho tác vụ của agent tuyển chọn.
 - [Tool cloud agent trong MCP](/vi/mcp#cloud-agent-tools)

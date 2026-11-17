@@ -64,6 +64,77 @@ Cả hai cài đặt đều tắt nếu bạn không đặt.
 
 Retention xóa các dòng `ops_outbox` đã gửi, event `info` đứng riêng và incident đã giải quyết cùng timeline của chúng. Nó giữ incident đang mở, event `warning` và `critical` đứng riêng, và mọi incident có mục, event hoặc thông báo chưa xử lý gần đây. Lần chạy đầu sau khi khởi động 10 phút, rồi mỗi giờ, theo lô tối đa 500 dòng. Tăng giá trị về sau không khôi phục được lịch sử đã xóa, nên hãy chọn khoảng thời gian và sao lưu database trước. Xem `[ops-retention]` trong log backend để biết đã chạy gì. Xóa workspace cũng xóa lịch sử ops của nó trong cùng transaction.
 
+## Tính năng tắt cho đến khi được bật {#optional-features}
+
+Người dùng không dùng được các tính năng này cho đến khi operator đặt công tắc của chúng. Chỉ bật
+một tính năng sau khi các kiểm tra riêng của nó bên dưới đã đạt.
+
+| Biến | Đặt ở | Tác dụng khi đặt `true` |
+|------|-------|-------------------------|
+| `ANALYTICS_ENABLED` | API | Phục vụ các route phân tích workspace; khi tắt, chúng trả `404`. `GET /api/public/features` báo cùng công tắc này dưới tên `analytics`, và dashboard chỉ hiện mục **Analytics** trên sidebar cùng phần tóm tắt ở trang Overview khi nó là `true`. Xem [Phân tích workspace](/vi/api/analytics). |
+| `AGENT_ENVIRONMENT_ENABLED` | API | Agent nhận `environment` (biến, tham chiếu secret, script cài đặt) và `GET .../agents/{agent_id}/environment` trả lời; khi tắt, route đó trả `409 NOT_SUPPORTED`. Environment được kiểm tra và lưu cùng agent nhưng **chưa được áp dụng** vào agent, nên hãy giữ tắt trên production cho đến khi bộ thực thi thiết lập (setup executor) được phát hành. |
+| `DEWEE_SUPPORT_ENABLED` | Dashboard (`tose-frontend`) | Bật [chat hỗ trợ](#support-chat). |
+| `MULTIX_TEMPLATE_ENABLED` | API | Đưa [template Multix](#multix-template) vào catalog, chỉ khi có kèm `MULTIX_SERVER_IMAGE` được ghim theo digest. |
+
+### Chat hỗ trợ {#support-chat}
+
+Dashboard có thể chứa một chat hỗ trợ Dewee, mọi thao tác của nó đi qua
+[support broker](/vi/api/support-assistant). Chat tắt theo mặc định và chưa được bật cho người dùng
+TOSE: nó cần một tích hợp Website chat và một ứng dụng định danh (identity application) riêng cho
+Dewee trong Dewee CCP, và tích hợp đó phải được nghiệm thu. Khi `DEWEE_SUPPORT_ENABLED` tắt, liên
+kết **Support** ở header mở Discord.
+
+Để bật cho dashboard tự host, đặt các biến sau trong môi trường của tiến trình dashboard (giá trị lấy
+từ kho secret và CCP của bạn; không bao giờ commit chúng):
+
+- `DEWEE_SUPPORT_ENABLED=true`
+- `DEWEE_CCP_CHAT_URL`, `DEWEE_WEBCHAT_INTEGRATION_ID`, `DEWEE_WEBCHAT_INTEGRATION_SECRET`
+- `DEWEE_WEBCHAT_SECRET` (ít nhất 32 ký tự ngẫu nhiên)
+- `DEWEE_IDENTITY_APP_ID`, `DEWEE_IDENTITY_ISSUER`, `DEWEE_IDENTITY_ASSERTION_SECRET`
+- `DEWEE_ALLOWED_ORIGINS`: origin chính xác của dashboard
+
+Không đặt bất kỳ biến gateway nào của template Dewee (`DEWEE_GATEWAY_URL`, `DEWEE_GATEWAY_TOKEN`, `DEWEE_TENANT_ID`, `DEWEE_AGENTS`, `DEWEE_DEFAULT_AGENT`, `DEWEE_ALLOW_CLIENT_CREDENTIALS` hay `DEWEE_CLIENT_CREDENTIAL_HOSTS`): chỉ cần có một biến, dashboard từ chối khởi động
+chat và `/api/dewee/status` báo lý do `gateway_vars_set`. Chỉ đặt `DEWEE_TRUSTED_PROXY=true` khi mọi request tới dashboard đều đi qua reverse proxy ghi
+đè hoặc loại bỏ `cf-connecting-ip`, `x-real-ip` và `x-forwarded-for`.
+
+Sau mỗi lần deploy, kiểm tra `GET /api/dewee/status` trên origin của dashboard. `available: false`
+nghĩa là chat không chạy; dòng log dashboard `[support-chat] not available: <reason>` cho biết phần
+còn thiếu. Khi chat không khả dụng, liên kết Support vẫn đưa ra Discord.
+
+Runbook đầy đủ, gồm cả bước kiểm tra Content-Security-Policy cần làm trước khi bật chat cho người
+dùng, nằm trong `docs/operations.md` (support chat) của
+[`saasvn/tose-app`](https://github.com/saasvn/tose-app).
+
+### Template Multix {#multix-template}
+
+Template 1-click Multix Server bị ẩn theo mặc định. Nó chỉ xuất hiện trong catalog khi API có cả hai:
+
+- `MULTIX_TEMPLATE_ENABLED=true`, và
+- `MULTIX_SERVER_IMAGE` trỏ tới một image Multix server độc lập đã được duyệt, ghim theo digest
+  (`repo:tag@sha256:<64 hex>`). Image chỉ có tag hoặc không đặt image thì template vẫn ẩn, và API
+  ghi log lý do.
+
+Hiện hãy giữ công tắc tắt. Bản phát hành ổn định của Multix upstream (v1.28.0) chưa có server độc
+lập, và template còn cần bước nhận quyền sở hữu (owner claim) một lần mà một image server đã phát
+hành phải hỗ trợ. Bằng chứng phát hành được theo dõi tại
+[mrgoonie/multix-cli#563](https://github.com/mrgoonie/multix-cli/issues/563) và
+[mrgoonie/multix-cli#570](https://github.com/mrgoonie/multix-cli/issues/570).
+
+Những gì template áp đặt khi đã bật:
+
+- Mỗi instance có `SESSION_SECRET`, `SECRETS_ENCRYPTION_KEY` và `MULTIX_BOOTSTRAP_TOKEN` được sinh
+  riêng. Các route env từ chối hiện, đặt hoặc xóa chúng (`403 GENERATED_SECRET`), và deploy dừng lại
+  nếu thiếu một trong số đó.
+- Multix luôn chạy image đã cấu hình hoặc image mà chính instance này từng chạy. Người dùng không đặt
+  được image tùy chỉnh; `image_source: catalog` để nâng cấp và `rollback_to` để quay lại.
+- Chi phí nhà cung cấp media theo mô hình tự mang key (BYOK) và do nhà cung cấp tính, không trừ vào
+  ví TOSE. TOSE chỉ tính tài nguyên hosting.
+
+Bỏ công tắc thì template lại bị ẩn; các instance hiện có vẫn chạy. Manifest
+([`multix.json`](https://github.com/saasvn/tose-app/blob/master/internal/templatecatalog/manifests/multix.json))
+quy định port, mount dữ liệu, secret được sinh và kích thước tối thiểu, còn runbook nằm trong
+`docs/operations.md` (Multix template) của `saasvn/tose-app`.
+
 ## Công bố hợp đồng API
 
 API phục vụ spec OpenAPI tại `/api/openapi.yaml`, nên một instance tự host tự có tài liệu. Hãy sinh

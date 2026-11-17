@@ -17,6 +17,16 @@ Khi ví hết tiền, billing đặt template về `suspended`. Deploy khởi đ
 
 Template ở trạng thái khác vẫn deploy như trước, bất kể số dư. Các lỗi khác của endpoint này (`400`, `404`, `409`) có trong spec OpenAPI.
 
+### Instance Multix {#multix}
+
+Template Multix chỉ có trên máy chủ đã bật nó (xem [Tự host](/vi/guide/self-hosting#multix-template)). Một deployment Multix thất bại, thay vì khởi động, khi:
+
+- image không được ghim theo digest, hoặc không phải image Multix đã cấu hình và cũng không phải image mà instance này từng chạy (`rollback_to` có thể chọn một image cũ như vậy);
+- thiếu một trong các secret được sinh của instance, vì giá trị mới sẽ khiến dữ liệu đã lưu không đọc được;
+- nền tảng không có domain HTTPS cho instance.
+
+Đọc instance (`GET /api/workspaces/{slug}/templates/{template_slug}`) trả về `billing_notice`, cho biết chi phí nhà cung cấp media do nhà cung cấp tính chứ không trừ vào ví TOSE, và, khi instance ở trạng thái `running`, `links` tới dashboard, endpoint MCP, REST API và tài liệu API trên domain mặc định.
+
 ## Issue token and resume {#resume}
 
 `POST /api/workspaces/{slug}/templates/{template_slug}/resume` khởi động lại instance Dewee hoặc GoClaw đang **suspended** mà billing không thể đưa trở lại (xem [Instance Dewee và GoClaw sau khi nạp tiền](/vi/guide/pricing#suspended-gateway-templates)).

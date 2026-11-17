@@ -25,6 +25,8 @@ Giá không đổi khi số dư ví tăng hay giảm. Thay vào đó, các lần
 
 Dự án có [sidecar](/vi/guide/project-sidecars) được tính phí theo CPU và RAM của chính nó cộng với giới hạn đã áp dụng của các sidecar, cho mỗi replica, cùng mức giá.
 
+Kích thước CPU của workload được đọc như một Kubernetes quantity, nên `"0.5"` và `"500m"` cùng là nửa vCPU, còn `"15000m"` là 15 vCPU. Hóa đơn theo giờ, các ước tính chi phí và sổ cái usage đều đọc theo cùng một cách; giá trị không đọc được tính là một vCPU. Đổi kích thước không bao giờ ghi lại các giờ đã tính phí. Khi billing tính bù các giờ bị lỡ, nó chỉ tính tối đa sáu giờ gần nhất, mỗi giờ một lần, theo kích thước của workload tại lúc tính bù.
+
 Compute **chỉ tính phí khi workload đang chạy**. Dừng dự án (`tose down`), ngủ hoặc bị tạm ngưng sẽ dừng tính phí compute.
 
 ## Thưởng khi nạp tiền {#top-up-bonus}

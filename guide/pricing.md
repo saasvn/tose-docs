@@ -25,6 +25,8 @@ The price never changes as your balance goes up or down. Larger single top-ups e
 
 A project with [sidecars](/guide/project-sidecars) is billed for its own CPU and RAM plus the applied limits of its sidecars, per replica, at the same rates.
 
+A workload's CPU size is read as a Kubernetes quantity, so `"0.5"` and `"500m"` are the same half vCPU, and `"15000m"` is 15 vCPU. The hourly bill, cost estimates and the usage ledger read it the same way; a value that cannot be read counts as one vCPU. Changing a size never rewrites hours already billed. When billing catches up on missed hours, it bills at most the last six hours, each hour once, at the workload's size when the catch-up runs.
+
 Compute is billed **only while the workload is running**. Stopping a project (`tose down`), sleeping, or suspension stops compute billing.
 
 ## Top-up bonus {#top-up-bonus}

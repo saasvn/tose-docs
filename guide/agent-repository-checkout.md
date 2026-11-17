@@ -99,7 +99,7 @@ The plan's `curated.repository` section carries the same data: `installation_id`
 
 ## Let the agent push to your repository {#let-the-agent-push-to-your-repository}
 
-An agent can push its commits back to the repository pinned at deploy, and to each repository you [add later](#attach-or-change-an-agents-repository-after-install) with push on. Push is set per repository. On the deploy page it is **off by default**, and you choose it for the first repository when you deploy (tose-app [#704](https://github.com/saasvn/tose-app/pull/704)). **+ Add repository** on the agent's page starts with push **on**, to any branch, since tose-app [#770](https://github.com/saasvn/tose-app/pull/770); turn it off before saving if the agent should only read that repository.
+An agent can push its commits back to the repository pinned at deploy, and to each repository you [add later](#attach-or-change-an-agents-repository-after-install) with push on. Push is set per repository. On the deploy page it is **off by default**, and you choose it for the first repository when you deploy (tose-app [#704](https://github.com/saasvn/tose-app/pull/704)). **+ Add repository** on the agent's page starts with push **on**, to any branch, since tose-app [#770](https://github.com/saasvn/tose-app/pull/770); turn it off before saving if the agent should only read that repository. On a server without a git proxy it starts off and cannot be turned on ([Use the Repositories tab](#use-the-repositories-tab)).
 
 ### Set it up
 
@@ -120,7 +120,7 @@ Through the API, send `push` and `push_branches` in `repository`:
 
 - `push` is `false` when omitted, which keeps the read-only checkout exactly as before.
 - `push_branches` is `all` (the default: any branch of that one repository, including the default branch) or `agent` (only `tose/<installation slug>/...`). Sending it without `push: true` is `422` at `repository.push_branches`.
-- A server whose git proxy has no public `https` address refuses a plan with push with `503 GIT_PROXY_NOT_CONFIGURED`. Turn push off, or ask the platform operator.
+- A server whose git proxy has no public `https` address refuses a plan with push with `503 GIT_PROXY_NOT_CONFIGURED`. Turn push off, or ask the platform operator. Once the agent is installed, its installation says whether the server has the proxy, in `git_proxy_available` ([Through the API](#through-the-api)).
 
 ### What the plan shows with push {#what-the-plan-shows-with-push}
 
@@ -179,7 +179,7 @@ While push is on, anyone who can run commands in the agent can push to the repos
 
 ## Let the agent manage issues and pull requests {#let-the-agent-manage-issues-and-pull-requests}
 
-An installed agent can create and update the issues and pull requests of its repositories through TOSE, still without holding a GitHub token (tose-app [#753](https://github.com/saasvn/tose-app/pull/753)). It is set **per repository**, and only for an agent that is already installed: a plan cannot ask for it, so every repository chosen at deploy starts with it off. A repository added later with **+ Add repository** starts with it **on** (tose-app [#770](https://github.com/saasvn/tose-app/pull/770)); clear the box before saving to keep it off.
+An installed agent can create and update the issues and pull requests of its repositories through TOSE, still without holding a GitHub token (tose-app [#753](https://github.com/saasvn/tose-app/pull/753)). It is set **per repository**, and only for an agent that is already installed: a plan cannot ask for it, so every repository chosen at deploy starts with it off. A repository added later with **+ Add repository** starts with it **on** (tose-app [#770](https://github.com/saasvn/tose-app/pull/770)), except on a server without a git proxy, where it starts off and cannot be turned on; clear the box before saving to keep it off.
 
 ### Turn it on
 
@@ -293,8 +293,8 @@ You do not have to reinstall an agent to give it repositories or to change them 
 ### Use the Repositories tab {#use-the-repositories-tab}
 
 1. Open the agent's page and select the **Repositories** tab (or the **Repositories** tile on **Overview**). An agent without a repository shows "No repository yet." Each repository is a row with its name, branch, checkout state and, when the agent may push, a **Push** badge, and an **Issues/PR** badge when it may manage issues and pull requests. The **?** next to a row shows its folder, branch, commit, push setting and whether issues and pull requests go through TOSE.
-2. To add one, choose **+ Add repository**. The same picker as on the deploy page opens: the GitHub account, the **Repository**, the **Branch**, and **Let the agent push to this repository** with its branch choice ([Choose a repository on the deploy page](#choose-a-repository-on-the-deploy-page) explains each step; for a repository of a personal account or of a second organization, see [Repository of another GitHub account](#repository-of-another-github-account)), followed by **Let the agent manage issues and pull requests**. Here every permission starts **on**: push is allowed to any branch, including the default branch, and the issues and pull requests box is checked, so the agent can work on the repository at once. Turn either off before saving if you want less. The deploy page still starts with push off. If saving is refused with `409 GITHUB_PERMISSION_MISSING`, the GitHub App lacks **Contents: Read and write** (needed for push) or **Issues** and **Pull requests** (needed for the box): turn off the one the operator has not granted and save again. On a server without a git proxy, saving with either on is refused with `503 GIT_PROXY_NOT_CONFIGURED`; turn both off to add the repository read-only. The button is disabled once the agent has 10 repositories.
-3. To change push, or issues and pull requests, for one repository, choose **Permissions** on its row. A repository that is waiting or being cloned has no **Permissions** until its checkout ends.
+2. To add one, choose **+ Add repository**. The same picker as on the deploy page opens: the GitHub account, the **Repository**, the **Branch**, and **Let the agent push to this repository** with its branch choice ([Choose a repository on the deploy page](#choose-a-repository-on-the-deploy-page) explains each step; for a repository of a personal account or of a second organization, see [Repository of another GitHub account](#repository-of-another-github-account)), followed by **Let the agent manage issues and pull requests**. Here every permission starts **on**: push is allowed to any branch, including the default branch, and the issues and pull requests box is checked, so the agent can work on the repository at once. Turn either off before saving if you want less. The deploy page still starts with push off. If saving is refused with `409 GITHUB_PERMISSION_MISSING`, the GitHub App lacks **Contents: Read and write** (needed for push), **Issues** and **Pull requests: Read and write** (needed for the box), or both. The card says which, and turns off the options that need them, so saving again adds the repository without them (tose-app [#793](https://github.com/saasvn/tose-app/pull/793)). On a server without a git proxy, both options start off and cannot be turned on, and the card says "This server cannot let agents push or manage issues and pull requests (its git proxy has no public address), so the repository is added read-only." The button is disabled once the agent has 10 repositories.
+3. To change push, or issues and pull requests, for one repository, choose **Permissions** on its row. A repository that is waiting or being cloned has no **Permissions** until its checkout ends. A refusal that names missing permissions turns those options off here too. On a server without a git proxy, an option that is off cannot be turned on, and one that is on can still be turned off.
 4. Choose **Save and restart**. The card shows "Saved. Restarting the agent…", then "Saved. The agent is restarting; the repository is in /workspace once it is back." If you saved without changing anything, it shows "Nothing changed." and the agent is not restarted.
 5. To take one repository away, choose **Remove** on its row and confirm. The agent restarts. A failed checkout also has **Retry checkout** on its row.
 
@@ -316,7 +316,7 @@ You do not have to reinstall an agent to give it repositories or to change them 
 A repository renamed or transferred on GitHub is still the same repository. TOSE matches it by its GitHub id (`repo_id`), so saving it under its new name changes the agent's existing checkout instead of adding a second one (tose-app [#750](https://github.com/saasvn/tose-app/pull/750), [#752](https://github.com/saasvn/tose-app/pull/752)). What happens depends on whether the agent already cloned it:
 
 - **Not cloned yet** (TOSE has never tried to clone it): the checkout takes the new name and is cloned into `/workspace/<new name>`.
-- **Already cloned**, or TOSE already tried to clone it: it was set up under the old name (its folder and `origin`), and TOSE reaches GitHub without following GitHub's redirects, so the old name no longer works. Saving it under its new name is refused with `409 REPOSITORY_RENAMED`. The message names the stored name, its folder and the repository id, for example: "GitHub now calls acme/old acme/new, and the agent's checkout of it was set up under the old name, in /workspace/old. Remove the repository (id 7654321) and add acme/new again; files already in /workspace are kept". The dashboard shows "This repository was renamed on GitHub after the agent cloned it. Remove it and add it again under its new name; the files already in /workspace are kept." Changing push, or issues and pull requests, with **Permissions** on its row still works, because the dashboard names the repository by its `repo_id`: the checkout keeps its old name and folder.
+- **Already cloned**, or TOSE already tried to clone it: it was set up under the old name (its folder and `origin`), and TOSE reaches GitHub without following GitHub's redirects, so the old name no longer works. Saving it under its new name is refused with `409 REPOSITORY_RENAMED`. The message names the stored name, its folder and the repository id, for example: "GitHub now calls acme/old acme/new, and the agent's checkout of it was set up under the old name, in /workspace/old. Remove the repository (id 7654321) and add acme/new again; files already in /workspace are kept". The dashboard shows "This repository was renamed on GitHub after the agent cloned it. Remove it and add it again under its new name; the files already in /workspace are kept." **Permissions** on its row names the repository by its `repo_id` and old name, so it is matched without asking GitHub. Since tose-app [#793](https://github.com/saasvn/tose-app/pull/793), a change there that leaves push or issues and pull requests on (turning one on, turning one off while the other stays on, or changing the push branches) first asks GitHub for the repository's current name by its id, and is refused with `409 REPOSITORY_RENAMED` too: the agent could not fetch or push under the old name. Turning both off is never held up by this check. **Retry checkout** on a failed checkout asks the same question and is refused the same way ([Retry a failed checkout](#retry-a-failed-checkout)).
 
 To fix an already cloned one, **remove** the repository on its row (or `DELETE .../repositories/{repo_id}`), then **add** it again under its new name. It is cloned into `/workspace/<new name>`. The old folder `/workspace/<old name>` stays, with any work in it; move what you need out of it inside the agent. If only the owner changed, the folder name is the same. An old clone whose `origin` is still `https://github.com/<old owner>/<name>` (push was off) counts as another repository, so the new checkout fails with `WORKSPACE_NOT_EMPTY`: move that folder aside first. One whose `origin` is the TOSE git proxy remote of this repository (push was on) is recognised by its GitHub id and reused.
 
@@ -328,7 +328,7 @@ A new name whose folder another of the agent's repositories already uses (for ex
 
 The clone runs in its own one-shot Job. **If the agent is running, the deploy stops it first**, so the Job can mount the agent's disk on any node with room, then the deploy starts the agent again. If a clone fails, the agent is started again as it was. This fixes deploys that stayed in "deploying" until `DeadlineExceeded` when the agent's node was full (tose-app [#745](https://github.com/saasvn/tose-app/pull/745)). The Job prefers the node the agent just ran on, where its disk is still attached, so the disk does not have to move; it is a preference, not a requirement, so a full or missing node does not strand the checkout. This fixes `BOOTSTRAP_FAILED` (the Job's `DeadlineExceeded` while the disk moved to another node) when adding a repository to a running agent (tose-app [#764](https://github.com/saasvn/tose-app/pull/764)).
 
-### Through the API
+### Through the API {#through-the-api}
 
 The routes need a workspace **owner** or **admin**, signed in or with an API key that has `deployments:execute`. A connected MCP app is refused with `403 REPOSITORY_REQUIRES_PERSON`; change the repositories from the dashboard instead.
 
@@ -381,15 +381,32 @@ POST {deploy_path}
 | `409 REPOSITORY_LIMIT` | The agent already has 10 repositories. Remove one first. |
 | `409 REPOSITORY_FOLDER_TAKEN` | Another repository of the agent has the same name, so it would use the same `/workspace/<name>` folder. Remove it first. |
 | `409 REPOSITORY_ALREADY_CLONED` | Another branch of a repository already cloned. Switch branches with git inside the agent. |
-| `409 REPOSITORY_RENAMED` | The repository was renamed or transferred on GitHub after the agent cloned it under the old name; the message names the stored name and folder. Remove it and add it again under the new name ([A repository renamed on GitHub](#a-repository-renamed-on-github)). |
+| `409 REPOSITORY_RENAMED` | The repository was renamed or transferred on GitHub after the agent cloned it under the old name; the message names the stored name and folder. Remove it and add it again under the new name ([A repository renamed on GitHub](#a-repository-renamed-on-github)). A change to a cloned repository that leaves `push` or `github_api` on gets this answer even when it names the repository by its stored name or `repo_id`, because TOSE checks GitHub's current name for that id first. |
 | `409 REPOSITORY_CLONING` | A clone is running. Wait for the deploy to finish and try again. |
 | `409 REPOSITORY_CHANGED` | Someone else changed the agent's repositories meanwhile. Reload and try again. |
 | `409 NOT_A_CLOUD_AGENT` | Only Claude Code, Codex and Pi agents have repositories. |
 | `409 INSTALLATION_DELETED` | The installation was deleted or is being deleted. |
-| `409` `BRANCH_MISSING`, `PERMISSION_DENIED`, `REPO_REMOVED`, `NO_INSTALLATION`, `REPO_ID_CHANGED`, `GITHUB_PERMISSION_MISSING` | GitHub's answer for the repository, as in [Status and failure states](#status-and-failure-states) and [Set it up](#set-it-up). `GITHUB_PERMISSION_MISSING` with `github_api` means the App lacks **Issues** or **Pull requests: Read and write** ([Turn it on](#turn-it-on)). |
+| `409` `BRANCH_MISSING`, `PERMISSION_DENIED`, `REPO_REMOVED`, `NO_INSTALLATION`, `REPO_ID_CHANGED`, `GITHUB_PERMISSION_MISSING` | GitHub's answer for the repository, as in [Status and failure states](#status-and-failure-states) and [Set it up](#set-it-up). `GITHUB_PERMISSION_MISSING` names in `options` the requested options the App lacks a permission for ([below](#refusals-that-name-options)). When GitHub refuses the current-name check of a cloned repository, the answer is `REPO_REMOVED`, `NO_INSTALLATION` or `PERMISSION_DENIED`. |
 | `422` at `repository.installation_id` | The GitHub App installation is not connected to this workspace. |
-| `503 GITHUB_APP_NOT_CONFIGURED`, `503 GIT_PROXY_NOT_CONFIGURED` | This server has no GitHub App, or no public git proxy address for push or issues and pull requests. |
-| `502 GITHUB_UNAVAILABLE` | GitHub could not be reached. Try again. |
+| `503 GITHUB_APP_NOT_CONFIGURED`, `503 GIT_PROXY_NOT_CONFIGURED` | This server has no GitHub App, or no public git proxy address for push or issues and pull requests. `GIT_PROXY_NOT_CONFIGURED` names the requested options in `options`. |
+| `502 GITHUB_UNAVAILABLE` | GitHub could not be reached to check the repository, its current name or the App's permissions. Try again. |
+
+#### Refusals that name options {#refusals-that-name-options}
+
+Since tose-app [#793](https://github.com/saasvn/tose-app/pull/793), a `PUT` refused with `409 GITHUB_PERMISSION_MISSING` or `503 GIT_PROXY_NOT_CONFIGURED` carries `options`, the options of the request to turn off for the change to go through:
+
+| Option | Needs |
+|--------|-------|
+| `push` | The git proxy, and the GitHub App permission **Contents: Read and write**. |
+| `github_api` | The GitHub API proxy, and the GitHub App permissions **Issues** and **Pull requests: Read and write**. |
+
+```json
+{"code": "GITHUB_PERMISSION_MISSING", "message": "The TOSE GitHub App needs …", "options": ["push", "github_api"]}
+```
+
+Both permissions are checked before the refusal, so one answer names every option the App cannot grant. Send the request again without them to save the repository with what remains. Other fields of the [error envelope](/api/errors) are left out of the example.
+
+The installation of a curated agent has `git_proxy_available`. It is `false` when the server has no public `https` API origin (`API_BASE_URL`) for the git and GitHub API proxies: a repository can then only be added read-only, and `push` or `github_api` is refused with `503 GIT_PROXY_NOT_CONFIGURED`. The dashboard reads it to start **+ Add repository** with both options off.
 
 ## Status and failure states
 
@@ -430,13 +447,18 @@ Fix the cause (allow the repository again on GitHub, or reconnect the account), 
 POST /api/workspaces/{slug}/template-installations/{id}/repository/retry
 ```
 
-Needs `deployments:execute` for an API key. **Every** `failed` checkout of the agent goes back to `pending` and **runs at the next deploy**; repositories already `ready` are not cloned again. **Retry checkout** in the agent's **Repositories** tab restarts the agent for you; after a retry through the API (or from the deploy status page), deploy the agent again yourself (`POST .../templates/{agent}/deploy` with `{"mode":"image"}`, or from its page). The route answers:
+Needs `deployments:execute` for an API key. **Every** `failed` checkout of the agent goes back to `pending` and **runs at the next deploy**; repositories already `ready` are not cloned again. **Retry checkout** in the agent's **Repositories** tab restarts the agent for you; after a retry through the API (or from the deploy status page), deploy the agent again yourself (`POST .../templates/{agent}/deploy` with `{"mode":"image"}`, or from its page).
+
+Before retrying, TOSE asks GitHub for each failed repository's current name by its id (tose-app [#793](https://github.com/saasvn/tose-app/pull/793)): a clone under a name GitHub no longer uses would fail again. When GitHub refuses that lookup with one of its codes (for example `REPO_REMOVED`), the retry goes ahead and the next checkout records the code. The route answers:
 
 | Status | When |
 |--------|------|
 | `200` | The failed checkouts are now `pending`. It is also `200`, unchanged, when the checkouts that are not ready are already `pending` or `cloning`. |
 | `409 REPOSITORY_READY` | Every repository of the agent is already in the workspace. |
 | `409 SCOPE_REVOKED` | The GitHub App installation of a failed repository is not connected to the workspace. Connect it first. |
+| `409 REPOSITORY_RENAMED` | GitHub renamed or transferred a failed repository. Remove it and add it again under the new name ([A repository renamed on GitHub](#a-repository-renamed-on-github)). On the deploy status page, the alert also shows the message with the old and new names. |
+| `409 REPOSITORY_CHANGED` | A failed checkout changed while TOSE checked its name. Reload and try again. |
+| `502 GITHUB_UNAVAILABLE` | GitHub could not be reached to check a repository's current name. Try again. |
 | `409 INSTALLATION_DELETED` | The installation was deleted. |
 | `404 REPOSITORY_NOT_FOUND` | The agent has no repository. |
 

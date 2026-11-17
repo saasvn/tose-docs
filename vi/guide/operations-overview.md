@@ -20,6 +20,8 @@ Workspace cần chú ý được xếp trước (sự cố đang mở theo mức
 
 Mọi số đếm lấy từ một ảnh chụp chỉ đọc tại `observed_at`. Tối đa 100 workspace được liệt kê, xếp theo tên; khi bạn thuộc nhiều hơn, phản hồi có `"truncated": true` và trang cũng nói rõ.
 
+Để xem chi phí, tài nguyên và tình trạng dịch vụ của một workspace, hãy mở Overview của workspace đó: khi analytics được bật, trang này có phần tóm tắt Phân tích dẫn tới trang Phân tích của workspace (xem [Analytics của workspace](/vi/api/analytics#dashboard)).
+
 ## API
 
 ```http

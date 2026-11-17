@@ -63,6 +63,77 @@ Both settings are off unless you set them.
 
 Retention deletes old sent `ops_outbox` rows, standalone `info` events and resolved incidents with their timeline. It keeps open incidents, standalone `warning` and `critical` events, and any incident with a recent entry, event or outstanding notification. It first runs ten minutes after startup and then hourly, in batches of at most 500 rows. Deleted history cannot be restored by raising the value later, so choose the window and take a database backup first. Check `[ops-retention]` in the backend log to see what ran. Deleting a workspace removes its operations history in the same transaction.
 
+## Features that stay off until enabled {#optional-features}
+
+Each of these features is unavailable to users until the operator sets its switch. Turn one on only
+after its own checks below pass.
+
+| Variable | Set on | Effect when set to `true` |
+|----------|--------|---------------------------|
+| `ANALYTICS_ENABLED` | API | Serves the workspace analytics routes, which answer `404` while it is off. `GET /api/public/features` reports the same switch as `analytics`, and the dashboard shows the **Analytics** sidebar entry and the Overview summary only when it is `true`. See [Workspace analytics](/api/analytics). |
+| `AGENT_ENVIRONMENT_ENABLED` | API | Agents accept an `environment` (variables, secret references, install script) and `GET .../agents/{agent_id}/environment` answers; while it is off that route answers `409 NOT_SUPPORTED`. The environment is validated and stored with the agent but **not applied** to the agent yet, so keep this off in production until the setup executor ships. |
+| `DEWEE_SUPPORT_ENABLED` | Dashboard (`tose-frontend`) | Turns on the [support chat](#support-chat). |
+| `MULTIX_TEMPLATE_ENABLED` | API | Offers the [Multix template](#multix-template), only together with a digest-pinned `MULTIX_SERVER_IMAGE`. |
+
+### Support chat {#support-chat}
+
+The dashboard can host a Dewee support chat whose actions go through the
+[support broker](/api/support-assistant). It is off by default and is not yet turned on for TOSE
+users: it needs a dedicated Dewee Website chat integration and identity application in Dewee CCP,
+and acceptance of that integration. With `DEWEE_SUPPORT_ENABLED` off, the header **Support** link
+opens Discord.
+
+To turn it on for a self-hosted dashboard, set these in the dashboard process's environment
+(values come from your secret store and CCP; never commit them):
+
+- `DEWEE_SUPPORT_ENABLED=true`
+- `DEWEE_CCP_CHAT_URL`, `DEWEE_WEBCHAT_INTEGRATION_ID`, `DEWEE_WEBCHAT_INTEGRATION_SECRET`
+- `DEWEE_WEBCHAT_SECRET` (at least 32 random characters)
+- `DEWEE_IDENTITY_APP_ID`, `DEWEE_IDENTITY_ISSUER`, `DEWEE_IDENTITY_ASSERTION_SECRET`
+- `DEWEE_ALLOWED_ORIGINS`: the exact dashboard origin
+
+Do not set any of the Dewee template's gateway variables (`DEWEE_GATEWAY_URL`, `DEWEE_GATEWAY_TOKEN`, `DEWEE_TENANT_ID`, `DEWEE_AGENTS`, `DEWEE_DEFAULT_AGENT`, `DEWEE_ALLOW_CLIENT_CREDENTIALS` or `DEWEE_CLIENT_CREDENTIAL_HOSTS`): with any one set, the dashboard refuses to start the chat and `/api/dewee/status` reports the reason `gateway_vars_set`.
+Set `DEWEE_TRUSTED_PROXY=true` only when every request reaches the dashboard through a reverse proxy
+that overwrites or strips `cf-connecting-ip`, `x-real-ip` and `x-forwarded-for`.
+
+After each deploy, check `GET /api/dewee/status` on the dashboard origin. `available: false` means
+the chat is not running; the dashboard log line `[support-chat] not available: <reason>` names the
+missing piece. While the chat is unavailable, the Support link still offers Discord.
+
+The full runbook, including the Content-Security-Policy check to run before enabling the chat for
+users, is `docs/operations.md` (support chat) in
+[`saasvn/tose-app`](https://github.com/saasvn/tose-app).
+
+### Multix template {#multix-template}
+
+The Multix Server 1-click template is hidden by default. It appears in the catalog only when the API
+has both:
+
+- `MULTIX_TEMPLATE_ENABLED=true`, and
+- `MULTIX_SERVER_IMAGE` set to an approved standalone Multix server image, pinned by digest
+  (`repo:tag@sha256:<64 hex>`). A tag-only or missing image keeps the template hidden, and the API
+  logs why.
+
+Keep the flag off for now. The stable upstream Multix release (v1.28.0) has no standalone server,
+and the template also needs a one-time owner claim that a released server image must support. The
+release evidence is tracked in [mrgoonie/multix-cli#563](https://github.com/mrgoonie/multix-cli/issues/563)
+and [mrgoonie/multix-cli#570](https://github.com/mrgoonie/multix-cli/issues/570).
+
+What the template enforces once enabled:
+
+- Each instance gets its own generated `SESSION_SECRET`, `SECRETS_ENCRYPTION_KEY` and
+  `MULTIX_BOOTSTRAP_TOKEN`. The env routes refuse to reveal, set or delete them
+  (`403 GENERATED_SECRET`), and a deploy stops if one is missing.
+- Multix always runs the configured image or one this instance ran before. A user cannot set a
+  custom image; `image_source: catalog` upgrades and `rollback_to` goes back.
+- Media provider usage is bring-your-own-key and billed by the provider, not the TOSE wallet. TOSE
+  bills only the hosting resources.
+
+Unsetting the flag hides the template again; existing instances keep running. The manifest
+([`multix.json`](https://github.com/saasvn/tose-app/blob/master/internal/templatecatalog/manifests/multix.json))
+owns the port, data mount, generated secrets and minimum size, and `docs/operations.md` (Multix
+template) in `saasvn/tose-app` owns the runbook.
+
 ## Publish the API contract
 
 The API serves its OpenAPI spec at `/api/openapi.yaml`, so a self-hosted instance documents

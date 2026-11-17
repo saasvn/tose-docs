@@ -28,6 +28,8 @@ Một mẫu là **đầy đủ** khi mọi pod đang chạy đều trả lời (
 
 Các mẫu lưu trước khi có bộ thu thập này chỉ đọc pod đầu tiên. Chúng chỉ được tính cho workload có tối đa một pod.
 
+Nếu server của một workload không còn hoặc không kết nối được, bộ thu thập bỏ qua server đó trong phần còn lại của lượt chạy, nên các workload trên đó không có mẫu ở lượt này. Workload trên các server khác vẫn được lấy mẫu.
+
 ## Không đo được là `null`, không bao giờ là `0`
 
 Khi một số liệu không được đo, API trả `null` và dashboard để trống đoạn đó trên biểu đồ. Giá trị `0` luôn là một lần đọc thật bằng 0. Quy tắc này áp dụng cho `memory_bytes`, `memory_mb`, `network_rx`, `network_tx` và `ready_count`, và cho `pod_count` trong bucket (mẫu thô luôn có số pod được liệt kê).
@@ -141,7 +143,7 @@ Mọi thành viên workspace đều đọc được. Workload của workspace kh
 
 `timestamp` là thời điểm bắt đầu bucket theo UTC. `from` là thời điểm yêu cầu trừ đi khoảng thời gian, `to` là thời điểm yêu cầu. Khoảng 30 ngày không bắt đầu đúng nửa đêm địa phương có 31 bucket, nên các ngày cũ nhất không bao giờ bị cắt.
 
-Số liệu toàn workspace đến từ [API analytics](/vi/api/analytics), với định nghĩa riêng.
+Số liệu toàn workspace đến từ [API analytics](/vi/api/analytics), với định nghĩa riêng. API này báo bộ thu thập bị chậm bằng `meta.collector_stale`; xem [Khi nguồn dữ liệu bị chậm](/vi/api/analytics#source-behind) để biết phép kiểm tra đó có thể bỏ sót gì.
 
 ## Liên quan
 
