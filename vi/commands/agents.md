@@ -82,6 +82,7 @@ tose agents steers <agent-id> <run-id> --json
 ## Liên quan
 
 - [Tổng quan các lệnh](/vi/commands/overview)
+- [Steer agent đang chạy](/vi/guide/agent-steering), để hiểu ý nghĩa của từng trạng thái và mã
 - [Bảng giá Agent Runtime](/vi/guide/agent-runtime-pricing)
 - [Giao thức, OAuth và scope](/vi/mcp/oauth)
 - [Giao tác vụ cho coding agent](/vi/guide/agent-tasks), cho agent curated cài từ template
