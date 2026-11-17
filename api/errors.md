@@ -20,6 +20,7 @@ Every JSON error response from the TOSE API has the same envelope.
 | `request_id` | ID of the failed call. It equals the `X-Request-ID` response header. Quote it to support. |
 | `retryable` | `true` when repeating the same request unchanged may succeed. |
 | `details` | Optional extra context for some codes. |
+| `options` | Only when changing an agent's repository is refused with `GITHUB_PERMISSION_MISSING` or `GIT_PROXY_NOT_CONFIGURED`: the requested options to turn off, `push`, `github_api` or both. See [Refusals that name options](/guide/agent-repository-checkout#refusals-that-name-options). |
 | `doc_url` | Link to the entry for this code on this page. |
 | `error` | Same text as `message`. It stays for older clients. |
 

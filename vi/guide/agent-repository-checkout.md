@@ -99,7 +99,7 @@ Mục `curated.repository` của plan chứa cùng dữ liệu: `installation_id
 
 ## Cho agent push lên kho mã {#cho-agent-push-len-kho-ma}
 
-Agent có thể push commit của nó ngược lên kho mã đã ghim khi triển khai, và lên từng kho bạn [thêm sau](#gan-hoac-doi-kho-ma-sau-khi-cai) với push bật. Push được đặt riêng cho từng kho. Trên trang triển khai, push **mặc định tắt**, và bạn chọn cho kho đầu tiên khi triển khai (tose-app [#704](https://github.com/saasvn/tose-app/pull/704)). Từ tose-app [#770](https://github.com/saasvn/tose-app/pull/770), **+ Thêm kho mã** trên trang của agent bắt đầu với push **bật**, cho mọi nhánh; hãy tắt trước khi lưu nếu agent chỉ nên đọc kho đó.
+Agent có thể push commit của nó ngược lên kho mã đã ghim khi triển khai, và lên từng kho bạn [thêm sau](#gan-hoac-doi-kho-ma-sau-khi-cai) với push bật. Push được đặt riêng cho từng kho. Trên trang triển khai, push **mặc định tắt**, và bạn chọn cho kho đầu tiên khi triển khai (tose-app [#704](https://github.com/saasvn/tose-app/pull/704)). Từ tose-app [#770](https://github.com/saasvn/tose-app/pull/770), **+ Thêm kho mã** trên trang của agent bắt đầu với push **bật**, cho mọi nhánh; hãy tắt trước khi lưu nếu agent chỉ nên đọc kho đó. Trên máy chủ không có git proxy, push bắt đầu ở trạng thái tắt và không bật được ([Dùng tab Kho mã](#dung-tab-kho-ma)).
 
 ### Thiết lập {#thiet-lap}
 
@@ -120,7 +120,7 @@ Qua API, gửi `push` và `push_branches` trong `repository`:
 
 - `push` là `false` khi bỏ trống, giữ nguyên bản checkout chỉ đọc như trước.
 - `push_branches` là `all` (mặc định: mọi nhánh của đúng kho mã đó, kể cả nhánh mặc định) hoặc `agent` (chỉ `tose/<slug của bản cài>/...`). Gửi trường này mà không có `push: true` trả `422` tại `repository.push_branches`.
-- Máy chủ mà git proxy chưa có địa chỉ `https` công khai từ chối plan có push với `503 GIT_PROXY_NOT_CONFIGURED`. Hãy tắt push, hoặc liên hệ người vận hành nền tảng.
+- Máy chủ mà git proxy chưa có địa chỉ `https` công khai từ chối plan có push với `503 GIT_PROXY_NOT_CONFIGURED`. Hãy tắt push, hoặc liên hệ người vận hành nền tảng. Khi agent đã được cài, installation của nó cho biết máy chủ có proxy hay không qua `git_proxy_available` ([Qua API](#qua-api)).
 
 ### Plan hiển thị gì khi có push {#plan-hien-thi-gi-khi-co-push}
 
@@ -179,7 +179,7 @@ Khi push bật, bất kỳ ai chạy được lệnh trong agent đều push đ�
 
 ## Cho agent quản lý issue và pull request {#cho-agent-quan-ly-issue-va-pull-request}
 
-Agent đã cài có thể tạo và cập nhật issue và pull request của các kho mã của nó qua TOSE, vẫn không giữ token GitHub nào (tose-app [#753](https://github.com/saasvn/tose-app/pull/753)). Tính năng được đặt **riêng cho từng kho**, và chỉ dành cho agent đã cài: plan không thể yêu cầu tính năng này, nên mọi kho chọn khi triển khai đều bắt đầu với tính năng tắt. Kho thêm sau bằng **+ Thêm kho mã** bắt đầu với tính năng **bật** (tose-app [#770](https://github.com/saasvn/tose-app/pull/770)); bỏ chọn ô trước khi lưu để giữ tắt.
+Agent đã cài có thể tạo và cập nhật issue và pull request của các kho mã của nó qua TOSE, vẫn không giữ token GitHub nào (tose-app [#753](https://github.com/saasvn/tose-app/pull/753)). Tính năng được đặt **riêng cho từng kho**, và chỉ dành cho agent đã cài: plan không thể yêu cầu tính năng này, nên mọi kho chọn khi triển khai đều bắt đầu với tính năng tắt. Kho thêm sau bằng **+ Thêm kho mã** bắt đầu với tính năng **bật** (tose-app [#770](https://github.com/saasvn/tose-app/pull/770)), trừ trên máy chủ không có git proxy, nơi tính năng bắt đầu ở trạng thái tắt và không bật được; bỏ chọn ô trước khi lưu để giữ tắt.
 
 ### Bật tính năng {#bat-tinh-nang-issue-va-pull-request}
 
@@ -293,8 +293,8 @@ Bạn không phải cài lại agent để thêm hay đổi kho mã (tose-app [#
 ### Dùng tab Kho mã {#dung-tab-kho-ma}
 
 1. Mở trang của agent và chọn tab **Kho mã** (hoặc ô **Kho mã** ở **Tổng quan**). Agent chưa có kho mã hiển thị "Chưa có kho mã." Mỗi kho là một dòng với tên, nhánh, trạng thái checkout và, khi agent được push, nhãn **Push**, cùng nhãn **Issues/PR** khi agent được quản lý issue và pull request. Dấu **?** cạnh mỗi dòng cho xem thư mục, nhánh, commit, thiết lập push và việc issue và pull request có đi qua TOSE hay không.
-2. Để thêm, chọn **+ Thêm kho mã**. Bộ chọn giống trang triển khai sẽ mở ra: tài khoản GitHub, **Kho mã**, **Nhánh**, và **Cho phép agent push lên kho mã này** cùng lựa chọn nhánh ([Chọn kho mã trên trang triển khai](#chon-kho-ma-tren-trang-trien-khai) giải thích từng bước; với kho mã của tài khoản cá nhân hoặc của tổ chức thứ hai, xem [Kho mã của một tài khoản GitHub khác](#kho-ma-cua-mot-tai-khoan-github-khac)), tiếp theo là **Cho phép agent quản lý issue và pull request**. Ở đây mọi quyền đều bắt đầu **bật**: push được phép lên mọi nhánh, kể cả nhánh mặc định, và ô issue và pull request đã được chọn, để agent làm việc với kho ngay. Tắt bớt trước khi lưu nếu bạn muốn ít quyền hơn. Trang triển khai vẫn bắt đầu với push tắt. Nếu lưu bị từ chối với `409 GITHUB_PERMISSION_MISSING`, GitHub App đang thiếu **Contents: Read and write** (cần cho push) hoặc **Issues** và **Pull requests** (cần cho ô issue và pull request): hãy tắt quyền mà người vận hành chưa cấp rồi lưu lại. Trên máy chủ không có git proxy, lưu khi bật một trong hai sẽ bị từ chối với `503 GIT_PROXY_NOT_CONFIGURED`; tắt cả hai để thêm kho chỉ đọc. Nút bị vô hiệu khi agent đã có 10 kho.
-3. Để đổi push, hoặc issue và pull request, của một kho, chọn **Quyền** trên dòng của kho đó. Kho đang chờ hoặc đang được clone chưa có **Quyền** cho tới khi checkout xong.
+2. Để thêm, chọn **+ Thêm kho mã**. Bộ chọn giống trang triển khai sẽ mở ra: tài khoản GitHub, **Kho mã**, **Nhánh**, và **Cho phép agent push lên kho mã này** cùng lựa chọn nhánh ([Chọn kho mã trên trang triển khai](#chon-kho-ma-tren-trang-trien-khai) giải thích từng bước; với kho mã của tài khoản cá nhân hoặc của tổ chức thứ hai, xem [Kho mã của một tài khoản GitHub khác](#kho-ma-cua-mot-tai-khoan-github-khac)), tiếp theo là **Cho phép agent quản lý issue và pull request**. Ở đây mọi quyền đều bắt đầu **bật**: push được phép lên mọi nhánh, kể cả nhánh mặc định, và ô issue và pull request đã được chọn, để agent làm việc với kho ngay. Tắt bớt trước khi lưu nếu bạn muốn ít quyền hơn. Trang triển khai vẫn bắt đầu với push tắt. Nếu lưu bị từ chối với `409 GITHUB_PERMISSION_MISSING`, GitHub App đang thiếu **Contents: Read and write** (cần cho push), **Issues** và **Pull requests: Read and write** (cần cho ô issue và pull request), hoặc cả hai. Thẻ nói rõ là quyền nào và tự tắt các tùy chọn cần quyền đó, nên lưu lại sẽ thêm được kho mà không có chúng (tose-app [#793](https://github.com/saasvn/tose-app/pull/793)). Trên máy chủ không có git proxy, cả hai tùy chọn bắt đầu ở trạng thái tắt và không bật được, và thẻ hiển thị "Máy chủ này không cho agent push hay quản lý issue và pull request (git proxy chưa có địa chỉ công khai), nên kho được thêm ở chế độ chỉ đọc." Nút bị vô hiệu khi agent đã có 10 kho.
+3. Để đổi push, hoặc issue và pull request, của một kho, chọn **Quyền** trên dòng của kho đó. Kho đang chờ hoặc đang được clone chưa có **Quyền** cho tới khi checkout xong. Lần từ chối nêu quyền còn thiếu cũng tự tắt các tùy chọn đó ở đây. Trên máy chủ không có git proxy, tùy chọn đang tắt không bật được, còn tùy chọn đang bật vẫn tắt được.
 4. Chọn **Lưu và khởi động lại**. Thẻ hiển thị "Đã lưu. Đang khởi động lại agent…", rồi "Đã lưu. Agent đang khởi động lại; kho mã sẽ có trong /workspace khi agent chạy lại." Nếu bạn lưu mà không đổi gì, thẻ hiển thị "Không có gì thay đổi." và agent không khởi động lại.
 5. Để bỏ một kho, chọn **Gỡ** trên dòng của kho rồi xác nhận. Agent sẽ khởi động lại. Checkout thất bại còn có nút **Thử tải lại** trên dòng của nó.
 
@@ -316,7 +316,7 @@ Bạn không phải cài lại agent để thêm hay đổi kho mã (tose-app [#
 Kho được đổi tên hoặc chuyển giao trên GitHub vẫn là cùng một kho. TOSE nhận ra kho qua mã định danh GitHub (`repo_id`), nên lưu kho với tên mới sẽ thay đổi bản checkout sẵn có của agent thay vì thêm một bản thứ hai (tose-app [#750](https://github.com/saasvn/tose-app/pull/750), [#752](https://github.com/saasvn/tose-app/pull/752)). Kết quả tùy vào việc agent đã clone kho hay chưa:
 
 - **Chưa clone** (TOSE chưa từng thử clone kho): bản checkout nhận tên mới và được clone vào `/workspace/<tên mới>`.
-- **Đã clone**, hoặc TOSE đã thử clone: kho được thiết lập theo tên cũ (thư mục và `origin`), mà TOSE kết nối GitHub không theo chuyển hướng của GitHub, nên tên cũ không còn dùng được. Lưu kho với tên mới bị từ chối với `409 REPOSITORY_RENAMED`. Thông báo nêu tên đang lưu, thư mục của nó và mã định danh kho, ví dụ: "GitHub now calls acme/old acme/new, and the agent's checkout of it was set up under the old name, in /workspace/old. Remove the repository (id 7654321) and add acme/new again; files already in /workspace are kept". Bảng điều khiển hiển thị "Kho mã này đã được đổi tên trên GitHub sau khi agent tải về. Hãy gỡ kho rồi thêm lại với tên mới; các tệp đã có trong /workspace được giữ nguyên." Đổi push, hoặc issue và pull request, bằng **Quyền** trên dòng của kho vẫn hoạt động, vì bảng điều khiển gọi kho theo `repo_id`: bản checkout giữ tên và thư mục cũ.
+- **Đã clone**, hoặc TOSE đã thử clone: kho được thiết lập theo tên cũ (thư mục và `origin`), mà TOSE kết nối GitHub không theo chuyển hướng của GitHub, nên tên cũ không còn dùng được. Lưu kho với tên mới bị từ chối với `409 REPOSITORY_RENAMED`. Thông báo nêu tên đang lưu, thư mục của nó và mã định danh kho, ví dụ: "GitHub now calls acme/old acme/new, and the agent's checkout of it was set up under the old name, in /workspace/old. Remove the repository (id 7654321) and add acme/new again; files already in /workspace are kept". Bảng điều khiển hiển thị "Kho mã này đã được đổi tên trên GitHub sau khi agent tải về. Hãy gỡ kho rồi thêm lại với tên mới; các tệp đã có trong /workspace được giữ nguyên." **Quyền** trên dòng của kho gọi kho theo `repo_id` và tên cũ, nên kho được so khớp mà không cần hỏi GitHub. Từ tose-app [#793](https://github.com/saasvn/tose-app/pull/793), một thay đổi ở đó mà vẫn để push hoặc issue và pull request bật (bật một trong hai, tắt một trong hai khi cái còn lại vẫn bật, hoặc đổi nhánh được push) sẽ hỏi GitHub tên hiện tại của kho theo mã định danh trước, và cũng bị từ chối với `409 REPOSITORY_RENAMED`: agent không thể fetch hay push theo tên cũ. Tắt cả hai không bao giờ bị kiểm tra này chặn. **Thử tải lại** một checkout thất bại cũng hỏi như vậy và bị từ chối theo cùng cách ([Thử lại checkout thất bại](#thu-lai-checkout-that-bai)).
 
 Để khắc phục kho đã clone, hãy **gỡ** kho trên hàng của nó (hoặc `DELETE .../repositories/{repo_id}`), rồi **thêm** lại với tên mới. Kho được clone vào `/workspace/<tên mới>`. Thư mục cũ `/workspace/<tên cũ>` vẫn còn, cùng mọi thay đổi trong đó; hãy chuyển những gì cần ra khỏi thư mục đó ngay trong agent. Nếu chỉ chủ sở hữu thay đổi thì tên thư mục giữ nguyên. Bản clone cũ có `origin` vẫn là `https://github.com/<chủ cũ>/<tên>` (khi push tắt) được coi là kho khác, nên bản checkout mới thất bại với `WORKSPACE_NOT_EMPTY`: hãy chuyển thư mục đó sang chỗ khác trước. Bản có `origin` là remote git proxy của TOSE cho kho này (khi push bật) được nhận ra qua mã định danh GitHub và được dùng lại.
 
@@ -328,7 +328,7 @@ Tên mới trùng thư mục với một kho khác của agent (ví dụ đổi 
 
 Việc clone chạy trong một Job chạy một lần riêng. **Nếu agent đang chạy, lần deploy dừng nó trước**, để Job gắn được ổ đĩa của agent trên bất kỳ node nào còn chỗ, rồi lần deploy khởi động lại agent. Nếu clone thất bại, agent được khởi động lại như trước. Điều này sửa lỗi deploy bị kẹt ở "deploying" tới khi `DeadlineExceeded` khi node của agent đã đầy (tose-app [#745](https://github.com/saasvn/tose-app/pull/745)). Job ưu tiên node mà agent vừa chạy, nơi ổ đĩa của nó vẫn đang được gắn, nên ổ đĩa không phải di chuyển; đây chỉ là ưu tiên, không phải bắt buộc, nên node đã đầy hoặc không còn cũng không làm kẹt việc checkout. Điều này sửa lỗi `BOOTSTRAP_FAILED` (Job bị `DeadlineExceeded` trong lúc ổ đĩa chuyển sang node khác) khi thêm kho mã cho một agent đang chạy (tose-app [#764](https://github.com/saasvn/tose-app/pull/764)).
 
-### Qua API
+### Qua API {#qua-api}
 
 Các route cần **owner** hoặc **admin** của workspace, đăng nhập hoặc dùng API key có `deployments:execute`. Ứng dụng MCP đã kết nối bị từ chối với `403 REPOSITORY_REQUIRES_PERSON`; hãy đổi kho mã trên dashboard.
 
@@ -381,15 +381,32 @@ POST {deploy_path}
 | `409 REPOSITORY_LIMIT` | Agent đã có 10 kho mã. Hãy gỡ bớt một kho trước. |
 | `409 REPOSITORY_FOLDER_TAKEN` | Một kho khác của agent có cùng tên, nên sẽ dùng chung thư mục `/workspace/<tên>`. Hãy gỡ kho đó trước. |
 | `409 REPOSITORY_ALREADY_CLONED` | Nhánh khác của kho đã clone. Hãy đổi nhánh bằng git ngay trong agent. |
-| `409 REPOSITORY_RENAMED` | Kho đã được đổi tên hoặc chuyển giao trên GitHub sau khi agent clone nó theo tên cũ; thông báo nêu tên và thư mục đang lưu. Hãy gỡ kho rồi thêm lại với tên mới ([Kho mã đổi tên trên GitHub](#kho-ma-doi-ten-tren-github)). |
+| `409 REPOSITORY_RENAMED` | Kho đã được đổi tên hoặc chuyển giao trên GitHub sau khi agent clone nó theo tên cũ; thông báo nêu tên và thư mục đang lưu. Hãy gỡ kho rồi thêm lại với tên mới ([Kho mã đổi tên trên GitHub](#kho-ma-doi-ten-tren-github)). Thay đổi một kho đã clone mà vẫn để `push` hoặc `github_api` bật cũng nhận câu trả lời này, kể cả khi gọi kho theo tên đang lưu hoặc `repo_id`, vì TOSE kiểm tra trước tên hiện tại mà GitHub đặt cho mã định danh đó. |
 | `409 REPOSITORY_CLONING` | Đang clone. Đợi lần deploy xong rồi thử lại. |
 | `409 REPOSITORY_CHANGED` | Người khác vừa đổi kho mã của agent. Tải lại rồi thử lại. |
 | `409 NOT_A_CLOUD_AGENT` | Chỉ agent Claude Code, Codex và Pi mới có kho mã. |
 | `409 INSTALLATION_DELETED` | Installation đã hoặc đang bị xoá. |
-| `409` `BRANCH_MISSING`, `PERMISSION_DENIED`, `REPO_REMOVED`, `NO_INSTALLATION`, `REPO_ID_CHANGED`, `GITHUB_PERMISSION_MISSING` | Câu trả lời của GitHub về kho mã, như trong [Trạng thái và các trường hợp lỗi](#trang-thai-va-cac-truong-hop-loi) và [Thiết lập](#thiet-lap). `GITHUB_PERMISSION_MISSING` khi có `github_api` nghĩa là App thiếu **Issues** hoặc **Pull requests: Read and write** ([Bật tính năng](#bat-tinh-nang-issue-va-pull-request)). |
+| `409` `BRANCH_MISSING`, `PERMISSION_DENIED`, `REPO_REMOVED`, `NO_INSTALLATION`, `REPO_ID_CHANGED`, `GITHUB_PERMISSION_MISSING` | Câu trả lời của GitHub về kho mã, như trong [Trạng thái và các trường hợp lỗi](#trang-thai-va-cac-truong-hop-loi) và [Thiết lập](#thiet-lap). `GITHUB_PERMISSION_MISSING` nêu trong `options` các tùy chọn được yêu cầu mà App thiếu quyền ([bên dưới](#tu-choi-neu-tuy-chon)). Khi GitHub từ chối lần kiểm tra tên hiện tại của một kho đã clone, câu trả lời là `REPO_REMOVED`, `NO_INSTALLATION` hoặc `PERMISSION_DENIED`. |
 | `422` tại `repository.installation_id` | GitHub App installation không được kết nối với workspace này. |
-| `503 GITHUB_APP_NOT_CONFIGURED`, `503 GIT_PROXY_NOT_CONFIGURED` | Máy chủ này chưa có GitHub App, hoặc chưa có địa chỉ git proxy công khai cho push hay issue và pull request. |
-| `502 GITHUB_UNAVAILABLE` | Không kết nối được tới GitHub. Hãy thử lại. |
+| `503 GITHUB_APP_NOT_CONFIGURED`, `503 GIT_PROXY_NOT_CONFIGURED` | Máy chủ này chưa có GitHub App, hoặc chưa có địa chỉ git proxy công khai cho push hay issue và pull request. `GIT_PROXY_NOT_CONFIGURED` nêu các tùy chọn được yêu cầu trong `options`. |
+| `502 GITHUB_UNAVAILABLE` | Không kết nối được tới GitHub để kiểm tra kho, tên hiện tại của kho hoặc quyền của App. Hãy thử lại. |
+
+#### Lần từ chối nêu tùy chọn {#tu-choi-neu-tuy-chon}
+
+Từ tose-app [#793](https://github.com/saasvn/tose-app/pull/793), `PUT` bị từ chối với `409 GITHUB_PERMISSION_MISSING` hoặc `503 GIT_PROXY_NOT_CONFIGURED` có `options`, các tùy chọn của yêu cầu cần tắt để thay đổi được thực hiện:
+
+| Tùy chọn | Cần |
+|----------|-----|
+| `push` | Git proxy, và quyền **Contents: Read and write** của GitHub App. |
+| `github_api` | GitHub API proxy, và quyền **Issues** và **Pull requests: Read and write** của GitHub App. |
+
+```json
+{"code": "GITHUB_PERMISSION_MISSING", "message": "The TOSE GitHub App needs …", "options": ["push", "github_api"]}
+```
+
+Cả hai quyền đều được kiểm tra trước khi từ chối, nên một câu trả lời nêu mọi tùy chọn mà App không cấp được. Gửi lại yêu cầu không có các tùy chọn đó để lưu kho với phần còn lại. Ví dụ lược bớt các trường khác của [cấu trúc lỗi](/vi/api/errors).
+
+Installation của agent tuyển chọn có `git_proxy_available`. Trường này là `false` khi máy chủ không có origin API `https` công khai (`API_BASE_URL`) cho git proxy và GitHub API proxy: khi đó kho chỉ thêm được ở chế độ chỉ đọc, và `push` hay `github_api` bị từ chối với `503 GIT_PROXY_NOT_CONFIGURED`. Bảng điều khiển đọc trường này để **+ Thêm kho mã** bắt đầu với cả hai tùy chọn tắt.
 
 ## Trạng thái và các trường hợp lỗi {#trang-thai-va-cac-truong-hop-loi}
 
@@ -430,13 +447,18 @@ Hãy sửa nguyên nhân (cho phép lại kho mã trên GitHub, hoặc kết n�
 POST /api/workspaces/{slug}/template-installations/{id}/repository/retry
 ```
 
-API key cần `deployments:execute`. **Mọi** checkout `failed` của agent quay về `pending` và **chạy ở lần deploy kế tiếp**; các kho đã `ready` không bị clone lại. Nút **Thử tải lại** trong tab **Kho mã** của trang agent tự khởi động lại agent; nếu thử lại qua API (hoặc từ trang trạng thái triển khai), hãy tự deploy lại agent (`POST .../templates/{agent}/deploy` với `{"mode":"image"}`, hoặc từ trang của agent). Route trả về:
+API key cần `deployments:execute`. **Mọi** checkout `failed` của agent quay về `pending` và **chạy ở lần deploy kế tiếp**; các kho đã `ready` không bị clone lại. Nút **Thử tải lại** trong tab **Kho mã** của trang agent tự khởi động lại agent; nếu thử lại qua API (hoặc từ trang trạng thái triển khai), hãy tự deploy lại agent (`POST .../templates/{agent}/deploy` với `{"mode":"image"}`, hoặc từ trang của agent).
+
+Trước khi thử lại, TOSE hỏi GitHub tên hiện tại của từng kho thất bại theo mã định danh (tose-app [#793](https://github.com/saasvn/tose-app/pull/793)): clone theo tên mà GitHub không còn dùng sẽ lại thất bại. Khi GitHub từ chối lần tra cứu đó bằng một mã của nó (ví dụ `REPO_REMOVED`), lần thử lại vẫn được thực hiện và lần checkout kế tiếp ghi lại mã đó. Route trả về:
 
 | Trạng thái | Khi nào |
 |------------|---------|
 | `200` | Các checkout thất bại hiện là `pending`. Cũng trả `200`, không đổi, khi các checkout chưa sẵn sàng đã là `pending` hoặc `cloning`. |
 | `409 REPOSITORY_READY` | Mọi kho mã của agent đã nằm trong workspace. |
 | `409 SCOPE_REVOKED` | GitHub App installation của một kho thất bại chưa được kết nối với workspace. Hãy kết nối trước. |
+| `409 REPOSITORY_RENAMED` | GitHub đã đổi tên hoặc chuyển giao một kho thất bại. Hãy gỡ kho rồi thêm lại với tên mới ([Kho mã đổi tên trên GitHub](#kho-ma-doi-ten-tren-github)). Trên trang trạng thái triển khai, thông báo lỗi cũng hiển thị nội dung nêu tên cũ và tên mới. |
+| `409 REPOSITORY_CHANGED` | Một checkout thất bại vừa thay đổi trong lúc TOSE kiểm tra tên. Tải lại rồi thử lại. |
+| `502 GITHUB_UNAVAILABLE` | Không kết nối được tới GitHub để kiểm tra tên hiện tại của kho. Hãy thử lại. |
 | `409 INSTALLATION_DELETED` | Installation đã bị xóa. |
 | `404 REPOSITORY_NOT_FOUND` | Agent không có kho mã nào. |
 

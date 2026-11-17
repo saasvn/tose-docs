@@ -20,6 +20,7 @@ Mọi response lỗi JSON của TOSE API đều có cùng một envelope.
 | `request_id` | ID của request lỗi, bằng header `X-Request-ID` của response. Hãy gửi cho bộ phận hỗ trợ. |
 | `retryable` | `true` khi gửi lại y nguyên request có thể thành công. |
 | `details` | Ngữ cảnh bổ sung, chỉ có với một số mã. |
+| `options` | Chỉ có khi thay đổi kho mã của agent bị từ chối với `GITHUB_PERMISSION_MISSING` hoặc `GIT_PROXY_NOT_CONFIGURED`: các tùy chọn được yêu cầu cần tắt, `push`, `github_api` hoặc cả hai. Xem [Lần từ chối nêu tùy chọn](/vi/guide/agent-repository-checkout#tu-choi-neu-tuy-chon). |
 | `doc_url` | Liên kết tới mục của mã này trong trang này. |
 | `error` | Cùng nội dung với `message`, giữ lại cho client cũ. |
 

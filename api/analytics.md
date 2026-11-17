@@ -40,11 +40,19 @@ overview or anywhere else. `projects:read` and `deployments:read` never expose c
 | `401` | No valid credential |
 | `403` | The API key lacks the route's scope (`code: insufficient_scope`, with `required_scope`), or the key belongs to another workspace or is bound to a runtime (`code: forbidden`) |
 | `404` | Analytics is off, the workspace does not exist, or you are not a member |
+| `429` | Too many analytics reads from this credential (`code: rate_limited`, with `Retry-After: 5`). See [Rate limit](#rate-limit) |
 | `500` | A source could not be read (`"Failed to load analytics"`). Each request has a 10-second limit |
 | `503` | The permission check could not run (`"Authorization is temporarily unavailable"`); retry |
 
 The `error` field is shown above; the full error body is described in [Errors](/api/errors). A key of another
 workspace gets `403` whether or not the slug exists, so slugs cannot be probed.
+
+### Rate limit {#rate-limit}
+
+Each credential (an API key, or a signed-in user) may make 2 analytics reads a second, with bursts of 20, across the
+four routes. An API key has its own budget, apart from its owner's session. Each API replica keeps its own budget in
+memory, so with several replicas the limit applies per replica, and a restart resets it. The limit is checked before
+the `ANALYTICS_ENABLED` switch, so a caller over the limit gets `429` even while analytics is off.
 
 ## The `window` filter
 
@@ -84,10 +92,37 @@ Every detail answer, and every `ok` section of the overview, carries `meta`:
 | `from`, `to` | `from` is aligned down to the start of the first bucket; `to` is the observation time |
 | `window`, `granularity` | `24h`/`7d`/`30d` and `15m`/`1h`/`1d` |
 | `source` | The tables the numbers come from |
-| `complete` | `false` when a closed bucket has no data or no bucket has data. In reliability, `false` while a monitored project is `stale` or `unknown` (its `coverage.ratio` is always 1, because deployment and incident records are complete) |
+| `complete` | `false` when a closed bucket has no data or no bucket has data, or when the source is behind (see [When a source is behind](#source-behind)). In reliability, `false` while a monitored project is `stale` or `unknown` (its `coverage.ratio` is always 1, because deployment and incident records are complete) |
+| `incomplete_reasons` | Stable codes for a source that is behind even though its buckets look covered. The only code is `ledger_stale`, for costs. Empty otherwise |
+| `collector_stale` | Resources only, and present only as `true` when the metrics collector is behind. Absent otherwise; a server that predates the field never sends it |
 | `coverage` | `expected_points`, `observed_points`, `ratio`, `first_at` and `last_at` of the buckets |
 | `units` | The unit of each kind of number, for example `{"cost":"nano_usd","balance":"usd_cents"}` |
 | `notes` | Plain statements of what the numbers do and do not mean |
+
+### When a source is behind {#source-behind}
+
+Full bucket coverage does not prove a source is current: a daily bucket can be covered by a sample taken hours ago.
+Two checks look at the newest record instead, set `complete` to `false` and add a note to `notes`.
+
+- **`ledger_stale`** in `incomplete_reasons` (costs). The newest usage ledger row ended more than 3 hours before
+  `observed_at` while the workspace has a wallet and runs a project or template that billing charges, has charged
+  before, and that has not changed in those 3 hours. A workload just started, resumed or resized is not expected in
+  the ledger yet, and one whose hourly cost rounds to zero cents never gets a row. The totals stop short of now. A
+  workspace with nothing running is never stale.
+- **`collector_stale: true`** (resources). The newest sample in the window is more than 30 minutes old, or there is
+  none, while the workspace has a workload due a sample: an active project or running template with at least one
+  replica, assigned to a server, and neither created nor changed in the last 30 minutes. It is not a code in
+  `incomplete_reasons`, which keeps the same values.
+
+In the overview, the `costs` and `resources` sections stay `ok` and carry the same `meta`, so the flag and the notes
+show there too.
+
+`collector_stale` is a workspace-wide check against the newest sample of any workload, so it has known limits:
+
+- A recent sample from one server hides a collection gap on another server. Read each workload's `last_sample_at`
+  and `state` to find the workloads that are behind.
+- A template that was woken recently can show the flag until its first sample arrives, because waking does not
+  change its update time.
 
 ## Overview
 
@@ -157,6 +192,8 @@ Resources keep configuration and observation apart:
 - **Observed** memory comes from **one pod per workload**, read about every five minutes. It describes one replica
   and is **not** multiplied by replicas. A reading of zero bytes means the pod could not be read and is ignored.
 - **CPU use is not collected.** CPU appears only as configured and allocated.
+- A CPU size is read as a Kubernetes quantity, so `"0.5"` and `"500m"` are both half a core, the same way
+  [billing](/guide/pricing#compute) reads it.
 
 | Field | Meaning |
 |-------|---------|
@@ -219,6 +256,31 @@ there is **no uptime percentage**.
 
 `stale`, `unknown` and `not_monitored` never count as up.
 
+## Dashboard {#dashboard}
+
+When `GET /api/public/features` reports `analytics: true`, the dashboard shows **Analytics** under **Monitor** in the
+sidebar, at `/w/{slug}/analytics?window=24h|7d|30d`, and the workspace **Overview** shows an **Analytics** section
+after **Needs attention** and the active incidents. That section reads the overview route for the last 24 hours and
+shows one card each for costs, resources, and service health with deployments; each card links to its section of the
+Analytics page. If the overview route answers `404`, the section hides itself.
+
+Both read the routes above as the signed-in person, so they show nothing that person cannot read through the API.
+
+- Each section of the Analytics page loads on its own. A section the person cannot read shows a permission message,
+  and the others still load. A failed request or an unreadable answer shows an error with **Try again**. A `429`
+  asks the person to wait five seconds. A section whose route answers `404` says it is not available on this
+  platform. On the Overview, a section that is `unavailable` shows its error while the other cards stay.
+- Warnings follow `meta`: coverage from `coverage`, and `complete` with `incomplete_reasons`. `ledger_stale` warns
+  that recent spend may be missing. `collector_stale: true` warns that the collector has stopped reporting and hides
+  the current resource readings rather than showing old ones as current.
+- An unmeasured value shows as a dash (`—`), never as zero, and a missing bucket breaks the chart line.
+- Costs show actual metered spend (ended ledger periods) and live metered spend (the period in progress) as separate
+  tiles. The month-end forecast and compute runway are shown apart from observed spend.
+- Resources show allocated CPU and RAM, each workload's per-replica size, and sampled memory: one sampled replica per
+  workload, summed across workloads. CPU in use is shown as not measured.
+- Service health shows open incidents by severity, the latest uptime check counts, deployment outcomes, the success
+  ratio, and average and p95 deployment time. Its chart counts finished deployments.
+
 ## Not in v1
 
 - Account-level or cross-workspace analytics.
@@ -227,8 +289,8 @@ there is **no uptime percentage**.
 - Alerts, anomaly detection, HTTP latency percentiles and any write.
 - CPU use, and history older than 30 days.
 
-The analytics CLI commands, MCP tools and WebMCP adapters are not released yet. Until they are, read these routes
-directly.
+[`tose analytics`](/commands/analytics) ships in the next CLI release. There are no analytics MCP tools or WebMCP
+adapters yet; until there are, read these routes directly.
 
 ## Related documentation
 

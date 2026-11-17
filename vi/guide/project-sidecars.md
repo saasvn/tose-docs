@@ -108,7 +108,7 @@ Mỗi replica giữ CPU và RAM của dự án **cộng với giới hạn của
 
 - **Giá dự kiến so với thu phí đã xác nhận.** Lưu thêm, sửa hoặc xoá sidecar không làm đổi hóa đơn của workload đang chạy. Giá dự kiến khi deploy dùng cấu hình đã lưu; thu phí dùng giới hạn đã xác nhận là đã áp dụng. Nếu không xác định được allocation, TOSE trả lỗi cụ thể trước khi tính bất kỳ phần nào của giờ đó cho ví. Ví cạn vẫn đình chỉ compute.
 - **Báo giá khi scale dùng giới hạn đang chạy** của pod, không dùng cấu hình đã lưu.
-- **Tổng cả pod.** `GET .../status` trả về giới hạn của container chính trong `resources.cpu.limit` và `resources.memory.limit`, và tổng mỗi replica gồm cả sidecar trong `pod_total`. `pod_total` được tính từ cấu hình đã lưu, nên giữa lúc lưu và lần deploy tiếp theo nó là giá dự kiến; thu phí theo nó sau khi deploy áp dụng thay đổi.
+- **Tổng cả pod.** `GET .../status` trả về giới hạn của container chính trong `resources.cpu.limit` và `resources.memory.limit`, và tổng mỗi replica gồm cả sidecar trong `pod_total`. `pod_total` được tính từ cấu hình đã lưu, nên giữa lúc lưu và lần deploy tiếp theo nó là giá dự kiến; thu phí theo nó sau khi deploy áp dụng thay đổi. `pod_total` tính bằng core thập phân: CPU của chính dự án được đọc như một Kubernetes quantity, giống cách billing đọc, nên dự án `500m` có một sidecar `0.25` hiện `0.75`.
 
 ## Vận hành
 

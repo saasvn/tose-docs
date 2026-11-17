@@ -41,7 +41,7 @@ Máy chủ tắt analytics trừ khi đặt `ANALYTICS_ENABLED`. Khi đang tắt
 
 ## Đầu ra JSON
 
-`--json` đặt nguyên câu trả lời của API vào `data`, gồm cả `meta`: `complete`, `coverage`, `granularity`, `units` và `notes`, cạnh khoảng thời gian (`window`, `from`, `to`). `complete` là `false` khi một bucket đã đóng không có dữ liệu hoặc bằng chứng uptime đã cũ, nên hãy kiểm tra trường này trước khi tin một con số tổng.
+`--json` đặt nguyên câu trả lời của API vào `data`, gồm cả `meta`: `complete`, `coverage`, `granularity`, `units` và `notes`, cạnh khoảng thời gian (`window`, `from`, `to`). `complete` là `false` khi một bucket đã đóng không có dữ liệu, bằng chứng uptime đã cũ, hoặc một nguồn dữ liệu bị chậm (`ledger_stale` trong `incomplete_reasons` với chi phí, `collector_stale: true` với tài nguyên; xem [Khi nguồn dữ liệu bị chậm](/vi/api/analytics#source-behind)), nên hãy kiểm tra trường này trước khi tin một con số tổng.
 
 ```bash
 tose analytics costs --window 7d --json

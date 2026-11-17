@@ -28,6 +28,8 @@ A sample is **complete** when every running pod answered (`sampled_pods` equals 
 
 Samples stored before this collector existed read only the first pod. They count only for a workload with at most one pod.
 
+If a workload's server is missing or cannot be reached, the collector skips that server for the rest of the run, so its workloads get no sample that time. Workloads on other servers are still sampled.
+
 ## Not measured is `null`, never `0`
 
 When a figure was not measured, the API returns `null` and the dashboard leaves a gap in the chart. A `0` always means a real reading of zero. This applies to `memory_bytes`, `memory_mb`, `network_rx`, `network_tx` and `ready_count`, and to `pod_count` in buckets (a raw sample always has the number of pods listed).
@@ -141,7 +143,7 @@ Any workspace member can read these. A workload of another workspace returns `40
 
 `timestamp` is the start of the bucket in UTC. `from` is the request time minus the period, and `to` is the request time. A 30-day window that does not start at local midnight has 31 buckets, so the oldest days are never cut off.
 
-Workspace-wide figures come from the [analytics API](/api/analytics), which has its own definitions.
+Workspace-wide figures come from the [analytics API](/api/analytics), which has its own definitions. It flags a collector that is behind with `meta.collector_stale`; see [When a source is behind](/api/analytics#source-behind) for what that check can miss.
 
 ## Related
 

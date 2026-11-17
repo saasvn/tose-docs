@@ -36,7 +36,7 @@ Giới hạn và danh sách tên dành riêng nằm trong `inputs.environment` c
 ### Quy tắc
 
 - Tên gồm chữ cái, chữ số và `_`, tối đa 63 ký tự, không bắt đầu bằng chữ số. Tên là duy nhất, không phân biệt hoa thường.
-- **Tên dành riêng** bị từ chối với `ENV_NAME_RESERVED`. Gồm các tiền tố `TOSE_`, `KUBERNETES_`, `LD_`, `DYLD_`, `NPM_CONFIG_`, `GIT_CONFIG`, `SSH_`, `AGENT_`, `PI_`, `CODEX_`, `CLAUDE_`, `ANTHROPIC_`, `OPENAI_` và `GEMINI_`; các tên của shell, runtime, proxy và TLS như `PATH`, `HOME`, `NODE_OPTIONS`, `HTTPS_PROXY`, `SSL_CERT_FILE`; và các tên của nền tảng như `DATABASE_URL`. Thiết lập nhà cung cấp, model và key đi qua các đầu vào riêng của mẫu, không bao giờ qua biến môi trường.
+- **Tên dành riêng** bị từ chối với `ENV_NAME_RESERVED`. Gồm các tiền tố `TOSE_`, `KUBERNETES_`, `LD_`, `DYLD_`, `BASH_FUNC_`, `NPM_CONFIG_`, `GIT_CONFIG`, `SSH_`, `AGENT_`, `PI_`, `CODEX_`, `CLAUDE_`, `ANTHROPIC_`, `OPENAI_` và `GEMINI_`; các tên của shell, runtime, proxy và TLS như `PATH`, `HOME`, `NODE_OPTIONS`, `HTTPS_PROXY`, `SSL_CERT_FILE`; và các tên của nền tảng như `DATABASE_URL`. Thiết lập nhà cung cấp, model và key đi qua các đầu vào riêng của mẫu, không bao giờ qua biến môi trường. Danh sách của nền tảng được dùng chung với [agent của Agent Runtime](#agent-runtime-environment) và nằm trong [`internal/agentenv/names.go`](https://github.com/saasvn/tose-app/blob/master/internal/agentenv/names.go); các tên do đầu vào riêng của mẫu đặt được thêm vào danh sách đó.
 - Tên trông giống thông tin xác thực (chứa `SECRET`, `TOKEN`, `PASSWORD`, `PRIVATE_KEY`, `API_KEY` hoặc `CREDENTIAL`, hoặc kết thúc bằng `_KEY`) phải là tham chiếu secret (`ENV_NAME_NEEDS_SECRET`).
 - Một giá trị là một dòng tối đa 2048 ký tự, và tổng các giá trị thường tối đa 16 KiB.
 
@@ -47,6 +47,30 @@ Danh sách **Environment Variables** của ứng dụng đã cài dùng cùng qu
 ::: info Chưa có
 Script thiết lập tùy chọn chạy một lần cho agent chưa được cung cấp. Yêu cầu có script, lệnh khởi động hoặc hook sẽ bị từ chối như một trường không xác định.
 :::
+
+## Agent của Agent Runtime: môi trường {#agent-runtime-environment}
+
+::: warning Chỉ lưu, chưa áp dụng
+Phần này nói về agent của Agent Runtime (`/api/workspaces/{slug}/agents`), không phải các agent tuyển chọn ở trên. Nó chỉ hoạt động khi người vận hành đặt `AGENT_ENVIRONMENT_ENABLED=true`, cờ này vẫn tắt trên production cho tới khi có bộ thực thi thiết lập (setup executor). Kể cả khi bật, TOSE chỉ **kiểm tra và lưu** môi trường: chưa có biến, secret hay script nào tới được engine, và bản đọc báo `apply_status: not_applied`. Việc chạy script, đưa secret vào engine, trạng thái và log thiết lập, cùng giao diện CLI, MCP và dashboard đều chưa được xây dựng.
+:::
+
+Một agent của Agent Runtime có thể mang một `environment` bên cạnh `settings` của engine. Nó giống nhau cho mọi engine và được lưu cùng revision của agent:
+
+- `variables`: tên và giá trị thường.
+- `secret_refs`: tên biến ánh xạ tới **tên** của một secret agent trong workspace. Giá trị secret không bao giờ nằm trong môi trường.
+- `install_script`: script cài đặt tùy chọn trong không gian người dùng, với `install_policy: on_revision_change` (mặc định khi có script).
+
+Đặt nó trong body của `POST /agents` hoặc `PUT /agents/{agent_id}`. Cả hai cần owner hoặc admin của workspace, hoặc scope `agents:write`. Khi cập nhật, bỏ trống `environment` (hoặc `null`) thì giữ nguyên, `{}` thì xóa, còn một object thì thay thế. Gửi `expected_revision` để cập nhật bị từ chối với `409` khi agent đã đổi trong lúc đó. Khi cờ đang tắt, yêu cầu có đặt môi trường bị từ chối với `409 NOT_SUPPORTED`; yêu cầu không hợp lệ trả `400` nêu tên trường, không bao giờ nêu giá trị.
+
+Các quy tắc khác với agent tuyển chọn:
+
+- Cả `variables` và `secret_refs` đều từ chối [các tên dành riêng dùng chung](https://github.com/saasvn/tose-app/blob/master/internal/agentenv/names.go). Agent của Agent Runtime còn dành riêng `GOOGLE_*`, `GIT_SSH` và `GIT_SSH_COMMAND`.
+- Biến thường có tên gợi ý thông tin xác thực bị từ chối; hãy dùng `secret_refs` cho nó.
+- Script có lệnh gọi `sudo`, trình quản lý gói hệ thống, hoặc client container hay cluster (ví dụ `apt-get`, `docker`, `kubectl`) bị từ chối. Bước kiểm tra này chỉ là nỗ lực tốt nhất để báo lỗi sớm và dễ hiểu; ranh giới thật là sandbox (không chạy root, root filesystem chỉ đọc, danh sách egress cho phép). Gói hệ thống cần một base image đã được duyệt.
+
+Giới hạn và mẫu chính xác nằm trong schema `AgentEnvironment` của [hợp đồng OpenAPI](https://github.com/saasvn/tose-app/blob/master/internal/apispec/openapi.yaml).
+
+`GET /agents/{agent_id}/environment` (owner và admin của workspace, hoặc `agents:write`) trả về các biến, tên các tham chiếu secret, metadata của script (`sha256`, `bytes`, `lines`), `hash` của thiết lập và `apply_status`. Nó không bao giờ trả về giá trị secret hay nội dung script, và bản thân agent (`GET /agents/{agent_id}`) không chứa môi trường. Khi cờ đang tắt, nó trả `409 NOT_SUPPORTED`.
 
 ## Tự động ngủ cho agent nhàn rỗi {#auto-sleep-for-idle-agents}
 

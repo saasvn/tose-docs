@@ -37,7 +37,7 @@ Số lượng tool không cố định. `tools/list` chỉ cho một kết nối
 | Blog | `blog:write`, chỉ platform admin | `BLOG_ENABLED` | [Blog và MCP biên tập](/vi/guide/blog-and-editorial-mcp) |
 | Mã giảm giá | `admin:discounts`, chỉ platform admin | Luôn có | [Mã khuyến mãi](/vi/api/promo-codes#admin) |
 
-Instance chạy Agent Runtime (`AGENT_RUNTIME_ENABLED`) còn có các tool agent riêng của nó, như `list_agents` và `run_agent`, dưới các scope `agents:*`, gồm cả `agents:write` và `agents:usage:read`.
+Instance chạy Agent Runtime (`AGENT_RUNTIME_ENABLED`) còn có các tool agent riêng của nó, như `list_agents`, `run_agent` và `steer_agent_run` ([steer agent đang chạy](/vi/guide/agent-steering)), dưới các scope `agents:*`, gồm cả `agents:write` và `agents:usage:read`.
 
 Cột "Có thay đổi gì không?" bên dưới cho biết một lần gọi có thay đổi gì trong TOSE không và có cần một người duyệt trước không. Việc duyệt luôn diễn ra trên trình duyệt khi đã đăng nhập TOSE, không bao giờ trong chat; xem [Cơ chế phê duyệt](#co-che-phe-duyet).
 

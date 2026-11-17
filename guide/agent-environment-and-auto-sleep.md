@@ -36,7 +36,7 @@ The limits and the reserved names come from `inputs.environment` of `GET /curate
 ### Rules
 
 - A name is letters, digits and `_`, at most 63 characters, not starting with a digit. Names are unique without regard to case.
-- **Reserved names** are refused with `ENV_NAME_RESERVED`. They include the prefixes `TOSE_`, `KUBERNETES_`, `LD_`, `DYLD_`, `NPM_CONFIG_`, `GIT_CONFIG`, `SSH_`, `AGENT_`, `PI_`, `CODEX_`, `CLAUDE_`, `ANTHROPIC_`, `OPENAI_` and `GEMINI_`, shell, runtime, proxy and TLS names such as `PATH`, `HOME`, `NODE_OPTIONS`, `HTTPS_PROXY` and `SSL_CERT_FILE`, and platform names such as `DATABASE_URL`. Provider, model and key settings go through the template's own inputs, never through the environment.
+- **Reserved names** are refused with `ENV_NAME_RESERVED`. They include the prefixes `TOSE_`, `KUBERNETES_`, `LD_`, `DYLD_`, `BASH_FUNC_`, `NPM_CONFIG_`, `GIT_CONFIG`, `SSH_`, `AGENT_`, `PI_`, `CODEX_`, `CLAUDE_`, `ANTHROPIC_`, `OPENAI_` and `GEMINI_`, shell, runtime, proxy and TLS names such as `PATH`, `HOME`, `NODE_OPTIONS`, `HTTPS_PROXY` and `SSL_CERT_FILE`, and platform names such as `DATABASE_URL`. Provider, model and key settings go through the template's own inputs, never through the environment. The platform list is shared with [Agent Runtime agents](#agent-runtime-environment) and lives in [`internal/agentenv/names.go`](https://github.com/saasvn/tose-app/blob/master/internal/agentenv/names.go); the names a template's own inputs set are added to it.
 - A name that looks like a credential (it contains `SECRET`, `TOKEN`, `PASSWORD`, `PRIVATE_KEY`, `API_KEY` or `CREDENTIAL`, or ends in `_KEY`) must be a secret reference (`ENV_NAME_NEEDS_SECRET`).
 - A value is one line of at most 2048 characters, and all plain values together are at most 16 KiB.
 
@@ -47,6 +47,30 @@ The installed app's **Environment Variables** list uses the same rules, except t
 ::: info Not available
 An optional setup script that runs once for an agent is not offered. A request with a script, a startup command or a hook is refused as an unknown field.
 :::
+
+## Agent Runtime agents: environment {#agent-runtime-environment}
+
+::: warning Stored, not applied yet
+This section is about agents of the Agent Runtime (`/api/workspaces/{slug}/agents`), not the curated agents above. It works only when the operator sets `AGENT_ENVIRONMENT_ENABLED=true`, which stays off in production until the setup executor exists. Even then, TOSE only **validates and stores** the environment: no variable, secret or script reaches the engine yet, and the read view reports `apply_status: not_applied`. Running the script, delivering secrets to the engine, setup status and logs, and the CLI, MCP and dashboard surfaces are not built.
+:::
+
+An Agent Runtime agent can carry an `environment` next to its engine `settings`. It is the same for every engine and is saved with the agent revision:
+
+- `variables`: plain names and values.
+- `secret_refs`: a variable name mapped to the **name** of a workspace agent secret. The secret value is never part of the environment.
+- `install_script`: an optional user-space install script, with `install_policy: on_revision_change` (the default when a script is set).
+
+Set it in the body of `POST /agents` or `PUT /agents/{agent_id}`. Both need a workspace owner or admin, or the `agents:write` scope. On update, leaving `environment` out (or `null`) keeps it, `{}` clears it and an object replaces it. Send `expected_revision` to have the update refused with `409` when the agent changed in the meantime. While the flag is off, a request that sets an environment is refused with `409 NOT_SUPPORTED`; an invalid one answers `400` naming the field, never the value.
+
+Rules that differ from curated agents:
+
+- `variables` and `secret_refs` both refuse the [shared reserved names](https://github.com/saasvn/tose-app/blob/master/internal/agentenv/names.go). Agent Runtime agents also reserve `GOOGLE_*`, `GIT_SSH` and `GIT_SSH_COMMAND`.
+- A plain variable whose name suggests a credential is refused; use `secret_refs` for it.
+- A script whose commands call `sudo`, a system package manager, or a container or cluster client (for example `apt-get`, `docker`, `kubectl`) is refused. This check is best effort and gives an early, readable error; the sandbox (non-root, read-only root filesystem, egress allowlist) is the boundary. System packages need a reviewed base image.
+
+The exact limits and patterns are in the `AgentEnvironment` schema of the [OpenAPI contract](https://github.com/saasvn/tose-app/blob/master/internal/apispec/openapi.yaml).
+
+`GET /agents/{agent_id}/environment` (workspace owners and admins, or `agents:write`) returns the variables, the secret reference names, the script's metadata (`sha256`, `bytes`, `lines`), the setup `hash` and `apply_status`. It never returns a secret value or the script text, and the agent itself (`GET /agents/{agent_id}`) does not include the environment. While the flag is off it answers `409 NOT_SUPPORTED`.
 
 ## Auto-sleep for idle agents
 

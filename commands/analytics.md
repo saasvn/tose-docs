@@ -41,7 +41,7 @@ The server keeps analytics off unless `ANALYTICS_ENABLED` is set. While it is of
 
 ## JSON output
 
-`--json` puts the API answer unchanged in `data`, including `meta`: `complete`, `coverage`, `granularity`, `units` and `notes`, next to the window itself (`window`, `from`, `to`). `complete` is `false` when a closed bucket has no data or uptime evidence is stale, so check it before you trust a total.
+`--json` puts the API answer unchanged in `data`, including `meta`: `complete`, `coverage`, `granularity`, `units` and `notes`, next to the window itself (`window`, `from`, `to`). `complete` is `false` when a closed bucket has no data, uptime evidence is stale, or a source is behind (`ledger_stale` in `incomplete_reasons` for costs, `collector_stale: true` for resources; see [When a source is behind](/api/analytics#source-behind)), so check it before you trust a total.
 
 ```bash
 tose analytics costs --window 7d --json

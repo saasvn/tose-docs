@@ -108,7 +108,7 @@ Each replica reserves your project's CPU and RAM **plus the limits of its applie
 
 - **Configured estimate versus confirmed billing.** Saving a sidecar addition, change or removal does not reprice the running workload. The estimate shown for a deploy uses the saved settings; billing uses the limits that were confirmed as applied. If an allocation cannot be resolved, TOSE returns an explicit error before charging any part of that wallet's hour. An empty wallet still suspends compute.
 - **Scale quotes use live limits** of the running pods, not the saved configuration.
-- **Whole-pod totals.** `GET .../status` reports the project container's own limits in `resources.cpu.limit` and `resources.memory.limit`, and the per-replica sum including sidecars in `pod_total`. `pod_total` is computed from the saved configuration, so between a save and the next deploy it is the configured estimate; billing follows it once a deploy applies the change.
+- **Whole-pod totals.** `GET .../status` reports the project container's own limits in `resources.cpu.limit` and `resources.memory.limit`, and the per-replica sum including sidecars in `pod_total`. `pod_total` is computed from the saved configuration, so between a save and the next deploy it is the configured estimate; billing follows it once a deploy applies the change. `pod_total` is in decimal cores: the project's own CPU is read as a Kubernetes quantity, as billing reads it, so a `500m` project with a `0.25` sidecar shows `0.75`.
 
 ## Operate
 

@@ -20,6 +20,8 @@ Workspaces that need attention come first (open incidents by severity, then fail
 
 All counts come from one read-only snapshot taken at `observed_at`. At most 100 workspaces are listed, ordered by name; when you belong to more, the response says `"truncated": true` and the page says so.
 
+For costs, resources and service health of one workspace, open its Overview: when analytics is enabled it shows an Analytics summary that links to the workspace's Analytics page (see [Workspace analytics](/api/analytics#dashboard)).
+
 ## API
 
 ```http

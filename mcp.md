@@ -37,7 +37,7 @@ There is no fixed number of tools. `tools/list` shows a connection only the tool
 | Blog | `blog:write`, platform admins only | `BLOG_ENABLED` | [Blog and editorial MCP](/guide/blog-and-editorial-mcp) |
 | Discount codes | `admin:discounts`, platform admins only | Always | [Promo codes](/api/promo-codes#admin) |
 
-Instances that run Agent Runtime (`AGENT_RUNTIME_ENABLED`) also offer its own agent tools, such as `list_agents` and `run_agent`, under the `agents:*` scopes, including `agents:write` and `agents:usage:read`.
+Instances that run Agent Runtime (`AGENT_RUNTIME_ENABLED`) also offer its own agent tools, such as `list_agents`, `run_agent` and `steer_agent_run` ([steer a running agent](/guide/agent-steering)), under the `agents:*` scopes, including `agents:write` and `agents:usage:read`.
 
 "Changes anything?" below says whether a call changes something in TOSE and whether a person must approve it first. An approval always happens in the browser, signed in to TOSE, never in the chat; see [How approval works](#how-approval-works).
 
