@@ -130,6 +130,7 @@ Stop phản hồi trong khoảng 100 giây. Khi gặp `503`, chờ số giây tr
 
 - [Xác thực](/vi/api/authentication)
 - [Mã lỗi](/vi/api/errors)
+- [API Browsers (truy cập sớm)](/vi/api/browsers)
 - [Ổ đĩa, Volume & Bảng giá](/vi/api/disks)
 - [API ngân sách autoscaling](/vi/api/autoscaling-budget)
 - [API analytics của workspace](/vi/api/analytics)

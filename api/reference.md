@@ -139,6 +139,7 @@ if (res.status === 503) {
 - [Authentication](/api/authentication)
 - [Errors](/api/errors)
 - [Cloud Desktops API](/api/desktops)
+- [Browsers API (early access)](/api/browsers)
 - [Disks, Volumes & Pricing API](/api/disks)
 - [Autoscaling budget API](/api/autoscaling-budget)
 - [Workspace analytics API](/api/analytics)

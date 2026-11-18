@@ -105,6 +105,21 @@ production yet.
 | [`tose desktop screenshot`](/commands/desktop#tose-desktop-screenshot) | Save a screenshot |
 | [`tose desktop exec`](/commands/desktop#tose-desktop-exec) | Run a shell command on the desktop |
 
+### Agent browser (early access)
+
+Status: **early access**. The commands are merged into the CLI after 0.2.0, but the
+[agent browser](/guide/agent-browser) is not switched on in production yet.
+
+| Command | Description |
+|---------|-------------|
+| [`tose browser open`](/commands/browser#tose-browser-open) | Create a browser session |
+| [`tose browser list / inspect / events`](/commands/browser#tose-browser-list-inspect-events) | Read sessions and their audit events |
+| [`tose browser navigate / snapshot`](/commands/browser#driving-a-page) | Open a page and list its elements as locators |
+| [`tose browser click / fill / press`](/commands/browser#tose-browser-click-fill-press) | Act on an element (an API key needs a person's approval) |
+| [`tose browser extract / screenshot`](/commands/browser#tose-browser-extract) | Read from the page or save a PNG |
+| [`tose browser allowlist`](/commands/browser#allow-list) | Show or propose sites the browsers may reach |
+| [`tose browser close`](/commands/browser#tose-browser-close) | End a session and release its compute |
+
 ### Disks and Pricing
 
 | Command | Description |
@@ -371,6 +386,9 @@ If the API answers `400 credentials_in_url`, something put the key in a query st
 | `7` | `TIMEOUT` | Waiting took too long; the operation may still finish |
 | `8` | `OPERATION_FAILED` | A deploy, build or desktop operation ended in a failed state |
 | `9` | `INSUFFICIENT_BALANCE` | The workspace wallet balance is zero or negative, so a deploy, redeploy or rollback was refused. `next_actions` carries the top-up page in `url` |
+| `10` | `HUMAN_REQUIRED` | A person must act first: approve a browser action (`APPROVAL_REQUIRED`) or hand control of a browser session back |
+| `11` | `ELEMENT_ERROR` | A browser locator matched no element, several elements, or an element that cannot take the action |
+| `12` | `BLOCKED` | The destination is not allowed for browser sessions (`NAVIGATION_BLOCKED`) |
 
 ## Next Steps
 

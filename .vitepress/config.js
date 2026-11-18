@@ -178,6 +178,14 @@ export default defineConfig({
             ]
           },
           {
+            text: 'Agent browser (early access)',
+            items: [
+              { text: 'Agent browser guide', link: '/guide/agent-browser' },
+              { text: 'tose browser', link: '/commands/browser' },
+              { text: 'Browsers API', link: '/api/browsers' }
+            ]
+          },
+          {
             text: 'Billing and account',
             items: [
               { text: 'Pricing', link: '/guide/pricing' },
@@ -350,6 +358,14 @@ export default defineConfig({
               { text: 'API Desktops (tiếng Anh)', link: '/api/desktops' },
               { text: 'Hướng dẫn Cloud Harness', link: '/vi/guide/cloud-harness' },
               { text: 'API Runtimes', link: '/vi/api/runtimes' }
+            ]
+          },
+          {
+            text: 'Agent browser (truy cập sớm)',
+            items: [
+              { text: 'Hướng dẫn agent browser', link: '/vi/guide/agent-browser' },
+              { text: 'tose browser', link: '/vi/commands/browser' },
+              { text: 'API Browsers', link: '/vi/api/browsers' }
             ]
           },
           {

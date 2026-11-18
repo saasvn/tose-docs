@@ -59,6 +59,8 @@ Bảng dưới được tạo từ catalog phân quyền trong tose-app (`intern
 | `databases:write` | `databases:read` | `database.write`, `database.delete` |
 | `desktops:read` | - | `desktop.read` |
 | `desktops:write` | `desktops:read` | `desktop.write` |
+| `browser:read` | `browsers:read` | `browser.read` |
+| `browser:control` | `browser:read`, `browsers:read`, `browsers:write` | `browser.write`, `browser.approve`, `browser.origin.confirm` |
 | `billing:read` | - | `billing.read` |
 | `billing:write` | `billing:read` | `billing.write` |
 
@@ -68,6 +70,7 @@ Lưu ý:
 - Đọc giá trị biến môi trường (`env.reveal`) cần `env:read`. Hãy coi `env:read` như một secret.
 - `deployments:write` chỉ dành cho [MCP connector](/vi/mcp) và không cấp được cho API key.
 - `tose up` với key có `projects:write` nhưng không có `deployments:execute` sẽ kết nối Git với tự động triển khai tắt, không bắt đầu lần triển khai nào và thoát với `INSUFFICIENT_SCOPE` (`details.required_scope: deployments:execute`, `details.git_connected: true`, `details.deploy_skipped: true`). Hãy chạy `tose deploy` với key có `deployments:execute`. Xem [`tose up`](/vi/commands/up#api-key-khong-co-deployments-execute).
+- Duyệt thao tác browser và xác nhận origin cho browser còn cần owner hoặc admin của workspace đã đăng nhập; API key nhận `403 HUMAN_APPROVAL_REQUIRED` kể cả khi có `browser:control`. `browser:auth:manage` dành riêng cho credential của profile và không cấp được. Xem [Agent browser](/vi/guide/agent-browser#security).
 - Scope giới hạn key, không giới hạn con người. Dù có scope, request vẫn có thể bị từ chối nếu vai trò workspace của người tạo key quá thấp cho thao tác đó.
 
 ## Key toàn quyền

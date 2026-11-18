@@ -23,6 +23,7 @@ TOSE CLI cung cấp các lệnh chính sau để quản lý triển khai của b
 | [`tose runbook`](/vi/commands/runbook) | Lập kế hoạch, xem lại và chạy restart hoặc rollback do người duyệt trong trình duyệt | Khôi phục có kiểm soát |
 | [`tose db create`](/vi/commands/db#tose-db-create) | Tạo database (`--type`, `--server`) | Postgres, pgvector, MySQL, Redis, MongoDB |
 | [`tose skills`](/vi/commands/skills) | Liệt kê và cài skill cho agent | Dạy agent dùng TOSE an toàn |
+| [`tose browser`](/vi/commands/browser) | Chạy phiên browser cô lập và điều khiển trang bằng thao tác có kiểu (truy cập sớm) | Cho agent đọc và thao tác trên trang web, có người duyệt thao tác nhạy cảm |
 | [`tose feedback`](/vi/commands/feedback) | Báo lỗi hoặc đề xuất tính năng, không cần tài khoản GitHub | Gửi phản hồi cho đội TOSE ngay từ terminal |
 
 ## Cấu trúc lệnh
@@ -199,6 +200,9 @@ Với `--json`, stdout chỉ có đúng một tài liệu JSON; tiến trình v�
 | `7` | `TIMEOUT` | Chờ quá lâu; thao tác vẫn có thể hoàn tất |
 | `8` | `OPERATION_FAILED` | Một deploy, build hoặc thao tác desktop kết thúc ở trạng thái lỗi |
 | `9` | `INSUFFICIENT_BALANCE` | Số dư ví của workspace bằng 0 hoặc âm nên deploy, redeploy hoặc rollback bị từ chối |
+| `10` | `HUMAN_REQUIRED` | Người phải làm trước: duyệt thao tác browser (`APPROVAL_REQUIRED`) hoặc trả lại quyền điều khiển phiên browser |
+| `11` | `ELEMENT_ERROR` | Locator của browser không khớp phần tử nào, khớp nhiều phần tử, hoặc phần tử không nhận được thao tác |
+| `12` | `BLOCKED` | Đích đến không được phép cho phiên browser (`NAVIGATION_BLOCKED`) |
 
 ### API key không bao giờ nằm trong URL
 
@@ -352,6 +356,9 @@ TOSE_API_KEY="ws_123..."  # Đừng làm thế này
 | 7 | `TIMEOUT` | Chờ quá lâu; thao tác có thể vẫn hoàn tất |
 | 8 | `OPERATION_FAILED` | Thao tác deploy, build hoặc desktop kết thúc ở trạng thái thất bại |
 | 9 | `INSUFFICIENT_BALANCE` | Số dư ví của workspace bằng 0 hoặc âm nên deploy, redeploy hoặc rollback bị từ chối. `next_actions` có trang nạp tiền trong trường `url` |
+| 10 | `HUMAN_REQUIRED` | Người phải làm trước: duyệt thao tác browser (`APPROVAL_REQUIRED`) hoặc trả lại quyền điều khiển phiên browser |
+| 11 | `ELEMENT_ERROR` | Locator của browser không khớp phần tử nào, khớp nhiều phần tử, hoặc phần tử không nhận được thao tác |
+| 12 | `BLOCKED` | Đích đến không được phép cho phiên browser (`NAVIGATION_BLOCKED`) |
 
 ## Tiếp theo
 
