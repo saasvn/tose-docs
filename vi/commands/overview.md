@@ -188,7 +188,7 @@ Với `--json`, stdout chỉ có đúng một tài liệu JSON; tiến trình v�
 
 Khi không có `--json`, lỗi in `Error: <message>` ra stderr, rồi các dòng `Code:`, `Next step:` và
 `Request ID:` nếu có, cùng các lệnh gợi ý tiếp theo. Các gợi ý này không bao giờ lặp lại token, và
-che chữ đã gõ cùng giá trị `--param` dạng chữ dài từ 4 ký tự.
+hiện `--param name=<value>`, `--value <value>` thay cho giá trị bạn đã gõ.
 
 ### Mã thoát
 

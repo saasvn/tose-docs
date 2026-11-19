@@ -366,7 +366,7 @@ tose status --json
 
 Without `--json`, an error prints `Error: <message>` on stderr, then `Code:`, `Next step:` and
 `Request ID:` lines when they are set, and the suggested next commands. Those hints never repeat
-tokens, and they mask typed text and text `--param` values of 4 characters or more.
+tokens, and they show `--param name=<value>` and `--value <value>` instead of the values you typed.
 
 `schema_version` changes only when a field is removed or changes meaning. New fields can appear at any time, so ignore the ones you do not know.
 
