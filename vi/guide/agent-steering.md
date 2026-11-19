@@ -115,6 +115,7 @@ Trang run (`/w/<workspace>/agents/<agent_id>/runs/<run_id>`) có biểu mẫu **
 
 ## Liên quan
 
+- [Agent Runtime trên dashboard](/vi/guide/agent-runtime-dashboard), cho trang agent và các lần chạy
 - [`tose agents steer`](/vi/commands/agents), để steer từ dòng lệnh
 - [Giá và hạn mức của Agent Runtime](/vi/guide/agent-runtime-pricing)
 - [Biến môi trường của agent Agent Runtime](/vi/guide/agent-environment-and-auto-sleep#agent-runtime-environment)

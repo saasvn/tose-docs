@@ -57,7 +57,7 @@ workload bằng [xem trước giá](/vi/api/agent-usage#pricing-preview).
 
 Xem thêm [Khi số dư bằng không](/vi/guide/pricing#when-the-balance-is-zero).
 
-## Hạn mức cứng
+## Hạn mức cứng {#hard-budgets}
 
 Hạn mức cứng giới hạn chi tiêu của cả workspace, một agent hoặc một lượt chạy:
 

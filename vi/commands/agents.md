@@ -17,7 +17,7 @@ tose agents steers <agent-id> <run-id> --json                          # trạng
 | `steer <agent_id> <run_id> --message <text\|@file> [--idempotency-key <key>]` | Thành viên có `agents:control`, hoặc key có scope đó | Xếp hàng một chỉ dẫn cho lượt chạy đang thực thi |
 | `steers <agent_id> <run_id>` | `agents:read` | Liệt kê các yêu cầu steer của lượt chạy theo thứ tự, kèm trạng thái |
 
-Id của agent và lượt chạy lấy từ dashboard (`/w/{slug}/agents/{agent_id}/runs/{run_id}`) hoặc MCP. CLI chưa liệt kê được agent hay lượt chạy.
+Id của agent và lượt chạy lấy từ dashboard ([Agent Runtime trên dashboard](/vi/guide/agent-runtime-dashboard), `/w/{slug}/agents/{agent_id}/runs/{run_id}`) hoặc MCP. CLI chưa liệt kê được agent hay lượt chạy.
 
 ## tose agents env {#tose-agents-env}
 

@@ -51,7 +51,7 @@ An optional setup script that runs once for an agent is not offered. A request w
 ## Agent Runtime agents: environment {#agent-runtime-environment}
 
 ::: warning Stored, not applied yet
-This section is about agents of the Agent Runtime (`/api/workspaces/{slug}/agents`), not the curated agents above. It works only when the operator sets `AGENT_ENVIRONMENT_ENABLED=true`, which stays off in production until the setup executor exists. Even then, TOSE only **validates and stores** the environment: no variable, secret or script reaches the engine yet, and the read view reports `apply_status: not_applied`. Running the script, delivering secrets to the engine, setup status and logs, and the CLI, MCP and dashboard surfaces are not built.
+This section is about agents of the Agent Runtime (`/api/workspaces/{slug}/agents`), not the curated agents above. It works only when the operator sets `AGENT_ENVIRONMENT_ENABLED=true`, which stays off in production until the setup executor exists. Even then, TOSE only **validates and stores** the environment: no variable, secret or script reaches the engine yet, and the read view reports `apply_status: not_applied`. Running the script, delivering secrets to the engine, setup status and logs, and an MCP surface are not built. As an owner or admin you can read the saved environment with [`tose agents env`](/commands/agents#tose-agents-env) or on the agent's [Environment tab](/guide/agent-runtime-dashboard#environment) in the dashboard; changing it is done through the API.
 :::
 
 An Agent Runtime agent can carry an `environment` next to its engine `settings`. It is the same for every engine and is saved with the agent revision:
