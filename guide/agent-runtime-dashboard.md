@@ -7,10 +7,10 @@ description: "Create a Pi agent with your own provider API key, wake it, put it 
 
 Agent Runtime agents are agents that TOSE runs for your workspace: they wake for a message or a trigger, work in their own isolated runtime with a persistent disk, and sleep again. The dashboard has two pages for them:
 
-- **`/w/<workspace>/agents/runtime`** lists the workspace's runtime agents, and lets owners and admins create one.
+- **`/w/<workspace>/agents/runtime`** lists the workspace's runtime agents, and lets owners and admins manage agent secrets and create an agent.
 - **`/w/<workspace>/agents/<agent_id>`** shows one agent with its controls, runs, events and operations.
 
-Both pages are in English and Vietnamese. They call only the [workspace agent API](#api-only), so they can do nothing that the API cannot.
+Both pages are in English and Vietnamese. Apart from agent secrets, which only a signed-in owner or admin can manage, they call only the [workspace agent API](#api-only), so they can do nothing that the API cannot.
 
 ::: warning Availability
 Agent Runtime must be switched on for the TOSE platform (`AGENT_RUNTIME_ENABLED`). When it is off, the pages say **Agent Runtime is not turned on** and the Cloud Agents page shows no link to them. It is not generally available.
@@ -24,7 +24,19 @@ A runtime agent calls the model with **your workspace's own provider API key**. 
 
 The key is stored as a **workspace agent secret**: a named, encrypted value of the workspace. The agent's configuration holds only the secret's **name**; the value is never shown on any page, never returned by the API, and never written to events or logs.
 
-<!-- agent-secrets-card -->
+### Add the key as an agent secret {#agent-secrets}
+
+Add the key on the Agent Runtime page, in the **Agent secrets** card, before you create the agent. Only an **owner or admin** signed in to the dashboard sees this card. API keys and connected apps can never read or change agent secrets, and the CLI has no command for them, so the dashboard is the place to do it.
+
+1. Enter a **Secret name**: 1 to 63 lowercase letters, digits, `-` or `_`, for example `anthropic-key`. Agents refer to the secret by this name.
+2. Paste the key into **Value**: one line, at most 8 KiB. The field is cleared as soon as the value is sent, and the value is never shown again.
+3. Select **Save secret**.
+
+The card lists each secret's name and when it was last updated. Saving a name that already exists replaces its value after a confirmation; **Delete** also asks first.
+
+::: warning One store for the whole workspace
+The same agent secrets are used by everything that refers to them by name: a Pi agent's provider key, an MCP server credential, a browser login or recipe secret, and a browser decision provider key (names starting with `decision-`). Replacing a value reaches all of them the next time they read it (a Pi agent at its next run). Deleting one stops all of them from their next use until a secret with that name is added again. A Pi run already in progress keeps the key it started with.
+:::
 
 ## The agent list {#agent-list}
 
@@ -48,7 +60,7 @@ Only an **owner or admin** of the workspace can create an agent. Members see the
 | **Name** | Up to 80 characters. |
 | **Model provider** | `anthropic`, `openai` or `google`. |
 | **Model** | The provider's model ID, exactly as its API expects it. |
-| **Provider API key** | The **name** of the agent secret that holds the key for that provider. The page never reads or shows its value. |
+| **Provider API key** | Choose the agent secret that holds the key for that provider ([add it first](#agent-secrets)). The page never reads or shows its value. |
 
 **Create agent** queues the setup. A new agent starts **asleep**. Compute is billed only while it is awake; its disk is billed as storage even while it sleeps ([what is free and owed](/guide/agent-runtime-pricing#free-forgiven-owed)).
 

@@ -7,10 +7,10 @@ description: "Tạo agent Pi bằng API key nhà cung cấp của chính bạn, 
 
 Agent của Agent Runtime là các agent mà TOSE chạy cho workspace của bạn: chúng thức dậy khi có tin nhắn hoặc trigger, làm việc trong runtime cô lập riêng có ổ đĩa bền vững, rồi ngủ lại. Dashboard có hai trang cho chúng:
 
-- **`/w/<workspace>/agents/runtime`** liệt kê các agent runtime của workspace, và cho phép owner và admin tạo agent.
+- **`/w/<workspace>/agents/runtime`** liệt kê các agent runtime của workspace, và cho phép owner và admin quản lý agent secret và tạo agent.
 - **`/w/<workspace>/agents/<agent_id>`** hiển thị một agent cùng các nút điều khiển, lần chạy, sự kiện và thao tác.
 
-Cả hai trang đều có bản tiếng Anh và tiếng Việt. Chúng chỉ gọi [API agent của workspace](#api-only), nên không làm được gì mà API không làm được.
+Cả hai trang đều có bản tiếng Anh và tiếng Việt. Ngoài agent secret, thứ chỉ owner hoặc admin đã đăng nhập mới quản lý được, các trang chỉ gọi [API agent của workspace](#api-only), nên không làm được gì mà API không làm được.
 
 ::: warning Tình trạng khả dụng
 Nền tảng TOSE phải bật Agent Runtime (`AGENT_RUNTIME_ENABLED`). Khi tắt, các trang báo **Agent Runtime chưa được bật** và trang Cloud Agents không hiện liên kết tới chúng. Tính năng chưa được phát hành rộng rãi.
@@ -24,7 +24,19 @@ Agent runtime gọi model bằng **API key nhà cung cấp của chính workspac
 
 Khóa được lưu dưới dạng **agent secret của workspace**: một giá trị có tên, được mã hóa, thuộc workspace. Cấu hình agent chỉ giữ **tên** của secret; giá trị không bao giờ hiện trên trang nào, không bao giờ được API trả về, và không bao giờ ghi vào sự kiện hay log.
 
-<!-- agent-secrets-card -->
+### Thêm khóa làm agent secret {#agent-secrets}
+
+Thêm khóa ở trang Agent Runtime, trong thẻ **Agent secret**, trước khi tạo agent. Chỉ **owner hoặc admin** đã đăng nhập dashboard mới thấy thẻ này. API key và ứng dụng đã kết nối không bao giờ đọc hay thay đổi được agent secret, và CLI không có lệnh cho việc này, nên hãy làm trên dashboard.
+
+1. Nhập **Tên secret**: từ 1 đến 63 ký tự gồm chữ thường, chữ số, `-` hoặc `_`, ví dụ `anthropic-key`. Agent tham chiếu secret bằng tên này.
+2. Dán khóa vào ô **Giá trị**: một dòng, tối đa 8 KiB. Ô nhập được xóa ngay khi giá trị được gửi đi, và giá trị không bao giờ hiển thị lại.
+3. Chọn **Lưu secret**.
+
+Thẻ liệt kê tên của từng secret và thời điểm cập nhật gần nhất. Lưu một tên đã có sẽ thay giá trị của nó sau khi bạn xác nhận; **Xoá** cũng hỏi xác nhận trước.
+
+::: warning Một kho chung cho cả workspace
+Cùng các agent secret này được dùng bởi mọi thứ tham chiếu tới chúng theo tên: API key nhà cung cấp của agent Pi, thông tin xác thực của MCP server, thông tin đăng nhập hoặc secret của recipe trình duyệt, và API key của nhà cung cấp quyết định cho trình duyệt (tên bắt đầu bằng `decision-`). Thay một giá trị sẽ áp dụng cho tất cả ở lần đọc tiếp theo (agent Pi là ở lần chạy tiếp theo). Xóa một secret sẽ làm tất cả ngừng hoạt động từ lần dùng tiếp theo cho tới khi một secret cùng tên được thêm lại. Lần chạy Pi đang diễn ra vẫn giữ khóa nó đã nhận lúc bắt đầu.
+:::
 
 ## Danh sách agent {#agent-list}
 
@@ -48,7 +60,7 @@ Chỉ **owner hoặc admin** của workspace mới tạo được agent. Member 
 | **Tên** | Tối đa 80 ký tự. |
 | **Nhà cung cấp model** | `anthropic`, `openai` hoặc `google`. |
 | **Model** | ID model của nhà cung cấp, đúng như API của họ yêu cầu. |
-| **API key nhà cung cấp** | **Tên** của agent secret chứa khóa cho nhà cung cấp đó. Trang không bao giờ đọc hay hiển thị giá trị của nó. |
+| **API key nhà cung cấp** | Chọn agent secret chứa khóa cho nhà cung cấp đó ([thêm trước](#agent-secrets)). Trang không bao giờ đọc hay hiển thị giá trị của nó. |
 
 **Tạo agent** đưa bước thiết lập vào hàng đợi. Agent mới bắt đầu ở trạng thái **ngủ**. Compute chỉ tính phí khi agent thức; ổ đĩa vẫn tính phí lưu trữ cả khi agent ngủ ([miễn phí, được miễn và phải trả](/vi/guide/agent-runtime-pricing#free-forgiven-owed)).
 
