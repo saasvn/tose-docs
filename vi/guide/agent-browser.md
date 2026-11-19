@@ -9,8 +9,8 @@ description: "Phiên Chromium được host, cô lập, do người và AI agent
 Agent browser và các tool MCP của nó đã bật trên production từ 2026-11-19. Một số phần tạm thời vẫn
 tắt trên production: Site API map (kéo theo thao tác `fetch` và Action Map ghi), lưu body response,
 chạy lại không cần browser, gợi ý của System One, và kiểm tra của lớp bảo vệ trên thao tác browser
-thông thường. Tự phục hồi còn cần một cờ của nền tảng, mặc định tắt. Các tính năng ghi **Đã lên kế
-hoạch** dưới đây chưa dùng được; trang này được cập nhật khi chúng ra mắt.
+thông thường. Tự phục hồi còn cần một cờ của nền tảng, mặc định tắt. Các tính năng được ghi là đã lên
+kế hoạch dưới đây chưa dùng được; trang này được cập nhật khi chúng ra mắt.
 :::
 
 Agent browser cho workspace một Chromium được host mà người hoặc AI agent điều khiển qua **thao tác
@@ -26,26 +26,25 @@ API đó.
 
 | Khả năng | Trạng thái |
 |---|---|
-| Phiên: tạo, tạm dừng, chạy lại, kết thúc, sự kiện audit | Đã có ([REST](/vi/api/browsers), [CLI](/vi/commands/browser), dashboard; MCP tạo và đóng phiên) |
+| Phiên: tạo, tạm dừng, chạy lại, kết thúc, sự kiện audit | Đã có (REST và dashboard; [CLI](/vi/commands/browser) mở, liệt kê, xem sự kiện và đóng phiên; MCP tạo và đóng phiên; [REST](/vi/api/browsers)) |
 | Lease, người tiếp quản, chặn (fencing) lease cũ | Đã có |
 | Thao tác có kiểu, snapshot gọn, lỗi có mã kèm `next_step` | Đã có (REST, CLI, MCP) |
 | Phê duyệt cho `click`, `fill`, `press` do agent chạy | Đã có (owner hoặc admin đã đăng nhập duyệt qua REST hoặc trên trang duyệt của dashboard; MCP trả link tới trang đó) |
-| Danh sách origin được phép của workspace và egress proxy | Đã có (đề xuất qua REST và CLI; admin đã đăng nhập xác nhận qua REST hoặc trên trang **Allowed sites** của dashboard) |
+| Danh sách origin được phép của workspace và egress proxy | Đã có (đề xuất qua REST và CLI; admin đã đăng nhập xác nhận qua REST hoặc trên trang **Trang được phép** của dashboard) |
 | Dashboard: danh sách browser, xem trực tiếp, tiếp quản, trang duyệt, site được phép | Đã có |
 | Tool MCP cho browser kèm giao yêu cầu phê duyệt | Đã có ([tose-app#807](https://github.com/saasvn/tose-app/pull/807)) |
 | Xem trực tiếp ngay trong chat (MCP Apps) | Đã có; việc tiếp quản diễn ra trên trang TOSE |
 | Profile: vault, grant, chia sẻ, import, đăng nhập lại | Đã có (REST, dashboard, [CLI](/vi/commands/browser#profiles); chưa có tool MCP) |
-| Companion cho Chrome trên máy | Import từ Chrome của bạn trên trang **Profiles** của dashboard ([tose-app#825](https://github.com/saasvn/tose-app/pull/825)); ghép nối thiết bị và điều khiển Chrome trên máy đã lên kế hoạch |
-| Action recipe, lượt chạy lại bền vững, recipe receipt | Đã có (REST, trang **Recipes** của dashboard ([tose-app#825](https://github.com/saasvn/tose-app/pull/825)), [CLI](/vi/commands/browser#recipes); chưa có tool MCP để lưu hay chạy) |
-| Recipe công khai | Đã có qua REST; admin nền tảng xét duyệt từng recipe trước khi đăng |
+| Companion cho Chrome trên máy | Import từ Chrome của bạn trên trang **Hồ sơ đăng nhập** của dashboard ([tose-app#825](https://github.com/saasvn/tose-app/pull/825)); ghép nối thiết bị và điều khiển Chrome trên máy đã lên kế hoạch |
+| Action recipe, lượt chạy lại bền vững, recipe receipt | Đã có (REST, trang **Recipe** của dashboard ([tose-app#825](https://github.com/saasvn/tose-app/pull/825)), [CLI](/vi/commands/browser#recipes); chưa có tool MCP để lưu hay chạy) |
+| Recipe công khai | Đã có qua REST và CLI ([`recipes find`](/vi/commands/browser#recipes)); admin nền tảng xét duyệt từng recipe trước khi đăng |
 | Site API map (chỉ metadata) và thao tác `fetch` | Sau một cờ server, tắt trên production (REST, [CLI](/vi/commands/browser#site-api-map); MCP và CLI [tra cứu kiến thức](/vi/commands/browser#knowledge-lookup); chưa có trang dashboard) |
 | Action Map ghi | Ở nơi Site API map chạy (REST, MCP, [CLI](/vi/commands/browser#write-action-maps)); người xác minh và duyệt qua REST |
 | Chạy lại không cần browser | Sau một cờ server, tắt trên production (REST, MCP, [CLI](/vi/commands/browser#browserless-replay), danh sách trên dashboard) ([tose-app#831](https://github.com/saasvn/tose-app/pull/831)) |
 | Tự phục hồi | Sau một cờ server mặc định tắt, cộng công tắc của workspace (recipe: REST, MCP, dashboard, [CLI](/vi/commands/browser#self-heal); Action Map: REST) ([tose-app#849](https://github.com/saasvn/tose-app/pull/849)) |
 | Lớp bảo vệ | Đã có ([tose-app#858](https://github.com/saasvn/tose-app/pull/858)); luôn kiểm tra lệnh ghi của Action Map và tự phục hồi, còn thao tác browser thông thường chỉ được kiểm tra sau một cờ server đang tắt trên production |
 
-Các lệnh CLI cho profile, recipe, Site API map, tra cứu kiến thức, Action Map và tự phục hồi có trong
-bản `tose` phát hành sau 0.2.0.
+Mọi lệnh `tose browser` có trong bản `tose` phát hành sau 0.2.0.
 
 ## Phiên {#sessions}
 
@@ -229,7 +228,7 @@ liệt kê, xem trước và chạy map qua REST, MCP và [CLI](/vi/commands/bro
 
 Profile là phiên đăng nhập đã lưu cho một vài site. Mở phiên từ profile thì phiên bắt đầu ở trạng
 thái đã đăng nhập; phiên mở với `persist: true` ghi lại phiên đăng nhập trước khi pod bị xóa. Quản lý
-profile qua REST, trên trang **Profiles** của dashboard, hoặc bằng
+profile qua REST, trên trang **Hồ sơ đăng nhập** của dashboard, hoặc bằng
 [`tose browser profiles`](/vi/commands/browser#profiles). MCP chưa có tool cho profile.
 
 - **Vault:** trạng thái đăng nhập của profile là `storageState` của các origin được phép (cookie và
@@ -252,7 +251,7 @@ profile qua REST, trên trang **Profiles** của dashboard, hoặc bằng
 ### Companion cho Chrome trên máy {#companion}
 
 Một extension Chrome cho người dùng lại phiên đăng nhập trong Chrome của mình mà không tải profile
-Chrome lên. Trên trang **Profiles** của dashboard, người đó chọn *Import from my browser*, chọn một
+Chrome lên. Trên trang **Hồ sơ đăng nhập** của dashboard, người đó chọn *Nhập từ trình duyệt của tôi*, chọn một
 origin của profile và cho phép đọc trong cửa sổ riêng của extension. Dashboard sau đó chỉ hiện metadata
 (tên cookie, hạn, kích thước; không có giá trị) trước khi người đó tải lên. Extension chưa có trên
 Chrome Web Store. Ghép nối thiết bị và cho agent dùng trực tiếp Chrome trên máy đã lên kế hoạch, chưa
@@ -275,7 +274,7 @@ duyệt riêng, và không có phê duyệt cho cả origin.
 
 Lượt chạy là bền vững: vẫn tiếp tục khi API hay client khởi động nó bị khởi động lại. Lượt chạy có bước
 ghi có thể đã thực hiện sẽ kết thúc ở `needs_reconciliation` và không bao giờ được chạy lại. Agent tìm
-và chạy recipe qua REST hoặc [`tose browser recipes`](/vi/commands/browser#recipes); trang **Recipes**
+và chạy recipe qua REST hoặc [`tose browser recipes`](/vi/commands/browser#recipes); trang **Recipe**
 của dashboard liệt kê recipe và lịch sử lượt chạy. MCP chưa có tool để lưu hay chạy recipe.
 
 **Recipe công khai** chỉ đọc, trên site công khai không cần đăng nhập, được admin nền tảng xét duyệt
@@ -288,14 +287,14 @@ trong phiên của mình, theo danh sách được phép của mình.
   prompt injection chạy trong cluster, cùng một lớp kiểm tra thứ hai bằng decision model của workspace
   trên chữ đã che dữ liệu nhạy cảm. Lớp này luôn kiểm tra lệnh ghi của Action Map, chạy lại không cần
   browser và tự phục hồi. Nó chỉ kiểm tra thao tác browser thông thường và lượt chạy recipe khi server
-  đặt `BROWSER_GUARD_ENFORCE`, đang tắt trên production. Bước được bảo vệ mà lỗi sẽ bị chặn với
+  đặt `BROWSER_GUARD_ENFORCE`, đang tắt trên production. Bước được bảo vệ bị chặn (fail closed) với
   `GUARD_UNAVAILABLE` hoặc `GUARD_INJECTION`, mỗi mã kèm `next_step`.
 - **Chạy lại không cần browser:** một Action Map ghi đã xác minh có thể được gửi từ API bằng phiên đăng
   nhập đã lưu của một profile, không cần phiên browser. Mỗi lần gọi cần phê duyệt riêng cho profile và
   bên thực thi đó, cùng một `Idempotency-Key`. Server phải đặt `BROWSER_HTTP_REPLAY_ENABLED`, đang tắt
   trên production; nếu không, lời gọi trả `HTTP_REPLAY_DISABLED`. Có qua REST, MCP và
   [`tose browser action-maps replay`](/vi/commands/browser#browserless-replay); dashboard liệt kê các
-  lượt chạy lại ở trang **Self-heal and replays**.
+  lượt chạy lại ở trang **Tự sửa và phát lại**.
 - **Tự phục hồi:** khi lượt chạy recipe lệch vì một phần tử bị dời chỗ hay đổi tên, decision model của
   workspace chọn đúng phần tử đó trên trang và engine lưu bản sửa thành một phiên bản recipe mới. Action
   Map ghi có endpoint bị dời cũng được gắn lại theo cách tương tự. Mỗi lần thử có giới hạn theo ngày,

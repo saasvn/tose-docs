@@ -9,8 +9,8 @@ description: "Isolated, hosted Chromium sessions that people and AI agents drive
 The agent browser and its MCP tools are on in production since 2026-11-19. Some parts stay off in
 production for now: the Site API map (and with it the `fetch` action and write Action Maps),
 response body capture, browserless replay, System One suggestions, and guard checks on ordinary
-browser actions. Self-heal also needs a platform flag that is off by default. Features marked
-**Planned** below are not available yet; this page is updated as they ship.
+browser actions. Self-heal also needs a platform flag that is off by default. Features described
+as planned below are not available yet; this page is updated as they ship.
 :::
 
 The agent browser gives a workspace a hosted Chromium that a person or an AI agent drives through
@@ -26,7 +26,7 @@ call that API instead.
 
 | Capability | Status |
 |---|---|
-| Sessions: create, suspend, resume, terminate, audit events | Available ([REST](/api/browsers), [CLI](/commands/browser), dashboard; MCP creates and closes) |
+| Sessions: create, suspend, resume, terminate, audit events | Available (REST and dashboard; [CLI](/commands/browser) opens, lists, shows events and closes; MCP creates and closes; [REST](/api/browsers)) |
 | Leases, takeover by a person, fencing of older leases | Available |
 | Typed actions, compact snapshots, typed errors with `next_step` | Available (REST, CLI, MCP) |
 | Approvals for `click`, `fill` and `press` run by an agent | Available (a signed-in owner or admin approves over REST or on the dashboard approve page; MCP returns a link to that page) |
@@ -37,15 +37,14 @@ call that API instead.
 | Profiles: vault, grants, sharing, import, re-login | Available (REST, dashboard, [CLI](/commands/browser#profiles); no MCP tools yet) |
 | Local Chrome companion | Import from your own Chrome on the dashboard **Profiles** page ([tose-app#825](https://github.com/saasvn/tose-app/pull/825)); device pairing and local control are planned |
 | Action recipes, durable replay runs, recipe receipts | Available (REST, dashboard **Recipes** page ([tose-app#825](https://github.com/saasvn/tose-app/pull/825)), [CLI](/commands/browser#recipes); no MCP tools to save or run yet) |
-| Public recipes | Available over REST; a platform admin reviews each listing |
+| Public recipes | Available over REST and the CLI ([`recipes find`](/commands/browser#recipes)); a platform admin reviews each listing |
 | Site API map (metadata only) and the `fetch` action | Behind a server flag, off in production (REST, [CLI](/commands/browser#site-api-map); MCP and CLI [knowledge lookup](/commands/browser#knowledge-lookup); no dashboard page) |
 | Write Action Maps | Where the Site API map runs (REST, MCP, [CLI](/commands/browser#write-action-maps)); a person verifies and approves over REST |
 | Browserless replay | Behind a server flag, off in production (REST, MCP, [CLI](/commands/browser#browserless-replay), dashboard list) ([tose-app#831](https://github.com/saasvn/tose-app/pull/831)) |
 | Self-heal | Behind a server flag, off by default, plus a workspace switch (recipes: REST, MCP, dashboard, [CLI](/commands/browser#self-heal); Action Maps: REST) ([tose-app#849](https://github.com/saasvn/tose-app/pull/849)) |
 | Guard layer | Available ([tose-app#858](https://github.com/saasvn/tose-app/pull/858)); always checks Action Map writes and self-heal, and checks ordinary browser actions only behind a server flag that is off in production |
 
-The CLI commands for profiles, recipes, the Site API map, knowledge lookup, Action Maps and self-heal
-ship in the `tose` release after 0.2.0.
+All `tose browser` commands ship in the `tose` release after 0.2.0.
 
 ## Sessions {#sessions}
 
