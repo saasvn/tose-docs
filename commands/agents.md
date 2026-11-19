@@ -17,7 +17,7 @@ tose agents steers <agent-id> <run-id> --json                          # each re
 | `steer <agent_id> <run_id> --message <text\|@file> [--idempotency-key <key>]` | A member with `agents:control`, or a key with that scope | Queues an instruction for a run that is executing |
 | `steers <agent_id> <run_id>` | `agents:read` | Lists the run's steering requests in order, with their status |
 
-The agent and run ids come from the dashboard (`/w/{slug}/agents/{agent_id}/runs/{run_id}`) or MCP. The CLI cannot list agents or runs yet.
+The agent and run ids come from the dashboard ([Agent Runtime in the dashboard](/guide/agent-runtime-dashboard), `/w/{slug}/agents/{agent_id}/runs/{run_id}`) or MCP. The CLI cannot list agents or runs yet.
 
 ## tose agents env {#tose-agents-env}
 

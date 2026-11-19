@@ -57,6 +57,7 @@ Task delegation needs `TEMPLATE_AGENT_TASKS_ENABLED` on the TOSE instance and a 
 ## Related
 
 - [Cloud Harness](/guide/cloud-harness): run agents and tools on your own Docker host.
+- [Agent Runtime in the dashboard](/guide/agent-runtime-dashboard): agents that TOSE wakes for a message or a trigger, linked from this page when Agent Runtime is on.
 - [Agent Runtime pricing](/guide/agent-runtime-pricing)
 - [Steer a running agent run](/guide/agent-steering): Agent Runtime runs only, not the curated agents' tasks.
 - [MCP cloud agent tools](/mcp#cloud-agent-tools)

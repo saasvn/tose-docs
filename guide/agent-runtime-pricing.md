@@ -58,7 +58,7 @@ before you run it with the [pricing preview](/api/agent-usage#pricing-preview).
 
 See also [When the balance is zero](/guide/pricing#when-the-balance-is-zero).
 
-## Hard budgets
+## Hard budgets {#hard-budgets}
 
 A hard budget caps the spend of the whole workspace, one agent or one run:
 
