@@ -8,7 +8,7 @@ Referral rewards are added to a workspace wallet as credit that pays for TOSE us
 
 ## Commission tiers {#commission-tiers}
 
-Your tier is set by your **net referral volume**: the payments from your referred users that earned a commission, minus the refunded part of those payments. A payment that used a [promo code](/guide/promo-codes#rules) earns no commission, so it adds nothing to the volume, and promotional bonus credit such as the `AKTOSE-*` match bonus never counts toward it.
+Your tier is set by your **net referral volume**: the payments from your referred users that earned a commission, minus the refunded part of those payments. A payment that used a [promo code](/guide/promo-codes#rules) earns no commission, so it adds nothing to the volume, and promotional bonus credit, such as the bonus of an `AKTOSE-*` code, never counts toward it.
 
 | Tier | Commission rate | You reach it when referral volume is |
 |------|-----------------|--------------------------------------|
@@ -29,7 +29,7 @@ The rates and thresholds are policy values held by the backend. Do not hard-code
 
 ### What counts
 
-- Only **completed Polar and SePay payments** earn a commission. A payment that used a [promo code](/guide/promo-codes#rules) earns none, and a payment takes only one code (a second one is refused with `PROMO_ALREADY_APPLIED`). Promotional credit, admin adjustments and the legacy signup bonus never do.
+- Only **completed Polar and SePay payments** earn a commission. A payment that used a [promo code](/guide/promo-codes#rules) earns none. Promotional credit, admin adjustments and the legacy signup bonus never do.
 - The commission is `payment amount × rate`, calculated in cents and rounded down. A result of zero cents creates no commission.
 - Each payment produces **at most one** commission. A webhook that arrives twice does not credit twice.
 - A user has **one** referrer. A second code does not replace the first.

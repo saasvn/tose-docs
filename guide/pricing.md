@@ -45,7 +45,7 @@ Rules:
 - **Per payment.** The band is chosen by the amount of one payment. Two $60 top-ups do not add up to a $120 top-up. A payment below $100 earns no bonus.
 - **Separate credit that does not expire.** The bonus is a separate `topup_bonus` entry in the wallet history, written once per payment, and it never expires.
 - **Wallet top-ups only.** The bonus is not granted on credit added by an administrator, on promotional credit, or on payments for a feature unlock.
-- **No stacking with promo codes.** A payment that has a promo code applied earns no top-up bonus. Choose the code or the bonus band for that payment. A payment also takes only one promo code; a second one is refused with [`PROMO_ALREADY_APPLIED`](/guide/promo-codes#why-a-code-can-be-refused). Promotional bonus credit never counts toward the payment amount that picks the band.
+- **No stacking with promo codes.** A payment that has a promo code applied earns no top-up bonus. Choose the code or the bonus band for that payment. A payment also carries only one promo code; a second one is refused with [`PROMO_ALREADY_APPLIED`](/guide/promo-codes#why-a-code-can-be-refused).
 - **Refunds take the bonus back in proportion.** Refunding part of a payment takes back the same share of its bonus (rounded up, so a full refund takes back all of it). The debit never takes the balance below zero, so bonus you already spent is not recovered.
 - **No retroactive bonus.** Existing balances keep their value. The bonus is granted when a payment completes; it is never applied to earlier payments or existing balances.
 

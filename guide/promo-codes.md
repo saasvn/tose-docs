@@ -44,14 +44,14 @@ A refused code never changes the payment. The message tells you why:
 | `PROMO_USER_LIMIT` | You have already used this code. |
 | `PROMO_CAMPAIGN_USED` | You, or this workspace, already used a code from the same promotion. |
 | `PROMO_CAMPAIGN_EXHAUSTED` | Every place of the promotion has been taken. See [Campaign limits](#campaign-limits). |
-| `PROMO_ALREADY_APPLIED` | The payment already has a promo code. Codes cannot be combined; see [Rules](#rules). |
+| `PROMO_ALREADY_APPLIED` | The payment already has a promo code. The top-up form takes one code, so this is a backend safeguard you only meet through the API; see [Rules](#rules). |
 
 ## Rules {#rules}
 
 - **Limits.** A code can have a minimum amount, a first-top-up-only rule, a start and an expiry date, a total number of uses and a number of uses per person. Codes belonging to one **campaign** can be redeemed once per person and once per workspace, in total.
-- **One code per payment, no stacking.** A payment takes at most one code. A second code on a payment that already has one, for example another code on top of an `AKTOSE-*` code, is refused with `PROMO_ALREADY_APPLIED`.
-- **No top-up bonus or referral commission on a promo payment.** A payment that uses a code earns no [top-up bonus](/guide/pricing#top-up-bonus) and no [referral commission](/guide/referral), and it adds nothing to the [referral volume](/guide/referral#commission-tiers) that sets the referrer's tier. If the code is rejected when the payment completes (see below), the payment earns the top-up bonus and commission as usual.
-- **Bonus credit is not money paid.** Bonus credit, including a [match bonus](#match-bonus), is held apart from what you actually paid: the payment records only the amount paid, and the bonus never counts as a payment for commission, top-up bonus bands or referral volume.
+- **One code per payment, no stacking.** A payment carries at most one code, and codes never combine. The top-up form takes a single code; the backend also refuses a second code on the same payment with `PROMO_ALREADY_APPLIED`.
+- **No other rewards.** A payment that uses a code earns no [top-up bonus](/guide/pricing#top-up-bonus) and no [referral commission](/guide/referral), and it adds nothing to the [referral volume](/guide/referral#commission-tiers) that sets the referrer's tier. If the code is rejected when the payment completes (see below), the payment earns the top-up bonus and commission as usual.
+- **Bonus credit is not money paid.** Bonus credit, including a [match bonus](#match-bonus), is a separate grant: it is never added to the payment's amount and never counts as money paid for commission, top-up bonus bands or referral volume.
 - **Wallet top-ups only by default.** A code applies to unlocking a template (Dewee, GoClaw) only when the operator allowed it. Bonus credit never applies to a template unlock.
 - **Abandoned checkouts.** If you start a payment with a code and never finish it, your next payment with the same code (or one from the same campaign) takes over. Your own abandoned checkout does not lock a single-use code for you. Someone else's unfinished checkout with the same code, including a teammate's on a campaign code, still counts against its limits until it is finished or replaced.
 - **A code can be rejected when the payment completes.** The rules are checked again at completion. If the code can no longer be honored (for example another top-up completed first on a first-top-up-only code, or an abandoned payment is completed late), the discount is dropped and the wallet is credited what you actually paid.
