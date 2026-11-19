@@ -1,11 +1,11 @@
 # tose browser
 
-::: warning Early access
-`tose browser` is merged into the CLI after 0.2.0 and ships in the next release. The
-[agent browser](/guide/agent-browser) runs in production; some parts need a server flag that is off
-by default: the Site API map (and with it write Action Maps), browserless replay, recipe self-heal and
-System One. When the runtime or a flag is off, the API says so and the command fails with that
-message.
+::: warning Not in a published release yet
+`tose browser` is merged into the CLI after 0.2.0, the latest release, and ships in the next one;
+until then build the CLI from source. The [agent browser](/guide/agent-browser) itself is live on
+TOSE cloud. Some parts are built but not enabled there yet, each behind a server flag: the Site API
+map (and with it write Action Maps and browserless replay), recipe self-heal and System One. When a
+flag is off, the API says so and the command fails with that message.
 :::
 
 Run disposable, isolated Chromium sessions and drive pages with typed actions (no scripts, no

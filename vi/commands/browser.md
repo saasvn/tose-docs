@@ -1,10 +1,11 @@
 # tose browser
 
-::: warning Truy cập sớm
-`tose browser` đã vào CLI sau bản 0.2.0 và có trong bản phát hành kế tiếp.
-[Agent browser](/vi/guide/agent-browser) đã chạy trên production; một số phần cần cờ server mặc định
-tắt: Site API map (kéo theo write Action Map), browserless replay, recipe self-heal và System One. Khi
-runtime hoặc cờ tắt, API báo như vậy và lệnh thất bại với thông báo đó.
+::: warning Chưa có trong bản phát hành
+`tose browser` đã vào CLI sau bản 0.2.0, bản phát hành mới nhất, và sẽ có trong bản kế tiếp; trước đó
+hãy build CLI từ mã nguồn. Bản thân [agent browser](/vi/guide/agent-browser) đã chạy trên TOSE cloud.
+Một số phần đã xây nhưng chưa bật ở đó, mỗi phần sau một cờ server: Site API map (kéo theo write
+Action Map và browserless replay), recipe self-heal và System One. Khi cờ tắt, API báo như vậy và lệnh
+thất bại với thông báo đó.
 :::
 
 Chạy phiên Chromium dùng xong bỏ, cô lập, và điều khiển trang bằng thao tác có kiểu (không script,
