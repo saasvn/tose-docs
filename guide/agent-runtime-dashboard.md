@@ -10,7 +10,7 @@ Agent Runtime agents are agents that TOSE runs for your workspace: they wake for
 - **`/w/<workspace>/agents/runtime`** lists the workspace's runtime agents, and lets owners and admins manage agent secrets and create an agent.
 - **`/w/<workspace>/agents/<agent_id>`** shows one agent with its controls, runs, events and operations. Tabs lead to the agent's [Triggers](#triggers), [MCP servers](#mcp-servers), [Usage](#usage), [Environment](#environment) and [Settings](#settings).
 
-All pages are in English and Vietnamese. Apart from agent secrets, which only a signed-in owner or admin can manage, they call only the workspace agent API (`/api/workspaces/<workspace>/agents`), so they can do nothing that the API cannot.
+All pages are in English and Vietnamese. Apart from agent secrets, which only a signed-in owner or admin can manage, they call only the workspace agent API (`/api/workspaces/<workspace>/agents`) and, for hard limits, the agent usage API (`/api/workspaces/<workspace>/agent-usage`), so they can do nothing that the API cannot.
 
 ::: warning Availability
 Agent Runtime must be switched on for the TOSE platform (`AGENT_RUNTIME_ENABLED`). When it is off, the pages say **Agent Runtime is not turned on** and the Cloud Agents page shows no link to them. It is not generally available.
@@ -140,11 +140,11 @@ The **MCP servers** tab lists the external MCP servers the agent may call, and t
 - **Name** (lowercase letters, digits and hyphens, up to 24): the agent sees the tools as `mcp__<name>__<tool>`.
 - **Server URL**: `https` on a public DNS name, without credentials, query or fragment. Private and internal addresses are refused.
 - **Credential**: none, an [agent secret](#agent-secrets) chosen by name (sent to this server only, as a bearer token), or OAuth.
-- The **tools** the agent may call, up to 50, each with the risk you choose yourself: **Read** runs without approval, **Destructive** always waits for a person's approval, and **Write** waits for approval unless you tick **Pre-approve write tools**.
+- **Allowed tools**: up to 50 tools the agent may call, each with the risk you choose yourself: **Read** runs without approval, **Destructive** always waits for a person's approval, and **Write** waits for approval unless you tick **Pre-approve write tools**.
 
 The confirmation names the host, the secret that will be sent to it and the tools that will run without approval. Connecting makes a new agent revision, which stops tool calls of runs that started before. **Tools the server offers** shows the server's own list as untrusted text; it allows nothing by itself. **Disconnect** asks for confirmation, and the tools stop at once, also for runs in progress.
 
-A server connected with OAuth needs an owner or admin to **Authorize** it: enter the authorization server (issuer), the client ID of an OAuth client registered with the provider, and the scopes. After **Start sign-in** the page shows a link to the provider's sign-in address and the redirect address the OAuth client must allow; continue there within 10 minutes, in the same browser. The page only links a plain `https` address and never opens it by itself.
+A server connected with OAuth needs an owner or admin to **Authorize** it: enter the authorization server (issuer), the client ID of an OAuth client registered with the provider, and the scopes. **Start sign-in** asks for confirmation, because it gives the agent a new revision at once, which stops tool calls of runs that started before; nothing is authorized until you finish signing in. The page then shows a link to the provider's sign-in address and the redirect address the OAuth client must allow; continue there within 10 minutes, in the same browser. The page only links a plain `https` address and never opens it by itself.
 
 ## Usage and hard limits {#usage}
 
@@ -154,7 +154,7 @@ The **Usage** tab shows the agent's costs for a UTC date range. Three amounts ar
 - **Provider's bill**: what your model provider bills your own API key. Shown for information; TOSE never charges it.
 - **Not charged**: metered compute that a budget or an empty wallet could not cover. It is not charged and not owed.
 
-Below them are the totals **By kind** (compute, storage, model, correction) and **By run**, and the ledger entries, paged. An amount under a cent is shown with its real digits, not as `$0.00`.
+Below them are the totals **By kind** (compute, storage, model, correction) and **By run**, and the **Ledger entries**, paged. An amount under a cent is shown with its real digits, not as `$0.00`.
 
 **Hard limits** shows this agent's limit and the workspace limit, with what is spent and left, **Stopped** when a limit is reached (compute is stopped and disks are kept), and the agent's latest five limit events. Limits are set on the wallet page (**Open wallet and usage**). See [Agent Runtime pricing and budgets](/guide/agent-runtime-pricing#hard-budgets).
 

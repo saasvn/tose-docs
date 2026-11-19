@@ -10,7 +10,7 @@ Agent của Agent Runtime là các agent mà TOSE chạy cho workspace của b�
 - **`/w/<workspace>/agents/runtime`** liệt kê các agent runtime của workspace, và cho phép owner và admin quản lý agent secret và tạo agent.
 - **`/w/<workspace>/agents/<agent_id>`** hiển thị một agent cùng các nút điều khiển, lần chạy, sự kiện và thao tác. Các tab dẫn tới [Trigger](#triggers), [MCP server](#mcp-servers), [Mức dùng](#usage), [Môi trường](#environment) và [Cài đặt](#settings) của agent.
 
-Tất cả các trang đều có bản tiếng Anh và tiếng Việt. Ngoài agent secret, thứ chỉ owner hoặc admin đã đăng nhập mới quản lý được, các trang chỉ gọi API agent của workspace (`/api/workspaces/<workspace>/agents`), nên không làm được gì mà API không làm được.
+Tất cả các trang đều có bản tiếng Anh và tiếng Việt. Ngoài agent secret, thứ chỉ owner hoặc admin đã đăng nhập mới quản lý được, các trang chỉ gọi API agent của workspace (`/api/workspaces/<workspace>/agents`) và, với hạn mức cứng, API mức dùng agent (`/api/workspaces/<workspace>/agent-usage`), nên không làm được gì mà API không làm được.
 
 ::: warning Tình trạng khả dụng
 Nền tảng TOSE phải bật Agent Runtime (`AGENT_RUNTIME_ENABLED`). Khi tắt, các trang báo **Agent Runtime chưa được bật** và trang Cloud Agents không hiện liên kết tới chúng. Tính năng chưa được phát hành rộng rãi.
@@ -120,7 +120,7 @@ Mỗi nút bị vô hiệu hóa trong khi yêu cầu của nó đang được g�
 
 Trigger là một prompt được lưu sẵn để bắt đầu một lần chạy. Tab **Trigger** liệt kê các trigger của agent, mỗi trigger **Đang bật** hoặc **Đang tắt**, cùng các lần chạy nó đã bắt đầu trong **Lịch sử**. Owner hoặc admin thêm trigger ở **Thêm trigger** và chọn thứ khởi động nó:
 
-| Khởi động bởi | Khi nào bắt đầu lần chạy |
+| Bắt đầu bởi | Khi nào bắt đầu lần chạy |
 |---------------|--------------------------|
 | **Theo yêu cầu** | Khi ai đó chọn **Chạy ngay** (có hỏi xác nhận). |
 | **Theo lịch** | Theo biểu thức cron năm trường, trong múi giờ bạn chọn. Trigger hiển thị thời điểm chạy kế tiếp. |
@@ -131,20 +131,20 @@ Trigger là một prompt được lưu sẵn để bắt đầu một lần ch�
 - Thêm trigger không bắt đầu gì cả. Mỗi lần chạy mà trigger bắt đầu sau này được trả từ ví trả trước và đánh thức agent nếu nó đang ngủ.
 - Với webhook có chữ ký, URL webhook và **signing secret** chỉ hiển thị **một lần**, ngay sau khi bạn thêm trigger. Hãy sao chép secret rồi chọn **Tôi đã lưu lại**; không thể đọc lại secret này.
 - **Tắt** có hỏi xác nhận: các lần chạy mà trigger đã xếp hàng nhưng chưa bắt đầu sẽ bị bỏ, và bật lại cũng không khôi phục chúng.
-- Trigger theo sự kiện workspace còn có mục **Lượt giao sự kiện**: 100 lượt mới nhất trao sự kiện cho trigger, kèm trạng thái, số lần thử thất bại và lần thử kế tiếp. Owner hoặc admin có thể **Giao lại** một lượt mà nền tảng đánh dấu là thử lại được, sau khi xác nhận rằng một lần chạy có thể bắt đầu và trừ vào số dư trả trước.
+- Trigger theo sự kiện workspace còn có mục **Lượt giao sự kiện**: 100 lượt mới nhất trao sự kiện cho trigger, kèm trạng thái (**Đang chờ**, **Đang giao**, **Thất bại**, **Bỏ qua, không chạy** hoặc **Đã xếp hàng chạy**), số lần thử thất bại và lần thử kế tiếp. Owner hoặc admin có thể **Giao lại** một lượt mà nền tảng đánh dấu là thử lại được, sau khi xác nhận rằng một lần chạy có thể bắt đầu và trừ vào số dư trả trước.
 
 ## MCP server {#mcp-servers}
 
 Tab **MCP server** liệt kê các MCP server bên ngoài mà agent được gọi, cùng các tool agent được phép dùng trên mỗi server. TOSE tự thực hiện mọi kết nối tới server; runtime của agent không bao giờ kết nối trực tiếp. Owner hoặc admin kết nối server ở **Kết nối server**:
 
-- **Tên** (chữ thường, chữ số và dấu gạch ngang, tối đa 24 ký tự): agent thấy các tool dưới dạng `mcp__<tên>__<tool>`.
+- **Tên** (chữ thường, chữ số và dấu gạch nối, tối đa 24 ký tự): agent thấy các tool dưới dạng `mcp__<name>__<tool>`.
 - **URL server**: `https` trên một tên miền DNS công khai, không kèm thông tin đăng nhập, query hay fragment. Địa chỉ riêng và nội bộ bị từ chối.
 - **Thông tin xác thực**: không có, một [agent secret](#agent-secrets) chọn theo tên (chỉ gửi tới server này, dưới dạng bearer token), hoặc OAuth.
-- Các **tool** agent được gọi, tối đa 50, mỗi tool kèm mức rủi ro do chính bạn chọn: **Đọc** chạy không cần duyệt, **Phá huỷ** luôn chờ một người duyệt, còn **Ghi** chờ duyệt trừ khi bạn tích **Duyệt trước các tool ghi**.
+- **Tool được phép**: tối đa 50 tool agent được gọi, mỗi tool kèm mức rủi ro do chính bạn chọn: **Đọc** chạy không cần duyệt, **Phá huỷ** luôn chờ một người duyệt, còn **Ghi** chờ duyệt trừ khi bạn tích **Duyệt trước các tool ghi**.
 
 Hộp xác nhận nêu host, secret sẽ được gửi tới đó và các tool sẽ chạy không cần duyệt. Kết nối tạo một phiên bản agent mới, làm dừng các lệnh gọi tool của những lần chạy đã bắt đầu trước đó. **Tool mà server cung cấp** hiển thị danh sách do chính server trả về dưới dạng văn bản không tin cậy; bản thân danh sách này không cho phép gì. **Ngắt kết nối** có hỏi xác nhận, và các tool dừng ngay, kể cả với lần chạy đang diễn ra.
 
-Server kết nối bằng OAuth cần owner hoặc admin **Cấp quyền**: nhập authorization server (issuer), client ID của một OAuth client đã đăng ký với nhà cung cấp, và các scope. Sau **Bắt đầu đăng nhập**, trang hiển thị liên kết tới địa chỉ đăng nhập của nhà cung cấp và địa chỉ redirect mà OAuth client phải cho phép; hãy tiếp tục ở đó trong vòng 10 phút, trên cùng trình duyệt. Trang chỉ hiển thị liên kết `https` thuần và không bao giờ tự mở nó.
+Server kết nối bằng OAuth cần owner hoặc admin **Cấp quyền**: nhập authorization server (issuer), client ID của một OAuth client đã đăng ký với nhà cung cấp, và các scope. **Bắt đầu đăng nhập** có hỏi xác nhận, vì agent nhận ngay một phiên bản mới, làm dừng các lệnh gọi tool của những lần chạy đã bắt đầu trước đó; chưa có gì được cấp quyền cho tới khi bạn đăng nhập xong. Sau đó trang hiển thị liên kết tới địa chỉ đăng nhập của nhà cung cấp và địa chỉ redirect mà OAuth client phải cho phép; hãy tiếp tục ở đó trong vòng 10 phút, trên cùng trình duyệt. Trang chỉ hiển thị liên kết `https` thuần và không bao giờ tự mở nó.
 
 ## Mức dùng và hạn mức cứng {#usage}
 
@@ -152,7 +152,7 @@ Tab **Mức dùng** hiển thị chi phí của agent trong một khoảng ngày
 
 - **TOSE đã tính**: trừ vào ví trả trước.
 - **Hoá đơn nhà cung cấp**: khoản nhà cung cấp model tính cho API key của chính bạn. Chỉ để tham khảo; TOSE không bao giờ thu khoản này.
-- **Không tính phí**: compute đã đo nhưng ngân sách hoặc ví rỗng không đủ chi trả. Khoản này không bị tính và không bị nợ.
+- **Không tính phí**: compute đã đo nhưng ngân sách hoặc ví trống không đủ chi trả. Khoản này không bị tính và không thành nợ.
 
 Bên dưới là tổng **Theo loại** (compute, lưu trữ, model, điều chỉnh) và **Theo lần chạy**, cùng **Các dòng sổ cái**, có phân trang. Khoản dưới một cent được hiển thị đủ chữ số thật, không phải `$0.00`.
 
