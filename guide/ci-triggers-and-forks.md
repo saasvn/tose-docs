@@ -59,7 +59,26 @@ POST /pipelines/{pipeline_id}/dispatch
 
 Connected apps use the MCP tool `ci_dispatch` (scope `ci:execute`), which is the same operation with `ref`, optional `head_sha`, `inputs` and `idempotency_key`. Its input values can be strings, booleans or numbers. It reports `INVALID_ARGUMENT`, `DISPATCH_NOT_AVAILABLE` and `IDEMPOTENCY_CONFLICT` for the cases above. `ci_run` starts manual runs only and takes no `ref` or `inputs`.
 
-The dashboard cannot start a `workflow_dispatch` run yet. Use the API or `ci_dispatch`.
+From a terminal, `tose ci dispatch <pipeline_id> --ref <branch> --input name=value` does the same; see [`tose ci`](/commands/ci).
+
+### From the dashboard {#dispatch-dashboard}
+
+Open the pipeline (`/w/{slug}/ci/p/{pipeline_id}`) and use the **Run with inputs** section:
+
+1. Pick a branch. Only branches with a recorded push are offered; leave it empty for the branch of the newest recorded push. Select **Show inputs**.
+2. The form names the commit the run will use (the newest recorded push of the branch) and shows one field per input declared under `on.workflow_dispatch.inputs`, with its type, description and default. A `boolean` is a checkbox and a `choice` a list of its options.
+3. Fill in the values and select **Run with these inputs**. Required inputs, `number` and `choice` values and the length of text values are checked before anything is sent; the API checks them again.
+4. Confirm. The run starts on the commit the form showed, even if a newer push arrived in the meantime, and you land on the run page.
+
+A branch with no recorded push (`commit_not_recorded`) or whose configuration does not declare `on.workflow_dispatch`, is invalid or has not been read yet (`dispatch_not_available`) shows an explanation instead of a form. Declare `on.workflow_dispatch` in the branch's `.tose/ci.yml` and push: the form appears once that push has been planned. If an answer is lost, sending the same values again reuses the same idempotency key, as for a [manual run](/guide/ci-dashboard#retries).
+
+The form is built from a read-only route that starts and reserves nothing:
+
+```http
+GET /pipelines/{pipeline_id}/dispatch?ref=main
+```
+
+It needs `ci:read`. `ref` is optional (the branch of the newest recorded push when omitted), and `head_sha` reads a given recorded push instead of the newest. It returns `ref`, `head_sha`, `inputs` (each with `name`, `type`, `description`, `required`, `default` and `options`, sorted by name) and `branches` (at most 50, newest first). It answers `422 commit_not_recorded` or `422 dispatch_not_available` exactly when `POST .../dispatch` would.
 
 A rerun of a `workflow_dispatch` run keeps its event and inputs. Reruns are an operator action (`POST /admin/api/ci/runs/:id/rerun`); a rerun of a fork run needs a new approval.
 
