@@ -108,8 +108,8 @@ production yet.
 ### Agent browser (early access)
 
 Status: **early access**. The commands are merged into the CLI after 0.2.0 and ship in the next
-release. Browserless replay and recipe self-heal need server flags that are off by default; see the
-[agent browser](/guide/agent-browser).
+release. The Site API map (with write Action Maps), browserless replay, recipe self-heal and System
+One need server flags that are off by default; see the [agent browser](/guide/agent-browser).
 
 | Command | Description |
 |---------|-------------|
@@ -366,7 +366,7 @@ tose status --json
 
 Without `--json`, an error prints `Error: <message>` on stderr, then `Code:`, `Next step:` and
 `Request ID:` lines when they are set, and the suggested next commands. Those hints never repeat
-secret values such as tokens or `--param` values.
+tokens, and they mask typed text and text `--param` values of 4 characters or more.
 
 `schema_version` changes only when a field is removed or changes meaning. New fields can appear at any time, so ignore the ones you do not know.
 
