@@ -1,8 +1,8 @@
 # tose browser
 
-::: warning Truy cập sớm
-`tose browser` đã vào CLI sau bản 0.2.0 và có trong bản phát hành kế tiếp. [Agent browser](/vi/guide/agent-browser) đang tắt trên production cho
-tới khi qua các release gate; khi tắt, API báo như vậy và mọi lệnh thất bại với thông báo đó.
+::: warning Chưa có trong bản phát hành
+`tose browser` đã vào CLI sau bản 0.2.0, bản phát hành mới nhất, và sẽ có trong bản kế tiếp; trước đó
+hãy build CLI từ mã nguồn. Bản thân [agent browser](/vi/guide/agent-browser) đã chạy trên TOSE cloud.
 :::
 
 Chạy phiên Chromium dùng xong bỏ, cô lập, và điều khiển trang bằng thao tác có kiểu (không script,
@@ -162,4 +162,19 @@ của owner hoặc admin đã đăng nhập, nên CLI không có lệnh cho vi�
 | `requires_auth`, `approval_invalid`, `approval_expired`, `approval_used` | 3 | API key thiếu scope `browser:control`, hoặc phê duyệt không hợp lệ, hết hạn hay đã dùng |
 | `outcome_unknown` | 1 | Trang có thể đã đổi: chụp `snapshot` trước khi làm lại |
 
-Chưa có trong CLI: profile, recipe, Site API map và xác nhận origin.
+## Profile, recipe, tra cứu kiến thức và map
+
+Các nhóm lệnh này bọc các route REST tương ứng; chạy `tose browser <nhóm> --help` để xem từng lệnh
+con và cờ của nó.
+
+| Nhóm | Lệnh con | Xem |
+|-------|-------------|-----|
+| `tose browser profiles` | `list`, `create`, `import`, `share`, `grants`, `unshare`, `delete` | [Profile](/vi/guide/agent-browser#profiles) |
+| `tose browser recipes` | `find`, `list`, `run`, `runs`, `cancel` | [Recipe](/vi/guide/agent-browser#recipes) |
+| `tose browser knowledge` | `--origin <url>` và `--intent` tùy chọn: liệt kê recipe, Action Map đã xác minh và endpoint TOSE biết cho một site | [Recipe](/vi/guide/agent-browser#recipes) |
+| `tose browser apimap` | `list`, `enable`, `disable` | [Site API map](/vi/guide/agent-browser#site-api-map) |
+| `tose browser action-maps` | `list`, `preview`, `execute`, `run` | [Action Map](/vi/guide/agent-browser#site-api-map) |
+
+Site API map, kéo theo Action Map, chưa bật trên TOSE cloud, nên `apimap` và `action-maps` chưa có gì
+để làm ở đó. Xác nhận origin vẫn do owner hoặc admin đã đăng nhập làm, nên CLI không có lệnh cho việc
+này.

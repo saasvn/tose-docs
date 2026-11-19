@@ -1,9 +1,9 @@
 # tose browser
 
-::: warning Early access
-`tose browser` is merged into the CLI after 0.2.0 and ships in the next release. The [agent browser](/guide/agent-browser) is off in production
-until its release gates pass; while it is off the API says so and every command fails with that
-message.
+::: warning Not in a published release yet
+`tose browser` is merged into the CLI after 0.2.0, the latest release, and ships in the next one;
+until then build the CLI from source. The [agent browser](/guide/agent-browser) itself is live on
+TOSE cloud.
 :::
 
 Run disposable, isolated Chromium sessions and drive pages with typed actions (no scripts, no
@@ -163,4 +163,19 @@ removing an origin is for a signed-in owner or admin, so the CLI has no command 
 | `requires_auth`, `approval_invalid`, `approval_expired`, `approval_used` | 3 | The API key lacks the `browser:control` scope, or the approval is invalid, expired or already used |
 | `outcome_unknown` | 1 | The page may have changed: take a `snapshot` before repeating the action |
 
-Not in the CLI yet: profiles, recipes, the Site API map and confirming origins.
+## Profiles, recipes, knowledge and maps
+
+These command groups wrap the matching REST routes; run `tose browser <group> --help` for each
+subcommand and its flags.
+
+| Group | Subcommands | See |
+|-------|-------------|-----|
+| `tose browser profiles` | `list`, `create`, `import`, `share`, `grants`, `unshare`, `delete` | [Profiles](/guide/agent-browser#profiles) |
+| `tose browser recipes` | `find`, `list`, `run`, `runs`, `cancel` | [Recipes](/guide/agent-browser#recipes) |
+| `tose browser knowledge` | `--origin <url>` and an optional `--intent`: lists the recipes, verified Action Maps and endpoints TOSE knows for a site | [Recipes](/guide/agent-browser#recipes) |
+| `tose browser apimap` | `list`, `enable`, `disable` | [Site API map](/guide/agent-browser#site-api-map) |
+| `tose browser action-maps` | `list`, `preview`, `execute`, `run` | [Action Maps](/guide/agent-browser#site-api-map) |
+
+The Site API map, and therefore Action Maps, are not enabled on TOSE cloud yet, so `apimap` and
+`action-maps` have nothing to work on there. Confirming origins stays with a signed-in owner
+or admin, so the CLI has no command for it.

@@ -1,8 +1,9 @@
 # API Browsers
 
-::: warning Truy cập sớm
-Route browser chỉ được phục vụ khi deployment đặt `BROWSER_ENABLED=true`, và cờ này tắt trên
-production cho tới khi [agent browser](/vi/guide/agent-browser) qua các release gate.
+::: info Trên TOSE cloud
+Route browser đã chạy trên TOSE cloud. Bản tự host chỉ phục vụ chúng khi đặt `BROWSER_ENABLED=true`.
+Các route Site API map bên dưới chưa bật trên TOSE cloud; xem
+[những gì đã có](/vi/guide/agent-browser#status).
 :::
 
 Endpoint REST cho phiên [agent browser](/vi/guide/agent-browser). Mọi đường dẫn tính từ workspace:
@@ -105,7 +106,7 @@ không cần phê duyệt (`400`).
 
 ## Site API map
 
-Chỉ có khi bật `BROWSER_API_MAP_ENABLED`. Xem [Site API map](/vi/guide/agent-browser#site-api-map).
+Chỉ có khi bật `BROWSER_API_MAP_ENABLED`, cờ này chưa bật trên TOSE cloud. Xem [Site API map](/vi/guide/agent-browser#site-api-map).
 
 | Method | Đường dẫn | Ai |
 |--------|------|-----|

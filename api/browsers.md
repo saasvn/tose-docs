@@ -1,8 +1,9 @@
 # Browsers API
 
-::: warning Early access
-Browser routes are served only when the deployment sets `BROWSER_ENABLED=true`, which is off in
-production until the [agent browser](/guide/agent-browser) passes its release gates.
+::: info On TOSE cloud
+Browser routes are live on TOSE cloud. A self-hosted deployment serves them only with
+`BROWSER_ENABLED=true`. The Site API map routes below are not enabled on TOSE cloud yet; see
+[what is available](/guide/agent-browser#status).
 :::
 
 REST endpoints for [agent browser](/guide/agent-browser) sessions. All paths are relative to the
@@ -107,7 +108,7 @@ person's own lease needs no approval (`400`).
 
 ## Site API map
 
-Served only with `BROWSER_API_MAP_ENABLED`. See [Site API map](/guide/agent-browser#site-api-map).
+Served only with `BROWSER_API_MAP_ENABLED`, which is not enabled on TOSE cloud yet. See [Site API map](/guide/agent-browser#site-api-map).
 
 | Method | Path | Who |
 |--------|------|-----|
