@@ -1,16 +1,16 @@
 ---
 title: "Agent Runtime in the dashboard"
-description: "Create a Pi agent with your own provider API key, wake it, put it to sleep, send it a message and follow its runs, events and operations from the TOSE dashboard."
+description: "Create a Pi agent with your own provider API key, wake it, put it to sleep, send it messages, add triggers and MCP servers, and follow its runs, usage and limits from the TOSE dashboard."
 ---
 
 # Agent Runtime in the dashboard
 
-Agent Runtime agents are agents that TOSE runs for your workspace: they wake for a message or a trigger, work in their own isolated runtime with a persistent disk, and sleep again. The dashboard has two pages for them:
+Agent Runtime agents are agents that TOSE runs for your workspace: they wake for a message or a trigger, work in their own isolated runtime with a persistent disk, and sleep again. The dashboard has these pages for them:
 
 - **`/w/<workspace>/agents/runtime`** lists the workspace's runtime agents, and lets owners and admins manage agent secrets and create an agent.
-- **`/w/<workspace>/agents/<agent_id>`** shows one agent with its controls, runs, events and operations.
+- **`/w/<workspace>/agents/<agent_id>`** shows one agent with its controls, runs, events and operations. Tabs lead to the agent's [Triggers](#triggers), [MCP servers](#mcp-servers), [Usage](#usage), [Environment](#environment) and [Settings](#settings).
 
-Both pages are in English and Vietnamese. Apart from agent secrets, which only a signed-in owner or admin can manage, they call only the [workspace agent API](#api-only), so they can do nothing that the API cannot.
+All pages are in English and Vietnamese. Apart from agent secrets, which only a signed-in owner or admin can manage, they call only the workspace agent API (`/api/workspaces/<workspace>/agents`), so they can do nothing that the API cannot.
 
 ::: warning Availability
 Agent Runtime must be switched on for the TOSE platform (`AGENT_RUNTIME_ENABLED`). When it is off, the pages say **Agent Runtime is not turned on** and the Cloud Agents page shows no link to them. It is not generally available.
@@ -47,7 +47,7 @@ The list shows each runtime agent with its state:
 | **Setting up** | TOSE is preparing the agent's disk. |
 | **Asleep** | No compute runs. The disk and the agent's session are kept. |
 | **Awake** | The agent's runtime is running and billed. |
-| **Deleted** | Deleted through the API. While it is still shown, the page offers no controls. |
+| **Deleted** | Deleted from [Settings](#settings) or through the API. While it is still shown, the page offers no controls. |
 
 While the platform is still carrying a request out, the agent also shows the state it is moving to (**Moving to: Awake**, for example). A state the dashboard does not know is shown as its raw value.
 
@@ -116,18 +116,67 @@ An unfinished run has **Cancel run**, which asks for confirmation. Work the run 
 
 Each button is disabled while its request is in flight, and each request carries an idempotency key. If an answer is lost (a network error or a server error), the page retries with the same key, so a double click or a retry acts only once. A new message or a different action gets a new key.
 
+## Triggers {#triggers}
+
+A trigger is a saved prompt that starts a run. The **Triggers** tab lists the agent's triggers, each **On** or **Off**, with the runs it started under **History**. An owner or admin adds one under **Add a trigger**, choosing what starts it:
+
+| Started by | When it starts a run |
+|------------|----------------------|
+| **On request** | When someone selects **Run now** (asks for confirmation). |
+| **Schedule** | On a five-field cron expression in a time zone you choose. The trigger shows its next time. |
+| **Workspace event** | On `uptime.down`, `uptime.up`, `deployment.failed`, `deployment.succeeded` or `backup.failed`, for one project or for every project of the workspace. |
+| **Signed webhook** | When a request signed with the trigger's signing secret arrives at its webhook URL. |
+
+- The prompt is saved and **not shown again**. Do not put secrets in it.
+- Adding a trigger starts nothing. Each run it starts later is paid from the prepaid wallet and wakes the agent if it sleeps.
+- For a signed webhook, the webhook URL and the **signing secret** are shown **once**, right after you add it. Copy the secret, then select **I have saved it**; it cannot be read again.
+- **Turn off** asks for confirmation: runs the trigger queued that have not started are dropped, and turning it on again does not bring them back.
+- A workspace event trigger also lists its **Event deliveries**: the newest 100 attempts to hand it an event, with their status (**Waiting**, **Delivering**, **Failed**, **Skipped, no run** or **Run queued**), failed tries and next try. An owner or admin can **Deliver again** an attempt the platform marks as retryable, after a confirmation that a run may start on the prepaid balance.
+
+## MCP servers {#mcp-servers}
+
+The **MCP servers** tab lists the external MCP servers the agent may call, and the tools it is allowed to use on each. TOSE makes every connection to the server itself; the agent's runtime never does. An owner or admin connects a server under **Connect a server**:
+
+- **Name** (lowercase letters, digits and hyphens, up to 24): the agent sees the tools as `mcp__<name>__<tool>`.
+- **Server URL**: `https` on a public DNS name, without credentials, query or fragment. Private and internal addresses are refused.
+- **Credential**: none, an [agent secret](#agent-secrets) chosen by name (sent to this server only, as a bearer token), or OAuth.
+- The **tools** the agent may call, up to 50, each with the risk you choose yourself: **Read** runs without approval, **Destructive** always waits for a person's approval, and **Write** waits for approval unless you tick **Pre-approve write tools**.
+
+The confirmation names the host, the secret that will be sent to it and the tools that will run without approval. Connecting makes a new agent revision, which stops tool calls of runs that started before. **Tools the server offers** shows the server's own list as untrusted text; it allows nothing by itself. **Disconnect** asks for confirmation, and the tools stop at once, also for runs in progress.
+
+A server connected with OAuth needs an owner or admin to **Authorize** it: enter the authorization server (issuer), the client ID of an OAuth client registered with the provider, and the scopes. After **Start sign-in** the page shows a link to the provider's sign-in address and the redirect address the OAuth client must allow; continue there within 10 minutes, in the same browser. The page only links a plain `https` address and never opens it by itself.
+
+## Usage and hard limits {#usage}
+
+The **Usage** tab shows the agent's costs for a UTC date range. Three amounts are shown side by side and never added together:
+
+- **Charged by TOSE**: taken from the prepaid wallet.
+- **Provider's bill**: what your model provider bills your own API key. Shown for information; TOSE never charges it.
+- **Not charged**: metered compute that a budget or an empty wallet could not cover. It is not charged and not owed.
+
+Below them are the totals **By kind** (compute, storage, model, correction) and **By run**, and the ledger entries, paged. An amount under a cent is shown with its real digits, not as `$0.00`.
+
+**Hard limits** shows this agent's limit and the workspace limit, with what is spent and left, **Stopped** when a limit is reached (compute is stopped and disks are kept), and the agent's latest five limit events. Limits are set on the wallet page (**Open wallet and usage**). See [Agent Runtime pricing and budgets](/guide/agent-runtime-pricing#hard-budgets).
+
+## Environment {#environment}
+
+The **Environment** tab shows owners and admins, read-only, the [environment](/guide/agent-environment-and-auto-sleep#agent-runtime-environment) saved with the agent's current revision: variables with their values, each secret reference as the name of the agent secret it points to, and the install script as its size, line count, policy and SHA-256. It never shows a secret value or the script text. While the platform reports that the environment is not applied, the page says so: do not assume the variables or the script's result exist inside the agent.
+
+## Settings {#settings}
+
+On the **Settings** tab an owner or admin changes the agent's name, provider, model or provider key with **Save as a new revision**. Runs that already started keep the revision they started with. If the agent was changed elsewhere after you opened the page, nothing is saved: reload and make your change again.
+
+**Delete this agent** asks you to type the agent's name. Deleting stops the agent and its runs, and its triggers no longer start anything. TOSE keeps the agent's checkpoint and disk until the deletion has been verified.
+
 ## Not in the dashboard yet {#api-only}
 
-These are done through the workspace agent API (`/api/workspaces/<workspace>/agents`) for now:
-
-- editing an agent's name, model or key, and deleting an agent;
-- its [environment](/guide/agent-environment-and-auto-sleep#agent-runtime-environment), triggers and MCP servers;
-- its [usage and budgets](/api/agent-usage).
+Changing an agent's [environment](/guide/agent-environment-and-auto-sleep#agent-runtime-environment) is done through the workspace agent API (`/api/workspaces/<workspace>/agents`) for now.
 
 ## Related
 
 - [Steer a running agent run](/guide/agent-steering)
 - [Agent Runtime pricing and budgets](/guide/agent-runtime-pricing)
 - [Agent usage and budgets API](/api/agent-usage)
+- [Environment of Agent Runtime agents](/guide/agent-environment-and-auto-sleep#agent-runtime-environment)
 - [`tose agents`](/commands/agents)
 - [Cloud Agents](/guide/cloud-agents)
