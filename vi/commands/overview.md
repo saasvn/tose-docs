@@ -186,6 +186,10 @@ Với `--json`, stdout chỉ có đúng một tài liệu JSON; tiến trình v�
 | `details` | Ngữ cảnh thêm từ API, ví dụ `required_scope`, do CLI đặt khi `code` là `INSUFFICIENT_SCOPE` |
 | `doc_url` | Liên kết tới tài liệu về lỗi này, hoặc `null` |
 
+Khi không có `--json`, lỗi in `Error: <message>` ra stderr, rồi các dòng `Code:`, `Next step:` và
+`Request ID:` nếu có, cùng các lệnh gợi ý tiếp theo. Các gợi ý này không bao giờ lặp lại token, và
+hiện `--param name=<value>`, `--value <value>` thay cho giá trị bạn đã gõ.
+
 ### Mã thoát
 
 | Mã | Tên | Ý nghĩa |

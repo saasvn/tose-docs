@@ -26,7 +26,7 @@ call that API instead.
 
 | Capability | Status |
 |---|---|
-| Sessions: create, suspend, resume, terminate, audit events | Available ([REST](/api/browsers), [CLI](/commands/browser), MCP, dashboard) |
+| Sessions: create, suspend, resume, terminate, audit events | Available ([REST](/api/browsers), MCP, dashboard; the [CLI](/commands/browser) opens, lists, shows events and closes) |
 | Leases, takeover by a person, fencing of older leases | Available |
 | Typed actions, compact snapshots, typed errors with `next_step` | Available |
 | Approvals for `click`, `fill` and `press` run by an agent | Available (a signed-in owner or admin approves on REST or the dashboard approve page) |
@@ -37,12 +37,12 @@ call that API instead.
 | Profiles: vault, grants, sharing, import, re-login | Available (REST, dashboard, CLI) |
 | Local Chrome companion | Available for importing a login from the dashboard; pairing and the native helper are not built |
 | Action recipes, durable replay runs, recipe receipts | Available (REST, dashboard, CLI) |
-| Public recipes | Available (REST; a platform admin reviews each listing) |
+| Public recipes | Available (REST, and CLI [`recipes find`](/commands/browser#recipes); a platform admin reviews each listing) |
 | Knowledge lookup and snapshot `goal` | Available (REST, MCP, CLI); System One suggestions are not enabled on TOSE cloud yet |
 | Content guard | Available on Action Map writes; on browser actions and recipe runs not enabled on TOSE cloud yet |
 | Site API map (metadata only) and the `fetch` action | Built (REST, CLI); not enabled on TOSE cloud yet |
 | Write Action Maps and browserless replay | Built (REST, MCP, CLI); need the Site API map, so not enabled on TOSE cloud yet |
-| Self-heal of recipes and Action Maps | Built (REST, MCP, dashboard); not enabled on TOSE cloud yet |
+| Self-heal of recipes and Action Maps | Built (REST, MCP, dashboard; [CLI](/commands/browser#self-heal) for recipes); not enabled on TOSE cloud yet |
 
 ## Sessions {#sessions}
 

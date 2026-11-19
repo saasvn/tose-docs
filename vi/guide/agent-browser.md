@@ -27,7 +27,7 @@ API đó.
 
 | Khả năng | Trạng thái |
 |---|---|
-| Phiên: tạo, tạm dừng, chạy lại, kết thúc, sự kiện audit | Đã có ([REST](/vi/api/browsers), [CLI](/vi/commands/browser), MCP, dashboard) |
+| Phiên: tạo, tạm dừng, chạy lại, kết thúc, sự kiện audit | Đã có ([REST](/vi/api/browsers), MCP, dashboard; [CLI](/vi/commands/browser) mở, liệt kê, xem sự kiện và đóng phiên) |
 | Lease, người tiếp quản, chặn (fencing) lease cũ | Đã có |
 | Thao tác có kiểu, snapshot gọn, lỗi có mã kèm `next_step` | Đã có |
 | Phê duyệt cho `click`, `fill`, `press` do agent chạy | Đã có (owner hoặc admin đã đăng nhập duyệt qua REST hoặc trang duyệt trên dashboard) |
@@ -38,12 +38,12 @@ API đó.
 | Profile: vault, grant, chia sẻ, import, đăng nhập lại | Đã có (REST, dashboard, CLI) |
 | Companion cho Chrome trên máy | Đã có để import phiên đăng nhập từ dashboard; ghép thiết bị và helper trên máy chưa được xây |
 | Action recipe, lượt chạy lại bền vững, recipe receipt | Đã có (REST, dashboard, CLI) |
-| Recipe công khai | Đã có (REST; admin nền tảng xét duyệt từng recipe trước khi đăng) |
+| Recipe công khai | Đã có (REST, và CLI [`recipes find`](/vi/commands/browser#recipes); admin nền tảng xét duyệt từng recipe trước khi đăng) |
 | Tra cứu kiến thức và `goal` của snapshot | Đã có (REST, MCP, CLI); gợi ý System One chưa bật trên TOSE cloud |
 | Lớp bảo vệ nội dung | Đã có cho thao tác ghi qua Action Map; cho thao tác browser và lượt chạy recipe thì chưa bật trên TOSE cloud |
 | Site API map (chỉ metadata) và thao tác `fetch` | Đã xây (REST, CLI); chưa bật trên TOSE cloud |
 | Action Map ghi và chạy lại không cần browser | Đã xây (REST, MCP, CLI); cần Site API map nên chưa bật trên TOSE cloud |
-| Tự phục hồi recipe và Action Map | Đã xây (REST, MCP, dashboard); chưa bật trên TOSE cloud |
+| Tự phục hồi recipe và Action Map | Đã xây (REST, MCP, dashboard; [CLI](/vi/commands/browser#self-heal) cho recipe); chưa bật trên TOSE cloud |
 
 ## Phiên {#sessions}
 
@@ -246,7 +246,7 @@ browser trống và mất trạng thái khi tạm dừng.
 ### Companion cho Chrome trên máy {#companion}
 
 Một extension Chrome cho người dùng lại phiên đăng nhập trong Chrome của mình mà không tải profile
-lên. Trên *Browsers → Profiles*, họ chọn *Import from my browser*, chọn một origin của profile và xác
+lên. Trên *Browsers → Hồ sơ đăng nhập*, họ chọn *Nhập từ trình duyệt của tôi*, chọn một origin của profile và xác
 nhận trong cửa sổ đồng ý riêng của extension; extension chỉ đọc trạng thái của origin đó và chỉ trả
 lời dashboard TOSE. Ghép thiết bị và helper trên máy đã có thiết kế nhưng chưa được xây. Giới hạn đã
 biết: passkey và khóa bảo mật không bao giờ được sao chép, cookie gắn thiết bị chỉ dùng được ít phút,

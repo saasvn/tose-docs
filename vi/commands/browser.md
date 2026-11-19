@@ -3,6 +3,9 @@
 ::: warning Chưa có trong bản phát hành
 `tose browser` đã vào CLI sau bản 0.2.0, bản phát hành mới nhất, và sẽ có trong bản kế tiếp; trước đó
 hãy build CLI từ mã nguồn. Bản thân [agent browser](/vi/guide/agent-browser) đã chạy trên TOSE cloud.
+Một số phần đã xây nhưng chưa bật ở đó, mỗi phần sau một cờ server: Site API map (kéo theo write
+Action Map và browserless replay), recipe self-heal và System One. Khi cờ tắt, API báo như vậy và lệnh
+thất bại với thông báo đó.
 :::
 
 Chạy phiên Chromium dùng xong bỏ, cô lập, và điều khiển trang bằng thao tác có kiểu (không script,
@@ -91,11 +94,17 @@ Mở trang `http` hoặc `https`. `--snapshot` liệt kê luôn trang vừa tớ
 ### tose browser snapshot
 
 ```bash
-tose browser snapshot <session> [--full] [--format compact|json]
+tose browser snapshot <session> [--full] [--format compact|json] [--goal <text>]
 ```
 
 Liệt kê các phần tử tác động được, mỗi phần tử một dòng `role "name" [nth]`. `--full` liệt kê mọi
 phần tử hiển thị; `--format json` trả danh sách node.
+
+`--goal "<text>"` (tối đa 300 ký tự) hỏi thêm System One xem trang đã cho thấy mục tiêu chưa:
+`goal_assessment` trả `goal_met` (`yes`, `no` hoặc `unsure`) và trạng thái trang (`ok`,
+`login_required`, `captcha`, `modal`, `error_page`). Nó đọc chữ không tin cậy từ trang, nên hãy xác
+nhận trước khi hành động theo. Khi System One tắt, `system_one.reason` cho biết vì sao không có câu
+trả lời.
 
 ### tose browser click / fill / press
 
@@ -143,13 +152,176 @@ tose browser allowlist propose <origin>
 
 Khi chế độ chặn bật (mặc định), browser của workspace chỉ tới được origin đã xác nhận. `list` hiện công
 tắc và từng origin; `propose` đề xuất một origin và để nó ở `pending`. Xác nhận hay gỡ origin là việc
-của owner hoặc admin đã đăng nhập, nên CLI không có lệnh cho việc đó.
+của owner hoặc admin đã đăng nhập trên dashboard, nên CLI không có lệnh cho việc đó.
 
-## Lease và đầu ra
+## Profile {#profiles}
+
+Profile giữ phiên đăng nhập của một site (cookie và storage) để agent không phải gõ lại mật khẩu.
+Trạng thái đã lưu được mã hóa trong TOSE và không bao giờ được in ra.
+
+```bash
+tose browser profiles list
+tose browser profiles create <name> --origin <origin> [--origin <origin>...] [--health-url <url>] [--agent-write]
+tose browser profiles import <profile> --file <state.json|->
+tose browser profiles share <profile> --with <type:id> --hours <n>
+tose browser profiles grants <profile>
+tose browser profiles unshare <profile> <grant-id>
+tose browser profiles delete <profile> [--yes]
+```
+
+| Lệnh | Mô tả |
+|------|-------|
+| `list` | Profile của workspace và profile được chia sẻ cho nó |
+| `create` | Profile rỗng, giới hạn trong các origin đã cho. `--health-url` là trang cho biết đăng nhập còn dùng được không; `--agent-write` cho agent click và gõ trên các site này bằng đăng nhập đó (mặc định tắt) |
+| `import` | Nạp một Playwright storageState (tối đa 256 KB, `-` đọc từ stdin). Chỉ giữ các origin của profile và chỉ trả về số cookie giữ lại và bỏ đi |
+| `share` | Cấp cho một người (`user:<id>`), API key (`api_key:<id>`), ứng dụng đã kết nối (`oauth:<id>`) hoặc workspace khác (`workspace:<id>`) trong `--hours` giờ |
+| `grants` / `unshare` | Liệt kê quyền đã cấp và chia sẻ, hoặc chấm dứt một quyền; phiên mở qua quyền đó kết thúc ngay |
+| `delete` | Xóa profile và đăng nhập đã lưu; `--yes` để xác nhận trong script |
+
+Mọi lệnh trừ `list` và `grants` cần một người đã đăng nhập: API key nhận `HUMAN_APPROVAL_REQUIRED`.
+
+## Tra cứu hiểu biết {#knowledge-lookup}
+
+```bash
+tose browser knowledge --origin <url> [--intent <text>]
+```
+
+Liệt kê những gì workspace đã biết về một site: recipe, write Action Map đã xác minh và endpoint của
+Site API map (tối đa 20 mỗi loại), kèm `next_step`. `--origin` nhận site hoặc bất kỳ URL nào trên đó.
+Với `--intent` (tối đa 500 ký tự) và System One bật, `suggested` gợi ý một recipe hoặc Action Map hợp
+với việc cần làm. Không có gì được chạy; lệnh cần scope `browser:read`. Hãy xem ở đây trước khi làm
+từng bước trên một site.
+
+## Recipe {#recipes}
+
+Recipe chạy lại các bước đã lưu trên một site mà không cần model.
+
+```bash
+tose browser recipes find <url>
+tose browser recipes list [--origin <origin>]
+tose browser recipes run <recipe> --session <session> [--param name=value] [--secret-param name=SECRET_NAME] \
+  [--mode sync|async|stream] [--wait-seconds <n>] [--recipe-version <n>] [--approval <token>] [--idempotency-key <key>]
+tose browser recipes runs [run-id] [--recipe <recipe-id>]
+tose browser recipes cancel <run-id>
+```
+
+| Tùy chọn của `run` | Mô tả |
+|--------------------|-------|
+| `--session <session>` | Phiên browser bạn đang giữ để chạy |
+| `--param <name=value>` | Giá trị cho một tham số; không bao giờ in ra (lặp lại cho nhiều tham số) |
+| `--secret-param <name=SECRET>` | Lấy giá trị tham số từ secret của workspace theo tên; API tự giải |
+| `--mode <mode>` | `sync` chờ (mặc định), `async` trả run ngay, `stream` in từng bước |
+| `--wait-seconds <n>` | Với `sync`: chờ tối đa chừng này (mặc định 30, tối đa 60) |
+| `--recipe-version <n>` | Chạy phiên bản này thay vì bản mới nhất |
+| `--approval <token>` | Phê duyệt cho recipe có click, gõ hoặc nhấn phím khi API key chạy (hoặc `TOSE_BROWSER_APPROVAL`) |
+| `--idempotency-key <key>` | Chạy lại với cùng key trả về cùng run |
+
+`find` liệt kê recipe chạy được cho một origin hoặc URL, recipe đã xác minh đứng trước. Run kết thúc
+ở `drift`, `failed` hoặc `needs_reconciliation` thoát với mã `8` và `RECIPE_DRIFT`,
+`RECIPE_RUN_FAILED` hoặc `RECIPE_NEEDS_RECONCILIATION`; làm tiếp từng bước từ `tose browser
+snapshot`, hoặc thử [self-heal](#self-heal) khi bị drift. `runs <run-id>` hiện một run kèm nhật ký
+từng bước. `cancel` dừng run đang chờ hoặc đang chạy; run đã bắt đầu ghi sẽ kết thúc ở
+`needs_reconciliation`.
+
+## Recipe self-heal {#self-heal}
+
+```bash
+tose browser self-heal [get|on|off]
+tose browser recipes heal <run-id>
+tose browser recipes heals <recipe>
+tose browser recipes heal-rollback <heal-id>
+```
+
+Self-heal vá một bước khi phần tử của nó bị dời chỗ hoặc đổi tên. Nó chỉ chạy khi cả cờ của nền tảng
+và công tắc của workspace đều bật. `tose browser self-heal` hiện công tắc, cờ nền tảng và giới hạn
+mỗi ngày; `on` và `off` dành cho owner hoặc admin đã đăng nhập.
+
+- `recipes heal <run-id>` dùng cho run kết thúc ở `drift` (`RECIPE_DRIFT`) trên phiên bản mới nhất
+  của recipe, và lấy act lease trên phiên của run. Engine đưa ra các phần tử cùng role trên trang,
+  model quyết định của workspace chọn một, và các bước đã vá được lưu thành phiên bản nháp mới.
+- Không có bản vá an toàn thì lệnh thoát với mã `10`, `HUMAN_STEP_REQUIRED` và `next_step` của API:
+  làm nốt bước đó bằng tay rồi lưu lại recipe.
+- `recipes heals <recipe>` liệt kê các lần thử, mới nhất trước, kèm kết quả và khác biệt của locator.
+- `recipes heal-rollback <heal-id>` đưa các bước cũ trở lại thành phiên bản kế tiếp khi phiên bản đã
+  vá vẫn là mới nhất. Sau khi có bản lưu mới hơn, API trả `SELF_HEAL_ROLLBACK_STALE`. Lệnh dành cho
+  owner hoặc admin đã đăng nhập.
+- API key chạy `self-heal on|off` hoặc `heal-rollback` nhận `HUMAN_APPROVAL_REQUIRED` (mã thoát `10`).
+  Các mã khác: `SELF_HEAL_DISABLED`, `SELF_HEAL_NOT_DRIFT`, `SELF_HEAL_RATE_LIMITED`.
+
+## Site API map {#site-api-map}
+
+```bash
+tose browser apimap list [--origin <origin>] [--url <url>]
+tose browser apimap enable <endpoint-id>
+tose browser apimap disable <endpoint-id>
+```
+
+`list` hiện các endpoint GET mà browser đã thấy trên các site được phép: chỉ tên, không bao giờ có giá
+trị. Với `--url`, lệnh liệt kê các endpoint đã biết của trang đó. `enable` cho thao tác `fetch` gọi một
+endpoint và `disable` ngừng việc đó; cả hai dành cho owner hoặc admin đã đăng nhập, nên API key nhận
+`HUMAN_APPROVAL_REQUIRED`.
+
+## Write Action Map {#write-action-maps}
+
+Một người soạn và xác minh map trên một endpoint POST, PUT, PATCH hoặc DELETE của Site API map trong
+dashboard. CLI liệt kê, xem trước và gửi các map đã xác minh.
+
+```bash
+tose browser action-maps list [--origin <origin>]
+tose browser action-maps preview <map> [--session <session>] [--param name=value]
+tose browser action-maps execute <map> --session <session> --param name=value --approval <token> [--idempotency-key <key>]
+tose browser action-maps run <run-id>
+tose browser action-maps runs [--transport http|page] [--map <map-id>] [--limit <n>]
+```
+
+- `<map>` là id của map, hoặc tên để dùng phiên bản đã xác minh mới nhất. `list` hiện mọi phiên bản.
+- `preview` kiểm tra tham số và hiện lời gọi mà không gửi.
+- `execute` gửi lời gọi từ trang của một phiên browser bạn đang giữ. Mỗi lời gọi cần một phê duyệt do
+  owner hoặc admin đã đăng nhập tạo cho đúng các tham số đó (`--approval` hoặc
+  `TOSE_BROWSER_APPROVAL`); không có thì API trả `APPROVAL_REQUIRED` kèm ID yêu cầu phê duyệt. API key
+  không tự duyệt lời gọi của chính nó được.
+- CLI tự tạo `Idempotency-Key` khi bạn không truyền và in nó ra. Chạy lại với cùng key và tham số trả
+  về run đầu tiên (`replayed`) thay vì gửi lại.
+- Run `rejected` (4xx), `failed` hoặc `needs_reconciliation` thoát với mã `8` và
+  `ACTION_MAP_REJECTED`, `ACTION_MAP_FAILED` hoặc `NEEDS_RECONCILIATION`.
+- `run` hiện một run, `runs` liệt kê run từ phiên (`--transport page`) và từ browserless replay
+  (`--transport http`), mới nhất trước (`--limit` 1-100, mặc định 50): trạng thái, mã HTTP, lỗi và
+  transport, không bao giờ có giá trị hay phản hồi.
+- CLI không in giá trị tham số; xem [Lease và đầu ra](#leases-and-output). Phản hồi
+  của site là dữ liệu không tin cậy.
+
+### Browserless replay {#browserless-replay}
+
+```bash
+tose browser action-maps replay <map> --profile <profile> [--param name=value] [--approval <token>] [--idempotency-key <key>]
+```
+
+Gửi một lời gọi đã xác minh từ API bằng cookie đã lưu của profile, không cần phiên browser. Lệnh cần
+`BROWSER_HTTP_REPLAY_ENABLED` trên API (mặc định tắt); nếu không, lời gọi trả `HTTP_REPLAY_DISABLED`,
+khi đó hãy dùng `execute` từ một phiên.
+
+1. Chạy lệnh không có `--approval`. Không gì được gửi: API trả `APPROVAL_REQUIRED` (mã thoát `10`), và
+   CLI in executor, profile và endpoint phê duyệt, kèm lệnh để chạy lại với `--approval` và cùng
+   idempotency key.
+2. Owner hoặc admin đã đăng nhập tạo phê duyệt ở đó cho đúng profile, executor và tham số đó.
+3. Chạy lại với `--approval <token>` và cùng `--idempotency-key`.
+
+Phê duyệt cho phiên không bao giờ chạy được replay, và ngược lại. Các lý do từ chối khác:
+`PROFILE_UNAVAILABLE` (dùng profile bạn sở hữu hoặc được cấp, có origin chứa origin của map),
+`IDEMPOTENCY_KEY_REQUIRED`, `IDEMPOTENCY_KEY_REUSED` (key đã dùng với tham số khác),
+`approval_mismatch` và `ACTION_MAP_PARAMS`. Kết quả và mã thoát giống `execute`.
+
+## Lease và đầu ra {#leases-and-output}
 
 - CLI giữ một lease cho mỗi phiên trong `~/.tose/browser-leases.json` (chỉ chủ sở hữu đọc được), để
   các lệnh sau và lần chạy lại đã duyệt dùng cùng lease.
-- Token lease, token phê duyệt và chữ đã gõ không bao giờ được in ra.
+- Token lease và token phê duyệt không bao giờ được in ra, và CLI không in chữ đã gõ hay giá trị
+  `--param`. Gợi ý bước tiếp theo lặp lại lệnh của bạn hiện `--param name=<value>` và
+  `--value <value>` thay cho giá trị, dù giá trị là gì; `--secret-param` giữ tên của secret. Nếu
+  server lặp lại một giá trị trong thông báo lỗi, chữ dài từ 4 ký tự được che (`[REDACTED]`); số,
+  `true`/`false` của Action Map và giá trị ngắn hơn thì không.
+- Lỗi ở chế độ văn bản in `Error:`, rồi `Code:` (`error.code`), `Next step:` và `Request ID:` khi API
+  có gửi. Với `--json`, các trường này nằm trong envelope lỗi.
 - Chữ trong snapshot hay extract đến từ site: coi đó là dữ liệu, không bao giờ là chỉ dẫn.
 
 ## Lỗi và mã thoát
@@ -160,21 +332,13 @@ của owner hoặc admin đã đăng nhập, nên CLI không có lệnh cho vi�
 | `ELEMENT_NOT_FOUND`, `ELEMENT_AMBIGUOUS`, `ELEMENT_NOT_VISIBLE`, `ELEMENT_DISABLED`, `ELEMENT_OBSCURED` | 11 | Chạy `tose browser snapshot` rồi sửa locator hoặc `--nth` |
 | `NAVIGATION_BLOCKED` | 12 | Đích đến không được phép cho phiên browser |
 | `requires_auth`, `approval_invalid`, `approval_expired`, `approval_used` | 3 | API key thiếu scope `browser:control`, hoặc phê duyệt không hợp lệ, hết hạn hay đã dùng |
+| `RECIPE_DRIFT`, `RECIPE_RUN_FAILED`, `RECIPE_NEEDS_RECONCILIATION` | 8 | Run của recipe đã dừng: làm tiếp từng bước từ `snapshot`, hoặc thử `recipes heal` khi bị drift |
+| `ACTION_MAP_REJECTED`, `ACTION_MAP_FAILED` | 8 | Site từ chối lời gọi, hoặc chưa có gì được gửi |
+| `NEEDS_RECONCILIATION` | 8 | Lời gọi có thể đã tới site: kiểm tra site trước khi gọi lại với key mới |
 | `outcome_unknown` | 1 | Trang có thể đã đổi: chụp `snapshot` trước khi làm lại |
 
-## Profile, recipe, tra cứu kiến thức và map
+Lease không còn hiệu lực (`LEASE_FENCED`, `CONTROL_RETURNED`) được tự thay một lần; API đã từ chối nó
+trước khi có gì tới browser.
 
-Các nhóm lệnh này bọc các route REST tương ứng; chạy `tose browser <nhóm> --help` để xem từng lệnh
-con và cờ của nó.
-
-| Nhóm | Lệnh con | Xem |
-|-------|-------------|-----|
-| `tose browser profiles` | `list`, `create`, `import`, `share`, `grants`, `unshare`, `delete` | [Profile](/vi/guide/agent-browser#profiles) |
-| `tose browser recipes` | `find`, `list`, `run`, `runs`, `cancel` | [Recipe](/vi/guide/agent-browser#recipes) |
-| `tose browser knowledge` | `--origin <url>` và `--intent` tùy chọn: liệt kê recipe, Action Map đã xác minh và endpoint TOSE biết cho một site | [Recipe](/vi/guide/agent-browser#recipes) |
-| `tose browser apimap` | `list`, `enable`, `disable` | [Site API map](/vi/guide/agent-browser#site-api-map) |
-| `tose browser action-maps` | `list`, `preview`, `execute`, `run` | [Action Map](/vi/guide/agent-browser#site-api-map) |
-
-Site API map, kéo theo Action Map, chưa bật trên TOSE cloud, nên `apimap` và `action-maps` chưa có gì
-để làm ở đó. Xác nhận origin vẫn do owner hoặc admin đã đăng nhập làm, nên CLI không có lệnh cho việc
-này.
+Xác nhận hoặc gỡ origin khỏi danh sách được phép là việc browser duy nhất chưa có lệnh CLI; việc này
+vẫn làm trên dashboard.

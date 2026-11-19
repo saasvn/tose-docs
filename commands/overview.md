@@ -107,8 +107,9 @@ production yet.
 
 ### Agent browser (early access)
 
-Status: **early access**. The commands are merged into the CLI after 0.2.0, but the
-[agent browser](/guide/agent-browser) is not switched on in production yet.
+Status: **early access**. The commands are merged into the CLI after 0.2.0 and ship in the next
+release. The Site API map (with write Action Maps), browserless replay, recipe self-heal and System
+One need server flags that are off by default; see the [agent browser](/guide/agent-browser).
 
 | Command | Description |
 |---------|-------------|
@@ -118,6 +119,14 @@ Status: **early access**. The commands are merged into the CLI after 0.2.0, but 
 | [`tose browser click / fill / press`](/commands/browser#tose-browser-click-fill-press) | Act on an element (an API key needs a person's approval) |
 | [`tose browser extract / screenshot`](/commands/browser#tose-browser-extract) | Read from the page or save a PNG |
 | [`tose browser allowlist`](/commands/browser#allow-list) | Show or propose sites the browsers may reach |
+| [`tose browser profiles`](/commands/browser#profiles) | Saved logins: create, import, share, revoke, delete |
+| [`tose browser knowledge`](/commands/browser#knowledge-lookup) | What the workspace already knows about a site |
+| [`tose browser recipes`](/commands/browser#recipes) | Find and replay saved steps without a model |
+| [`tose browser recipes heal / heals / heal-rollback`](/commands/browser#self-heal) | Patch a drifted recipe step, list attempts, roll a patch back |
+| [`tose browser self-heal`](/commands/browser#self-heal) | Show or switch the workspace's recipe self-heal |
+| [`tose browser apimap`](/commands/browser#site-api-map) | Read the Site API map; enable or disable an endpoint |
+| [`tose browser action-maps`](/commands/browser#write-action-maps) | Preview and send verified write calls, list their runs |
+| [`tose browser action-maps replay`](/commands/browser#browserless-replay) | Send a verified call with a profile's cookies, without a browser |
 | [`tose browser close`](/commands/browser#tose-browser-close) | End a session and release its compute |
 
 ### Disks and Pricing
@@ -354,6 +363,10 @@ tose status --json
 | `retryable` | `true` means the same command may succeed if you run it again later |
 | `details` | Extra context from the API, for example `required_scope`, which the CLI sets when `code` is `INSUFFICIENT_SCOPE` |
 | `doc_url` | Link to documentation for this error, or `null` |
+
+Without `--json`, an error prints `Error: <message>` on stderr, then `Code:`, `Next step:` and
+`Request ID:` lines when they are set, and the suggested next commands. Those hints never repeat
+tokens, and they show `--param name=<value>` and `--value <value>` instead of the values you typed.
 
 `schema_version` changes only when a field is removed or changes meaning. New fields can appear at any time, so ignore the ones you do not know.
 
