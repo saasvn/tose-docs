@@ -6,10 +6,11 @@ description: "Isolated, hosted Chromium sessions that people and AI agents drive
 # Agent browser {#agent-browser}
 
 ::: warning Early access
-The agent browser runs on TOSE staging and is off in production until the staging end-to-end suite
-and every security release gate pass. While it is off, the `browsers` endpoints answer that the
-runtime is not enabled and `tose browser` commands fail with that message. Features marked
-**In progress** or **Planned** below are not available yet; this page is updated as they ship.
+The agent browser and its MCP tools are on in production since 2026-11-19. Some parts stay off in
+production for now: the Site API map (and with it the `fetch` action and write Action Maps),
+response body capture, browserless replay, System One suggestions, and guard checks on ordinary
+browser actions. Self-heal also needs a platform flag that is off by default. Features marked
+**Planned** below are not available yet; this page is updated as they ship.
 :::
 
 The agent browser gives a workspace a hosted Chromium that a person or an AI agent drives through
@@ -25,21 +26,26 @@ call that API instead.
 
 | Capability | Status |
 |---|---|
-| Sessions: create, suspend, resume, terminate, audit events | Available ([REST](/api/browsers), [CLI](/commands/browser)) |
+| Sessions: create, suspend, resume, terminate, audit events | Available ([REST](/api/browsers), [CLI](/commands/browser), dashboard; MCP creates and closes) |
 | Leases, takeover by a person, fencing of older leases | Available |
-| Typed actions, compact snapshots, typed errors with `next_step` | Available |
-| Approvals for `click`, `fill` and `press` run by an agent | Available (REST: a signed-in owner or admin mints the token) |
-| Workspace origin allow-list and egress proxy | Available (proposals from REST and CLI; confirmation by a signed-in admin over REST) |
-| Site API map (metadata only) and the `fetch` action | Available behind a separate server flag; REST only |
-| Dashboard: browser list, live view, takeover, approve page, allowed sites | In progress ([tose-app#809](https://github.com/saasvn/tose-app/pull/809)) |
-| MCP browser tools with approval delivery | In progress ([tose-app#807](https://github.com/saasvn/tose-app/pull/807)) |
-| In-chat live view and takeover (MCP Apps) | Planned |
-| Profiles: vault, grants, sharing, import, re-login | In progress ([tose-app#814](https://github.com/saasvn/tose-app/pull/814)) |
-| Local Chrome companion | Planned (in scope; design written, not built) |
-| Action recipes, durable replay runs, recipe receipts | In progress ([tose-app#813](https://github.com/saasvn/tose-app/pull/813)) |
-| Public recipes | Planned |
-| Write Action Maps | Planned ([tose-app#820](https://github.com/saasvn/tose-app/issues/820)) |
-| Guard layer and self-heal | Planned ([tose-app#821](https://github.com/saasvn/tose-app/issues/821)) |
+| Typed actions, compact snapshots, typed errors with `next_step` | Available (REST, CLI, MCP) |
+| Approvals for `click`, `fill` and `press` run by an agent | Available (a signed-in owner or admin approves over REST or on the dashboard approve page; MCP returns a link to that page) |
+| Workspace origin allow-list and egress proxy | Available (proposals from REST and CLI; confirmation by a signed-in admin over REST or on the dashboard **Allowed sites** page) |
+| Dashboard: browser list, live view, takeover, approve page, allowed sites | Available |
+| MCP browser tools with approval delivery | Available ([tose-app#807](https://github.com/saasvn/tose-app/pull/807)) |
+| In-chat live view (MCP Apps) | Available; taking over happens on the TOSE page |
+| Profiles: vault, grants, sharing, import, re-login | Available (REST, dashboard, [CLI](/commands/browser#profiles); no MCP tools yet) |
+| Local Chrome companion | Import from your own Chrome on the dashboard **Profiles** page ([tose-app#825](https://github.com/saasvn/tose-app/pull/825)); device pairing and local control are planned |
+| Action recipes, durable replay runs, recipe receipts | Available (REST, dashboard **Recipes** page ([tose-app#825](https://github.com/saasvn/tose-app/pull/825)), [CLI](/commands/browser#recipes); no MCP tools to save or run yet) |
+| Public recipes | Available over REST; a platform admin reviews each listing |
+| Site API map (metadata only) and the `fetch` action | Behind a server flag, off in production (REST, [CLI](/commands/browser#site-api-map); MCP and CLI [knowledge lookup](/commands/browser#knowledge-lookup); no dashboard page) |
+| Write Action Maps | Where the Site API map runs (REST, MCP, [CLI](/commands/browser#write-action-maps)); a person verifies and approves over REST |
+| Browserless replay | Behind a server flag, off in production (REST, MCP, [CLI](/commands/browser#browserless-replay), dashboard list) ([tose-app#831](https://github.com/saasvn/tose-app/pull/831)) |
+| Self-heal | Behind a server flag, off by default, plus a workspace switch (recipes: REST, MCP, dashboard, [CLI](/commands/browser#self-heal); Action Maps: REST) ([tose-app#849](https://github.com/saasvn/tose-app/pull/849)) |
+| Guard layer | Available ([tose-app#858](https://github.com/saasvn/tose-app/pull/858)); always checks Action Map writes and self-heal, and checks ordinary browser actions only behind a server flag that is off in production |
+
+The CLI commands for profiles, recipes, the Site API map, knowledge lookup, Action Maps and self-heal
+ship in the `tose` release after 0.2.0.
 
 ## Sessions {#sessions}
 
@@ -53,8 +59,9 @@ A session is one disposable Chromium pod. It moves through `provisioning`, `runn
   balance (otherwise `402`) and the workspace must be under its concurrent-session cap (otherwise
   `429`).
 - **Suspend** and **terminate** both remove the pod. There is no disk and no hibernation, so a
-  suspended session loses its tabs and cookies. **Resume** starts a fresh pod after the same
-  wallet and concurrency checks.
+  suspended session loses its tabs and cookies, unless it was opened from a
+  [profile](#profiles) with `persist: true`, which saves its logins first. **Resume** starts a
+  fresh pod after the same wallet and concurrency checks.
 - **Idle sleep:** a session with no activity is suspended after about 10 minutes.
 - **Empty wallet:** every browser of the workspace is suspended.
 - A workspace cannot be deleted while one of its browser sessions is not terminated (`409`).
@@ -86,18 +93,17 @@ A **lease** is the right to drive one session. It has scopes `observe` (watch) a
 An action that loses its connection, or whose lease ends while it runs, reports `outcome_unknown`.
 The page may already have changed: take a snapshot before you repeat it.
 
-**Live view in the dashboard** (watch the page, take over, hand back) is in progress with
-[tose-app#809](https://github.com/saasvn/tose-app/pull/809).
+**Live view in the dashboard:** a session's page shows the browser live and lets a signed-in
+person take over and hand back.
 
 ### In-chat live view (MCP Apps) {#mcp-apps}
 
-**Planned.** Decided by the product owner but not built. Browser MCP tools will return, next to
-their text result, an MCP Apps view that hosts such as Claude and ChatGPT render inside the chat.
-It shows the agent's browser live and lets the person take over when the agent reports
-`HUMAN_STEP_REQUIRED` (login, MFA, CAPTCHA). The view uses a short-lived, single-use watch-only
-ticket, never the session token; taking over needs the person to be signed in to TOSE. Input typed
-in the view goes to TOSE, not through the model. Hosts without MCP Apps get a plain link to the
-dashboard live view.
+Browser MCP tools return, next to their text result, an MCP Apps view that hosts such as Claude and
+ChatGPT render inside the chat. It shows the agent's browser live. When the agent reports
+`HUMAN_STEP_REQUIRED` (login, MFA, CAPTCHA), the view's button opens the session page in TOSE, where
+the signed-in person takes over; the chat view itself takes no input. The view uses a short-lived,
+single-use watch-only ticket, never the session token, and watching never fences the agent. Hosts
+without MCP Apps get a plain link to the dashboard live view.
 
 ## Typed actions {#actions}
 
@@ -177,10 +183,9 @@ most 15) and runs one action. Changing any parameter, the origin or the executor
 Refusals are `approval_invalid`, `approval_expired`, `approval_mismatch` and `approval_used`; a
 refused approval is not used up.
 
-Delivering the approval request to the person through the dashboard approve page and MCP is in
-progress ([tose-app#809](https://github.com/saasvn/tose-app/pull/809),
-[tose-app#807](https://github.com/saasvn/tose-app/pull/807)). A per-origin owner switch for
-production, payment and destructive actions is not built yet.
+Over MCP, the refused action returns an `approval_url` to the dashboard approve page, where the
+owner or admin approves; the agent then repeats the call with the `approval` token. A per-origin
+owner switch for production, payment and destructive actions is not built yet.
 
 ## Allowed sites {#allow-list}
 
@@ -201,8 +206,8 @@ third-party site until one is confirmed.
 ## Site API map and Action Maps {#site-api-map}
 
 The Site API map lets an agent call a site's own read API instead of scraping its HTML. It is off
-unless the server sets `BROWSER_API_MAP_ENABLED`, and it records only while the allow-list is
-enforced and only for confirmed origins.
+unless the server sets `BROWSER_API_MAP_ENABLED` (off in production), and it records only while
+the allow-list is enforced and only for confirmed origins.
 
 - **What is recorded:** for `XHR` and `fetch` requests that pages make, the origin, method, a path
   template (ID-like segments become `{id}`), query parameter **names**, media type and status.
@@ -217,75 +222,103 @@ enforced and only for confirmed origins.
 - **Lookup:** `GET .../browser-api-endpoints?url=<url>` lists the known `GET` endpoints of that
   URL's origin, with the matching template first.
 
-The map is REST only today; MCP, CLI and dashboard surfaces are a follow-up.
+Besides REST, the CLI lists endpoints with [`tose browser apimap`](/commands/browser#site-api-map),
+and a **knowledge lookup** (MCP tool `browser_knowledge_lookup`,
+[`tose browser knowledge`](/commands/browser#knowledge-lookup)) lists what the workspace already
+knows about a site: its recipes, verified write Action Maps and Site API map endpoints. The
+dashboard has no Site API map page.
 
-**Write Action Maps** (calling a site's write endpoints) are planned
-([tose-app#820](https://github.com/saasvn/tose-app/issues/820)). Each call will need a
-single-use approval and an `Idempotency-Key`, and an unclear outcome will end in
-`needs_reconciliation` rather than a retry.
+**Write Action Maps** call a site's `POST`, `PUT`, `PATCH` or `DELETE` endpoint from the session's
+page with typed parameters, instead of clicking through a form. They exist only where the Site API
+map records endpoints. A person verifies each map version over REST. Every call needs a single-use
+approval from a signed-in owner or admin and an `Idempotency-Key`, and an unclear outcome ends in
+`needs_reconciliation` rather than a retry. Agents list, preview and run maps over REST, MCP and the
+[CLI](/commands/browser#write-action-maps).
 
 ## Profiles {#profiles}
 
-**In progress** ([tose-app#814](https://github.com/saasvn/tose-app/pull/814)). Today every session
-starts with an empty browser and loses its state when it is suspended. The accepted design:
+A profile is a saved login for a few sites. Open a session from it and the session starts signed
+in; a session opened with `persist: true` writes the login back before its pod is removed. Manage
+profiles over REST, on the dashboard **Profiles** page, or with
+[`tose browser profiles`](/commands/browser#profiles). MCP has no profile tools yet.
 
 - **Vault:** a profile's auth state is a `storageState` of allowed origins only (cookies and
-  localStorage, no IndexedDB in the first release, about 256 KB), encrypted in the platform's
-  credential store. No API, MCP result, log or error ever returns a cookie or token, and exporting
-  auth state is not a feature.
+  localStorage, no IndexedDB, at most 256 KB), encrypted in the platform's credential store. No
+  API, MCP result, log or error ever returns a cookie or token, and exporting auth state is not a
+  feature.
 - **Grants:** using a profile needs a grant that names the profile and the origins it may be used
   on. Having a cookie never authorizes an action by itself.
 - **Who writes a profile:** only a person's lease by default. The owner may allow agent writes per
   profile.
 - **Re-login:** a profile that needs login can be re-authenticated with a credential from the
-  broker, filled inside the pod; the agent never sees the value. MFA, OTP or CAPTCHA stops the run
-  with `HUMAN_STEP_REQUIRED` and a live-view link. TOSE does not bypass CAPTCHA or MFA.
+  broker, filled inside the pod after a person approves the submit click; the agent never sees the
+  value. MFA, OTP or CAPTCHA stops the run with `HUMAN_STEP_REQUIRED` and a live-view link. TOSE
+  does not bypass CAPTCHA or MFA.
 - **Sharing:** inside a workspace through time-limited grants. Across workspaces through a share
   grant the owner issues: time-limited, audited and revocable at once. Cookies are never copied; the
   receiving workspace opens read-only sessions from the source profile, billed to itself.
-- **Import:** through a secure form or the companion, never through a prompt. Importing a whole
-  Chrome profile directory is refused.
+- **Import:** a signed-in person uploads a Playwright `storageState` file (dashboard or CLI) or uses
+  the companion below, never a prompt. Only the profile's allowed origins are kept.
+- Creating, importing, granting and sharing need a person signed in to TOSE; an API key gets
+  `HUMAN_APPROVAL_REQUIRED`.
 
 ### Local Chrome companion {#companion}
 
-**Planned.** The product owner put it in scope for this delivery; the design is written but nothing
-is built. A Chrome extension and small helper would let a
-person reuse a login from their own Chrome without uploading the profile: they pick one origin and
-the state types, preview metadata only (cookie names, expiry, sizes; never values) and confirm both
-in TOSE and on the device. Known limits once it ships: passkeys and security keys are never copied,
-device-bound cookies work only briefly, SSO and 2FA re-challenges need the person, and sites that tie
-sessions to IP or device may log the copy out.
+A Chrome extension lets a person reuse a login from their own Chrome without uploading the Chrome
+profile. On the dashboard **Profiles** page they choose *Import from my browser*, pick one of the
+profile's origins and allow the read in the extension's own window. The dashboard then shows
+metadata only (cookie names, expiry, sizes; never values) before the person uploads it. The
+extension is not in the Chrome Web Store yet. Pairing a device and letting an agent use the local
+Chrome directly are planned, not built.
+
+Known limits: passkeys and security keys are never copied, device-bound cookies work only briefly,
+SSO and 2FA re-challenges need the person, and sites that tie sessions to IP or device may log the
+copy out.
 
 ## Recipes {#recipes}
 
-**In progress** ([tose-app#813](https://github.com/saasvn/tose-app/pull/813)). An agent that
-finished a task saves the steps as a named, versioned recipe. Next time it runs the recipe without a
-model: each step's locator must match exactly one element and the page must match the step's
-expected state, otherwise the run stops with `RECIPE_DRIFT` and the agent continues step by step.
-Recorded steps never keep typed text; fill values become named parameters.
+An agent that finished a task saves the steps as a named, versioned recipe. Next time it runs the
+recipe without a model: each step's locator must match exactly one element and the page must match
+the step's expected state, otherwise the run stops with `RECIPE_DRIFT` and the agent continues step
+by step. Recorded steps never keep typed text; fill values become named parameters.
 
 A run's write steps are approved by a single-use **recipe receipt** for one recipe version, one set
 of parameters, one origin and one executor, with a short expiry. Steps outside the recipe still need
 their own approval, and origin-wide approvals are not allowed.
 
-**Public recipes** are planned: read-only, on public sites that need no login, reviewed before
-listing, and carrying no data from the source workspace.
+Runs are durable: they survive a restart of the API and of the client that started them. A run whose
+write step may have gone through ends in `needs_reconciliation` and is never replayed. Agents find and
+run recipes over REST or [`tose browser recipes`](/commands/browser#recipes); the dashboard
+**Recipes** page lists recipes and their run history. MCP has no tools to save or run recipes yet.
+
+**Public recipes** are read-only, on public sites that need no login, reviewed by a platform admin
+before listing, and carry no data from the source workspace. Any workspace can find one and run it
+in its own session, under its own allow-list.
 
 ## Guard layer and self-heal {#guard}
 
-**Planned** ([tose-app#821](https://github.com/saasvn/tose-app/issues/821), Action Map parity).
-Nothing below is built yet; the issue tracks the work:
+- **Guard:** personal data detection (including Vietnamese recognizers) and a prompt-injection
+  classifier run inside the cluster, with a second check by the workspace's decision model on
+  redacted text. It always checks Action Map writes, browserless replay and self-heal. It checks
+  ordinary browser actions and recipe runs only when the server sets `BROWSER_GUARD_ENFORCE`, which
+  is off in production. A guarded step fails closed with `GUARD_UNAVAILABLE` or `GUARD_INJECTION`,
+  each with a `next_step`.
+- **Browserless replay:** a verified write Action Map can be sent from the API with a profile's
+  saved login, without a browser session. Each call needs its own approval for that profile and
+  executor, and an `Idempotency-Key`. The server must set `BROWSER_HTTP_REPLAY_ENABLED`, which is off
+  in production; otherwise the call answers `HTTP_REPLAY_DISABLED`. Available over REST, MCP and
+  [`tose browser action-maps replay`](/commands/browser#browserless-replay); the dashboard lists
+  replays on **Self-heal and replays**.
+- **Self-heal:** when a recipe run drifts because an element moved or was renamed, the workspace's
+  decision model picks the same control from the page and the engine saves the fix as a new recipe
+  version. A write Action Map whose endpoint moved can be rebound the same way. Each attempt is
+  limited per day, audited and can be rolled back. It needs both the server flag
+  `BROWSER_SELF_HEAL_ENABLED` (off by default) and a workspace switch a signed-in owner or admin
+  turns on. Recipe self-heal is on REST, MCP, the dashboard and
+  [`tose browser recipes heal`](/commands/browser#self-heal); Action Map self-heal is REST only.
 
-- **Guard:** a local prompt-injection classifier, a second check on redacted text, and detection of
-  personal data (including Vietnamese recognizers) running inside the cluster. It fails closed on
-  writes and navigation.
-- **Browserless replay:** replaying known API calls over HTTP through the egress proxy, without a
-  browser.
-- **Self-heal:** recovery for reads and writes, with a kill switch, limits, audit and rollback. It
-  depends on recipes and profiles.
-
-The controls that apply today are listed under [Allowed sites](#allow-list),
-[Approvals](#approvals) and [Security model](#security).
+The other controls are listed under [Allowed sites](#allow-list), [Approvals](#approvals) and
+[Security model](#security).
 
 ## Pricing and limits {#pricing}
 
@@ -296,7 +329,8 @@ The controls that apply today are listed under [Allowed sites](#allow-list),
 - **Prepaid only:** a session cannot start with an empty wallet and is suspended when the wallet
   runs out. There is no compute debt.
 - **Idle sleep** after about 10 minutes without activity, so idle time is not billed.
-- **Storage:** once profiles ship, profiles, auth state and artifacts are billed as storage.
+- **Storage:** profiles and auth state are not billed yet; they are planned to be billed as
+  storage.
 - **Limits:** a cap on concurrent sessions per workspace, a 12-hour wall-clock cap per pod, action
   timeouts up to 30 seconds, `fetch` bodies up to 256 KiB, 100 pending origin proposals.
 
