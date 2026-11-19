@@ -5,11 +5,13 @@ description: "Phiên Chromium được host, cô lập, do người và AI agent
 
 # Agent browser {#agent-browser}
 
-::: warning Truy cập sớm
-Agent browser đang chạy trên staging của TOSE và tắt trên production cho tới khi bộ kiểm thử
-end-to-end trên staging và mọi release gate bảo mật đều qua. Khi tắt, các endpoint `browsers` báo
-runtime chưa bật và lệnh `tose browser` thất bại với thông báo đó. Các tính năng ghi **Đang làm**
-hay **Đã lên kế hoạch** dưới đây chưa dùng được; trang này được cập nhật khi chúng ra mắt.
+::: info Trên TOSE cloud
+Agent browser, các trang dashboard và các tool MCP của nó (tại `https://app.tose.sh/mcp`) đã chạy
+thật. Một số phần đã xây nhưng **chưa bật trên TOSE cloud**, mỗi phần sau một cờ server riêng:
+[Site API map](#site-api-map) cùng thao tác `fetch` và việc ghi body response, kéo theo Action Map
+ghi và chạy lại không cần browser; [tự phục hồi](#guard); gợi ý System One; và
+[lớp bảo vệ nội dung](#guard) cho thao tác browser và lượt chạy recipe. [Bảng trạng thái](#status)
+nêu rõ từng phần.
 :::
 
 Agent browser cho workspace một Chromium được host mà người hoặc AI agent điều khiển qua **thao tác
@@ -25,21 +27,23 @@ API đó.
 
 | Khả năng | Trạng thái |
 |---|---|
-| Phiên: tạo, tạm dừng, chạy lại, kết thúc, sự kiện audit | Đã có ([REST](/vi/api/browsers), [CLI](/vi/commands/browser)) |
+| Phiên: tạo, tạm dừng, chạy lại, kết thúc, sự kiện audit | Đã có ([REST](/vi/api/browsers), [CLI](/vi/commands/browser), MCP, dashboard) |
 | Lease, người tiếp quản, chặn (fencing) lease cũ | Đã có |
 | Thao tác có kiểu, snapshot gọn, lỗi có mã kèm `next_step` | Đã có |
-| Phê duyệt cho `click`, `fill`, `press` do agent chạy | Đã có (REST: owner hoặc admin đăng nhập tạo token) |
-| Danh sách origin được phép của workspace và egress proxy | Đã có (đề xuất qua REST và CLI; admin đăng nhập xác nhận qua REST) |
-| Site API map (chỉ metadata) và thao tác `fetch` | Đã có sau một cờ server riêng; chỉ REST |
-| Dashboard: danh sách browser, xem trực tiếp, tiếp quản, trang duyệt, site được phép | Đang làm ([tose-app#809](https://github.com/saasvn/tose-app/pull/809)) |
-| Tool MCP cho browser kèm giao yêu cầu phê duyệt | Đang làm ([tose-app#807](https://github.com/saasvn/tose-app/pull/807)) |
-| Xem trực tiếp và tiếp quản ngay trong chat (MCP Apps) | Đã lên kế hoạch |
-| Profile: vault, grant, chia sẻ, import, đăng nhập lại | Đang làm ([tose-app#814](https://github.com/saasvn/tose-app/pull/814)) |
-| Companion cho Chrome trên máy | Đã lên kế hoạch (trong phạm vi; đã có thiết kế, chưa xây) |
-| Action recipe, lượt chạy lại bền vững, recipe receipt | Đang làm ([tose-app#813](https://github.com/saasvn/tose-app/pull/813)) |
-| Recipe công khai | Đã lên kế hoạch |
-| Action Map ghi | Đã lên kế hoạch ([tose-app#820](https://github.com/saasvn/tose-app/issues/820)) |
-| Lớp bảo vệ và tự phục hồi | Đã lên kế hoạch ([tose-app#821](https://github.com/saasvn/tose-app/issues/821)) |
+| Phê duyệt cho `click`, `fill`, `press` do agent chạy | Đã có (owner hoặc admin đã đăng nhập duyệt qua REST hoặc trang duyệt trên dashboard) |
+| Danh sách origin được phép của workspace và egress proxy | Đã có (đề xuất qua REST và CLI; admin đã đăng nhập xác nhận qua REST hoặc dashboard) |
+| Dashboard: danh sách browser, xem trực tiếp, tiếp quản, trang duyệt, site được phép, profile, recipe, tự phục hồi | Đã có |
+| Tool MCP cho browser kèm giao yêu cầu phê duyệt | Đã có |
+| Xem trực tiếp trong chat (MCP Apps) | Đã có; tiếp quản mở trang phiên trên dashboard |
+| Profile: vault, grant, chia sẻ, import, đăng nhập lại | Đã có (REST, dashboard, CLI) |
+| Companion cho Chrome trên máy | Đã có để import phiên đăng nhập từ dashboard; ghép thiết bị và helper trên máy chưa được xây |
+| Action recipe, lượt chạy lại bền vững, recipe receipt | Đã có (REST, dashboard, CLI) |
+| Recipe công khai | Đã có (REST; admin nền tảng xét duyệt từng recipe trước khi đăng) |
+| Tra cứu kiến thức và `goal` của snapshot | Đã có (REST, MCP, CLI); gợi ý System One chưa bật trên TOSE cloud |
+| Lớp bảo vệ nội dung | Đã có cho thao tác ghi qua Action Map; cho thao tác browser và lượt chạy recipe thì chưa bật trên TOSE cloud |
+| Site API map (chỉ metadata) và thao tác `fetch` | Đã xây (REST, CLI); chưa bật trên TOSE cloud |
+| Action Map ghi và chạy lại không cần browser | Đã xây (REST, MCP, CLI); cần Site API map nên chưa bật trên TOSE cloud |
+| Tự phục hồi recipe và Action Map | Đã xây (REST, MCP, dashboard); chưa bật trên TOSE cloud |
 
 ## Phiên {#sessions}
 
@@ -82,17 +86,18 @@ tác), hạn dùng được gia hạn theo hoạt động tới một mức tu�
 Thao tác mất kết nối, hoặc có lease hết hiệu lực khi đang chạy, báo `outcome_unknown`. Trang có thể
 đã thay đổi: chụp snapshot trước khi làm lại.
 
-**Xem trực tiếp trong dashboard** (xem trang, tiếp quản, trả lại) đang làm ở
-[tose-app#809](https://github.com/saasvn/tose-app/pull/809).
+**Xem trực tiếp trong dashboard:** người đã đăng nhập xem trang trên trang phiên, tiếp quản và trả
+lại quyền điều khiển.
 
 ### Xem trực tiếp trong chat (MCP Apps) {#mcp-apps}
 
-**Đã lên kế hoạch.** Product owner đã quyết nhưng chưa xây. Tool MCP cho browser sẽ trả về, cạnh kết
-quả dạng chữ, một giao diện MCP Apps mà các host như Claude và ChatGPT hiển thị ngay trong chat. Giao
-diện cho thấy browser của agent theo thời gian thực và cho người tiếp quản khi agent báo
-`HUMAN_STEP_REQUIRED` (đăng nhập, MFA, CAPTCHA). Giao diện dùng vé chỉ xem, ngắn hạn, dùng một lần,
-không bao giờ dùng token phiên; muốn tiếp quản thì người phải đăng nhập TOSE. Chữ gõ trong giao diện
-đi tới TOSE, không qua model. Host không hỗ trợ MCP Apps nhận đường link xem trực tiếp trên dashboard.
+Tool MCP cho browser trả về, cạnh kết quả dạng chữ, một giao diện MCP Apps mà các host như Claude
+và ChatGPT hiển thị ngay trong chat. Giao diện cho thấy browser của agent theo thời gian thực. Khi
+agent báo `HUMAN_STEP_REQUIRED` (đăng nhập, MFA, CAPTCHA) hoặc bị kẹt, nút "Take over in TOSE" mở
+trang phiên trên dashboard để người đã đăng nhập tiếp quản; bản thân giao diện không nhận thao tác
+nhập. Giao diện dùng vé chỉ xem, ngắn hạn, dùng một lần, không bao giờ dùng token phiên, và việc xem
+không bao giờ chặn agent. Host không hỗ trợ MCP Apps nhận `live_view_url`, đường link tới trang đó
+trên dashboard.
 
 ## Thao tác có kiểu {#actions}
 
@@ -170,9 +175,8 @@ số nào, origin hay bên thực thi đều làm phê duyệt mất hiệu lự
 `approval_invalid`, `approval_expired`, `approval_mismatch` và `approval_used`; phê duyệt bị từ chối
 thì không bị tiêu.
 
-Việc chuyển yêu cầu phê duyệt tới người qua trang duyệt trên dashboard và qua MCP đang làm
-([tose-app#809](https://github.com/saasvn/tose-app/pull/809),
-[tose-app#807](https://github.com/saasvn/tose-app/pull/807)). Công tắc theo origin của owner cho
+Qua MCP, lời từ chối kèm `approval_url` dẫn tới trang duyệt trên dashboard để người duyệt; sau đó
+agent gửi lại đúng lời gọi đó với token `approval`. Công tắc theo origin của owner cho
 production, thanh toán và thao tác phá hủy chưa được xây.
 
 ## Site được phép {#allow-list}
@@ -192,8 +196,8 @@ cho tới khi có origin được xác nhận.
 
 ## Site API map và Action Map {#site-api-map}
 
-Site API map cho agent gọi API đọc của chính site thay vì cào HTML. Nó tắt trừ khi server đặt
-`BROWSER_API_MAP_ENABLED`, và chỉ ghi khi danh sách được phép đang bật và chỉ cho origin đã xác nhận.
+Site API map cho agent gọi API đọc của chính site thay vì cào HTML. Nó **chưa bật trên TOSE
+cloud**: nó tắt trừ khi server đặt `BROWSER_API_MAP_ENABLED`, và chỉ ghi khi danh sách được phép đang bật và chỉ cho origin đã xác nhận.
 
 - **Những gì được ghi:** với các request `XHR` và `fetch` mà trang gửi, ghi origin, method, mẫu đường
   dẫn (đoạn giống ID thành `{id}`), **tên** tham số query, media type và status. Không bao giờ ghi
@@ -207,19 +211,24 @@ Site API map cho agent gọi API đọc của chính site thay vì cào HTML. N�
 - **Tra cứu:** `GET .../browser-api-endpoints?url=<url>` liệt kê các endpoint `GET` đã biết của origin
   của URL đó, mẫu khớp đứng đầu.
 
-Hiện map chỉ có qua REST; MCP, CLI và dashboard là phần làm tiếp.
+Map có qua REST và CLI (`tose browser apimap`); MCP và dashboard là phần làm tiếp.
 
-**Action Map ghi** (gọi endpoint ghi của site) đã lên kế hoạch
-([tose-app#820](https://github.com/saasvn/tose-app/issues/820)). Mỗi lần gọi sẽ cần phê duyệt dùng một
-lần và một `Idempotency-Key`, và kết quả không rõ sẽ thành `needs_reconciliation` thay vì thử lại.
+**Action Map ghi** gọi endpoint ghi của site (`POST`, `PUT`, `PATCH`, `DELETE`) với tham số có kiểu
+thay vì bấm qua form. Chúng chỉ có ở nơi Site API map ghi nhận endpoint, nên chưa bật trên TOSE cloud.
+Mỗi lần gọi cần phê duyệt dùng một lần và một `Idempotency-Key`, và kết quả không rõ thành
+`needs_reconciliation` thay vì thử lại. Mọi thao tác ghi đều qua [lớp bảo vệ nội dung](#guard) trước.
+Lưu, xác minh và duyệt map vẫn do người làm qua REST; agent liệt kê, xem trước và chạy map qua MCP
+hoặc CLI.
 
 ## Profile {#profiles}
 
-**Đang làm** ([tose-app#814](https://github.com/saasvn/tose-app/pull/814)). Hiện mỗi phiên bắt đầu
-với browser trống và mất trạng thái khi tạm dừng. Thiết kế đã được chấp nhận:
+Profile là phiên đăng nhập đã lưu cho một vài site: đăng nhập một lần, rồi mở các phiên đã đăng
+nhập sẵn. Quản lý profile qua REST, trên dashboard (*Browsers → Profiles*) hoặc bằng
+`tose browser profiles`; tool MCP cho profile chưa được xây. Phiên không dùng profile bắt đầu với
+browser trống và mất trạng thái khi tạm dừng.
 
 - **Vault:** trạng thái đăng nhập của profile là `storageState` của các origin được phép (cookie và
-  localStorage, chưa có IndexedDB trong bản đầu, khoảng 256 KB), mã hóa trong kho credential của nền
+  localStorage, không có IndexedDB, tối đa 256 KB), mã hóa trong kho credential của nền
   tảng. Không API, kết quả MCP, log hay lỗi nào trả về cookie hay token, và không có tính năng xuất
   trạng thái đăng nhập.
 - **Grant:** dùng profile cần grant nêu tên profile và các origin được dùng. Có cookie không tự cho
@@ -236,17 +245,16 @@ với browser trống và mất trạng thái khi tạm dừng. Thiết kế đ�
 
 ### Companion cho Chrome trên máy {#companion}
 
-**Đã lên kế hoạch.** Product owner đã đưa nó vào phạm vi đợt giao này; thiết kế đã viết nhưng chưa
-xây gì. Một extension Chrome cùng helper nhỏ sẽ cho người
-dùng lại phiên đăng nhập trong Chrome của mình mà không tải profile lên: chọn một origin và loại dữ
-liệu, xem trước chỉ metadata (tên cookie, hạn, kích thước; không có giá trị) và xác nhận cả trên TOSE
-lẫn trên máy. Giới hạn đã biết khi ra mắt: passkey và khóa bảo mật không bao giờ được sao chép, cookie
-gắn thiết bị chỉ dùng được ít phút, thử thách SSO và 2FA cần người làm, và site gắn phiên với IP hay
-thiết bị có thể đăng xuất bản sao.
+Một extension Chrome cho người dùng lại phiên đăng nhập trong Chrome của mình mà không tải profile
+lên. Trên *Browsers → Profiles*, họ chọn *Import from my browser*, chọn một origin của profile và xác
+nhận trong cửa sổ đồng ý riêng của extension; extension chỉ đọc trạng thái của origin đó và chỉ trả
+lời dashboard TOSE. Ghép thiết bị và helper trên máy đã có thiết kế nhưng chưa được xây. Giới hạn đã
+biết: passkey và khóa bảo mật không bao giờ được sao chép, cookie gắn thiết bị chỉ dùng được ít phút,
+thử thách SSO và 2FA cần người làm, và site gắn phiên với IP hay thiết bị có thể đăng xuất bản sao.
 
 ## Recipe {#recipes}
 
-**Đang làm** ([tose-app#813](https://github.com/saasvn/tose-app/pull/813)). Agent làm xong việc lưu
+Agent làm xong việc lưu
 các bước thành một recipe có tên và phiên bản. Lần sau nó chạy recipe mà không cần model: locator của
 mỗi bước phải khớp đúng một phần tử và trang phải khớp trạng thái mong đợi của bước, nếu không lượt
 chạy dừng với `RECIPE_DRIFT` và agent làm tiếp từng bước. Bước được ghi không bao giờ giữ chữ đã gõ;
@@ -256,24 +264,33 @@ Các bước ghi của một lượt chạy được duyệt bằng một **reci
 recipe, một bộ tham số, một origin và một bên thực thi, hạn ngắn. Bước nằm ngoài recipe vẫn cần phê
 duyệt riêng, và không có phê duyệt cho cả origin.
 
-**Recipe công khai** đã lên kế hoạch: chỉ đọc, trên site công khai không cần đăng nhập, được xét duyệt
-trước khi đăng, và không mang dữ liệu của workspace nguồn.
+**Tra cứu kiến thức:** trước khi thao tác trên một site, agent hỏi site đó có những recipe đã lưu,
+Action Map đã xác minh và endpoint nào (`browser_knowledge_lookup` qua MCP, `tose browser knowledge`
+trong CLI). Snapshot có thể kèm `goal`, khi đó câu trả lời có thêm `goal_assessment`. Gợi ý dựa trên
+model ở cả hai chỗ (System One) chưa bật trên TOSE cloud, nên chúng báo lý do `off`.
 
-## Lớp bảo vệ và tự phục hồi {#guard}
+**Recipe công khai** chỉ đọc, trên site công khai không cần đăng nhập, được admin nền tảng xét duyệt
+trước khi đăng, và không mang dữ liệu của workspace nguồn. Mọi workspace thấy cùng một danh mục và
+chạy recipe công khai trong phiên của chính mình, theo danh sách được phép của chính mình.
 
-**Đã lên kế hoạch** ([tose-app#821](https://github.com/saasvn/tose-app/issues/821), đồng bộ Action
-Map). Chưa có phần nào dưới đây được xây; issue theo dõi công việc:
+## Lớp bảo vệ, chạy lại và tự phục hồi {#guard}
 
-- **Lớp bảo vệ:** bộ phân loại prompt injection chạy cục bộ, một lớp kiểm tra thứ hai trên chữ đã che
-  dữ liệu nhạy cảm, và nhận diện dữ liệu cá nhân (kể cả bộ nhận diện cho tiếng Việt) chạy trong
-  cluster. Khi lỗi, lớp này chặn thao tác ghi và điều hướng.
-- **Chạy lại không cần browser:** chạy lại các lời gọi API đã biết bằng HTTP qua egress proxy, không
-  mở browser.
-- **Tự phục hồi:** khôi phục cho thao tác đọc và ghi, có công tắc tắt khẩn cấp, giới hạn, audit và
-  rollback. Phần này phụ thuộc recipe và profile.
+- **Lớp bảo vệ nội dung:** bộ phân loại prompt injection chạy cục bộ, một lớp kiểm tra trên chữ đã
+  che dữ liệu nhạy cảm bằng decision model của workspace, và nhận diện dữ liệu cá nhân (kể cả bộ nhận
+  diện cho tiếng Việt), chạy trong cluster. Trên TOSE cloud, lớp này bảo vệ thao tác ghi qua Action
+  Map. Thao tác ghi mà lớp bảo vệ không kiểm tra được sẽ bị từ chối (`GUARD_UNAVAILABLE`); ở workspace
+  chưa có decision model, thao tác ghi có điểm phân loại sạch vẫn chạy và được đánh dấu degraded, và
+  thêm decision model sẽ khôi phục kiểm tra đầy đủ. Nghi ngờ injection bị từ chối với
+  `GUARD_INJECTION`; người luôn có thể tiếp quản phiên. Bảo vệ mọi thao tác browser và bước recipe đã
+  xây nhưng chưa bật trên TOSE cloud.
+- **Chạy lại không cần browser:** Action Map đã xác minh có thể chạy lại bằng HTTP qua egress proxy,
+  không mở browser. Chưa bật trên TOSE cloud.
+- **Tự phục hồi:** khi một bước recipe hay endpoint của Action Map bị lệch, engine đề xuất bản vá, có
+  công tắc theo workspace, giới hạn theo ngày, audit và rollback. Phần này cần cả cờ nền tảng lẫn công
+  tắc workspace, và chưa bật trên TOSE cloud.
 
-Các lớp kiểm soát đang áp dụng hiện nay nằm ở [Site được phép](#allow-list),
-[Phê duyệt](#approvals) và [Mô hình bảo mật](#security).
+Các lớp kiểm soát khác nằm ở [Site được phép](#allow-list), [Phê duyệt](#approvals) và
+[Mô hình bảo mật](#security).
 
 ## Giá và giới hạn {#pricing}
 
@@ -284,7 +301,6 @@ Các lớp kiểm soát đang áp dụng hiện nay nằm ở [Site được ph�
 - **Chỉ trả trước:** phiên không khởi động được khi ví trống và bị tạm dừng khi ví hết. Không có nợ
   compute.
 - **Tự ngủ** sau khoảng 10 phút không hoạt động, nên thời gian nhàn rỗi không bị tính.
-- **Lưu trữ:** khi profile ra mắt, profile, trạng thái đăng nhập và artifact được tính như lưu trữ.
 - **Giới hạn:** số phiên đồng thời mỗi workspace có trần, mỗi pod chạy tối đa 12 giờ, timeout thao
   tác tới 30 giây, body `fetch` tới 256 KiB, 100 đề xuất origin đang chờ.
 
