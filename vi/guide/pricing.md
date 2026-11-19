@@ -45,7 +45,7 @@ Quy tắc:
 - **Tính theo từng thanh toán.** Mức thưởng được chọn theo số tiền của một thanh toán. Hai lần nạp $60 không cộng lại thành một lần nạp $120. Thanh toán dưới $100 không có thưởng.
 - **Credit riêng, không hết hạn.** Phần thưởng là một mục `topup_bonus` riêng trong lịch sử ví, ghi một lần cho mỗi thanh toán và không bao giờ hết hạn.
 - **Chỉ áp dụng khi nạp ví.** Không tặng thưởng cho credit do quản trị viên cộng, credit khuyến mãi hoặc thanh toán mở khóa tính năng.
-- **Không cộng dồn với mã khuyến mãi.** Thanh toán có áp mã khuyến mãi sẽ không nhận thưởng nạp tiền. Với thanh toán đó, hãy chọn mã hoặc mức thưởng.
+- **Không cộng dồn với mã khuyến mãi.** Thanh toán có áp mã khuyến mãi sẽ không nhận thưởng nạp tiền. Với thanh toán đó, hãy chọn mã hoặc mức thưởng. Mỗi thanh toán cũng chỉ dùng được một mã khuyến mãi; mã thứ hai bị từ chối với [`PROMO_ALREADY_APPLIED`](/vi/guide/promo-codes#why-a-code-can-be-refused).
 - **Hoàn tiền thu hồi thưởng theo tỷ lệ.** Hoàn một phần thanh toán sẽ thu hồi cùng tỷ lệ của phần thưởng (làm tròn lên, nên hoàn toàn bộ sẽ thu hồi hết). Khoản trừ không bao giờ đưa số dư xuống dưới 0, nên phần thưởng đã tiêu không bị thu hồi.
 - **Không thưởng hồi tố.** Số dư hiện có giữ nguyên giá trị. Phần thưởng được cộng khi một thanh toán hoàn tất; không bao giờ áp dụng cho thanh toán cũ hay số dư hiện có.
 

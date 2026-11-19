@@ -8,7 +8,7 @@ Phần thưởng giới thiệu được cộng vào ví workspace dưới dạn
 
 ## Các hạng hoa hồng {#cac-hang-hoa-hong}
 
-Hạng của bạn dựa trên **doanh số giới thiệu ròng**: các khoản thanh toán của người bạn giới thiệu đã tạo hoa hồng, trừ phần đã hoàn tiền của các khoản đó.
+Hạng của bạn dựa trên **doanh số giới thiệu ròng**: các khoản thanh toán của người bạn giới thiệu đã tạo hoa hồng, trừ phần đã hoàn tiền của các khoản đó. Khoản thanh toán dùng [mã khuyến mãi](/vi/guide/promo-codes#rules) không tạo hoa hồng nên không cộng vào doanh số, và credit thưởng khuyến mãi, như credit thưởng của mã `AKTOSE-*`, không bao giờ được tính vào doanh số.
 
 | Hạng | Tỷ lệ hoa hồng | Đạt hạng khi doanh số giới thiệu |
 |------|----------------|-----------------------------------|
