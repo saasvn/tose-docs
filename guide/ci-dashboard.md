@@ -1,6 +1,6 @@
 # CI in the dashboard
 
-The workspace dashboard has CI pages for pipelines, run plans, run status, job logs, diagnosis, fork run approvals, pipeline policies, impact suggestions, usage and budget caps. They use the same workspace CI routes as an API key, signed in as you, so the server still checks your role on every action and the dashboard can do nothing the API does not allow. The routes and MCP tools are described in the [TOSE CI reference](https://github.com/saasvn/tose-app/blob/master/docs/ci.md#workspace-ci-api).
+The workspace dashboard has CI pages for pipelines, run plans, runs with inputs, run status, job logs, diagnosis, fork run approvals, pipeline policies, impact suggestions, usage and budget caps. They use the same workspace CI routes as an API key, signed in as you, so the server still checks your role on every action and the dashboard can do nothing the API does not allow. The routes and MCP tools are described in the [TOSE CI reference](https://github.com/saasvn/tose-app/blob/master/docs/ci.md#workspace-ci-api).
 
 ## Open CI {#open}
 
@@ -15,6 +15,7 @@ If the list is empty, no repository is connected yet. Connecting a repository (o
 Open a pipeline to see:
 
 - **The plan of the next manual run.** Whether it can run, the blockers if it cannot, each job's CPU, memory, timeout and worst-case cost, the total and your wallet balance.
+- **Run with inputs** for a branch whose configuration declares `on.workflow_dispatch`. See [Run with inputs](#dispatch).
 - **The pipeline's caps** with their state and a link to edit them.
 - **A link to its impact suggestions**, with the number of open ones.
 - **Its policies.** See [Policies](#policies).
@@ -60,6 +61,12 @@ A manual run repeats a commit TOSE already recorded from a push or pull request 
 When you confirm, the dashboard pins the commit you saw and sends the request with an `Idempotency-Key`. If the request fails with a network error, a `429` or a server error (5xx), the same commit and key are sent again on your next attempt, without asking again and even if a newer commit has arrived since. The API returns the first run instead of starting a second one, and the dashboard says the run was already started. A refusal that retrying cannot fix (a `402`, `409` or `422`, for example) drops the pinned request, so the next attempt fetches a fresh plan. The pin lives in the open page: reloading or leaving it drops the pin, and the next attempt fetches a new plan.
 
 Refusals are explained in plain text: `402` for the wallet or a budget cap, `409` for CI turned off, a disabled pipeline or an idempotency key reused for another commit, `422` for a commit that was not recorded, and `429` when 10 manual runs of the workspace are already unfinished.
+
+## Run with inputs {#dispatch}
+
+The **Run with inputs** section of the pipeline page starts a `workflow_dispatch` run of a branch with the typed inputs its `.tose/ci.yml` declares. Pick a branch (empty means the newest pushed one) and select **Show inputs**; the form names the commit it will run and shows each declared input with its type and default. Required and typed values are checked before **Run with these inputs** asks for confirmation, and if an answer is lost, sending the same values again reuses the same key, as in [Retries are safe](#retries). Each input reaches the jobs as `TOSE_INPUT_<NAME>`.
+
+A branch with no recorded push, or whose configuration does not declare `on.workflow_dispatch`, is invalid or has not been read yet, shows an explanation instead of a form. Inputs, validation and the API behind the form are described in [CI triggers, dispatch and fork approval](/guide/ci-triggers-and-forks#dispatch-dashboard).
 
 ## Inspect a run and a job {#inspect}
 

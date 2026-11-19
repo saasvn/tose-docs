@@ -1,6 +1,6 @@
 # CI trong dashboard
 
-Dashboard của workspace có các trang CI cho pipeline, kế hoạch chạy, trạng thái run, log của job, chẩn đoán, phê duyệt run từ fork, chính sách của pipeline, gợi ý tác động, mức sử dụng và hạn mức ngân sách. Các trang này gọi cùng các route CI của workspace như một API key, nhưng dưới danh nghĩa bạn đang đăng nhập, nên máy chủ vẫn kiểm tra vai trò của bạn ở mỗi thao tác và dashboard không làm được gì mà API không cho phép. Route và công cụ MCP được mô tả trong [tài liệu tham chiếu TOSE CI](https://github.com/saasvn/tose-app/blob/master/docs/ci.md#workspace-ci-api).
+Dashboard của workspace có các trang CI cho pipeline, kế hoạch chạy, chạy với tham số, trạng thái run, log của job, chẩn đoán, phê duyệt run từ fork, chính sách của pipeline, gợi ý tác động, mức sử dụng và hạn mức ngân sách. Các trang này gọi cùng các route CI của workspace như một API key, nhưng dưới danh nghĩa bạn đang đăng nhập, nên máy chủ vẫn kiểm tra vai trò của bạn ở mỗi thao tác và dashboard không làm được gì mà API không cho phép. Route và công cụ MCP được mô tả trong [tài liệu tham chiếu TOSE CI](https://github.com/saasvn/tose-app/blob/master/docs/ci.md#workspace-ci-api).
 
 ## Mở CI {#open}
 
@@ -15,6 +15,7 @@ Nếu danh sách trống, chưa có repository nào được kết nối. Việc
 Mở một pipeline để xem:
 
 - **Kế hoạch của lần chạy thủ công tiếp theo.** Có chạy được không, các lý do chặn nếu không, CPU, bộ nhớ, timeout và chi phí trường hợp xấu nhất của từng job, tổng cộng và số dư ví của bạn.
+- **Chạy với tham số** cho nhánh có cấu hình khai báo `on.workflow_dispatch`. Xem [Chạy với tham số](#dispatch).
 - **Hạn mức của pipeline** cùng trạng thái và liên kết để chỉnh sửa.
 - **Liên kết tới gợi ý tác động** của pipeline, kèm số gợi ý đang mở.
 - **Chính sách của pipeline.** Xem [Chính sách](#policies).
@@ -60,6 +61,12 @@ Run thủ công chỉ chạy lại một commit mà TOSE đã ghi nhận từ pu
 Khi bạn xác nhận, dashboard ghim commit bạn đã thấy và gửi yêu cầu kèm `Idempotency-Key`. Nếu yêu cầu lỗi vì lỗi mạng, `429` hoặc lỗi máy chủ (5xx), lần thử tiếp theo sẽ gửi lại đúng commit và khóa đó, không hỏi lại, kể cả khi đã có commit mới hơn. API trả về run đầu tiên thay vì tạo run thứ hai, và dashboard báo run đã được khởi chạy trước đó. Lỗi từ chối mà thử lại không khắc phục được (ví dụ `402`, `409` hoặc `422`) sẽ bỏ yêu cầu đã ghim, nên lần thử sau lấy lại kế hoạch mới. Điểm ghim nằm trong trang đang mở: tải lại hoặc rời trang sẽ làm mất nó, và lần thử sau lấy kế hoạch mới.
 
 Các lần từ chối được giải thích bằng văn bản thường: `402` do ví hoặc hạn mức ngân sách, `409` khi CI bị tắt, pipeline bị vô hiệu hóa hoặc khóa idempotency bị dùng cho commit khác, `422` khi commit chưa được ghi nhận, và `429` khi workspace đã có 10 run thủ công chưa kết thúc.
+
+## Chạy với tham số {#dispatch}
+
+Mục **Chạy với tham số** trên trang pipeline bắt đầu một run `workflow_dispatch` của một nhánh với các input có kiểu mà `.tose/ci.yml` của nhánh khai báo. Chọn nhánh (để trống là nhánh được push gần nhất) rồi chọn **Xem tham số**; form nêu commit sẽ chạy và hiển thị từng input đã khai báo cùng kiểu và giá trị mặc định. Giá trị bắt buộc và kiểu dữ liệu được kiểm tra trước khi **Chạy với các tham số này** hỏi xác nhận, và khi mất phản hồi, gửi lại đúng các giá trị đó sẽ dùng lại cùng khóa, như trong [Thử lại an toàn](#retries). Mỗi input tới job dưới dạng `TOSE_INPUT_<NAME>`.
+
+Nhánh chưa có push đã ghi nhận, hoặc có cấu hình không khai báo `on.workflow_dispatch`, không hợp lệ hoặc chưa được đọc, hiển thị lời giải thích thay cho form. Input, cách kiểm tra và API phía sau form được mô tả trong [Trigger CI, dispatch và duyệt fork](/vi/guide/ci-triggers-and-forks#dispatch-dashboard).
 
 ## Xem một run và một job {#inspect}
 

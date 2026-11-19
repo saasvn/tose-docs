@@ -59,7 +59,26 @@ POST /pipelines/{pipeline_id}/dispatch
 
 Ứng dụng kết nối dùng tool MCP `ci_dispatch` (scope `ci:execute`). Đây là cùng thao tác, nhận `ref`, `head_sha` (tùy chọn), `inputs` và `idempotency_key`. Giá trị input có thể là chuỗi, boolean hoặc số. Tool báo `INVALID_ARGUMENT`, `DISPATCH_NOT_AVAILABLE` và `IDEMPOTENCY_CONFLICT` cho các trường hợp ở trên. `ci_run` chỉ bắt đầu run manual và không nhận `ref` hay `inputs`.
 
-Dashboard chưa bắt đầu được run `workflow_dispatch`. Hãy dùng API hoặc `ci_dispatch`.
+Từ terminal, `tose ci dispatch <pipeline_id> --ref <branch> --input name=value` làm điều tương tự; xem [`tose ci`](/vi/commands/ci).
+
+### Từ dashboard {#dispatch-dashboard}
+
+Mở pipeline (`/w/{slug}/ci/p/{pipeline_id}`) và dùng mục **Chạy với tham số**:
+
+1. Chọn nhánh. Chỉ các nhánh có push đã ghi nhận mới được gợi ý; để trống để dùng nhánh của lần push đã ghi nhận gần nhất. Chọn **Xem tham số**.
+2. Form nêu commit mà run sẽ dùng (lần push mới nhất đã ghi nhận của nhánh) và hiển thị một ô cho mỗi input khai báo trong `on.workflow_dispatch.inputs`, kèm kiểu, mô tả và giá trị mặc định. Input `boolean` là ô đánh dấu, `choice` là danh sách các lựa chọn.
+3. Điền giá trị và chọn **Chạy với các tham số này**. Input bắt buộc, giá trị `number`, `choice` và độ dài của giá trị văn bản được kiểm tra trước khi gửi; API kiểm tra lại lần nữa.
+4. Xác nhận. Run bắt đầu trên đúng commit mà form đã hiển thị, kể cả khi có push mới hơn trong lúc đó, và bạn được chuyển tới trang của run.
+
+Nhánh chưa có push đã ghi nhận (`commit_not_recorded`) hoặc có cấu hình không khai báo `on.workflow_dispatch`, không hợp lệ hoặc chưa được đọc (`dispatch_not_available`) hiển thị lời giải thích thay cho form. Hãy khai báo `on.workflow_dispatch` trong `.tose/ci.yml` của nhánh rồi push: form xuất hiện sau khi lần push đó được lập kế hoạch. Khi mất phản hồi, gửi lại đúng các giá trị đó sẽ dùng lại cùng khóa idempotency, như với [run thủ công](/vi/guide/ci-dashboard#retries).
+
+Form được dựng từ một route chỉ đọc, không khởi chạy và không giữ trước gì:
+
+```http
+GET /pipelines/{pipeline_id}/dispatch?ref=main
+```
+
+Route cần `ci:read`. `ref` là tùy chọn (bỏ trống thì dùng nhánh của lần push đã ghi nhận gần nhất), và `head_sha` đọc một push đã ghi nhận cụ thể thay cho push mới nhất. Kết quả gồm `ref`, `head_sha`, `inputs` (mỗi input có `name`, `type`, `description`, `required`, `default` và `options`, sắp theo tên) và `branches` (tối đa 50, mới nhất trước). Route trả `422 commit_not_recorded` hoặc `422 dispatch_not_available` đúng khi `POST .../dispatch` cũng trả như vậy.
 
 Chạy lại một run `workflow_dispatch` giữ nguyên sự kiện và input. Chạy lại là thao tác của operator (`POST /admin/api/ci/runs/:id/rerun`); chạy lại run fork cần được duyệt lại.
 
