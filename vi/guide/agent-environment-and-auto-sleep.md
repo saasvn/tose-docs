@@ -76,7 +76,7 @@ Giới hạn và mẫu chính xác nằm trong schema `AgentEnvironment` của [
 
 Đóng trình duyệt không dừng agent: phiên của nó vẫn chạy và phí tính toán vẫn tiếp tục. Tự động ngủ dừng tài nguyên tính toán sau khi agent nhàn rỗi trong khoảng thời gian bạn chọn.
 
-Thiết lập là `auto_sleep_minutes`: **Tắt** (`0`, mặc định), **15**, **30**, **60** hoặc **120** phút. Các cài đặt hiện có không bao giờ ngủ trừ khi bạn bật. Bạn chọn:
+Thiết lập là `auto_sleep_minutes`: **Tắt** (`0`), **15**, **30**, **60** hoặc **120** phút. Agent Codex, Claude Code hoặc Pi cài mới mặc định **30** khi bạn bỏ trống; gửi `0` để tắt. Các template khác mặc định Tắt. Các cài đặt hiện có giữ nguyên thiết lập: mặc định mới không đổi chúng. Bạn chọn:
 
 - ở thẻ **Cấu hình** của trang triển khai;
 - sau này, ở thẻ **Tự động ngủ** trong tab **Cài đặt** của trang agent (các quy tắc được gấp trong **Tự động ngủ hoạt động thế nào**; ô **Tự động ngủ** ở **Tổng quan** mở thẻ này);

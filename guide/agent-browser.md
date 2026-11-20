@@ -31,7 +31,7 @@ call that API instead.
 | Typed actions, compact snapshots, typed errors with `next_step` | Available |
 | Approvals for `click`, `fill` and `press` run by an agent | Available (a signed-in owner or admin approves on REST or the dashboard approve page) |
 | Workspace origin allow-list and egress proxy | Available (proposals from REST and CLI; confirmation by a signed-in admin on REST or the dashboard) |
-| Dashboard: browser list, live view, takeover, approve page, allowed sites, profiles, recipes, self-heal | Available |
+| Dashboard: browser list, live view, takeover, approve page, allowed sites, profiles, recipes | Available (the self-heal page is listed below) |
 | MCP browser tools with approval delivery | Available |
 | In-chat live view (MCP Apps) | Available; taking over opens the dashboard session page |
 | Profiles: vault, grants, sharing, import, re-login | Available (REST, dashboard, CLI) |
@@ -290,7 +290,7 @@ and runs a public recipe in its own session under its own allow-list.
   running inside the cluster. On TOSE cloud it guards Action Map writes. A write the guard cannot
   check is refused (`GUARD_UNAVAILABLE`); in a workspace without a decision model, a write with a
   clean classifier score goes ahead marked degraded, and adding a decision model restores the full
-  check. A suspected injection is refused with `GUARD_INJECTION`; a person can always take over the
+  check. A blank page or empty text is not refused for being unreadable. A suspected injection is refused with `GUARD_INJECTION`; a person can always take over the
   session. Guarding every browser action and recipe step is built but not enabled on TOSE cloud yet.
 - **Browserless replay:** a verified Action Map can be replayed over HTTP through the egress proxy,
   without a browser. Not enabled on TOSE cloud yet.

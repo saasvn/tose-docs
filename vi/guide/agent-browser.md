@@ -32,7 +32,7 @@ API đó.
 | Thao tác có kiểu, snapshot gọn, lỗi có mã kèm `next_step` | Đã có |
 | Phê duyệt cho `click`, `fill`, `press` do agent chạy | Đã có (owner hoặc admin đã đăng nhập duyệt qua REST hoặc trang duyệt trên dashboard) |
 | Danh sách origin được phép của workspace và egress proxy | Đã có (đề xuất qua REST và CLI; admin đã đăng nhập xác nhận qua REST hoặc dashboard) |
-| Dashboard: danh sách browser, xem trực tiếp, tiếp quản, trang duyệt, site được phép, profile, recipe, tự phục hồi | Đã có |
+| Dashboard: danh sách browser, xem trực tiếp, tiếp quản, trang duyệt, site được phép, profile, recipe | Đã có (trang tự phục hồi nằm ở dòng bên dưới) |
 | Tool MCP cho browser kèm giao yêu cầu phê duyệt | Đã có |
 | Xem trực tiếp trong chat (MCP Apps) | Đã có; tiếp quản mở trang phiên trên dashboard |
 | Profile: vault, grant, chia sẻ, import, đăng nhập lại | Đã có (REST, dashboard, CLI) |
@@ -280,7 +280,7 @@ chạy recipe công khai trong phiên của chính mình, theo danh sách đư�
   diện cho tiếng Việt), chạy trong cluster. Trên TOSE cloud, lớp này bảo vệ thao tác ghi qua Action
   Map. Thao tác ghi mà lớp bảo vệ không kiểm tra được sẽ bị từ chối (`GUARD_UNAVAILABLE`); ở workspace
   chưa có decision model, thao tác ghi có điểm phân loại sạch vẫn chạy và được đánh dấu degraded, và
-  thêm decision model sẽ khôi phục kiểm tra đầy đủ. Nghi ngờ injection bị từ chối với
+  thêm decision model sẽ khôi phục kiểm tra đầy đủ. Trang trống hoặc không có chữ không bị từ chối vì không đọc được. Nghi ngờ injection bị từ chối với
   `GUARD_INJECTION`; người luôn có thể tiếp quản phiên. Bảo vệ mọi thao tác browser và bước recipe đã
   xây nhưng chưa bật trên TOSE cloud.
 - **Chạy lại không cần browser:** Action Map đã xác minh có thể chạy lại bằng HTTP qua egress proxy,

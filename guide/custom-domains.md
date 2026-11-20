@@ -43,6 +43,15 @@ A name that is not a valid hostname returns `400 DOMAIN_INVALID`. Names are trim
 | `dns_status` | `active` once the domain resolves to `target_ip`. |
 | `ssl_status` | `active` only when the certificate is **Ready**. Call verify again to check a pending certificate. |
 
+## A certificate that never issues {#stuck-certificate}
+
+A verified domain whose certificate is still not Ready after 7 days is checked again by TOSE:
+
+- If the domain resolves to a TOSE address or to Cloudflare, nothing changes. Your inbox gets a `domain.certificate_stuck` event with the addresses TOSE saw.
+- Otherwise (no record, or another host), the domain goes back to `pending_verification` with `ssl_status` `failed`, keeping its TXT token. It is removed from routing and its certificate request stops. Your inbox gets a `domain.certificate_abandoned` event naming what DNS returned.
+
+Point the DNS at TOSE and click **Verify** again (or `POST .../domains/{domain_id}/verify`); that routes the domain and requests a new certificate. No data is deleted.
+
 ## Domains you added before
 
 Domains attached before verification existed were marked `verified`, so live sites keep working without a TXT record. If the same hostname was attached both to a project and to an app, the oldest claim stays verified and the other one becomes `pending_verification` with a new token.

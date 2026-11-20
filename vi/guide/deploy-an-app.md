@@ -86,6 +86,7 @@ Deploy không idempotent: mỗi lần `tose deploy` tạo một deployment mới
 | Build lỗi | Đọc `tose logs --build`; xem [ví dụ Dockerfile](/vi/guide/dockerfile). |
 | Cần thanh toán | Nạp thêm tiền vào ví workspace; xem [Mã lỗi](/vi/api/errors#payment_required). |
 | Đang có deploy chạy | Chờ bằng `tose status`, rồi deploy lại. |
+| Ứng dụng bị dừng sau khi crash liên tục | Ứng dụng ở trạng thái `CrashLoopBackOff` suốt 3 ngày nhận thông báo `project.crashloop_stopping` và bị dừng sau 24 giờ, như nút Stop; `error_message` của deployment nêu lý do. Dữ liệu được giữ. Sửa ứng dụng rồi deploy hoặc khởi động lại. |
 
 Thêm ở [Troubleshooting](/guide/troubleshooting) (tiếng Anh).
 

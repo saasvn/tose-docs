@@ -76,7 +76,7 @@ The exact limits and patterns are in the `AgentEnvironment` schema of the [OpenA
 
 Closing the browser does not stop an agent: its session keeps running and compute keeps billing. Auto-sleep stops the compute after the agent has been idle for a time you choose.
 
-The setting is `auto_sleep_minutes`: **Off** (`0`, the default), **15**, **30**, **60** or **120** minutes. Existing installations never sleep unless you turn it on. Choose it:
+The setting is `auto_sleep_minutes`: **Off** (`0`), **15**, **30**, **60** or **120** minutes. A new Codex, Claude Code or Pi agent defaults to **30** when you leave it out; send `0` for Off. Other templates default to Off. Existing installations keep their setting: the default never changes them. Choose it:
 
 - in the **Size** card of the deploy page;
 - later, in the **Auto-sleep** card in the **Settings** tab of the agent's page (its rules fold under **How auto-sleep works**; the **Auto-sleep** tile on **Overview** opens it);
