@@ -1,12 +1,12 @@
 # Custom domains and ownership verification
 
-A custom domain is routed only after you prove you control its DNS. The one exception is a domain one label below the base domain of a workspace's development environment: its DNS belongs to the environment, so it is verified when created. This page explains the proof, the statuses you will see, and what TOSE refuses. It applies to the domains of projects and of installed apps (templates).
+A custom domain is routed only after you prove you control its DNS. The one exception is a domain one label below the base domain of a workspace's development environment: its DNS belongs to the environment, so it is verified when created. Any domain outside that base domain on a development project, whether an apex such as `example.com` or a subdomain, is verified by TXT record exactly like a production one; its A record points at the `target_ip` shown for the domain, which for a development project is the development ingress rather than the production one. This page explains the proof, the statuses you will see, and what TOSE refuses. It applies to the domains of projects and of installed apps (templates).
 
 ## How verification works
 
 1. **Add the domain** in the dashboard, with `tose domain add`, or with `POST /api/workspaces/{slug}/projects/{project_slug}/domains` (`POST .../templates/{template_slug}/domains` for an app). Only an owner or admin can add it.
 2. TOSE records a claim with `verification_status: pending_verification` and returns a `verification_record`: a random token and the name to publish it at.
-3. **Add a TXT record** at `_tose-challenge.<your-domain>` whose value is the token shown. Also point an A record at the `target_ip` shown.
+3. **Add a TXT record** at `_tose-challenge.<your-domain>` whose value is the token shown. Also point an A record at the `target_ip` shown. For a project in a development environment this is the development ingress address, and the dashboard's Add Custom Domain dialog shows it.
 4. **Click Verify**, or call `POST .../domains/{domain_id}/verify`. TOSE looks the TXT record up (5-second timeout). When it carries the token, the domain becomes `verified`, is routed, and its certificate is requested.
 
 ```bash
@@ -32,6 +32,8 @@ TOSE refuses with `400 DOMAIN_RESERVED`:
 
 - platform hosts and their subdomains, such as `*.tose.sh`;
 - `localhost`, IP addresses and non-public names (`.local`, `.internal` and similar).
+
+On a development project, the development base domain itself and any name more than one label below it are refused with `400` ("Development domains must be one label below the development base domain").
 
 A name that is not a valid hostname returns `400 DOMAIN_INVALID`. Names are trimmed, lower-cased, stripped of a trailing dot and converted to punycode first, so enter a bare hostname without a scheme, port, path or wildcard.
 

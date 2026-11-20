@@ -1,12 +1,12 @@
 # Tên miền tùy chỉnh và xác minh quyền sở hữu
 
-Tên miền tùy chỉnh chỉ được định tuyến sau khi bạn chứng minh mình kiểm soát DNS của nó. Ngoại lệ duy nhất là tên miền nằm một cấp dưới tên miền gốc của môi trường phát triển của workspace: DNS đó thuộc về môi trường, nên nó được xác minh ngay khi tạo. Trang này giải thích cách chứng minh, các trạng thái bạn sẽ thấy và những gì TOSE từ chối. Quy tắc áp dụng cho tên miền của dự án và của ứng dụng đã cài (template).
+Tên miền tùy chỉnh chỉ được định tuyến sau khi bạn chứng minh mình kiểm soát DNS của nó. Ngoại lệ duy nhất là tên miền nằm một cấp dưới tên miền gốc của môi trường phát triển của workspace: DNS đó thuộc về môi trường, nên nó được xác minh ngay khi tạo. Mọi tên miền nằm ngoài tên miền gốc đó trên dự án phát triển, dù là tên miền cấp cao nhất (apex) như `example.com` hay tên miền con, đều được xác minh bằng bản ghi TXT giống hệt tên miền trên production; bản ghi A của nó trỏ tới `target_ip` hiển thị cho tên miền, mà với dự án phát triển là ingress của môi trường phát triển chứ không phải của production. Trang này giải thích cách chứng minh, các trạng thái bạn sẽ thấy và những gì TOSE từ chối. Quy tắc áp dụng cho tên miền của dự án và của ứng dụng đã cài (template).
 
 ## Cách xác minh hoạt động
 
 1. **Thêm tên miền** trong dashboard, bằng `tose domain add`, hoặc bằng `POST /api/workspaces/{slug}/projects/{project_slug}/domains` (`POST .../templates/{template_slug}/domains` cho ứng dụng). Chỉ owner hoặc admin mới thêm được.
 2. TOSE ghi một yêu cầu sở hữu với `verification_status: pending_verification` và trả về `verification_record`: một token ngẫu nhiên và tên cần đặt nó.
-3. **Thêm bản ghi TXT** tại `_tose-challenge.<tên-miền-của-bạn>` với giá trị là token được hiển thị. Đồng thời trỏ bản ghi A tới `target_ip` được hiển thị.
+3. **Thêm bản ghi TXT** tại `_tose-challenge.<tên-miền-của-bạn>` với giá trị là token được hiển thị. Đồng thời trỏ bản ghi A tới `target_ip` được hiển thị. Với dự án trong môi trường phát triển, đây là địa chỉ ingress của môi trường phát triển, và hộp thoại Add Custom Domain trong dashboard hiển thị địa chỉ này.
 4. **Bấm Xác minh**, hoặc gọi `POST .../domains/{domain_id}/verify`. TOSE tra cứu bản ghi TXT (hết hạn sau 5 giây). Khi bản ghi chứa token, tên miền chuyển sang `verified`, được định tuyến và chứng chỉ được yêu cầu.
 
 ```bash
@@ -32,6 +32,8 @@ TOSE từ chối với `400 DOMAIN_RESERVED`:
 
 - máy chủ của nền tảng và tên miền con của chúng, như `*.tose.sh`;
 - `localhost`, địa chỉ IP và tên không công khai (`.local`, `.internal` và tương tự).
+
+Trên dự án phát triển, chính tên miền gốc của môi trường phát triển và mọi tên nằm sâu hơn một cấp dưới nó bị từ chối với `400` ("Development domains must be one label below the development base domain").
 
 Tên không phải hostname hợp lệ trả về `400 DOMAIN_INVALID`. Tên được cắt khoảng trắng, chuyển chữ thường, bỏ dấu chấm cuối và đổi sang punycode trước, nên hãy nhập hostname thuần, không kèm scheme, cổng, đường dẫn hay ký tự đại diện.
 
