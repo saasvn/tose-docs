@@ -43,6 +43,15 @@ Tên không phải hostname hợp lệ trả về `400 DOMAIN_INVALID`. Tên đ�
 | `dns_status` | `active` khi tên miền trỏ tới `target_ip`. |
 | `ssl_status` | `active` chỉ khi chứng chỉ đã **Ready**. Gọi verify lần nữa để kiểm tra chứng chỉ đang chờ. |
 
+## Chứng chỉ không bao giờ được cấp {#stuck-certificate}
+
+Tên miền đã xác minh mà chứng chỉ vẫn chưa Ready sau 7 ngày sẽ được TOSE kiểm tra lại:
+
+- Nếu tên miền trỏ tới địa chỉ của TOSE hoặc Cloudflare, không có gì thay đổi. Hộp thư nhận sự kiện `domain.certificate_stuck` kèm các địa chỉ TOSE thấy.
+- Nếu không (không có bản ghi, hoặc trỏ tới host khác), tên miền trở về `pending_verification` với `ssl_status` là `failed`, giữ nguyên token TXT. Tên miền bị gỡ khỏi định tuyến và yêu cầu cấp chứng chỉ dừng lại. Hộp thư nhận sự kiện `domain.certificate_abandoned` nêu kết quả DNS trả về.
+
+Trỏ DNS về TOSE rồi bấm **Verify** lại (hoặc `POST .../domains/{domain_id}/verify`); việc này định tuyến tên miền và yêu cầu chứng chỉ mới. Không dữ liệu nào bị xóa.
+
 ## Tên miền bạn đã thêm trước đây
 
 Tên miền gắn trước khi có cơ chế xác minh được đánh dấu `verified`, nên các site đang chạy vẫn hoạt động mà không cần bản ghi TXT. Nếu cùng một hostname được gắn cho cả dự án và ứng dụng, yêu cầu cũ nhất giữ `verified` và yêu cầu còn lại chuyển sang `pending_verification` với token mới.

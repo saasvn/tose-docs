@@ -86,6 +86,7 @@ A deploy is not idempotent: each `tose deploy` creates a new deployment and queu
 | Build fails | Read `tose logs --build`; check the [Dockerfile examples](/guide/dockerfile). |
 | Payment required | Top up the workspace wallet; see [Errors](/api/errors#payment_required). |
 | Deploy already in progress | Wait for it with `tose status`, then deploy again. |
+| App was stopped after crash-looping | An app that stays in `CrashLoopBackOff` for 3 days gets a `project.crashloop_stopping` notice and is stopped 24 hours later, like the Stop button; the deployment's `error_message` says why. Data is kept. Fix the app, then deploy or start it again. |
 
 More in [Troubleshooting](/guide/troubleshooting).
 
