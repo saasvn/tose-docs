@@ -2,7 +2,7 @@
 
 ::: info Trên TOSE cloud
 Route browser đã chạy trên TOSE cloud. Bản tự host chỉ phục vụ chúng khi đặt `BROWSER_ENABLED=true`.
-Các route Site API map bên dưới chưa bật trên TOSE cloud; xem
+Các route Site API map bên dưới đã bật trên TOSE cloud, mỗi workspace cần admin thiết lập; xem
 [những gì đã có](/vi/guide/agent-browser#status).
 :::
 
@@ -106,7 +106,7 @@ không cần phê duyệt (`400`).
 
 ## Site API map
 
-Chỉ có khi bật `BROWSER_API_MAP_ENABLED`, cờ này chưa bật trên TOSE cloud. Xem [Site API map](/vi/guide/agent-browser#site-api-map).
+Chỉ có khi bật `BROWSER_API_MAP_ENABLED`, cờ này đã bật trên TOSE cloud; mỗi workspace cần admin thiết lập. Xem [Site API map](/vi/guide/agent-browser#site-api-map).
 
 | Method | Đường dẫn | Ai |
 |--------|------|-----|

@@ -7,11 +7,12 @@ description: "Phiên Chromium được host, cô lập, do người và AI agent
 
 ::: info Trên TOSE cloud
 Agent browser, các trang dashboard và các tool MCP của nó (tại `https://app.tose.sh/mcp`) đã chạy
-thật. Một số phần đã xây nhưng **chưa bật trên TOSE cloud**, mỗi phần sau một cờ server riêng:
-[Site API map](#site-api-map) cùng thao tác `fetch` và việc ghi body response, kéo theo Action Map
-ghi và chạy lại không cần browser; [tự phục hồi](#guard); gợi ý System One; và
-[lớp bảo vệ nội dung](#guard) cho thao tác browser và lượt chạy recipe. [Bảng trạng thái](#status)
-nêu rõ từng phần.
+thật. [Site API map](#site-api-map) cùng thao tác `fetch` và việc ghi body response, Action Map ghi,
+chạy lại không cần browser và [tự phục hồi](#guard) **đã bật trên TOSE cloud; mỗi workspace cần admin
+thiết lập**: owner hoặc admin đã đăng nhập xác nhận origin, bật endpoint `GET`, xác minh Action Map,
+duyệt lời gọi, bật công tắc tự phục hồi của workspace. Vẫn **chưa bật trên TOSE cloud**: gợi ý
+System One và [lớp bảo vệ nội dung](#guard) cho thao tác browser và lượt chạy recipe; ghép nối Chrome
+companion chưa được xây. [Bảng trạng thái](#status) nêu rõ từng phần.
 :::
 
 Agent browser cho workspace một Chromium được host mà người hoặc AI agent điều khiển qua **thao tác
@@ -41,9 +42,9 @@ API đó.
 | Recipe công khai | Đã có (REST, và CLI [`recipes find`](/vi/commands/browser#recipes); admin nền tảng xét duyệt từng recipe trước khi đăng) |
 | Tra cứu kiến thức và `goal` của snapshot | Đã có (REST, MCP, CLI); gợi ý System One chưa bật trên TOSE cloud |
 | Lớp bảo vệ nội dung | Đã có cho thao tác ghi qua Action Map; cho thao tác browser và lượt chạy recipe thì chưa bật trên TOSE cloud |
-| Site API map (chỉ metadata) và thao tác `fetch` | Đã xây (REST, CLI); chưa bật trên TOSE cloud |
-| Action Map ghi và chạy lại không cần browser | Đã xây (REST, MCP, CLI); cần Site API map nên chưa bật trên TOSE cloud |
-| Tự phục hồi recipe và Action Map | Đã xây (REST, MCP, dashboard; [CLI](/vi/commands/browser#self-heal) cho recipe); chưa bật trên TOSE cloud |
+| Site API map, thao tác `fetch` và ghi body response | Đã bật trên TOSE cloud; mỗi workspace cần admin thiết lập (REST, CLI; MCP qua `browser_knowledge_lookup`; dashboard là phần làm tiếp, [#810](https://github.com/saasvn/tose-app/issues/810)) |
+| Action Map ghi và chạy lại không cần browser | Đã bật trên TOSE cloud; mỗi workspace cần admin thiết lập (REST, MCP, CLI) |
+| Tự phục hồi recipe và Action Map | Đã bật trên TOSE cloud; mỗi workspace cần admin thiết lập và một decision provider (recipe: REST, MCP, dashboard, [CLI](/vi/commands/browser#self-heal); Action Map: chỉ REST, các bề mặt khác ở [#835](https://github.com/saasvn/tose-app/issues/835)) |
 
 ## Phiên {#sessions}
 
@@ -196,12 +197,14 @@ cho tới khi có origin được xác nhận.
 
 ## Site API map và Action Map {#site-api-map}
 
-Site API map cho agent gọi API đọc của chính site thay vì cào HTML. Nó **chưa bật trên TOSE
-cloud**: nó tắt trừ khi server đặt `BROWSER_API_MAP_ENABLED`, và chỉ ghi khi danh sách được phép đang bật và chỉ cho origin đã xác nhận.
+Site API map cho agent gọi API đọc của chính site thay vì cào HTML. Nó **đã bật trên TOSE
+cloud; mỗi workspace cần admin thiết lập**. Bản tự host bật nó bằng `BROWSER_API_MAP_ENABLED`. Nó chỉ
+ghi khi danh sách được phép đang bật và chỉ cho origin đã xác nhận.
 
 - **Những gì được ghi:** với các request `XHR` và `fetch` mà trang gửi, ghi origin, method, mẫu đường
-  dẫn (đoạn giống ID thành `{id}`), **tên** tham số query, media type và status. Không bao giờ ghi
-  body, giá trị header, cookie, giá trị query hay dữ liệu post.
+  dẫn (đoạn giống ID thành `{id}`), **tên** tham số query, media type và status. Việc ghi body response thêm
+  schema của response và một mẫu đã che dữ liệu. Không bao giờ ghi body thô, giá trị header, cookie,
+  giá trị query hay dữ liệu post.
 - **Bật endpoint:** admin đã đăng nhập bật từng endpoint `GET`. Endpoint hết hạn 30 ngày sau lần cuối
   được thấy; endpoint thấy lại sau khi hết hạn bắt đầu lại ở trạng thái tắt.
 - **Thao tác `fetch`** gọi endpoint đã bật từ trong tab hiện tại, nên mang cookie của trang mà cookie
@@ -211,10 +214,11 @@ cloud**: nó tắt trừ khi server đặt `BROWSER_API_MAP_ENABLED`, và chỉ 
 - **Tra cứu:** `GET .../browser-api-endpoints?url=<url>` liệt kê các endpoint `GET` đã biết của origin
   của URL đó, mẫu khớp đứng đầu.
 
-Map có qua REST và CLI (`tose browser apimap`); MCP và dashboard là phần làm tiếp.
+Map có qua REST và CLI (`tose browser apimap`); qua MCP, agent đọc nó bằng `browser_knowledge_lookup`.
+Trang dashboard là phần làm tiếp ([#810](https://github.com/saasvn/tose-app/issues/810)).
 
 **Action Map ghi** gọi endpoint ghi của site (`POST`, `PUT`, `PATCH`, `DELETE`) với tham số có kiểu
-thay vì bấm qua form. Chúng chỉ có ở nơi Site API map ghi nhận endpoint, nên chưa bật trên TOSE cloud.
+thay vì bấm qua form. Chúng chỉ có ở nơi Site API map ghi nhận endpoint, và admin đã đăng nhập xác minh từng map trước.
 Mỗi lần gọi cần phê duyệt dùng một lần và một `Idempotency-Key`, và kết quả không rõ thành
 `needs_reconciliation` thay vì thử lại. Mọi thao tác ghi đều qua [lớp bảo vệ nội dung](#guard) trước.
 Lưu, xác minh và duyệt map vẫn do người làm qua REST; agent liệt kê, xem trước và chạy map qua MCP
@@ -284,10 +288,12 @@ chạy recipe công khai trong phiên của chính mình, theo danh sách đư�
   `GUARD_INJECTION`; người luôn có thể tiếp quản phiên. Bảo vệ mọi thao tác browser và bước recipe đã
   xây nhưng chưa bật trên TOSE cloud.
 - **Chạy lại không cần browser:** Action Map đã xác minh có thể chạy lại bằng HTTP qua egress proxy,
-  không mở browser. Chưa bật trên TOSE cloud.
+  không mở browser. Đã bật trên TOSE cloud.
 - **Tự phục hồi:** khi một bước recipe hay endpoint của Action Map bị lệch, engine đề xuất bản vá, có
-  công tắc theo workspace, giới hạn theo ngày, audit và rollback. Phần này cần cả cờ nền tảng lẫn công
-  tắc workspace, và chưa bật trên TOSE cloud.
+  công tắc theo workspace, giới hạn theo ngày, audit và rollback. Cờ nền tảng đã bật trên TOSE cloud;
+  owner hoặc admin đã đăng nhập vẫn phải bật công tắc workspace, và workspace cần một decision
+  provider. Tự phục hồi Action Map hiện chỉ có qua REST
+  ([#835](https://github.com/saasvn/tose-app/issues/835)).
 
 Các lớp kiểm soát khác nằm ở [Site được phép](#allow-list), [Phê duyệt](#approvals) và
 [Mô hình bảo mật](#security).

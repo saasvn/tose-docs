@@ -2,7 +2,7 @@
 
 ::: info On TOSE cloud
 Browser routes are live on TOSE cloud. A self-hosted deployment serves them only with
-`BROWSER_ENABLED=true`. The Site API map routes below are not enabled on TOSE cloud yet; see
+`BROWSER_ENABLED=true`. The Site API map routes below are enabled on TOSE cloud and need per-workspace admin setup; see
 [what is available](/guide/agent-browser#status).
 :::
 
@@ -108,7 +108,7 @@ person's own lease needs no approval (`400`).
 
 ## Site API map
 
-Served only with `BROWSER_API_MAP_ENABLED`, which is not enabled on TOSE cloud yet. See [Site API map](/guide/agent-browser#site-api-map).
+Served only with `BROWSER_API_MAP_ENABLED`, which is enabled on TOSE cloud; each workspace needs admin setup. See [Site API map](/guide/agent-browser#site-api-map).
 
 | Method | Path | Who |
 |--------|------|-----|
