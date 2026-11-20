@@ -194,7 +194,7 @@ tose redeploy
 
 ```bash
 tose domain add myapp.com
-# Then configure DNS CNAME to point to your-project.tose.sh
+# Then add the TXT record shown, point an A record at the target_ip shown, and verify
 ```
 
 ### Create a Database

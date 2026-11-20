@@ -18,7 +18,7 @@ tose domain list [project]
 $ tose domain list
 
 DOMAIN                                   DNS        SSL        DEFAULT
-example.com                              ok         ok         yes
+example.com                              active     active     yes
 www.example.com                          ok         ok
 api.example.com                          pending    pending
 ```
@@ -36,15 +36,15 @@ $ tose domain list --json
     {
       "id": "dom_abc123",
       "domain": "example.com",
-      "dns_status": "ok",
-      "ssl_status": "ok",
+      "dns_status": "active",
+      "ssl_status": "active",
       "is_default": true
     },
     {
       "id": "dom_def456",
       "domain": "www.example.com",
-      "dns_status": "ok",
-      "ssl_status": "ok",
+      "dns_status": "active",
+      "ssl_status": "active",
       "is_default": false
     }
   ]
@@ -78,21 +78,29 @@ $ tose domain add example.com
 ✓ Domain example.com added
   DNS Status: pending
   SSL Status: pending
+  Verification: pending_verification
+
+  Prove you own this domain by publishing a DNS record:
+    TXT  _tose-challenge.example.com  =  <token>
+    A    example.com  ->  <target_ip>
+  The domain is not routed until it is verified. Then run: tose domain verify example.com
 ```
 
 ### After Adding a Domain
 
-You need to configure DNS to point to your TOSE project. Add a CNAME record:
+You need to configure DNS to point to your TOSE project. Add an A record:
 
 ```
-Type:  CNAME
+Type:  A
 Name:  example.com (or subdomain)
-Value: your-project.tose.sh
+Value: <target_ip shown for the domain>
 ```
+
+The `target_ip` is printed by `tose domain add`, and shown in the dashboard's Add Custom Domain dialog and in the API response for the domain. Custom domains work on projects in production and development environments alike; for a development project the address is the development ingress, not the production one.
 
 A new domain is a claim until you prove you control its DNS. Add the TXT record shown for it at `_tose-challenge.<domain>`, then verify it in the dashboard or with `POST .../domains/{domain_id}/verify`. Until it is verified the domain is not routed and gets no certificate. See [Custom domains and ownership verification](/guide/custom-domains).
 
-Once the domain is verified and DNS propagates, the status will change from `pending` to `ok`, and an SSL certificate will be provisioned. SSL shows active only when the certificate is Ready.
+Once the domain is verified and DNS propagates, `dns_status` will change from `pending` to `active`, and an SSL certificate will be provisioned. SSL shows active only when the certificate is Ready.
 
 ### JSON Output
 
