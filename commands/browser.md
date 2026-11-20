@@ -3,9 +3,9 @@
 ::: warning Not in a published release yet
 `tose browser` is merged into the CLI after 0.2.0, the latest release, and ships in the next one;
 until then build the CLI from source. The [agent browser](/guide/agent-browser) itself is live on
-TOSE cloud. Some parts are built but not enabled there yet, each behind a server flag: the Site API
-map (and with it write Action Maps and browserless replay), recipe self-heal and System One. When a
-flag is off, the API says so and the command fails with that message.
+TOSE cloud. The Site API map, write Action Maps, browserless replay and
+self-heal are enabled there and need per-workspace admin setup; System One is not enabled yet. When a
+server flag is off, the API says so and the command fails with that message.
 :::
 
 Run disposable, isolated Chromium sessions and drive pages with typed actions (no scripts, no
@@ -298,7 +298,7 @@ tose browser action-maps replay <map> --profile <profile> [--param name=value] [
 ```
 
 Sends a verified call from the API with a profile's saved cookies, without a browser session. It
-needs `BROWSER_HTTP_REPLAY_ENABLED` on the API (off by default); otherwise the call answers
+needs `BROWSER_HTTP_REPLAY_ENABLED` on the API (on for TOSE cloud, off by default when self-hosting); otherwise the call answers
 `HTTP_REPLAY_DISABLED`, so use `execute` from a session.
 
 1. Run the command without `--approval`. Nothing is sent: the API answers `APPROVAL_REQUIRED` (exit

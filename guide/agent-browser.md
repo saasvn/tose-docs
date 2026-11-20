@@ -7,10 +7,12 @@ description: "Isolated, hosted Chromium sessions that people and AI agents drive
 
 ::: info On TOSE cloud
 The agent browser, its dashboard pages and its MCP tools (at `https://app.tose.sh/mcp`) are live.
-Some parts are built but **not enabled on TOSE cloud yet**, each behind its own server flag: the
-[Site API map](#site-api-map) with the `fetch` action and response body capture, and therefore
-write Action Maps and browserless replay; [self-heal](#guard); System One suggestions; and the
-[content guard](#guard) on browser actions and recipe runs. The [status table](#status) says which.
+The [Site API map](#site-api-map) with the `fetch` action and response body capture, write Action
+Maps, browserless replay and [self-heal](#guard) are **enabled on TOSE cloud; each needs
+per-workspace admin setup** by a signed-in owner or admin (confirm an origin, enable a `GET`
+endpoint, verify an Action Map, approve calls, turn on the workspace self-heal switch). Still **not
+enabled on TOSE cloud**: System One suggestions and the [content guard](#guard) on browser actions
+and recipe runs; Chrome companion pairing is not built. The [status table](#status) says which.
 :::
 
 The agent browser gives a workspace a hosted Chromium that a person or an AI agent drives through
@@ -40,9 +42,9 @@ call that API instead.
 | Public recipes | Available (REST, and CLI [`recipes find`](/commands/browser#recipes); a platform admin reviews each listing) |
 | Knowledge lookup and snapshot `goal` | Available (REST, MCP, CLI); System One suggestions are not enabled on TOSE cloud yet |
 | Content guard | Available on Action Map writes; on browser actions and recipe runs not enabled on TOSE cloud yet |
-| Site API map (metadata only) and the `fetch` action | Built (REST, CLI); not enabled on TOSE cloud yet |
-| Write Action Maps and browserless replay | Built (REST, MCP, CLI); need the Site API map, so not enabled on TOSE cloud yet |
-| Self-heal of recipes and Action Maps | Built (REST, MCP, dashboard; [CLI](/commands/browser#self-heal) for recipes); not enabled on TOSE cloud yet |
+| Site API map, the `fetch` action and response body capture | Enabled on TOSE cloud; needs per-workspace admin setup (REST, CLI; MCP through `browser_knowledge_lookup`; dashboard is a follow-up, [#810](https://github.com/saasvn/tose-app/issues/810)) |
+| Write Action Maps and browserless replay | Enabled on TOSE cloud; needs per-workspace admin setup (REST, MCP, CLI) |
+| Self-heal of recipes and Action Maps | Enabled on TOSE cloud; needs per-workspace admin setup and a workspace decision provider (recipes: REST, MCP, dashboard, [CLI](/commands/browser#self-heal); Action Maps: REST only, other surfaces in [#835](https://github.com/saasvn/tose-app/issues/835)) |
 
 ## Sessions {#sessions}
 
@@ -202,12 +204,14 @@ third-party site until one is confirmed.
 ## Site API map and Action Maps {#site-api-map}
 
 The Site API map lets an agent call a site's own read API instead of scraping its HTML. It is
-**not enabled on TOSE cloud yet**: it is off unless the server sets `BROWSER_API_MAP_ENABLED`, and it records only while the allow-list is
-enforced and only for confirmed origins.
+**enabled on TOSE cloud; needs per-workspace admin setup**. A self-hosted server turns it on with
+`BROWSER_API_MAP_ENABLED`. It records only while the allow-list is enforced and only for confirmed
+origins.
 
 - **What is recorded:** for `XHR` and `fetch` requests that pages make, the origin, method, a path
   template (ID-like segments become `{id}`), query parameter **names**, media type and status.
-  Never bodies, header values, cookies, query values or post data.
+  Response body capture adds a response schema and a redacted sample. Never raw bodies, header
+  values, cookies, query values or post data.
 - **Enabling:** a signed-in admin enables individual `GET` endpoints. Endpoints expire 30 days
   after they were last seen; one seen again after expiring starts over, disabled.
 - **The `fetch` action** calls an enabled endpoint from inside the current tab, so it carries the
@@ -218,12 +222,13 @@ enforced and only for confirmed origins.
 - **Lookup:** `GET .../browser-api-endpoints?url=<url>` lists the known `GET` endpoints of that
   URL's origin, with the matching template first.
 
-The map is on REST and in the CLI (`tose browser apimap`); MCP and dashboard surfaces are a
-follow-up.
+The map is on REST and in the CLI (`tose browser apimap`); over MCP an agent reads it through
+`browser_knowledge_lookup`. A dashboard page is a follow-up
+([#810](https://github.com/saasvn/tose-app/issues/810)).
 
 **Write Action Maps** call a site's write endpoints (`POST`, `PUT`, `PATCH`, `DELETE`) with typed
 parameters instead of clicking through a form. They exist only where the Site API map records
-endpoints, so they are not enabled on TOSE cloud yet. Each call needs a single-use approval and an
+endpoints, and a signed-in admin verifies each map first. Each call needs a single-use approval and an
 `Idempotency-Key`, and an unclear outcome ends in `needs_reconciliation` rather than a retry. Every
 write first passes the [content guard](#guard). Saving, verifying and approving a map stay with a
 person on REST; agents list, preview and execute maps over MCP or the CLI.
@@ -293,10 +298,12 @@ and runs a public recipe in its own session under its own allow-list.
   check. A blank page or empty text is not refused for being unreadable. A suspected injection is refused with `GUARD_INJECTION`; a person can always take over the
   session. Guarding every browser action and recipe step is built but not enabled on TOSE cloud yet.
 - **Browserless replay:** a verified Action Map can be replayed over HTTP through the egress proxy,
-  without a browser. Not enabled on TOSE cloud yet.
+  without a browser. Enabled on TOSE cloud.
 - **Self-heal:** when a recipe step or an Action Map endpoint drifts, the engine proposes a patch,
-  with a workspace switch, daily limits, audit and rollback. It needs a platform flag as well as the
-  workspace switch, and is not enabled on TOSE cloud yet.
+  with a workspace switch, daily limits, audit and rollback. The platform flag is on for TOSE cloud; a
+  signed-in owner or admin still turns on the workspace switch, and the workspace needs a decision
+  provider. Action Map heal is on REST only for now
+  ([#835](https://github.com/saasvn/tose-app/issues/835)).
 
 The other controls are listed under [Allowed sites](#allow-list), [Approvals](#approvals) and
 [Security model](#security).

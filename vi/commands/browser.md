@@ -3,9 +3,9 @@
 ::: warning Chưa có trong bản phát hành
 `tose browser` đã vào CLI sau bản 0.2.0, bản phát hành mới nhất, và sẽ có trong bản kế tiếp; trước đó
 hãy build CLI từ mã nguồn. Bản thân [agent browser](/vi/guide/agent-browser) đã chạy trên TOSE cloud.
-Một số phần đã xây nhưng chưa bật ở đó, mỗi phần sau một cờ server: Site API map (kéo theo write
-Action Map và browserless replay), recipe self-heal và System One. Khi cờ tắt, API báo như vậy và lệnh
-thất bại với thông báo đó.
+Site API map, write Action Map, browserless replay và self-heal đã bật ở đó, mỗi workspace cần admin
+thiết lập; System One chưa bật. Khi một cờ server tắt, API báo như vậy và lệnh thất bại với thông báo
+đó.
 :::
 
 Chạy phiên Chromium dùng xong bỏ, cô lập, và điều khiển trang bằng thao tác có kiểu (không script,
@@ -297,7 +297,7 @@ tose browser action-maps replay <map> --profile <profile> [--param name=value] [
 ```
 
 Gửi một lời gọi đã xác minh từ API bằng cookie đã lưu của profile, không cần phiên browser. Lệnh cần
-`BROWSER_HTTP_REPLAY_ENABLED` trên API (mặc định tắt); nếu không, lời gọi trả `HTTP_REPLAY_DISABLED`,
+`BROWSER_HTTP_REPLAY_ENABLED` trên API (đã bật trên TOSE cloud, mặc định tắt khi tự host); nếu không, lời gọi trả `HTTP_REPLAY_DISABLED`,
 khi đó hãy dùng `execute` từ một phiên.
 
 1. Chạy lệnh không có `--approval`. Không gì được gửi: API trả `APPROVAL_REQUIRED` (mã thoát `10`), và
