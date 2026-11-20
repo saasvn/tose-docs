@@ -19,7 +19,7 @@ $ tose domain list
 
 DOMAIN                                   DNS        SSL        DEFAULT
 example.com                              active     active     yes
-www.example.com                          ok         ok
+www.example.com                          active     active
 api.example.com                          pending    pending
 ```
 
