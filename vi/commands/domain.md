@@ -113,7 +113,7 @@ Sau đó chạy `tose domain verify <domain>`. Không cần bản ghi TXT. Cho �
 
 Khi gỡ tên miền khỏi TOSE, hãy gỡ luôn bản ghi DNS của nó: hostname trỏ về TOSE mà chưa có chủ sở hữu đã xác minh có thể bị bất kỳ workspace nào chiếm, các tên dưới một bản ghi wildcard trỏ về TOSE cũng vậy. Xem [Gỡ bản ghi DNS bạn không còn dùng](/vi/guide/custom-domains#remove-dns-records).
 
-Khi tên miền đã được xác minh, `dns_status` là `active` và chứng chỉ SSL được cấp. SSL chỉ hiển thị active khi chứng chỉ đã Ready.
+Khi tên miền đã được xác minh, nó được định tuyến và chứng chỉ SSL được cấp; `dns_status` là `active` khi tên miền phân giải tới `target_ip`. SSL chỉ hiển thị active khi chứng chỉ đã Ready.
 
 ### Đầu ra JSON
 

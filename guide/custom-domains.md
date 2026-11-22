@@ -19,7 +19,8 @@ A pending domain is **not routed and gets no certificate**. Verification can fai
 
 | Status and code | Meaning |
 |-----------------|---------|
-| `422 DOMAIN_VERIFICATION_FAILED` | The domain does not resolve to `target_ip`. The message says what it resolves to now and where to point it; the response also carries `target_ip` and `resolved`, the list of addresses TOSE found (empty when there is no record). DNS changes can take a while to spread, so try again later. |
+| `422 DOMAIN_VERIFICATION_FAILED` | The domain does not resolve to `target_ip`. The message says what it resolves to now and where to point it; the response also carries `target_ip` and `resolved`, the list of addresses TOSE found (`null` when the lookup found no address). DNS changes can take a while to spread, so try again later. |
+| `422 DOMAIN_DNS_LOOKUP_FAILED` | Only for a domain with no `target_ip`, which only the TXT record can verify: the DNS lookup itself failed. Try again. |
 | `409 DOMAIN_TAKEN` | Another owner already verified this hostname. |
 
 ```json
@@ -41,8 +42,8 @@ A domain that cannot resolve to `target_ip`, for example one behind a DNS proxy 
 Pointing a domain at TOSE shows that whoever controls its DNS sent it to TOSE, not which workspace they meant: the ingress address is shared by every workspace of an environment. A hostname that points at it and has no verified owner can therefore be added and verified by any workspace. So:
 
 - when you remove a domain from TOSE, also remove its A or CNAME record;
-- a wildcard record (`*.example.com`) pointing at TOSE lets any of its names be claimed, so add the names you use as they are, or avoid the wildcard;
-- add the domain right after you point it. Adding a domain that already points at TOSE verifies it at once, so pointing first and adding second leaves no gap.
+- a wildcard record (`*.example.com`) pointing at TOSE lets any of its names be claimed, so create a DNS record for each name you use instead of the wildcard;
+- add the domain as soon as you point it: until it is added and verified, another workspace can claim it. Adding a domain that already points at TOSE verifies it at once.
 
 ## One owner per hostname
 

@@ -113,7 +113,7 @@ Then run `tose domain verify <domain>`. No TXT record is needed. Until the domai
 
 When you remove a domain from TOSE, also remove its DNS record: a hostname that points at TOSE and has no verified owner can be claimed by any workspace, and so can the names under a wildcard record that points at TOSE. See [Remove DNS records you no longer use](/guide/custom-domains#remove-dns-records).
 
-Once the domain is verified, `dns_status` is `active` and an SSL certificate is provisioned. SSL shows active only when the certificate is Ready.
+Once the domain is verified, it is routed and an SSL certificate is provisioned; `dns_status` is `active` once the domain resolves to `target_ip`. SSL shows active only when the certificate is Ready.
 
 ### JSON Output
 

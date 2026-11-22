@@ -19,7 +19,8 @@ Tên miền đang chờ **không được định tuyến và không có chứng
 
 | Trạng thái và mã | Ý nghĩa |
 |------------------|---------|
-| `422 DOMAIN_VERIFICATION_FAILED` | Tên miền không phân giải tới `target_ip`. Thông báo nêu hiện nó phân giải tới đâu và cần trỏ về đâu; phản hồi còn kèm `target_ip` và `resolved`, danh sách địa chỉ TOSE tìm thấy (rỗng khi chưa có bản ghi). DNS có thể mất thời gian để lan truyền, hãy thử lại sau. |
+| `422 DOMAIN_VERIFICATION_FAILED` | Tên miền không phân giải tới `target_ip`. Thông báo nêu hiện nó phân giải tới đâu và cần trỏ về đâu; phản hồi còn kèm `target_ip` và `resolved`, danh sách địa chỉ TOSE tìm thấy (`null` khi tra cứu không tìm thấy địa chỉ nào). DNS có thể mất thời gian để lan truyền, hãy thử lại sau. |
+| `422 DOMAIN_DNS_LOOKUP_FAILED` | Chỉ với tên miền không có `target_ip`, loại chỉ xác minh được bằng bản ghi TXT: chính việc tra cứu DNS thất bại. Hãy thử lại. |
 | `409 DOMAIN_TAKEN` | Chủ sở hữu khác đã xác minh hostname này. |
 
 ```json
@@ -41,8 +42,8 @@ Tên miền không thể phân giải tới `target_ip`, chẳng hạn tên mi�
 Trỏ tên miền về TOSE cho thấy người kiểm soát DNS của nó đã gửi nó tới TOSE, nhưng không cho biết họ muốn workspace nào: địa chỉ ingress được dùng chung bởi mọi workspace của một môi trường. Vì vậy hostname trỏ tới địa chỉ đó mà chưa có chủ sở hữu đã xác minh có thể được bất kỳ workspace nào thêm và xác minh. Do đó:
 
 - khi gỡ tên miền khỏi TOSE, hãy gỡ luôn bản ghi A hoặc CNAME của nó;
-- bản ghi wildcard (`*.example.com`) trỏ về TOSE cho phép bất kỳ tên nào dưới nó bị chiếm, nên hãy thêm đúng các tên bạn dùng, hoặc tránh dùng wildcard;
-- thêm tên miền ngay sau khi trỏ nó. Thêm một tên miền đã trỏ về TOSE sẽ xác minh nó ngay, nên trỏ trước rồi thêm sau không để lại khoảng trống.
+- bản ghi wildcard (`*.example.com`) trỏ về TOSE cho phép bất kỳ tên nào dưới nó bị chiếm, nên hãy tạo bản ghi DNS riêng cho từng tên bạn dùng thay cho wildcard;
+- thêm tên miền ngay khi trỏ nó: cho đến khi nó được thêm và xác minh, workspace khác có thể chiếm nó. Thêm một tên miền đã trỏ về TOSE sẽ xác minh nó ngay.
 
 ## Mỗi hostname một chủ sở hữu
 
