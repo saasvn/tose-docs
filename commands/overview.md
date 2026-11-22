@@ -79,6 +79,7 @@ These options are available on **all** commands:
 |---------|-------------|
 | [`tose domain list`](/commands/domain) | List custom domains |
 | [`tose domain add`](/commands/domain#tose-domain-add) | Add a custom domain |
+| [`tose domain verify`](/commands/domain#tose-domain-verify) | Verify a pending custom domain and refresh its DNS/SSL status |
 | [`tose domain rm`](/commands/domain#tose-domain-rm) | Remove a custom domain |
 
 ### Databases

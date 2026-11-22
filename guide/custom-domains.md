@@ -1,13 +1,14 @@
-# Custom domains and ownership verification
+# Custom domains and verification
 
-A custom domain is routed only after you prove you control its DNS. The one exception is a domain one label below the base domain of a workspace's development environment: its DNS belongs to the environment, so it is verified when created. Any domain outside that base domain on a development project, whether an apex such as `example.com` or a subdomain, is verified by TXT record exactly like a production one; its A record points at the `target_ip` shown for the domain, which for a development project is the development ingress rather than the production one. This page explains the proof, the statuses you will see, and what TOSE refuses. It applies to the domains of projects and of installed apps (templates).
+A custom domain is routed only once its DNS points at TOSE. You point the domain at the `target_ip` shown for it, the ingress address of the environment that serves it, and TOSE verifies the domain when it resolves there. No TXT record is needed. This works the same way for projects and installed apps (templates), in production and in development; for a development project, `target_ip` is the address of its development server, so a domain is routed on the environment it points at. The one exception is a domain one label below the base domain of a workspace's development environment: its DNS belongs to the environment, so it is verified when created. This page explains the steps, the statuses you will see, and what TOSE refuses.
 
 ## How verification works
 
-1. **Add the domain** in the dashboard, with `tose domain add`, or with `POST /api/workspaces/{slug}/projects/{project_slug}/domains` (`POST .../templates/{template_slug}/domains` for an app). Only an owner or admin can add it.
-2. TOSE records a claim with `verification_status: pending_verification` and returns a `verification_record`: a random token and the name to publish it at.
-3. **Add a TXT record** at `_tose-challenge.<your-domain>` whose value is the token shown. Also point an A record at the `target_ip` shown. For a project in a development environment this is the development ingress address, and the dashboard's Add Custom Domain dialog shows it.
-4. **Click Verify**, or call `POST .../domains/{domain_id}/verify`. TOSE looks the TXT record up (5-second timeout). When it carries the token, the domain becomes `verified`, is routed, and its certificate is requested.
+1. **Add the domain** in the dashboard, with `tose domain add`, or with `POST /api/workspaces/{slug}/projects/{project_slug}/domains` (`POST .../templates/{template_slug}/domains` for an app). Only an owner or admin can add it. Each hostname is its own domain: add `example.com` and `www.example.com` separately.
+2. **Point the domain at `target_ip`** at your DNS provider: an A record for the hostname, or a CNAME whose chain resolves to that address. `target_ip` is in the response, in `tose domain add` output and in the dashboard's Add Custom Domain dialog.
+3. **Click Verify**, or call `POST .../domains/{domain_id}/verify`. TOSE looks the hostname up (5-second timeout). When it resolves to `target_ip` through an A or AAAA record or a CNAME chain, the domain becomes `verified`, is routed, and its certificate is requested.
+
+If the domain already points at `target_ip` when you add it, the add response is already `verified` and the domain is routed and certified at once, so you can skip step 3. Otherwise it starts as `pending_verification`.
 
 ```bash
 curl -X POST https://api.tose.sh/api/workspaces/my-team/projects/my-site/domains/$DOMAIN_ID/verify \
@@ -18,13 +19,34 @@ A pending domain is **not routed and gets no certificate**. Verification can fai
 
 | Status and code | Meaning |
 |-----------------|---------|
-| `422 DOMAIN_VERIFICATION_FAILED` | The TXT record is missing or carries a different value. The response repeats the `verification_record` to publish. DNS changes can take a while to spread, so try again later. |
-| `422 DOMAIN_DNS_LOOKUP_FAILED` | The DNS lookup itself failed. Try again. |
+| `422 DOMAIN_VERIFICATION_FAILED` | The domain does not resolve to `target_ip`. The message says what it resolves to now and where to point it; the response also carries `target_ip` and `resolved`, the list of addresses TOSE found (empty when there is no record). DNS changes can take a while to spread, so try again later. |
 | `409 DOMAIN_TAKEN` | Another owner already verified this hostname. |
+
+```json
+{
+  "error": "shop.example.com resolves to 198.51.100.7. Point an A record (or a CNAME that resolves there) at 203.0.113.10, wait for DNS to propagate, then verify again.",
+  "code": "DOMAIN_VERIFICATION_FAILED",
+  "target_ip": "203.0.113.10",
+  "resolved": ["198.51.100.7"],
+  "verification_record": { "type": "TXT", "name": "_tose-challenge.shop.example.com", "value": "<token>" }
+}
+```
+
+### TXT record for proxied DNS {#txt-record}
+
+A domain that cannot resolve to `target_ip`, for example one behind a DNS proxy such as Cloudflare's orange-cloud mode, can be verified by a TXT record instead. A pending domain carries `verification_record` in the API (list, add and failed verify responses): publish a TXT record at `_tose-challenge.<your-domain>` whose value is the token shown, then verify. The dashboard no longer shows this record; read it from the API or the CLI's `--json` output. Verify accepts either proof: the domain resolving to `target_ip`, or the TXT record carrying the token.
+
+### Remove DNS records you no longer use {#remove-dns-records}
+
+Pointing a domain at TOSE shows that whoever controls its DNS sent it to TOSE, not which workspace they meant: the ingress address is shared by every workspace of an environment. A hostname that points at it and has no verified owner can therefore be added and verified by any workspace. So:
+
+- when you remove a domain from TOSE, also remove its A or CNAME record;
+- a wildcard record (`*.example.com`) pointing at TOSE lets any of its names be claimed, so add the names you use as they are, or avoid the wildcard;
+- add the domain right after you point it. Adding a domain that already points at TOSE verifies it at once, so pointing first and adding second leaves no gap.
 
 ## One owner per hostname
 
-A hostname has at most one verified owner across **all workspaces**, for projects and apps together. A pending claim blocks nobody, so nobody can hold a domain without controlling its DNS: the first claim to verify wins, and a later one gets `409 DOMAIN_TAKEN`. Adding a domain that is already on the same project returns `409 DOMAIN_ALREADY_ADDED`.
+A hostname has at most one verified owner across **all workspaces**, for projects and apps together. A pending claim blocks nobody, so nobody can hold a domain whose DNS does not point at TOSE: the first claim to verify wins, and a later one gets `409 DOMAIN_TAKEN`. Adding a domain that is already on the same project returns `409 DOMAIN_ALREADY_ADDED`.
 
 ## What cannot be added
 
@@ -41,7 +63,7 @@ A name that is not a valid hostname returns `400 DOMAIN_INVALID`. Names are trim
 
 | Field | Values and meaning |
 |-------|--------------------|
-| `verification_status` | `pending_verification` until the TXT record is checked, then `verified`. |
+| `verification_status` | `pending_verification` until the domain resolves to `target_ip` (or its TXT record is found), then `verified`. |
 | `dns_status` | `active` once the domain resolves to `target_ip`. |
 | `ssl_status` | `active` only when the certificate is **Ready**. Call verify again to check a pending certificate. |
 
@@ -56,6 +78,6 @@ Point the DNS at TOSE and click **Verify** again (or `POST .../domains/{domain_i
 
 ## Domains you added before
 
-Domains attached before verification existed were marked `verified`, so live sites keep working without a TXT record. If the same hostname was attached both to a project and to an app, the oldest claim stays verified and the other one becomes `pending_verification` with a new token.
+Domains attached before verification existed were marked `verified`, so live sites keep working without being verified again. If the same hostname was attached both to a project and to an app, the oldest claim stays verified and the other one becomes `pending_verification` with a new token.
 
 See also [`tose domain`](/commands/domain), the [Projects API](/api/projects) and the [OpenAPI contract](https://github.com/saasvn/tose-app/blob/master/internal/apispec/openapi.yaml).

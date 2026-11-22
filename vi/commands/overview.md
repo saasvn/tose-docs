@@ -21,6 +21,7 @@ TOSE CLI cung cấp các lệnh chính sau để quản lý triển khai của b
 | [`tose analytics`](/vi/commands/analytics) | Xem chỉ đọc chi phí, tài nguyên và độ tin cậy của workspace: `overview`, `costs`, `resources`, `reliability` | Theo dõi chi tiêu và sức khỏe workspace, kể cả từ agent |
 | [`tose agents`](/vi/commands/agents) | Đọc môi trường đã che bí mật của agent và điều hướng (steer) một lượt chạy đang chạy: `env`, `steer`, `steers` | Thêm chỉ dẫn cho agent đang làm việc mà không khởi động lại lượt chạy |
 | [`tose runbook`](/vi/commands/runbook) | Lập kế hoạch, xem lại và chạy restart hoặc rollback do người duyệt trong trình duyệt | Khôi phục có kiểm soát |
+| [`tose domain`](/vi/commands/domain) | Liệt kê, thêm, xác minh và gỡ tên miền tùy chỉnh: `list`, `add`, `verify`, `rm` | Gắn tên miền riêng cho dự án |
 | [`tose db create`](/vi/commands/db#tose-db-create) | Tạo database (`--type`, `--server`) | Postgres, pgvector, MySQL, Redis, MongoDB |
 | [`tose skills`](/vi/commands/skills) | Liệt kê và cài skill cho agent | Dạy agent dùng TOSE an toàn |
 | [`tose browser`](/vi/commands/browser) | Chạy phiên browser cô lập và điều khiển trang bằng thao tác có kiểu (truy cập sớm) | Cho agent đọc và thao tác trên trang web, có người duyệt thao tác nhạy cảm |

@@ -194,7 +194,7 @@ tose redeploy
 
 ```bash
 tose domain add myapp.com
-# Then add the TXT record shown, point an A record at the target_ip shown, and verify
+# Then point an A record at the target_ip shown and run: tose domain verify myapp.com
 ```
 
 ### Create a Database
