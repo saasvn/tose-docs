@@ -180,9 +180,10 @@ curl "https://api.tose.sh/api/workspaces/$WS/templates/demo/envs/API_KEY/reveal"
 GET    /api/workspaces/{slug}/templates/{template_slug}/domains
 POST   /api/workspaces/{slug}/templates/{template_slug}/domains
 DELETE /api/workspaces/{slug}/templates/{template_slug}/domains/{domain_id}
+POST   /api/workspaces/{slug}/templates/{template_slug}/domains/{domain_id}/verify
 ```
 
-Thêm nhận `{ "domain": "app.example.com" }` và lưu dạng chữ thường (`201`). Subdomain của nền tảng hoạt động ngay khi DNS nền tảng đã được cấu hình. Với domain riêng, trỏ bản ghi A tới `target_ip`. Nền tảng không kiểm tra bước này, nên `dns_status` của domain riêng luôn là `pending`. Domain đang dùng bởi template khác, hoặc template đang bị xóa, trả `409`. Instance Cloud Harness chỉ truy cập qua domain mặc định, nên thêm domain trả `400`. Gỡ domain cũng trả `409` khi template đang bị xóa. Thêm lại domain đã gỡ của chính template này sẽ khôi phục nó. Domain mặc định không gỡ được (`400`).
+Thêm nhận `{ "domain": "app.example.com" }` (`201`). Domain riêng được xác minh giống hệt domain của dự án: trỏ bản ghi A (hoặc CNAME phân giải về đó) tới `target_ip`. Domain đã trỏ tới đó là `verified` ngay trong phản hồi thêm và được định tuyến, cấp chứng chỉ ngay; nếu chưa, nó là `pending_verification`, không được định tuyến, cho tới khi `POST .../domains/{domain_id}/verify` thấy nó đã trỏ tới đó. Verify trên domain chưa trỏ tới đó trả `422 DOMAIN_VERIFICATION_FAILED` kèm `target_ip` và `resolved` (domain không có `target_ip` chỉ xác minh được bằng bản ghi TXT); với domain đứng sau DNS proxy, bản ghi TXT tại `_tose-challenge.<domain>` (`verification_record`) được chấp nhận thay thế. Xem [Tên miền tùy chỉnh và xác minh](/vi/guide/custom-domains). Host của nền tảng bị từ chối với `400 DOMAIN_RESERVED`, hostname đã được chủ sở hữu khác xác minh trả `409 DOMAIN_TAKEN`, và hostname đã có trên template này trả `409 DOMAIN_ALREADY_ADDED`. Template đang bị xóa trả `409`, bản cài đặt có ingress riêng tư (`TEMPLATE_INGRESS_PRIVATE`) cũng vậy. Instance Cloud Harness chỉ truy cập qua domain mặc định, nên thêm domain trả `400`. Gỡ domain cũng trả `409` khi template đang bị xóa. Domain mặc định không gỡ được (`400`). Gỡ domain không thay đổi DNS của bạn, nên hãy xóa luôn bản ghi của nó.
 
 ## Log {#logs}
 

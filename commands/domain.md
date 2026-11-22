@@ -17,10 +17,10 @@ tose domain list [project]
 ```bash
 $ tose domain list
 
-DOMAIN                                   DNS        SSL        DEFAULT
-example.com                              active     active     yes
-www.example.com                          active     active
-api.example.com                          pending    pending
+DOMAIN                                   DNS        SSL        VERIFICATION           DEFAULT
+example.com                              active     active     verified               yes
+www.example.com                          active     active     verified
+api.example.com                          pending    pending    pending_verification
 ```
 
 ### JSON Output
@@ -71,24 +71,35 @@ tose domain add <domain>
 
 ### Usage
 
+Point the domain at TOSE before or after you add it. If it already resolves to its `target_ip` when you add it, it is verified, routed and given a certificate at once:
+
 ```bash
 $ tose domain add example.com
 
-✓ Adding domain example.com...
+✓ Domain example.com added
+  DNS Status: active
+  SSL Status: pending
+  Verification: verified
+```
+
+Otherwise it is `pending_verification`, and the command prints the A record to create:
+
+```bash
+$ tose domain add example.com
+
 ✓ Domain example.com added
   DNS Status: pending
   SSL Status: pending
   Verification: pending_verification
 
-  Prove you own this domain by publishing a DNS record:
-    TXT  _tose-challenge.example.com  =  <token>
+  Point the domain at TOSE:
     A    example.com  ->  <target_ip>
   The domain is not routed until it is verified. Then run: tose domain verify example.com
 ```
 
 ### After Adding a Domain
 
-You need to configure DNS to point to your TOSE project. Add an A record:
+Point the domain at the `target_ip` shown for it at your DNS provider:
 
 ```
 Type:  A
@@ -96,11 +107,13 @@ Name:  example.com (or subdomain)
 Value: <target_ip shown for the domain>
 ```
 
-The `target_ip` is printed by `tose domain add`, and shown in the dashboard's Add Custom Domain dialog and in the API response for the domain. Custom domains work on projects in production and development environments alike; for a development project the address is the development ingress, not the production one.
+A CNAME whose chain resolves to `target_ip` works too. The `target_ip` is printed by `tose domain add`, and shown in the dashboard's Add Custom Domain dialog and in the API response for the domain. It is the ingress address of the environment that serves the project: for a development project it is the development server's address, not the production one. Each hostname is its own domain, so add `example.com` and `www.example.com` separately.
 
-A new domain is a claim until you prove you control its DNS. Add the TXT record shown for it at `_tose-challenge.<domain>`, then verify it in the dashboard or with `POST .../domains/{domain_id}/verify`. Until it is verified the domain is not routed and gets no certificate. See [Custom domains and ownership verification](/guide/custom-domains).
+Then run `tose domain verify <domain>`. No TXT record is needed. Until the domain is verified it is not routed and gets no certificate. A domain behind a DNS proxy, which cannot resolve to `target_ip`, can be verified by the TXT record in `verification_record` instead (see `tose domain add --json`). See [Custom domains and verification](/guide/custom-domains).
 
-Once the domain is verified and DNS propagates, `dns_status` will change from `pending` to `active`, and an SSL certificate will be provisioned. SSL shows active only when the certificate is Ready.
+When you remove a domain from TOSE, also remove its DNS record: a hostname that points at TOSE and has no verified owner can be claimed by any workspace, and so can the names under a wildcard record that points at TOSE. See [Remove DNS records you no longer use](/guide/custom-domains#remove-dns-records).
+
+Once the domain is verified, it is routed and an SSL certificate is provisioned; `dns_status` is `active` once the domain resolves to `target_ip`. SSL shows active only when the certificate is Ready.
 
 ### JSON Output
 
@@ -112,10 +125,47 @@ Once the domain is verified and DNS propagates, `dns_status` will change from `p
     "domain": "example.com",
     "dns_status": "pending",
     "ssl_status": "pending",
-    "is_default": false
+    "is_default": false,
+    "target_ip": "203.0.113.10",
+    "verification_status": "pending_verification",
+    "verification_record": {
+      "type": "TXT",
+      "name": "_tose-challenge.example.com",
+      "value": "<token>"
+    }
   }
 }
 ```
+
+`verification_record` is present only while the domain is pending, and is needed only for a domain that cannot resolve to `target_ip`.
+
+---
+
+## tose domain verify
+
+Verify a pending custom domain and refresh the DNS and SSL status of a verified one.
+
+### Synopsis
+
+```bash
+tose domain verify <domain>
+```
+
+### Usage
+
+TOSE checks that the domain resolves to its `target_ip` (A or AAAA record, or a CNAME chain). When it does, the domain is verified, routed and its certificate requested:
+
+```bash
+$ tose domain verify example.com
+
+✓ Domain example.com verified
+  Verification: verified
+  DNS Status: active
+  SSL Status: pending
+  The certificate is still being issued. Run again to check: tose domain verify example.com
+```
+
+When it does not, the API answers `422 DOMAIN_VERIFICATION_FAILED`, and the command prints its message, which names what the domain resolves to now and where to point it, together with `target_ip` and the `resolved` addresses. Fix the DNS record, wait for it to propagate, then run the command again. Run it again later on a verified domain to see when SSL becomes active.
 
 ---
 
@@ -160,6 +210,10 @@ $ tose domain rm example.com -y
 ✓ Domain example.com removed
 ```
 
+::: warning
+Removing a domain does not change your DNS. Delete its A or CNAME record at your DNS provider too, or another workspace can add and verify the hostname while it still points at TOSE.
+:::
+
 ### JSON Output
 
 ```json
@@ -177,18 +231,25 @@ $ tose domain rm example.com -y
 
 | Status | Description |
 |--------|-------------|
-| `ok` | DNS is correctly configured |
-| `pending` | Waiting for DNS propagation |
+| `active` | The domain resolves to its `target_ip` |
+| `pending` | Waiting for DNS to point at `target_ip` |
 
 ### SSL Status
 
 | Status | Description |
 |--------|-------------|
-| `ok` | SSL certificate is active |
+| `active` | The SSL certificate is Ready |
 | `pending` | Certificate is being provisioned |
 
+### Verification Status
+
+| Status | Description |
+|--------|-------------|
+| `verified` | The domain points at `target_ip` (or its TXT record was found); it is routed |
+| `pending_verification` | Not routed yet; point the domain at `target_ip`, then run `tose domain verify` |
+
 ::: tip
-DNS propagation can take up to 48 hours, but usually completes within a few minutes. SSL certificates are automatically issued once DNS is verified.
+DNS propagation can take up to 48 hours, but usually completes within a few minutes. SSL certificates are issued automatically once the domain is verified.
 :::
 
 ## Related Commands

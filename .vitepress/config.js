@@ -270,7 +270,7 @@ export default defineConfig({
               { text: 'tose down / restart', link: '/vi/commands/down' },
               { text: 'tose open (tiếng Anh)', link: '/commands/open' },
               { text: 'tose env', link: '/vi/commands/env' },
-              { text: 'tose domain (tiếng Anh)', link: '/commands/domain' },
+              { text: 'tose domain', link: '/vi/commands/domain' },
               { text: 'tose db', link: '/vi/commands/db' },
               { text: 'tose export', link: '/vi/commands/export' },
               { text: 'tose skills', link: '/vi/commands/skills' },
