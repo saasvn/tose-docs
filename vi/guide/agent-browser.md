@@ -9,7 +9,7 @@ description: "Phiên Chromium được host, cô lập, do người và AI agent
 Agent browser, các trang dashboard và các tool MCP của nó (tại `https://app.tose.sh/mcp`) đã chạy
 thật. [Site API map](#site-api-map) cùng thao tác `fetch` và việc ghi body response, Action Map ghi,
 chạy lại không cần browser và [tự phục hồi](#guard) **đã bật trên TOSE cloud; mỗi workspace cần admin
-thiết lập**: owner hoặc admin đã đăng nhập xác nhận origin, bật endpoint `GET`, xác minh Action Map,
+thiết lập**: owner hoặc admin đã đăng nhập bật **Chỉ cho phép các trang đã xác nhận** và xác nhận origin, bật endpoint `GET`, xác minh Action Map,
 duyệt lời gọi, bật công tắc tự phục hồi của workspace. Vẫn **chưa bật trên TOSE cloud**: gợi ý
 System One và [lớp bảo vệ nội dung](#guard) cho thao tác browser và lượt chạy recipe. [Ghép thiết
 bị](#pair-device) với Chrome companion đã bật trên TOSE cloud. [Bảng trạng thái](#status) nêu rõ từng phần.
@@ -183,9 +183,12 @@ production, thanh toán và thao tác phá hủy chưa được xây.
 
 ## Site được phép {#allow-list}
 
-Browser của workspace chỉ tới được **origin đã xác nhận** khi chế độ chặn bật, và chế độ này bật cho
-mọi workspace tới khi admin tắt. Vì vậy browser của workspace mới không tới được site bên thứ ba nào
-cho tới khi có origin được xác nhận.
+Mặc định browser của workspace tới được **mọi site công khai** (`*`). Địa chỉ riêng tư, link-local,
+loopback và metadata của cloud vẫn bị chặn ở mọi workspace. Muốn giới hạn, owner hoặc admin bật
+**Chỉ cho phép các trang đã xác nhận**; khi đó browser chỉ tới được **origin đã xác nhận**. Chế độ chặn
+tắt cho tới khi owner hoặc admin bật, và workspace đã đặt công tắc này rồi vẫn giữ lựa chọn của mình.
+Workspace chưa từng đặt công tắc, kể cả workspace tạo trước khi mặc định này đổi, giờ tới
+được mọi site công khai; bật công tắc để giữ hành vi cũ.
 
 - Ai được điều khiển browser, kể cả agent, đều **đề xuất** được origin (`scheme://host[:port]`).
   Origin đó ở trạng thái `pending`.
@@ -195,6 +198,9 @@ cho tới khi có origin được xác nhận.
   chờ (`429 too_many_pending_origins`).
 - Thay đổi áp dụng cho pod khởi động sau đó: tạm dừng rồi chạy lại phiên đang chạy để nhận thay đổi.
 - Khi trang không tải, sự kiện của phiên có mục `egress_denied` nêu origin và lý do.
+- [Recipe công khai](#recipes) chỉ chạy trên origin mà workspace của bạn đã xác nhận,
+  kể cả khi chế độ chặn tắt, vì recipe đó có thể nhận bí mật của workspace bạn làm tham số.
+- [Site API map](#site-api-map) không ghi gì cho tới khi chế độ chặn bật.
 
 ## Site API map và Action Map {#site-api-map}
 
@@ -308,7 +314,8 @@ model ở cả hai chỗ (System One) chưa bật trên TOSE cloud, nên chúng 
 
 **Recipe công khai** chỉ đọc, trên site công khai không cần đăng nhập, được admin nền tảng xét duyệt
 trước khi đăng, và không mang dữ liệu của workspace nguồn. Mọi workspace thấy cùng một danh mục và
-chạy recipe công khai trong phiên của chính mình, theo danh sách được phép của chính mình.
+chạy recipe công khai trong phiên của chính mình, chỉ trên origin mà workspace đó đã xác nhận, kể cả
+khi [danh sách được phép](#allow-list) không bật chế độ chặn.
 
 ## Lớp bảo vệ, chạy lại và tự phục hồi {#guard}
 
@@ -362,8 +369,8 @@ Xem [Bảng giá](/vi/guide/pricing) để biết ví hoạt động thế nào.
   và không xác nhận được origin.
 - **Không lộ bí mật:** token lease và token phê duyệt chỉ hiện một lần và không lưu dạng rõ; sự kiện
   và lỗi không chứa chữ đã gõ, nội dung trang hay cookie.
-- **Trách nhiệm của bạn:** chỉ xác nhận site bạn được phép tự động hóa và tài khoản bạn sở hữu hoặc
-  được ủy quyền. TOSE không vượt CAPTCHA, MFA hay giới hạn tần suất.
+- **Trách nhiệm của bạn:** chỉ điều khiển browser trên site bạn được phép tự động hóa, chỉ xác nhận
+  những site đó và chỉ dùng tài khoản bạn sở hữu hoặc được ủy quyền. TOSE không vượt CAPTCHA, MFA hay giới hạn tần suất.
 
 ## Bước tiếp theo
 
