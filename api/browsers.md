@@ -56,7 +56,7 @@ See [Leases](/guide/agent-browser#leases).
 ### Watch
 
 `POST /browsers/{browser_id}/watch` (`watchBrowser`) is for a person signed in to the dashboard with
-`browser.read`. It returns `201` with a short-lived, single-use, observe-only view ticket bound to
+`browser.read`. It returns `200` with a short-lived, single-use, observe-only view ticket bound to
 the agent's current lease, and records a `watch` event. The agent's lease and epoch do not change.
 
 ```json

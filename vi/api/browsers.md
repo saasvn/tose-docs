@@ -55,7 +55,7 @@ cho API key), `scopes` (`observe`, `act`) và `takeover`. Credential chỉ giữ
 ### Theo dõi
 
 `POST /browsers/{browser_id}/watch` (`watchBrowser`) dành cho người đã đăng nhập dashboard có
-`browser.read`. Endpoint trả `201` với một vé xem ngắn hạn, dùng một lần, chỉ để xem, gắn với lease
+`browser.read`. Endpoint trả `200` với một vé xem ngắn hạn, dùng một lần, chỉ để xem, gắn với lease
 hiện tại của agent, và ghi một sự kiện `watch`. Lease và epoch của agent không đổi.
 
 ```json
