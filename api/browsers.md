@@ -124,7 +124,8 @@ at most 900. The response `{"approval": {id, token, executor, session_id, action
 expires_at}}` shows the token once. API keys and connected apps get `403 HUMAN_APPROVAL_REQUIRED`; a
 person's own lease needs no approval (`400`). Instead of `lease_id`, `action` and `origin`, the body
 can carry `request_id` from `details.approval_request_id` of the refusal; the service then approves
-exactly that stored request.
+exactly that stored request. A missing, expired or already approved request answers
+`404 approval_request_invalid`.
 
 | Method | Path | Response |
 |--------|------|----------|
@@ -137,7 +138,8 @@ exactly that stored request.
 typed text or a token. Both routes are for a workspace owner or admin signed in as a person and are
 sent with `Cache-Control: no-store`; members, API keys and connected apps get `403`
 (`HUMAN_APPROVAL_REQUIRED` for a credential). The single request shows the stored action, including
-the typed value of a `fill`, only to that person.
+the typed value of a `fill`, only in this authenticated response; approval links carry the request
+id alone.
 
 ## Allowed sites
 

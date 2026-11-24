@@ -108,8 +108,11 @@ browser:
 - **Tabs:** switch, open and close the session's tabs. A menu lists the tab's recent pages, and a
   button toggles a desktop or mobile viewport.
 - **Screenshots:** save the current page as a PNG.
-- **Downloads:** lists what the page tried to download. Watch or take over to see the list; take
-  over to **Save** a file (see the [`download` action](#downloads)).
+- **Downloads:** lists what the page tried to download. Take over to **Save** a file (see the
+  [`download` action](#downloads)).
+
+While an agent drives, take over to see the tabs, downloads and screenshots; the agent's live view
+alone does not show them. When nobody holds the session, **Watch live** is enough to see them.
 - **Waiting for approval:** a workspace owner or admin sees the session's pending approval requests,
   with who asked and when each expires. **Review details** opens the
   [approve page](#approvals) with every parameter; the list itself never approves anything.
@@ -130,7 +133,8 @@ token. Every grant is recorded as a `watch` event. Only a person can watch this 
 `403 person_required` and uses its own lease's live view instead.
 
 - **Nobody holds the session:** the page shows the session's state, the last frame and a **Watch
-  live** button. It never takes control on its own.
+  live** button. It never takes control on its own. **Watch live** opens your own observe lease, so
+  while you watch, agents cannot lease the session; they continue once you stop watching.
 - **The agent's lease does not allow watching:** the page says so and offers **Stop agent**.
 - **Stop agent** and **Take over** each ask you to confirm first. Taking control ends the agent's
   lease at once; it gets `HUMAN_STEP_REQUIRED` until you **Return control**, then
@@ -165,7 +169,7 @@ fences the agent. Hosts without MCP Apps get `live_view_url`, a plain link to th
 | `fetch` | Calls an admin-enabled `GET` endpoint of the [Site API map](#site-api-map). |
 
 `press` also takes `modifiers` (`ctrl`, `shift`, `alt`, `meta`). `history` `list` returns the tab's
-pages with earlier entries redacted and needs only the observe scope. `back` and `forward` check the
+pages, every entry but the current one redacted, and needs only the observe scope. `back` and `forward` check the
 target page against the allow-list and egress guard first and answer `not_actionable` when there is
 no such page. `stop` stops a page that is still loading. `reload` can resend a form, so it is
 sensitive.

@@ -100,12 +100,15 @@ trình duyệt:
   khi trang đang tải. Gõ địa chỉ như `example.com`; trang tự thêm `https://`.
 - **Thao tác trực tiếp:** khi đang giữ quyền điều khiển, bạn click, cuộn và gõ ngay trên khung xem
   trực tiếp. Khi điều khiển, `Esc` rời khung xem, `Shift+Esc` gửi `Esc` vào trang, `Ctrl+L` sửa địa
-  chỉ, còn `Alt+Left` và `Alt+Right` quay lại và tiến tới.
-- **Tab:** chuyển, mở và đóng tab của phiên. Một menu liệt kê các trang gần đây của tab, và một nút
-  chuyển giữa giao diện desktop và di động.
+  chỉ, còn `Alt+Trái` và `Alt+Phải` quay lại và tiến tới.
+- **Thẻ:** chuyển, mở và đóng thẻ (tab) của phiên. Một menu liệt kê các trang gần đây của thẻ, và
+  một nút chuyển giữa giao diện máy tính và giao diện di động.
 - **Ảnh chụp màn hình:** lưu trang hiện tại dạng PNG.
-- **Tệp tải xuống:** liệt kê những gì trang đã thử tải xuống. Xem trực tiếp hoặc tiếp quản để thấy
-  danh sách; tiếp quản để **Lưu** một tệp (xem [thao tác `download`](#downloads)).
+- **Tệp tải xuống:** liệt kê những gì trang đã thử tải xuống. Tiếp quản để **Lưu** một tệp (xem
+  [thao tác `download`](#downloads)).
+
+Khi agent đang điều khiển, hãy tiếp quản để thấy thẻ, tệp tải xuống và ảnh chụp màn hình; riêng khung
+xem trực tiếp của agent không hiện chúng. Khi không ai giữ phiên, chỉ cần **Xem trực tiếp** là thấy.
 - **Đang chờ phê duyệt:** owner hoặc admin của workspace thấy các yêu cầu phê duyệt đang chờ của
   phiên, ai đã yêu cầu và khi nào mỗi yêu cầu hết hạn. **Xem chi tiết** mở
   [trang duyệt](#approvals) với mọi tham số; bản thân danh sách không bao giờ duyệt gì.
@@ -126,7 +129,8 @@ phiên. Mỗi lần cấp đều được ghi thành sự kiện `watch`. Chỉ 
 nhận `403 person_required` và dùng khung xem trực tiếp của lease của chính nó.
 
 - **Không ai giữ phiên:** trang hiện trạng thái của phiên, khung hình cuối và nút **Xem trực tiếp**.
-  Trang không bao giờ tự giành quyền điều khiển.
+  Trang không bao giờ tự giành quyền điều khiển. **Xem trực tiếp** mở một lease observe của bạn, nên
+  trong lúc bạn xem, agent không thuê được phiên; agent tiếp tục khi bạn ngừng xem.
 - **Lease của agent không cho xem:** trang nói rõ điều đó và đưa ra **Dừng agent**.
 - **Dừng agent** và **Giành quyền điều khiển** đều hỏi xác nhận trước. Giành quyền điều khiển kết
   thúc lease của agent ngay; agent nhận `HUMAN_STEP_REQUIRED` cho tới khi bạn **Trả lại quyền điều
@@ -162,7 +166,7 @@ trên dashboard.
 | `fetch` | Gọi một endpoint `GET` đã được admin bật trong [Site API map](#site-api-map). |
 
 `press` còn nhận `modifiers` (`ctrl`, `shift`, `alt`, `meta`). `history` `list` trả các trang của tab,
-các mục cũ hơn đã được che, và chỉ cần scope observe. `back` và `forward` kiểm tra trang đích với
+mọi mục trừ trang hiện tại đã được che, và chỉ cần scope observe. `back` và `forward` kiểm tra trang đích với
 danh sách được phép và egress guard trước, và trả `not_actionable` khi không có trang đó. `stop` dừng
 trang đang tải. `reload` có thể gửi lại form, nên là thao tác nhạy cảm.
 

@@ -122,6 +122,7 @@ Phản hồi `{"approval": {id, token, executor, session_id, action, origin, exp
 một lần. API key và ứng dụng đã kết nối nhận `403 HUMAN_APPROVAL_REQUIRED`; lease của chính người đó
 không cần phê duyệt (`400`). Thay cho `lease_id`, `action` và `origin`, body có thể mang `request_id`
 lấy từ `details.approval_request_id` của lời từ chối; khi đó dịch vụ duyệt đúng yêu cầu đã lưu đó.
+Yêu cầu không tồn tại, đã hết hạn hoặc đã được duyệt trả `404 approval_request_invalid`.
 
 | Method | Đường dẫn | Phản hồi |
 |--------|------|----------|
@@ -134,7 +135,7 @@ lấy từ `details.approval_request_id` của lời từ chối; khi đó dịc
 đã gõ hay token. Cả hai route dành cho owner hoặc admin của workspace đăng nhập với tư cách một người
 và được gửi với `Cache-Control: no-store`; member, API key và ứng dụng đã kết nối nhận `403`
 (`HUMAN_APPROVAL_REQUIRED` với credential). Yêu cầu đơn lẻ hiện thao tác đã lưu, kể cả giá trị đã gõ
-của `fill`, chỉ cho người đó.
+của `fill`, chỉ trong phản hồi đã xác thực này; link phê duyệt chỉ mang id của yêu cầu.
 
 ## Site được phép
 
