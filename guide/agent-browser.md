@@ -9,7 +9,7 @@ description: "Isolated, hosted Chromium sessions that people and AI agents drive
 The agent browser, its dashboard pages and its MCP tools (at `https://app.tose.sh/mcp`) are live.
 The [Site API map](#site-api-map) with the `fetch` action and response body capture, write Action
 Maps, browserless replay and [self-heal](#guard) are **enabled on TOSE cloud; each needs
-per-workspace admin setup** by a signed-in owner or admin (confirm an origin, enable a `GET`
+per-workspace admin setup** by a signed-in owner or admin (turn on **Only allow confirmed sites** and confirm an origin, enable a `GET`
 endpoint, verify an Action Map, approve calls, turn on the workspace self-heal switch). Still **not
 enabled on TOSE cloud**: System One suggestions and the [content guard](#guard) on browser actions
 and recipe runs. Chrome companion [device pairing](#pair-device) is on for TOSE cloud. The
@@ -192,7 +192,9 @@ production, payment and destructive actions is not built yet.
 By default a workspace's browsers reach **every public site** (`*`). Private, link-local, loopback
 and cloud metadata addresses stay blocked in every workspace. To restrict browsers, an owner or admin
 turns on **Only allow confirmed sites**; browsers then reach only **confirmed origins**. Enforcement
-stays off until someone turns it on, and a workspace that already set the switch keeps its choice.
+stays off until an owner or admin turns it on, and a workspace that already set the switch keeps its
+choice. A workspace that never set the switch, including one created before this default changed,
+now allows every public site; turn the switch on to keep the earlier behaviour.
 
 - Anyone who may drive a browser, agents included, can **propose** an origin
   (`scheme://host[:port]`). It stays `pending`.
@@ -203,7 +205,7 @@ stays off until someone turns it on, and a workspace that already set the switch
 - Changes apply to pods started afterwards: suspend and resume a running session to pick them up.
 - When a page does not load, the session events show `egress_denied` entries naming the origin and
   the reason.
-- A [public recipe](#recipes) from another workspace runs only on an origin your workspace has
+- A [public recipe](#recipes) runs only on an origin your workspace has
   confirmed, even while enforcement is off, because it may take your workspace's secrets as
   parameters.
 - The [Site API map](#site-api-map) records nothing until enforcement is on.
@@ -383,8 +385,8 @@ See [Pricing](/guide/pricing) for how the wallet works.
   cannot confirm an origin.
 - **No secrets in output:** lease and approval tokens are shown once and never stored in clear;
   events and errors hold no typed text, page content or cookies.
-- **Your responsibility:** confirm only sites you may automate and accounts you own or are
-  authorized to use. TOSE does not bypass CAPTCHA, MFA or rate limits.
+- **Your responsibility:** drive browsers only on sites you may automate, confirm only such sites,
+  and use only accounts you own or are authorized to use. TOSE does not bypass CAPTCHA, MFA or rate limits.
 
 ## Next steps
 
