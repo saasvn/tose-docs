@@ -31,9 +31,13 @@ call that API instead.
 | Sessions: create, suspend, resume, terminate, audit events | Available ([REST](/api/browsers), MCP, dashboard; the [CLI](/commands/browser) opens, lists, shows events and closes) |
 | Leases, takeover by a person, fencing of older leases | Available |
 | Typed actions, compact snapshots, typed errors with `next_step` | Available |
-| Approvals for `click`, `fill` and `press` run by an agent | Available (a signed-in owner or admin approves on REST or the dashboard approve page) |
+| Approvals for the sensitive actions run by an agent | Available (a signed-in owner or admin approves on REST or the dashboard approve page) |
+| Pending approval requests of a session | Available (REST, and the session page lists them for owners and admins) |
 | Workspace origin allow-list and egress proxy | Available (proposals from REST and CLI; confirmation by a signed-in admin on REST or the dashboard) |
 | Dashboard: browser list, live view, takeover, approve page, allowed sites, profiles, recipes | Available (the self-heal page is listed below) |
+| [Session page](#session-page): address bar, back, forward, reload, stop, direct input, tabs, screenshots, downloads | Available (dashboard; the actions behind it on REST and MCP) |
+| [Watching an agent](#watch) from the dashboard | Available (dashboard, with a view ticket from REST) |
+| History, viewport, pointer, scroll, `type_text` and `download` actions | Available (REST, MCP); not in a CLI release yet ([tose-cli#153](https://github.com/saasvn/tose-cli/issues/153)) |
 | MCP browser tools with approval delivery | Available |
 | In-chat live view (MCP Apps) | Available; taking over opens the dashboard session page |
 | Profiles: vault, grants, sharing, import, re-login | Available (REST, dashboard, CLI) |
@@ -91,8 +95,46 @@ A **lease** is the right to drive one session. It has scopes `observe` (watch) a
 An action that loses its connection, or whose lease ends while it runs, reports `outcome_unknown`.
 The page may already have changed: take a snapshot before you repeat it.
 
-**Live view in the dashboard:** a signed-in person watches the page on the session page, takes over
-and hands back.
+### Session page {#session-page}
+
+The dashboard session page (`https://tose.sh/w/<workspace>/browsers/<session-id>`) works like a
+browser:
+
+- **Address bar** with **Back**, **Forward**, **Reload** and **Stop loading**, and a progress bar
+  while a page loads. Type an address such as `example.com`; the page adds `https://`.
+- **Direct input:** while you hold control, click, scroll and type on the live view itself. In
+  control, `Esc` leaves the live view, `Shift+Esc` sends `Esc` to the page, `Ctrl+L` edits the
+  address, and `Alt+Left` and `Alt+Right` go back and forward.
+- **Tabs:** switch, open and close the session's tabs. A menu lists the tab's recent pages, and a
+  button toggles a desktop or mobile viewport.
+- **Screenshots:** save the current page as a PNG.
+- **Downloads:** lists what the page tried to download. Watch or take over to see the list; take
+  over to **Save** a file (see the [`download` action](#downloads)).
+- **Waiting for approval:** a workspace owner or admin sees the session's pending approval requests,
+  with who asked and when each expires. **Review details** opens the
+  [approve page](#approvals) with every parameter; the list itself never approves anything.
+- **Recent activity:** the session's events, including every grant to watch.
+
+Errors are in plain language, each with a next step. A site that is not on the
+[allowed sites](#allow-list) says so and offers **Propose this origin** or **Open Allowed sites**;
+a private or blocked address, a page that will not load, a page that took too long, no page in
+that direction, lost control and an action that needs an approval each say what to do next.
+
+### Watching an agent {#watch}
+
+When an agent is driving the session, the page opens straight into its live view. It does this with
+a short-lived, single-use, watch-only **view ticket** issued to the signed-in person (who needs
+`browser.read`) through `POST .../browsers/{browser_id}/watch`. The ticket is bound to the agent's
+current lease, so watching never interrupts or fences the agent, and it is never a lease or session
+token. Every grant is recorded as a `watch` event. Only a person can watch this way: an API key gets
+`403 person_required` and uses its own lease's live view instead.
+
+- **Nobody holds the session:** the page shows the session's state, the last frame and a **Watch
+  live** button. It never takes control on its own.
+- **The agent's lease does not allow watching:** the page says so and offers **Stop agent**.
+- **Stop agent** and **Take over** each ask you to confirm first. Taking control ends the agent's
+  lease at once; it gets `HUMAN_STEP_REQUIRED` until you **Return control**, then
+  `CONTROL_RETURNED` on its next call.
 
 ### In-chat live view (MCP Apps) {#mcp-apps}
 
@@ -114,11 +156,34 @@ fences the agent. Hosts without MCP Apps get `live_view_url`, a plain link to th
 | `wait` | Waits for `load`, `visible`, `hidden`, `url_contains`, `text` or a `delay`. |
 | `screenshot` | Captures the visible part or the full page as PNG. |
 | `tab` | Lists, opens, closes or switches tabs. |
+| `history` | On the current tab: `op` `list`, `back`, `forward`, `reload` or `stop`. |
+| `viewport` | Sets the current tab to the `desktop` (1280×800) or `mobile` (390×844, touch) preset. |
+| `pointer` | Clicks at `x`, `y` in viewport CSS pixels (`button`, `click_count` up to 3). Sensitive. |
+| `scroll` | Scrolls by `delta_x`, `delta_y` at a point. |
+| `type_text` | Types `value` into the focused element. Sensitive. |
+| `download` | `op` `list` or `get` with an `id` (see [Downloads](#downloads)). |
 | `fetch` | Calls an admin-enabled `GET` endpoint of the [Site API map](#site-api-map). |
+
+`press` also takes `modifiers` (`ctrl`, `shift`, `alt`, `meta`). `history` `list` returns the tab's
+pages with earlier entries redacted and needs only the observe scope. `back` and `forward` check the
+target page against the allow-list and egress guard first and answer `not_actionable` when there is
+no such page. `stop` stops a page that is still loading. `reload` can resend a form, so it is
+sensitive.
 
 A **locator** is exactly one of `css`, `role` (with an optional `name`), `text` or `label`, plus
 `exact` and `nth`. It must match exactly one element unless `nth` is given. Prefer role and name;
 CSS is a last resort.
+
+### Downloads {#downloads}
+
+Chromium never writes a file to the pod. It records what the page tried to download instead.
+
+- `download` with `op: "list"` returns `downloads: [{id, filename, url, state, started_at}]`, newest
+  first, with query values in the URL redacted. It needs only the observe scope.
+- `op: "get"` with an `id` fetches that one file again from the current tab, through the allow-list
+  and egress guard, and returns `download: {filename, content_type, bytes, data_base64}`. It needs
+  the act scope, counts as a sensitive action, and is capped at 10 MiB (`download_too_large`).
+- The file comes from the site: treat its content as untrusted.
 
 ### Snapshots {#snapshots}
 
@@ -155,7 +220,7 @@ Every browser error has the same envelope: `error`, a machine-readable `code`, a
 | `ELEMENT_NOT_VISIBLE` | 422 | Elements match but none is visible |
 | `ELEMENT_DISABLED` | 422 | The element is disabled or read-only |
 | `ELEMENT_OBSCURED` | 422 | Another element covers the click point (`details.obscured_by`) |
-| `APPROVAL_REQUIRED` | 403 | An agent ran `click`, `fill` or `press` without an approval |
+| `APPROVAL_REQUIRED` | 403 | An agent ran a sensitive action without an approval |
 | `NAVIGATION_BLOCKED` | 403 | The destination is not allowed for browser sessions |
 | `HUMAN_STEP_REQUIRED`, `CONTROL_RETURNED`, `LEASE_FENCED` | 403 | See [Leases](#leases) |
 
@@ -164,9 +229,11 @@ Nothing refused before dispatch reached the browser, so retrying after fixing th
 
 ## Approvals {#approvals}
 
-`click`, `fill` and `press` can submit, send, buy or delete, so when an **API key or connected app**
-runs one it must pass an approval. A person driving their own lease needs none. Reads, `navigate`
-and `tab` need none.
+The sensitive actions are `click`, `fill`, `press`, `pointer`, `type_text`, `history` `reload` and
+`download` `get`. They can submit, send, buy, delete or move data out, so when an **API key or
+connected app** runs one it must pass an approval. A person driving their own lease needs none.
+Reads, `navigate`, `tab`, `scroll`, `viewport` and the other `history` and `download` operations
+need none.
 
 1. The agent runs the action and gets `403 APPROVAL_REQUIRED`. `details` names the approval
    endpoint, the agent's `lease_id`, the action type, the executor and the page origin.
@@ -184,6 +251,13 @@ refused approval is not used up.
 Over MCP the refusal carries an `approval_url` to the dashboard approve page, where the person
 approves; the agent then repeats the call with the `approval` token. A per-origin owner switch for
 production, payment and destructive actions is not built yet.
+
+**Pending requests:** `GET .../browsers/{id}/approval-requests` lists a session's pending,
+unexpired requests for a workspace owner or admin signed in as a person: id, action type, a summary
+with the page origin, which credential asked, and the created and expiry times. It never returns the
+action's parameters, typed text or a token. API keys and connected apps get
+`403 HUMAN_APPROVAL_REQUIRED`. The [session page](#session-page) shows the same list, and **Review
+details** opens the approve page; there is no inline approval.
 
 ## Allowed sites {#allow-list}
 
@@ -318,7 +392,8 @@ The other controls are listed under [Allowed sites](#allow-list), [Approvals](#a
   runs out. There is no compute debt.
 - **Idle sleep** after about 10 minutes without activity, so idle time is not billed.
 - **Limits:** a cap on concurrent sessions per workspace, a 12-hour wall-clock cap per pod, action
-  timeouts up to 30 seconds, `fetch` bodies up to 256 KiB, 100 pending origin proposals.
+  timeouts up to 30 seconds, `fetch` bodies up to 256 KiB, downloads up to 10 MiB, 100 pending
+  origin proposals.
 
 See [Pricing](/guide/pricing) for how the wallet works.
 
@@ -328,6 +403,8 @@ See [Pricing](/guide/pricing) for how the wallet works.
   with Chromium's own sandbox on. The pod runs as non-root with all capabilities dropped, a
   read-only root filesystem and no service account token. A session refuses to start if the
   isolation is unavailable.
+- **No files on the pod:** Chromium never saves a download; a file is fetched again on request, up
+  to 10 MiB, as untrusted data.
 - **No exposed debugging port:** Chromium's DevTools port binds to the pod loopback and is reached
   only by the TOSE API. Callers see typed actions.
 - **Tenant isolation:** every lookup is scoped to the caller's workspace; another workspace's
@@ -336,8 +413,8 @@ See [Pricing](/guide/pricing) for how the wallet works.
   grant (`browsers:read` and `browsers:write` remain accepted aliases). Older unscoped keys must get
   an explicit browser grant. `browser:auth:manage` is reserved for profile credentials and cannot be
   granted.
-- **People first:** an agent never takes control from a person, cannot approve its own action and
-  cannot confirm an origin.
+- **People first:** an agent never takes control from a person, cannot approve its own action,
+  cannot list pending approvals, cannot confirm an origin and cannot watch from the dashboard.
 - **No secrets in output:** lease and approval tokens are shown once and never stored in clear;
   events and errors hold no typed text, page content or cookies.
 - **Your responsibility:** confirm only sites you may automate and accounts you own or are
