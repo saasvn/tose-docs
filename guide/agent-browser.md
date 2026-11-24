@@ -12,7 +12,8 @@ Maps, browserless replay and [self-heal](#guard) are **enabled on TOSE cloud; ea
 per-workspace admin setup** by a signed-in owner or admin (confirm an origin, enable a `GET`
 endpoint, verify an Action Map, approve calls, turn on the workspace self-heal switch). Still **not
 enabled on TOSE cloud**: System One suggestions and the [content guard](#guard) on browser actions
-and recipe runs; Chrome companion pairing is not built. The [status table](#status) says which.
+and recipe runs. Chrome companion [device pairing](#pair-device) is on for TOSE cloud. The
+[status table](#status) says which.
 :::
 
 The agent browser gives a workspace a hosted Chromium that a person or an AI agent drives through
@@ -37,7 +38,8 @@ call that API instead.
 | MCP browser tools with approval delivery | Available |
 | In-chat live view (MCP Apps) | Available; taking over opens the dashboard session page |
 | Profiles: vault, grants, sharing, import, re-login | Available (REST, dashboard, CLI) |
-| Local Chrome companion | Available for importing a login from the dashboard; pairing and the native helper are not built |
+| Local Chrome companion | Available for importing a login from the dashboard |
+| Companion device pairing | Available ([pair a device](#pair-device) in the dashboard and the `tose-companion` helper; list, rename and revoke on REST, MCP, the [CLI](/commands/browser) and the dashboard); nothing uses a paired device yet |
 | Action recipes, durable replay runs, recipe receipts | Available (REST, dashboard, CLI) |
 | Public recipes | Available (REST, and CLI [`recipes find`](/commands/browser#recipes); a platform admin reviews each listing) |
 | Knowledge lookup and snapshot `goal` | Available (REST, MCP, CLI); System One suggestions are not enabled on TOSE cloud yet |
@@ -262,10 +264,45 @@ and loses its state when it is suspended.
 A Chrome extension lets a person reuse a login from their own Chrome without uploading the profile.
 On *Browsers → Profiles* they choose *Import from my browser*, pick one of the profile's origins,
 and confirm in the extension's own consent window; the extension reads only that origin's state and
-answers only the TOSE dashboard. Pairing a device and the native helper are designed but not built.
+answers only the TOSE dashboard. A device can be [paired](#pair-device) with the `tose-companion`
+helper.
 Known limits: passkeys and security keys are never copied, device-bound cookies work only briefly,
 SSO and 2FA re-challenges need the person, and sites that tie sessions to IP or device may log the
 copy out.
+
+#### Pair a device {#pair-device}
+
+Pairing registers a device with the `tose-companion` helper. It is on for TOSE cloud
+(`BROWSER_COMPANION_PAIRING_ENABLED`). Nothing uses a paired device yet: pairing prepares for the
+helper features that are still designed but not built.
+
+1. A signed-in person opens *Browsers → Devices*, names the device and clicks *Pair a device*. TOSE
+   shows a one-time code (`XXXX-XXXX`) once. It is valid for 5 minutes, and 5 wrong guesses destroy
+   it.
+2. On the device, run `tose-companion pair --code XXXX-XXXX`. The helper first shows the workspace
+   and account the code belongs to and asks before going on. It then creates an Ed25519 key, keeps
+   the private key in the OS keystore (DPAPI on Windows, Keychain on macOS, Secret Service on Linux;
+   it refuses to pair where none is available, never a plain file), claims the code and prints the
+   key fingerprint.
+3. The same person types that fingerprint into the device row and confirms. The dashboard never
+   shows the fingerprint before confirmation, so a stolen code alone cannot activate a device. A
+   claim that is not confirmed expires after 15 minutes.
+
+Every later helper request is signed with a timestamp and a single-use nonce. On the device,
+`tose-companion status` shows the paired device and `tose-companion unpair` revokes it.
+
+| Manage devices | Dashboard | REST | MCP | CLI |
+|---|---|---|---|---|
+| List | *Browsers → Devices* | `GET .../browser-devices` | `browser_devices_list` | `tose browser devices list` |
+| Rename | Device row | `PATCH .../browser-devices/{id}` | `browser_devices_rename` | `tose browser devices rename` |
+| Revoke | Device row | `POST .../browser-devices/{id}/revoke` | `browser_devices_revoke` | `tose browser devices revoke` |
+
+Starting and confirming a pairing are for people only; an agent gets `HUMAN_APPROVAL_REQUIRED`.
+Agents can list, rename and revoke the devices of the user they act for (`browser:read` to list,
+`browser:control` to change). The device's owner, or a workspace owner or admin, can revoke it, and
+its signed requests are refused at once; saved logins are not deleted. Every start, claim,
+confirmation, rename and revocation is in the audit log. A helper older than the server's minimum
+version (`BROWSER_COMPANION_MIN_VERSION`, default `0.1.0`) is refused with `DEVICE_CLIENT_TOO_OLD`.
 
 ## Recipes {#recipes}
 
