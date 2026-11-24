@@ -52,24 +52,46 @@ Body lease: `controller` (`human` hoặc `agent`; mặc định `human` cho ngư
 cho API key), `scopes` (`observe`, `act`) và `takeover`. Credential chỉ giữ được lease agent. Xem
 [Lease](/vi/guide/agent-browser#leases).
 
+### Theo dõi
+
+`POST /browsers/{browser_id}/watch` (`watchBrowser`) dành cho người đã đăng nhập dashboard có
+`browser.read`. Endpoint trả `200` với một vé xem ngắn hạn, dùng một lần, chỉ để xem, gắn với lease
+hiện tại của agent, và ghi một sự kiện `watch`. Lease và epoch của agent không đổi.
+
+```json
+{"lease_id": "<agent lease>", "expires_at": "2026-11-24T14:20:00Z",
+ "websocket_path": "/api/browser-gateway/view",
+ "websocket_protocols": ["tose.browser", "tose.browser.view.<ticket>"]}
+```
+
+Mở `websocket_path` với `websocket_protocols` làm WebSocket subprotocol; vé không bao giờ nằm trong
+URL và không phải token lease. API key và ứng dụng đã kết nối nhận `403 person_required`.
+`409 nothing_to_watch` nghĩa là không lease agent nào có scope observe đang giữ phiên: hãy tiếp quản.
+Xem [Theo dõi agent](/vi/guide/agent-browser#watch).
+
 ## Thao tác
 
 `POST /browsers/{browser_id}/actions` với token lease trong `X-Browser-Lease`.
 
 | Trường | Dùng cho |
 |---|---|
-| `type` | `navigate`, `snapshot`, `click`, `fill`, `press`, `screenshot`, `extract`, `wait`, `tab`, `fetch` |
+| `type` | `navigate`, `snapshot`, `click`, `fill`, `press`, `screenshot`, `extract`, `wait`, `tab`, `fetch`, `history`, `viewport`, `pointer`, `scroll`, `type_text`, `download` |
 | `url` | `navigate`; với `fetch` là URL chuẩn của endpoint đã bật |
 | `locator` | đúng một trong `css`, `role`, `text`, `label`; tùy chọn `name`, `exact`, `nth` |
-| `value` | `fill` |
-| `key` | `press` |
+| `value` | `fill`, `type_text` |
+| `key`, `modifiers` | `press`; `modifiers` là danh sách `ctrl`, `shift`, `alt`, `meta` |
+| `op` | `history` (`list`, `back`, `forward`, `reload`, `stop`); `download` (`list`, `get`) |
+| `id` | `download` `get`: id lấy từ `download` `list` |
+| `preset` | `viewport` (`desktop`, `mobile`) |
+| `x`, `y`, `button`, `click_count` | `pointer`; `x` và `y` là pixel CSS của viewport |
+| `delta_x`, `delta_y` | `scroll`, tại `x`, `y` |
 | `kind`, `attr`, `all` | `extract` (`text`, `attr`, `value`) |
 | `until`, `text` | `wait` (`load`, `visible`, `hidden`, `url_contains`, `text`, `delay`) |
 | `full_page` | `screenshot` |
 | `tab`, `tab_id` | `tab` (`list`, `new`, `close`, `switch`) |
 | `timeout_ms` | mọi thao tác, 0 tới 30000 |
 | `interactive_only`, `format`, `return_snapshot` | định dạng snapshot; không thuộc phần được phê duyệt |
-| `approval` | token cho `click`, `fill` hoặc `press` do API key hay ứng dụng đã kết nối chạy |
+| `approval` | token cho thao tác nhạy cảm (`click`, `fill`, `press`, `pointer`, `type_text`, `history` `reload`, `download` `get`) do API key hay ứng dụng đã kết nối chạy |
 
 ```bash
 curl -X POST "$TOSE_API/api/workspaces/acme/browsers/$BROWSER_ID/actions" \
@@ -77,6 +99,12 @@ curl -X POST "$TOSE_API/api/workspaces/acme/browsers/$BROWSER_ID/actions" \
   -H "Content-Type: application/json" \
   -d '{"type": "snapshot", "format": "compact"}'
 ```
+
+`history` `list` trả `history: [{url, title, current}]`, còn `download` `list` trả
+`downloads: [{id, filename, url, state, started_at}]`; cả hai chạy với lease observe. `download` `get`
+trả `download: {filename, content_type, bytes, data_base64}` tối đa 10 MiB (`download_too_large`).
+Chromium không bao giờ ghi tệp vào pod, và dữ liệu tệp đến từ site: coi là không tin cậy. Xem
+[Tệp tải xuống](/vi/guide/agent-browser#downloads).
 
 Lỗi dùng khuôn chung `error`, `code`, `next_step`, `details`; xem [Lỗi](/vi/guide/agent-browser#errors).
 
@@ -92,7 +120,22 @@ Lỗi dùng khuôn chung `error`, `code`, `next_step`, `details`; xem [Lỗi](/v
 `action` là đúng body mà agent sẽ gửi, không kèm `approval`. `ttl_seconds` mặc định 600, tối đa 900.
 Phản hồi `{"approval": {id, token, executor, session_id, action, origin, expires_at}}` chỉ hiện token
 một lần. API key và ứng dụng đã kết nối nhận `403 HUMAN_APPROVAL_REQUIRED`; lease của chính người đó
-không cần phê duyệt (`400`).
+không cần phê duyệt (`400`). Thay cho `lease_id`, `action` và `origin`, body có thể mang `request_id`
+lấy từ `details.approval_request_id` của lời từ chối; khi đó dịch vụ duyệt đúng yêu cầu đã lưu đó.
+Yêu cầu không tồn tại, đã hết hạn hoặc đã được duyệt trả `404 approval_request_invalid`.
+
+| Method | Đường dẫn | Phản hồi |
+|--------|------|----------|
+| `GET` | `/browsers/{browser_id}/approval-requests` | `200` `{"approval_requests": [{id, action_type, summary, requested_by, created_at, expires_at}]}` |
+| `GET` | `/browsers/{browser_id}/approval-requests/{request_id}` | `200` một yêu cầu đang chờ kèm thao tác đã lưu |
+
+`listBrowserApprovalRequests` trả các yêu cầu đang chờ, chưa hết hạn của phiên, mới nhất trước, tối
+đa 50. Chỉ là metadata: `summary` là loại thao tác và origin của trang, `requested_by` là
+`api_key:<id>` hoặc `oauth:<grant family>`, và phản hồi không bao giờ chứa tham số của thao tác, chữ
+đã gõ hay token. Cả hai route dành cho owner hoặc admin của workspace đăng nhập với tư cách một người
+và được gửi với `Cache-Control: no-store`; member, API key và ứng dụng đã kết nối nhận `403`
+(`HUMAN_APPROVAL_REQUIRED` với credential). Yêu cầu đơn lẻ hiện thao tác đã lưu, kể cả giá trị đã gõ
+của `fill`, chỉ trong phản hồi đã xác thực này; link phê duyệt chỉ mang id của yêu cầu.
 
 ## Site được phép
 
