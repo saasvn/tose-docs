@@ -20,6 +20,10 @@ printenv SITE_PASSWORD | tose browser fill web --label Password --value-stdin
 tose browser press web Enter --label Search --snapshot
 tose browser extract web --css h1 --all
 tose browser screenshot web --out page.png --full-page
+tose browser stop web                        # stop a page that is still loading
+tose browser download list web               # what the page tried to download
+tose browser download get web <id> --out report.pdf
+tose browser approvals web                   # pending approval requests (signed-in owner or admin)
 tose browser allowlist propose https://docs.example.com
 tose browser close web
 ```
@@ -133,14 +137,61 @@ tose browser screenshot <session> --out <file> [--full-page]
 
 Saves a PNG. With `--json` the output holds the file path, not the image.
 
-## Approvals
+### tose browser stop
 
-`click`, `fill` and `press` can submit, send, buy or delete. When an API key runs one, the API
+```bash
+tose browser stop <session>
+```
+
+Stops a page that is still loading, even while a navigation holds the session's action lock.
+
+### tose browser download {#downloads}
+
+```bash
+tose browser download list <session>
+tose browser download get <session> <id> [-o, --out <file>] [--approval <token>]
+```
+
+Chromium never saves a file on the server; it records what the page tried to download. `list` shows
+those entries, newest first: id, file name, state, start time and the URL with its query values
+redacted. It needs only the observe scope.
+
+`get` fetches one entry again from the current tab, through the allow-list and egress guard, and
+saves it to `--out`, or else under the site's file name in the current directory, without any
+directory part, leading dot, control or direction character, or name Windows refuses (`CON`,
+`report.pdf:x`), and never replacing an existing file (`report (1).pdf` and so on). A folder that
+cannot be written is refused before the fetch, so no approval is spent. It
+is capped at 10 MiB (`download_too_large`). Like `click`, an API key needs a person's approval for
+it (see [Approvals](#approvals)). Errors name the next command: `not_found` points to `download list`
+for the ids, and `download_failed` means the site refused the file or it is gone. The file comes
+from the site: treat its content as untrusted. With `--json` the output holds the path, size and
+content type, never the bytes.
+
+## Approvals {#approvals}
+
+`click`, `fill`, `press` and `download get` can submit, send, buy or delete. When an API key runs one, the API
 refuses it with `APPROVAL_REQUIRED` (exit code `10`) and names the action, the page origin, the
 session lease and the approval endpoint. A signed-in workspace owner or admin approves that exact
 action (an API key cannot approve its own), and you re-run the same command with the token they
 return: `--approval <token>` or `TOSE_BROWSER_APPROVAL`. A token works once and only for that
 action on that origin. See [Approvals](/guide/agent-browser#approvals).
+
+### tose browser approvals
+
+```bash
+tose browser approvals <session>
+```
+
+Lists the session's pending, unexpired approval requests, newest first: id, action and page origin,
+which credential asked, and when it expires. It never shows the action's parameters or a token. Only a
+workspace owner or admin signed in as a person may list them, so an API key or connected app gets
+`403 HUMAN_APPROVAL_REQUIRED` (exit code `10`); the error names the session page in the dashboard,
+where that person reviews every parameter and approves.
+
+### Watching a session
+
+Watching an agent drive a session live is a person's step in the dashboard, so the CLI has no watch
+command. Open the session page: `https://tose.sh/w/<workspace>/browsers/<session-id>`.
 
 ## Allow-list
 
@@ -342,5 +393,5 @@ a profile you own or were granted, whose origins include the map's origin),
 A lease that stopped being current (`LEASE_FENCED`, `CONTROL_RETURNED`) is replaced once
 automatically; the API refused it before anything reached the browser.
 
-Confirming or removing allow-list origins is the only browser task with no CLI command; it stays in
-the dashboard.
+Confirming or removing allow-list origins, approving a request and watching a session have no CLI
+command; they stay in the dashboard.

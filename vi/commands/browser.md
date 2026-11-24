@@ -20,6 +20,10 @@ printenv SITE_PASSWORD | tose browser fill web --label Password --value-stdin
 tose browser press web Enter --label Search --snapshot
 tose browser extract web --css h1 --all
 tose browser screenshot web --out page.png --full-page
+tose browser stop web                        # dừng trang đang tải
+tose browser download list web               # những gì trang đã thử tải xuống
+tose browser download get web <id> --out report.pdf
+tose browser approvals web                   # yêu cầu phê duyệt đang chờ (owner hoặc admin đã đăng nhập)
 tose browser allowlist propose https://docs.example.com
 tose browser close web
 ```
@@ -134,14 +138,60 @@ tose browser screenshot <session> --out <file> [--full-page]
 
 Lưu ảnh PNG. Với `--json`, đầu ra là đường dẫn file, không phải ảnh.
 
-## Phê duyệt
+### tose browser stop
 
-`click`, `fill` và `press` có thể gửi form, gửi tin, mua hay xóa. Khi API key chạy một trong số đó, API
+```bash
+tose browser stop <session>
+```
+
+Dừng một trang đang tải, kể cả khi một lần điều hướng còn giữ khóa thao tác của phiên.
+
+### tose browser download {#downloads}
+
+```bash
+tose browser download list <session>
+tose browser download get <session> <id> [-o, --out <file>] [--approval <token>]
+```
+
+Chromium không bao giờ lưu file trên server; nó ghi lại những gì trang đã thử tải xuống. `list` hiện các
+mục đó, mới nhất trước: id, tên file, trạng thái, thời điểm bắt đầu và URL đã ẩn giá trị query. Lệnh chỉ
+cần scope observe.
+
+`get` tải lại một mục từ tab hiện tại, qua danh sách được phép và egress guard, rồi lưu vào `--out`, hoặc
+nếu không có thì theo tên file của site trong thư mục hiện tại, bỏ mọi phần thư mục, dấu chấm ở đầu, ký tự
+điều khiển hay đổi chiều văn bản và tên Windows từ chối (`CON`, `report.pdf:x`), và không bao giờ ghi đè
+file đã có (`report (1).pdf`, v.v.). Thư mục không ghi được bị từ chối trước khi tải, nên approval không bị
+tiêu. Giới hạn 10 MiB (`download_too_large`). Giống
+`click`, API key cần một người phê duyệt (xem [Phê duyệt](#approvals)). Lỗi nêu lệnh tiếp theo:
+`not_found` trỏ tới `download list` để lấy id, còn `download_failed` nghĩa là site từ chối file hoặc file
+không còn. File đến từ site: coi nội dung của nó là không tin cậy. Với `--json`, đầu ra có đường dẫn, kích
+thước và loại nội dung, không bao giờ có dữ liệu file.
+
+## Phê duyệt {#approvals}
+
+`click`, `fill`, `press` và `download get` có thể gửi form, gửi tin, mua hay xóa. Khi API key chạy một trong số đó, API
 từ chối với `APPROVAL_REQUIRED` (mã thoát `10`) và nêu thao tác, origin của trang, lease của phiên và
 endpoint phê duyệt. Owner hoặc admin đã đăng nhập duyệt đúng thao tác đó (API key không tự duyệt được),
 rồi bạn chạy lại cùng lệnh với token họ trả về: `--approval <token>` hoặc `TOSE_BROWSER_APPROVAL`. Mỗi
 token dùng một lần, chỉ cho thao tác đó trên origin đó. Xem
 [Phê duyệt](/vi/guide/agent-browser#approvals).
+
+### tose browser approvals
+
+```bash
+tose browser approvals <session>
+```
+
+Liệt kê các yêu cầu phê duyệt đang chờ, chưa hết hạn của phiên, mới nhất trước: id, thao tác và origin của
+trang, credential nào đã yêu cầu và khi nào hết hạn. Lệnh không bao giờ hiện tham số của thao tác hay
+token. Chỉ owner hoặc admin của workspace đăng nhập với tư cách một người mới được liệt kê, nên API key
+hoặc ứng dụng kết nối nhận `403 HUMAN_APPROVAL_REQUIRED` (mã thoát `10`); lỗi nêu trang phiên trên
+dashboard, nơi người đó xem mọi tham số và phê duyệt.
+
+### Theo dõi một phiên
+
+Xem agent điều khiển một phiên theo thời gian thực là bước của một người trên dashboard, nên CLI không có
+lệnh watch. Mở trang phiên: `https://tose.sh/w/<workspace>/browsers/<session-id>`.
 
 ## Danh sách được phép
 
@@ -340,5 +390,5 @@ Phê duyệt cho phiên không bao giờ chạy được replay, và ngược l�
 Lease không còn hiệu lực (`LEASE_FENCED`, `CONTROL_RETURNED`) được tự thay một lần; API đã từ chối nó
 trước khi có gì tới browser.
 
-Xác nhận hoặc gỡ origin khỏi danh sách được phép là việc browser duy nhất chưa có lệnh CLI; việc này
-vẫn làm trên dashboard.
+Xác nhận hoặc gỡ origin khỏi danh sách được phép, phê duyệt một yêu cầu và theo dõi một phiên chưa có
+lệnh CLI; các việc này vẫn làm trên dashboard.
