@@ -189,9 +189,10 @@ production, payment and destructive actions is not built yet.
 
 ## Allowed sites {#allow-list}
 
-A workspace's browsers reach only **confirmed origins** while enforcement is on, and it is on for
-every workspace until an admin turns it off. A new workspace's browsers therefore reach no
-third-party site until one is confirmed.
+By default a workspace's browsers reach **every public site** (`*`). Private, link-local, loopback
+and cloud metadata addresses stay blocked in every workspace. To restrict browsers, an owner or admin
+turns on **Only allow confirmed sites**; browsers then reach only **confirmed origins**. Enforcement
+stays off until someone turns it on, and a workspace that already set the switch keeps its choice.
 
 - Anyone who may drive a browser, agents included, can **propose** an origin
   (`scheme://host[:port]`). It stays `pending`.
@@ -202,6 +203,10 @@ third-party site until one is confirmed.
 - Changes apply to pods started afterwards: suspend and resume a running session to pick them up.
 - When a page does not load, the session events show `egress_denied` entries naming the origin and
   the reason.
+- A [public recipe](#recipes) from another workspace runs only on an origin your workspace has
+  confirmed, even while enforcement is off, because it may take your workspace's secrets as
+  parameters.
+- The [Site API map](#site-api-map) records nothing until enforcement is on.
 
 ## Site API map and Action Maps {#site-api-map}
 
@@ -323,7 +328,8 @@ reason `off`.
 
 **Public recipes** are read-only, on public sites that need no login, reviewed by a platform admin
 before listing, and carry no data from the source workspace. Every workspace sees the same catalog
-and runs a public recipe in its own session under its own allow-list.
+and runs a public recipe in its own session, only on an origin that workspace has confirmed, even
+while its [allow-list](#allow-list) is not enforced.
 
 ## Guard, replay and self-heal {#guard}
 

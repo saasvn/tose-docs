@@ -200,7 +200,9 @@ tose browser allowlist list
 tose browser allowlist propose <origin>
 ```
 
-While enforcement is on (the default) a workspace's browsers reach only confirmed origins. `list`
+By default a workspace's browsers reach every public site; private and internal addresses stay
+blocked. While enforcement is on, which a signed-in owner or admin turns on, they reach only
+confirmed origins. `list`
 shows the switch and each origin; `propose` asks for one and leaves it `pending`. Confirming or
 removing an origin is for a signed-in owner or admin in the dashboard, so the CLI has no command for
 it.

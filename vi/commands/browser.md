@@ -200,7 +200,8 @@ tose browser allowlist list
 tose browser allowlist propose <origin>
 ```
 
-Khi chế độ chặn bật (mặc định), browser của workspace chỉ tới được origin đã xác nhận. `list` hiện công
+Mặc định browser của workspace tới được mọi site công khai; địa chỉ riêng tư và nội bộ vẫn bị chặn.
+Khi chế độ chặn bật (do owner hoặc admin đã đăng nhập bật), browser chỉ tới được origin đã xác nhận. `list` hiện công
 tắc và từng origin; `propose` đề xuất một origin và để nó ở `pending`. Xác nhận hay gỡ origin là việc
 của owner hoặc admin đã đăng nhập trên dashboard, nên CLI không có lệnh cho việc đó.
 
