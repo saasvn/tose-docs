@@ -33,12 +33,12 @@ call that API instead.
 | Leases, takeover by a person, fencing of older leases | Available |
 | Typed actions, compact snapshots, typed errors with `next_step` | Available |
 | Approvals for the sensitive actions run by an agent | Available (a signed-in owner or admin approves on REST or the dashboard approve page) |
-| Pending approval requests of a session | Available (REST, and the session page lists them for owners and admins) |
+| Pending approval requests of a session | Available (REST, the CLI's [`approvals`](/commands/browser#approvals), and the session page lists them for owners and admins) |
 | Workspace origin allow-list and egress proxy | Available (proposals from REST and CLI; confirmation by a signed-in admin on REST or the dashboard) |
 | Dashboard: browser list, live view, takeover, approve page, allowed sites, profiles, recipes | Available (the self-heal page is listed below) |
 | [Session page](#session-page): address bar, back, forward, reload, stop, direct input, tabs, screenshots, downloads | Available (dashboard; the actions behind it on REST and MCP) |
 | [Watching an agent](#watch) from the dashboard | Available (dashboard, with a view ticket from REST) |
-| History, viewport, pointer, scroll, `type_text` and `download` actions | Available (REST, MCP); not in a CLI release yet ([tose-cli#153](https://github.com/saasvn/tose-cli/issues/153)) |
+| History, viewport, pointer, scroll, `type_text` and `download` actions | Available (REST, MCP); the CLI's [`stop` and `download`](/commands/browser#downloads) are documented but not in a published release yet, and the other actions have no CLI command |
 | MCP browser tools with approval delivery | Available |
 | In-chat live view (MCP Apps) | Available; taking over opens the dashboard session page |
 | Profiles: vault, grants, sharing, import, re-login | Available (REST, dashboard, CLI) |

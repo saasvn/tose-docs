@@ -32,12 +32,12 @@ API đó.
 | Lease, người tiếp quản, chặn (fencing) lease cũ | Đã có |
 | Thao tác có kiểu, snapshot gọn, lỗi có mã kèm `next_step` | Đã có |
 | Phê duyệt cho các thao tác nhạy cảm do agent chạy | Đã có (owner hoặc admin đã đăng nhập duyệt qua REST hoặc trang duyệt trên dashboard) |
-| Yêu cầu phê duyệt đang chờ của một phiên | Đã có (REST, và trang phiên liệt kê chúng cho owner và admin) |
+| Yêu cầu phê duyệt đang chờ của một phiên | Đã có (REST, [`approvals`](/vi/commands/browser#approvals) của CLI, và trang phiên liệt kê chúng cho owner và admin) |
 | Danh sách origin được phép của workspace và egress proxy | Đã có (đề xuất qua REST và CLI; admin đã đăng nhập xác nhận qua REST hoặc dashboard) |
 | Dashboard: danh sách browser, xem trực tiếp, tiếp quản, trang duyệt, site được phép, profile, recipe | Đã có (trang tự phục hồi nằm ở dòng bên dưới) |
 | [Trang phiên](#session-page): thanh địa chỉ, quay lại, tiến tới, tải lại, dừng, thao tác trực tiếp, tab, ảnh chụp màn hình, tệp tải xuống | Đã có (dashboard; các thao tác phía sau có trên REST và MCP) |
 | [Theo dõi agent](#watch) từ dashboard | Đã có (dashboard, với vé xem từ REST) |
-| Thao tác history, viewport, pointer, scroll, `type_text` và `download` | Đã có (REST, MCP); chưa có trong bản CLI phát hành nào ([tose-cli#153](https://github.com/saasvn/tose-cli/issues/153)) |
+| Thao tác history, viewport, pointer, scroll, `type_text` và `download` | Đã có (REST, MCP); [`stop` và `download`](/vi/commands/browser#downloads) của CLI đã có tài liệu nhưng chưa nằm trong bản phát hành nào, các thao tác còn lại chưa có lệnh CLI |
 | Tool MCP cho browser kèm giao yêu cầu phê duyệt | Đã có |
 | Xem trực tiếp trong chat (MCP Apps) | Đã có; tiếp quản mở trang phiên trên dashboard |
 | Profile: vault, grant, chia sẻ, import, đăng nhập lại | Đã có (REST, dashboard, CLI) |
