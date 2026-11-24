@@ -11,8 +11,8 @@ thật. [Site API map](#site-api-map) cùng thao tác `fetch` và việc ghi bod
 chạy lại không cần browser và [tự phục hồi](#guard) **đã bật trên TOSE cloud; mỗi workspace cần admin
 thiết lập**: owner hoặc admin đã đăng nhập xác nhận origin, bật endpoint `GET`, xác minh Action Map,
 duyệt lời gọi, bật công tắc tự phục hồi của workspace. Vẫn **chưa bật trên TOSE cloud**: gợi ý
-System One và [lớp bảo vệ nội dung](#guard) cho thao tác browser và lượt chạy recipe; ghép nối Chrome
-companion chưa được xây. [Bảng trạng thái](#status) nêu rõ từng phần.
+System One và [lớp bảo vệ nội dung](#guard) cho thao tác browser và lượt chạy recipe. [Ghép thiết
+bị](#pair-device) với Chrome companion đã bật trên TOSE cloud. [Bảng trạng thái](#status) nêu rõ từng phần.
 :::
 
 Agent browser cho workspace một Chromium được host mà người hoặc AI agent điều khiển qua **thao tác
@@ -41,7 +41,8 @@ API đó.
 | Tool MCP cho browser kèm giao yêu cầu phê duyệt | Đã có |
 | Xem trực tiếp trong chat (MCP Apps) | Đã có; tiếp quản mở trang phiên trên dashboard |
 | Profile: vault, grant, chia sẻ, import, đăng nhập lại | Đã có (REST, dashboard, CLI) |
-| Companion cho Chrome trên máy | Đã có để import phiên đăng nhập từ dashboard; ghép thiết bị và helper trên máy chưa được xây |
+| Companion cho Chrome trên máy | Đã có để import phiên đăng nhập từ dashboard |
+| Ghép thiết bị với companion | Đã có ([ghép thiết bị](#pair-device) trên dashboard và helper `tose-companion`; liệt kê, đổi tên, thu hồi qua REST, MCP, [CLI](/vi/commands/browser) và dashboard); hiện chưa có gì dùng thiết bị đã ghép |
 | Action recipe, lượt chạy lại bền vững, recipe receipt | Đã có (REST, dashboard, CLI) |
 | Recipe công khai | Đã có (REST, và CLI [`recipes find`](/vi/commands/browser#recipes); admin nền tảng xét duyệt từng recipe trước khi đăng) |
 | Tra cứu kiến thức và `goal` của snapshot | Đã có (REST, MCP, CLI); gợi ý System One chưa bật trên TOSE cloud |
@@ -329,9 +330,41 @@ browser trống và mất trạng thái khi tạm dừng.
 Một extension Chrome cho người dùng lại phiên đăng nhập trong Chrome của mình mà không tải profile
 lên. Trên *Browsers → Hồ sơ đăng nhập*, họ chọn *Nhập từ trình duyệt của tôi*, chọn một origin của profile và xác
 nhận trong cửa sổ đồng ý riêng của extension; extension chỉ đọc trạng thái của origin đó và chỉ trả
-lời dashboard TOSE. Ghép thiết bị và helper trên máy đã có thiết kế nhưng chưa được xây. Giới hạn đã
+lời dashboard TOSE. Có thể [ghép thiết bị](#pair-device) với helper `tose-companion`. Giới hạn đã
 biết: passkey và khóa bảo mật không bao giờ được sao chép, cookie gắn thiết bị chỉ dùng được ít phút,
 thử thách SSO và 2FA cần người làm, và site gắn phiên với IP hay thiết bị có thể đăng xuất bản sao.
+
+#### Ghép thiết bị {#pair-device}
+
+Ghép thiết bị đăng ký một máy với helper `tose-companion`. Tính năng đã bật trên TOSE cloud
+(`BROWSER_COMPANION_PAIRING_ENABLED`). Hiện chưa có gì dùng thiết bị đã ghép: việc ghép chuẩn bị cho
+các tính năng helper vẫn đang ở mức thiết kế, chưa được xây.
+
+1. Người đã đăng nhập mở *Browsers → Devices*, đặt tên thiết bị và bấm *Pair a device*. TOSE hiển thị
+   một lần mã dùng một lần (`XXXX-XXXX`), có hiệu lực 5 phút; đoán sai 5 lần thì mã bị huỷ.
+2. Trên thiết bị, chạy `tose-companion pair --code XXXX-XXXX`. Helper hiện workspace và tài khoản của
+   mã trước, rồi hỏi có tiếp tục không. Sau đó helper tạo khoá Ed25519, giữ khoá riêng trong kho khoá
+   của hệ điều hành (DPAPI trên Windows, Keychain trên macOS, Secret Service trên Linux; không có kho
+   khoá thì từ chối ghép, không bao giờ lưu ra file thường), nhận mã và in dấu vân tay khoá.
+3. Chính người đó gõ dấu vân tay ấy vào dòng thiết bị và xác nhận. Dashboard không bao giờ hiện dấu vân
+   tay trước khi xác nhận, nên chỉ lấy được mã thì không kích hoạt được thiết bị. Lượt nhận mã chưa xác
+   nhận hết hạn sau 15 phút.
+
+Mọi yêu cầu sau đó của helper đều được ký kèm thời điểm và một nonce dùng một lần. Trên thiết bị,
+`tose-companion status` hiện thiết bị đã ghép và `tose-companion unpair` thu hồi nó.
+
+| Quản lý thiết bị | Dashboard | REST | MCP | CLI |
+|---|---|---|---|---|
+| Liệt kê | *Browsers → Devices* | `GET .../browser-devices` | `browser_devices_list` | `tose browser devices list` |
+| Đổi tên | Dòng thiết bị | `PATCH .../browser-devices/{id}` | `browser_devices_rename` | `tose browser devices rename` |
+| Thu hồi | Dòng thiết bị | `POST .../browser-devices/{id}/revoke` | `browser_devices_revoke` | `tose browser devices revoke` |
+
+Bắt đầu và xác nhận ghép chỉ dành cho người; agent nhận `HUMAN_APPROVAL_REQUIRED`. Agent được liệt kê,
+đổi tên và thu hồi thiết bị của người dùng mà nó đại diện (`browser:read` để liệt kê,
+`browser:control` để thay đổi). Chủ thiết bị, hoặc owner hay admin của workspace, có thể thu hồi; yêu
+cầu đã ký của thiết bị bị từ chối ngay, còn phiên đăng nhập đã lưu không bị xoá. Mọi lần bắt đầu, nhận
+mã, xác nhận, đổi tên và thu hồi đều nằm trong audit log. Helper cũ hơn phiên bản tối thiểu của server
+(`BROWSER_COMPANION_MIN_VERSION`, mặc định `0.1.0`) bị từ chối với `DEVICE_CLIENT_TOO_OLD`.
 
 ## Recipe {#recipes}
 
